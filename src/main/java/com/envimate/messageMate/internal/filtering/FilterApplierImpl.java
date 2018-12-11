@@ -1,0 +1,90 @@
+/*
+ * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package com.envimate.messageMate.internal.filtering;
+
+import com.envimate.messageMate.filtering.Filter;
+import com.envimate.messageMate.filtering.FilterActions;
+import com.envimate.messageMate.internal.eventloop.TransportEventLoop;
+import com.envimate.messageMate.subscribing.Subscriber;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+final class FilterApplierImpl<T> implements FilterApplier<T> {
+    private final TransportEventLoop<T> transportEventLoop;
+
+    @Override
+    public void applyAll(final T message,
+                         final List<Filter<T>> filters,
+                         final List<Subscriber<T>> receivers,
+                         final PostFilterActions<T> postFilterActions) {
+        if (filters.isEmpty()) {
+            postFilterActions.onAllPassed(message);
+            return;
+        }
+
+        final CurrentFilterActions filterActions = new CurrentFilterActions(filters, receivers, postFilterActions);
+        final Filter<T> firstFilter = filters.get(0);
+        firstFilter.apply(message, receivers, filterActions);
+        if (filterActions.messageWasForgotten()) {
+            transportEventLoop.messageForgottenByFilter(message);
+        }
+    }
+
+    @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+    private final class CurrentFilterActions implements FilterActions<T> {
+        private final List<Filter<T>> filters;
+        private final List<Subscriber<T>> receivers;
+        private final PostFilterActions<T> postFilterActions;
+        private int currentFilterIndex;
+        private boolean messageNotForgotten;
+
+        @Override
+        public void block(final T message) {
+            messageNotForgotten = true;
+            postFilterActions.onBlock(message);
+        }
+
+        @Override
+        public void replace(final T message) {
+            messageNotForgotten = true;
+            postFilterActions.onReplaced(message);
+        }
+
+        @Override
+        public void pass(final T message) {
+            if (++currentFilterIndex < filters.size()) {
+                final Filter<T> nextFilter = filters.get(currentFilterIndex);
+                nextFilter.apply(message, receivers, this);
+            } else {
+                messageNotForgotten = true;
+                postFilterActions.onAllPassed(message);
+            }
+        }
+
+        public boolean messageWasForgotten() {
+            return !messageNotForgotten;
+        }
+    }
+}
