@@ -88,7 +88,7 @@ final class StatisticsCollectorImpl implements StatisticsCollector {
 
     @Override
     public void informDeliveryStarted() {
-        final long tmp = currentlyDeliveredMessages.incrementAndGet();
+        currentlyDeliveredMessages.incrementAndGet();
     }
 
     @Override

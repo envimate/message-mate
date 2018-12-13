@@ -62,7 +62,8 @@ public final class MessageStatistics {
     }
 
     public Date getTimestamp() {
-        return timestamp;
+        final long copyForSafeSharing = timestamp.getTime();
+        return new Date(copyForSafeSharing);
     }
 
     public BigInteger getAcceptedMessages() {
