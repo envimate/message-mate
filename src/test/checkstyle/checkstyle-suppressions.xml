@@ -31,7 +31,12 @@
     <suppress checks="HideUtilityClassConstructor" files="MessageAcceptingStrategyAbstractFactory.java" />
     <suppress checks="HideUtilityClassConstructor" files="AbstractDeliveryStrategyFactory.java" />
     <suppress checks="HideUtilityClassConstructor" files="StringValidator.java" />
+    <suppress checks="HideUtilityClassConstructor" files="QueryResolverFactory.java" />
+    <suppress checks="HideUtilityClassConstructor" files="ConstraintEnforcerFactory.java" />
+    <suppress checks="HideUtilityClassConstructor" files="NotNullEnforcer.java" />
+    <suppress checks="HideUtilityClassConstructor" files="EventBusFactory.java" />
     <suppress checks="ParameterNumber" files="MessageStatistics.java" />
     <suppress checks="IllegalCatch" files="SynchronousDeliveryStrategy.java" />
     <suppress checks="IllegalCatch" files="AsynchronousDeliveryStrategy.java" />
+    <suppress checks="VisibilityModifierCheck" files="AbstractSharedAnswerImpl.java" />
 </suppressions>

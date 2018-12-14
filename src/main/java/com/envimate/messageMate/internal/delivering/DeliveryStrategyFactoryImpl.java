@@ -21,6 +21,7 @@
 
 package com.envimate.messageMate.internal.delivering;
 
+import com.envimate.messageMate.configuration.ExceptionCatchingCondition;
 import com.envimate.messageMate.internal.eventloop.DeliveryEventLoop;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +35,8 @@ public final class DeliveryStrategyFactoryImpl<T> implements DeliveryStrategyFac
     public DeliveryStrategy<T> createNew(final DeliveryEventLoop<T> eventLoop) {
         switch (deliveryType) {
             case SYNCHRONOUS:
-                return new SynchronousDeliveryStrategy<>(eventLoop);
+                final ExceptionCatchingCondition exceptionCatchingCondition = configuration.getExceptionCatchingCondition();
+                return new SynchronousDeliveryStrategy<>(eventLoop, exceptionCatchingCondition);
             case ASYNCHRONOUS:
                 return new AsynchronousDeliveryStrategy<>(configuration, eventLoop);
             default:

@@ -21,6 +21,7 @@
 
 package com.envimate.messageMate.messageBus;
 
+import com.envimate.messageMate.configuration.ExceptionCatchingCondition;
 import com.envimate.messageMate.configuration.MessageBusConfiguration;
 import com.envimate.messageMate.internal.accepting.MessageAcceptingStrategyFactory;
 import com.envimate.messageMate.internal.brokering.BrokerStrategy;
@@ -78,6 +79,11 @@ public final class MessageBusBuilder {
 
     public MessageBusBuilder withMessageBusConfiguration(@NonNull final MessageBusConfiguration messageBusConfiguration) {
         this.messageBusConfiguration = messageBusConfiguration;
+        return this;
+    }
+
+    public MessageBusBuilder withExceptionCatchingCondition(final ExceptionCatchingCondition exceptionCatchingCondition) {
+        this.messageBusConfiguration.setExceptionCatchingCondition(exceptionCatchingCondition);
         return this;
     }
 

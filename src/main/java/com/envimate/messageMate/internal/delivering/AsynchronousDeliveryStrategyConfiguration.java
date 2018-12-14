@@ -22,6 +22,7 @@
 package com.envimate.messageMate.internal.delivering;
 
 import com.envimate.messageMate.configuration.ChannelConfiguration;
+import com.envimate.messageMate.configuration.ExceptionCatchingCondition;
 import com.envimate.messageMate.configuration.MessageBusConfiguration;
 import lombok.*;
 
@@ -32,19 +33,34 @@ import java.util.concurrent.TimeUnit;
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class AsynchronousDeliveryStrategyConfiguration {
+
+    @Getter
     private final BlockingQueue<Runnable> workingQueue;
+
+    @Getter
     private final TimeUnit timeUnit;
+
+    @Getter
     private final int timeout;
+
+    @Getter
     private final int maximumPoolSize;
+
+    @Getter
     private final int corePoolSize;
+
+    @Getter
+    private final ExceptionCatchingCondition exceptionCatchingCondition;
 
     public static AsynchronousDeliveryStrategyConfiguration asynchronousDeliveryStrategyConfiguration(
             @NonNull final BlockingQueue<Runnable> workingQueue,
             @NonNull final TimeUnit timeUnit,
             @NonNull final int timeout,
             @NonNull final int maximumPoolSize,
-            @NonNull final int corePoolSize) {
-        return new AsynchronousDeliveryStrategyConfiguration(workingQueue, timeUnit, timeout, maximumPoolSize, corePoolSize);
+            @NonNull final int corePoolSize,
+            @NonNull final ExceptionCatchingCondition exceptionCatchingCondition) {
+        return new AsynchronousDeliveryStrategyConfiguration(workingQueue, timeUnit, timeout, maximumPoolSize,
+                corePoolSize, exceptionCatchingCondition);
     }
 
     public static AsynchronousDeliveryStrategyConfiguration fromMessageBusConfiguration(
@@ -54,8 +70,9 @@ public final class AsynchronousDeliveryStrategyConfiguration {
         final int maximumTimeout = configuration.getMaximumTimeout();
         final int maximumPoolSize = configuration.getMaximumPoolSize();
         final int corePoolSize = configuration.getCorePoolSize();
+        final ExceptionCatchingCondition exceptionCatchingCondition = configuration.getExceptionCatchingCondition();
         return asynchronousDeliveryStrategyConfiguration(threadPoolWorkingQueue, timeoutTimeUnit, maximumTimeout,
-                maximumPoolSize, corePoolSize);
+                maximumPoolSize, corePoolSize, exceptionCatchingCondition);
     }
 
     public static AsynchronousDeliveryStrategyConfiguration fromChannelConfiguration(
@@ -65,27 +82,9 @@ public final class AsynchronousDeliveryStrategyConfiguration {
         final int maximumTimeout = configuration.getMaximumTimeout();
         final int maximumPoolSize = configuration.getMaximumPoolSize();
         final int corePoolSize = configuration.getCorePoolSize();
+        final ExceptionCatchingCondition exceptionCatchingCondition = configuration.getExceptionCatchingCondition();
         return asynchronousDeliveryStrategyConfiguration(threadPoolWorkingQueue, timeoutTimeUnit, maximumTimeout,
-                maximumPoolSize, corePoolSize);
+                maximumPoolSize, corePoolSize, exceptionCatchingCondition);
     }
 
-    public BlockingQueue<Runnable> getWorkingQueue() {
-        return workingQueue;
-    }
-
-    public TimeUnit getTimeUnit() {
-        return timeUnit;
-    }
-
-    public int getTimeout() {
-        return timeout;
-    }
-
-    public int getMaximumPoolSize() {
-        return maximumPoolSize;
-    }
-
-    public int getCorePoolSize() {
-        return corePoolSize;
-    }
 }

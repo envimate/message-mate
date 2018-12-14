@@ -29,6 +29,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import static com.envimate.messageMate.configuration.ExceptionCatchingCondition.allCatchingExceptionCondition;
+
 @ToString
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
@@ -67,6 +69,10 @@ public final class MessageBusConfiguration {
     @Getter
     @Setter
     private BrokerStrategyType brokerStrategyType = BrokerStrategyType.DELIVERY_TO_SAME_CLASS_AS_MESSAGE;
+
+    @Getter
+    @Setter
+    private ExceptionCatchingCondition exceptionCatchingCondition = allCatchingExceptionCondition();
 
     public static MessageBusConfiguration defaultConfiguration() {
         return new MessageBusConfiguration();

@@ -28,6 +28,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import static com.envimate.messageMate.configuration.ExceptionCatchingCondition.allCatchingExceptionCondition;
+
 @ToString
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
@@ -61,6 +63,10 @@ public final class ChannelConfiguration {
     @Getter
     @Setter
     private BlockingQueue<Runnable> threadPoolWorkingQueue = DEFAULT_WORKING_QUEUE;
+
+    @Getter
+    @Setter
+    private ExceptionCatchingCondition exceptionCatchingCondition = allCatchingExceptionCondition();
 
     public static ChannelConfiguration defaultConfiguration() {
         return new ChannelConfiguration();

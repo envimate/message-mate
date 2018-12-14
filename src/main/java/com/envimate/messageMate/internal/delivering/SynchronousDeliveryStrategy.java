@@ -21,6 +21,7 @@
 
 package com.envimate.messageMate.internal.delivering;
 
+import com.envimate.messageMate.configuration.ExceptionCatchingCondition;
 import com.envimate.messageMate.internal.eventloop.DeliveryEventLoop;
 import com.envimate.messageMate.messages.ExceptionInSubscriberException;
 import com.envimate.messageMate.messages.NoSuitableSubscriberException;
@@ -35,6 +36,7 @@ import java.util.List;
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 final class SynchronousDeliveryStrategy<T> implements DeliveryStrategy<T> {
     private final DeliveryEventLoop<T> eventLoop;
+    private final ExceptionCatchingCondition exceptionCatchingCondition;
 
     @Override
     public void deliver(final T message, final List<Subscriber<T>> subscriberList) {
@@ -44,7 +46,6 @@ final class SynchronousDeliveryStrategy<T> implements DeliveryStrategy<T> {
             final NoSuitableSubscriberException cause = new NoSuitableSubscriberException();
             eventLoop.messageDeliveryFailure(message, cause);
         } else {
-            boolean deliveryWithoutError = true;
             for (final Subscriber<T> subscriber : localList) {
                 try {
                     final boolean proceedWithDelivery = subscriber.accept(message);
@@ -53,14 +54,17 @@ final class SynchronousDeliveryStrategy<T> implements DeliveryStrategy<T> {
                         return;
                     }
                 } catch (final Exception e) {
-                    final ExceptionInSubscriberException cause = new ExceptionInSubscriberException(e);
-                    eventLoop.messageDeliveryFailure(message, cause);
-                    deliveryWithoutError = false;
+                    if (exceptionCatchingCondition.shouldBeCaught(e)) {
+                        final ExceptionInSubscriberException cause = new ExceptionInSubscriberException(e);
+                        eventLoop.messageDeliveryFailure(message, cause);
+                        return;
+                    } else {
+                        eventLoop.messageDeliverySuccess(message);
+                        throw e;
+                    }
                 }
             }
-            if (deliveryWithoutError) {
-                eventLoop.messageDeliverySuccess(message);
-            }
+            eventLoop.messageDeliverySuccess(message);
         }
     }
 
