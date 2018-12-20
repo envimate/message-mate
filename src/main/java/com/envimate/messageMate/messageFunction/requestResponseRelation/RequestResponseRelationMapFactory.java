@@ -19,12 +19,19 @@
  * under the License.
  */
 
-package com.envimate.messageMate.internal.brokering;
+package com.envimate.messageMate.messageFunction.requestResponseRelation;
 
-public enum BrokerStrategyType {
-    DELIVERY_TO_SAME_CLASS_AS_MESSAGE,
-    DELIVERY_TO_SAME_CLASS_AS_QUERY,
-    DELIVERY_TO_SAME_CLASS_ONLY,
-    DELIVERY_TO_CLASS_AND_DIRECT_INHERITED_INTERFACES,
-    QUERY_RESOLVING_STRATEGY
+import com.envimate.messageMate.messageFunction.correlationIdExtracting.CorrelationIdExtractor;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+
+import static com.envimate.messageMate.messageFunction.requestResponseRelation.RequestResponseRelationMapImpl.requestResponseRelationMap;
+
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public final class RequestResponseRelationMapFactory {
+    public static <R, S> RequestResponseRelationMap<R, S> aRequestResponseRelationMap(
+            final CorrelationIdExtractor<R> requestCorrelationIdExtractor,
+            final CorrelationIdExtractor<S> responseCorrelationIdExtractor) {
+        return requestResponseRelationMap(requestCorrelationIdExtractor, responseCorrelationIdExtractor);
+    }
 }

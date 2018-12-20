@@ -47,7 +47,7 @@ public final class DocumentBusBuilder {
 
     public static DocumentBus aDefaultDocumentBus() {
         final MessageBus queryMessageBus = aMessageBus()
-                .withBrokerType(BrokerStrategyType.DELIVERY_TO_CLASS_AND_DIRECT_INHERITED_INTERFACES)
+                .withBrokerType(BrokerStrategyType.QUERY_RESOLVING_STRATEGY)
                 .build();
         final MessageBus constraintMessageBus = aMessageBus()
                 .withExceptionCatchingCondition(e -> false)

@@ -9,4 +9,5 @@ public enum TestEnvironmentProperty {
     EXPECTED_RECEIVERS,
     RECEIVERS,
     TEST_OBJECT,
+    MOCK,
 }

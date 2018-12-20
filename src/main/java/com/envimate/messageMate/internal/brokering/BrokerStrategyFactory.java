@@ -43,6 +43,8 @@ public final class BrokerStrategyFactory {
                 return new LockingBrokerStrategy(new HashMapBasedBrokerStrategy());
             case DELIVERY_TO_CLASS_AND_DIRECT_INHERITED_INTERFACES:
                 return new DirectInheritedInterfaceIncludingBrokerStrategy();
+            case QUERY_RESOLVING_STRATEGY:
+                return new QueryResolvingBrokerStrategy();
             default:
                 throw new UnknownBrokerStrategyTypeException("No broker strategy for type " + strategyType);
         }

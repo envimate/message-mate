@@ -1,6 +1,7 @@
 package com.envimate.messageMate.qcec.querying;
 
 import com.envimate.messageMate.qcec.querying.givenWhenThen.TestQueryResolver;
+import com.envimate.messageMate.qcec.shared.testQueries.SpecificQuery;
 import com.envimate.messageMate.qcec.shared.testQueries.SuperclassTestQuery;
 import com.envimate.messageMate.qcec.shared.testQueries.TestQuery;
 import org.junit.jupiter.api.Test;
@@ -84,5 +85,19 @@ public interface QueryResolvingSpecs {
         given(aQueryResolver)
                 .when(aQueryIsExecutedThatExpectsAResultButDidThrowAnException())
                 .expect(aExceptionForNoResultButOneWasRequired());
+    }
+
+    @Test
+    default void testQueryResolver_allowsDifferentRegisteredQueries(final TestQueryResolver aQueryResolver) {
+        final int expectedResult = 5;
+        given(aQueryResolver
+                .withASubscriber(TestQuery.class, q -> {
+                    q.setResult(expectedResult);
+                    q.finishQuery();
+                })
+                .withASubscriber(SpecificQuery.class, specificQuery -> {
+                }))
+                .when(theQueryIsExecuted(TestQuery.aTestQuery()))
+                .expect(theResult(expectedResult));
     }
 }

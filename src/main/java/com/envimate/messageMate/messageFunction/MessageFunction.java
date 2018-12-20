@@ -19,12 +19,10 @@
  * under the License.
  */
 
-package com.envimate.messageMate.internal.brokering;
+package com.envimate.messageMate.messageFunction;
 
-public enum BrokerStrategyType {
-    DELIVERY_TO_SAME_CLASS_AS_MESSAGE,
-    DELIVERY_TO_SAME_CLASS_AS_QUERY,
-    DELIVERY_TO_SAME_CLASS_ONLY,
-    DELIVERY_TO_CLASS_AND_DIRECT_INHERITED_INTERFACES,
-    QUERY_RESOLVING_STRATEGY
+public interface MessageFunction<R, S> extends AutoCloseable {
+
+    ResponseFuture<S> request(R request);
+
 }

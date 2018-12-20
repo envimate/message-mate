@@ -18,7 +18,7 @@ public final class QueryResolverTestQueryResolver extends TestQueryResolver {
 
     private QueryResolverTestQueryResolver() {
         final MessageBus messageBus = aMessageBus()
-                .withBrokerType(BrokerStrategyType.DELIVERY_TO_CLASS_AND_DIRECT_INHERITED_INTERFACES)
+                .withBrokerType(BrokerStrategyType.QUERY_RESOLVING_STRATEGY)
                 .build();
         queryResolver = QueryResolverFactory.aQueryResolver(messageBus);
     }

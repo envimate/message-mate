@@ -19,12 +19,9 @@
  * under the License.
  */
 
-package com.envimate.messageMate.internal.brokering;
+package com.envimate.messageMate.messageFunction.building;
 
-public enum BrokerStrategyType {
-    DELIVERY_TO_SAME_CLASS_AS_MESSAGE,
-    DELIVERY_TO_SAME_CLASS_AS_QUERY,
-    DELIVERY_TO_SAME_CLASS_ONLY,
-    DELIVERY_TO_CLASS_AND_DIRECT_INHERITED_INTERFACES,
-    QUERY_RESOLVING_STRATEGY
+public interface Step2ResponseTypMessageFunctionBuilder<R> {
+
+    <S> Step4MessageFunctionBuilder<R, S> forResponseType(Class<S> responseClass);
 }

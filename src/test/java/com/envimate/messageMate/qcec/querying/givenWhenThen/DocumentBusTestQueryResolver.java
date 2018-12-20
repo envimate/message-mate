@@ -4,17 +4,17 @@ import com.envimate.messageMate.qcec.domainBus.DocumentBus;
 import com.envimate.messageMate.qcec.domainBus.DocumentBusBuilder;
 import com.envimate.messageMate.qcec.queryresolving.Query;
 import com.envimate.messageMate.subscribing.SubscriptionId;
-import lombok.RequiredArgsConstructor;
 
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import static lombok.AccessLevel.PRIVATE;
-
-@RequiredArgsConstructor(access = PRIVATE)
 public final class DocumentBusTestQueryResolver extends TestQueryResolver {
 
-    private final DocumentBus documentBus = DocumentBusBuilder.aDefaultDocumentBus();
+    private final DocumentBus documentBus;
+
+    private DocumentBusTestQueryResolver() {
+        documentBus = DocumentBusBuilder.aDefaultDocumentBus();
+    }
 
     public static DocumentBusTestQueryResolver documentBusTestQueryResolver() {
         return new DocumentBusTestQueryResolver();

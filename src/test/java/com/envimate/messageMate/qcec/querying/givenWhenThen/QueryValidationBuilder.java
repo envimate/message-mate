@@ -14,6 +14,7 @@ import static lombok.AccessLevel.PRIVATE;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.fail;
 
 @RequiredArgsConstructor(access = PRIVATE)
 public final class QueryValidationBuilder {
@@ -68,7 +69,10 @@ public final class QueryValidationBuilder {
 
     private static void ensureNoExceptionOccurred(final TestEnvironment testEnvironment) {
         final boolean exceptionOccurred = testEnvironment.has(EXCEPTION);
-        assertFalse(exceptionOccurred);
+        if (exceptionOccurred) {
+            final Exception thrownException = testEnvironment.getPropertyAsType(EXCEPTION, Exception.class);
+            fail("Expected no exception but got " + thrownException.getClass(), thrownException);
+        }
     }
 
     public TestValidation build() {
