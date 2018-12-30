@@ -22,9 +22,12 @@
 package com.envimate.messageMate.messageFunction.responseHandling;
 
 import com.envimate.messageMate.messageFunction.responseMatching.ExpectedResponse;
+import com.envimate.messageMate.messages.DeliveryFailedMessage;
 import com.envimate.messageMate.subscribing.Subscriber;
 
 public interface ResponseHandlingSubscriber<T> extends Subscriber<T> {
 
     void addResponseMatcher(ExpectedResponse<T> expectedResponse);
+
+    Subscriber<DeliveryFailedMessage> getDeliveryFailedHandler();
 }

@@ -1,5 +1,8 @@
-package com.envimate.messageMate.messageFunction;
+package com.envimate.messageMate.messageFunction.givenWhenThen;
 
+import com.envimate.messageMate.messageFunction.MessageFunction;
+import com.envimate.messageMate.messageFunction.testResponses.TestRequest;
+import com.envimate.messageMate.messageFunction.testResponses.TestResponse;
 import com.envimate.messageMate.qcec.shared.TestAction;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.qcec.shared.TestValidation;

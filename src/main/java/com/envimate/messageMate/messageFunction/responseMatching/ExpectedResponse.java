@@ -31,21 +31,26 @@ import java.util.Optional;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ExpectedResponse<S> {
+    private final Object request;
     private final List<ResponseMatcher<S>> responseMatchers;
     private final ExpectedResponseFuture<S> future = ExpectedResponseFuture.expectedResponseFuture();
     private MatchResult<S> lastMatchResult;
 
-    public static <S> ExpectedResponse<S> forRequest(final List<ResponseMatcher<S>> responseMatchers) {
-        return new ExpectedResponse<>(responseMatchers);
+    public static <S> ExpectedResponse<S> forRequest(final Object request, final List<ResponseMatcher<S>> responseMatchers) {
+        return new ExpectedResponse<>(request, responseMatchers);
     }
 
-    public boolean matches(final S response) {
+    public boolean matchesResponse(final S response) {
         if (future.isCancelled()) {
             return false;
         } else {
             final MatchResult<S> matchResult = matchResult(response);
             return matchResult.didMatch(response);
         }
+    }
+
+    public boolean matchesRequest(final Object request) {
+        return this.request.equals(request);
     }
 
     public ResponseFuture<S> getAssociatedFuture() {
@@ -60,6 +65,10 @@ public final class ExpectedResponse<S> {
         } else {
             throw new CannotFulfillFutureWithNotMatchingResponseException("Response " + response + " was no expected.");
         }
+    }
+
+    public void fulfillFutureWithException(final Exception e) {
+        future.fullFillWithException(e);
     }
 
     private MatchResult<S> matchResult(final S response) {

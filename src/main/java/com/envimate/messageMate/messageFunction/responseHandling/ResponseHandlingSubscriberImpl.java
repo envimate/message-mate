@@ -22,6 +22,8 @@
 package com.envimate.messageMate.messageFunction.responseHandling;
 
 import com.envimate.messageMate.messageFunction.responseMatching.ExpectedResponse;
+import com.envimate.messageMate.messages.DeliveryFailedMessage;
+import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +39,7 @@ public class ResponseHandlingSubscriberImpl<S> implements ResponseHandlingSubscr
     @Override
     public boolean accept(final S response) {
         for (final ExpectedResponse<S> expectedResponse : expectedResponses) {
-            if (expectedResponse.matches(response)) {
+            if (expectedResponse.matchesResponse(response)) {
                 expectedResponse.fulfillFuture(response);
                 expectedResponses.remove(expectedResponse);
             }
@@ -56,5 +58,28 @@ public class ResponseHandlingSubscriberImpl<S> implements ResponseHandlingSubscr
     @Override
     public SubscriptionId getSubscriptionId() {
         return subscriptionId;
+    }
+
+    @Override
+    public Subscriber<DeliveryFailedMessage> getDeliveryFailedHandler() {
+        return new Subscriber<>() {
+            @Override
+            public boolean accept(final DeliveryFailedMessage message) {
+                for (ExpectedResponse<S> expectedResponse : expectedResponses) {
+                    final Object request = message.getOriginalMessage();
+                    if (expectedResponse.matchesRequest(request)) {
+                        final Exception exception = message.getCause();
+                        expectedResponse.fulfillFutureWithException(exception);
+                        expectedResponses.remove(expectedResponse);
+                    }
+                }
+                return true;
+            }
+
+            @Override
+            public SubscriptionId getSubscriptionId() {
+                return subscriptionId;
+            }
+        };
     }
 }

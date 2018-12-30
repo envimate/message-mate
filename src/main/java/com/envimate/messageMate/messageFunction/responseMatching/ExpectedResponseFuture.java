@@ -34,6 +34,7 @@ final class ExpectedResponseFuture<S> implements ResponseFuture<S> {
     private volatile S response;
     private volatile boolean successful;
     private volatile FollowUpAction<S> followUpAction;
+    private volatile Exception thrownException;
 
     static <S> ExpectedResponseFuture<S> expectedResponseFuture() {
         return new ExpectedResponseFuture<>();
@@ -48,6 +49,12 @@ final class ExpectedResponseFuture<S> implements ResponseFuture<S> {
         }
     }
 
+    public void fullFillWithException(final Exception e) {
+        this.thrownException = e;
+        this.successful = false;
+        countDownLatch.countDown();
+    }
+
     @Override
     public boolean wasSuccessful() {
         return !isCancelled && successful;
@@ -55,7 +62,9 @@ final class ExpectedResponseFuture<S> implements ResponseFuture<S> {
 
     @Override
     public synchronized boolean cancel(final boolean mayInterruptIfRunning) {
-        isCancelled = true;
+        if (!isDone()) {
+            isCancelled = true;
+        }
         countDownLatch.countDown();
         return !alreadyCompleted();
     }
@@ -67,11 +76,15 @@ final class ExpectedResponseFuture<S> implements ResponseFuture<S> {
 
     @Override
     public boolean isDone() {
-        return alreadyCompleted() || isCancelled();
+        return alreadyCompleted() || isCancelled() || hasExceptionInExecution();
     }
 
     private boolean alreadyCompleted() {
         return response != null;
+    }
+
+    private boolean hasExceptionInExecution() {
+        return thrownException != null;
     }
 
     @Override
@@ -83,7 +96,9 @@ final class ExpectedResponseFuture<S> implements ResponseFuture<S> {
                 throw new InterruptedException();
             }
         }
-        if (isCancelled()) {
+        if (hasExceptionInExecution()) {
+            throw new ExecutionException(thrownException);
+        } else if (isCancelled()) {
             throw new CancellationException();
         } else {
             return response;
@@ -104,6 +119,9 @@ final class ExpectedResponseFuture<S> implements ResponseFuture<S> {
         }
         if (isCancelled()) {
             throw new CancellationException();
+        }
+        if (hasExceptionInExecution()) {
+            throw new ExecutionException(thrownException);
         } else {
             return response;
         }

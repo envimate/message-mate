@@ -1,6 +1,5 @@
-package com.envimate.messageMate.messageFunction;
+package com.envimate.messageMate.messageFunction.givenWhenThen;
 
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
 import static lombok.AccessLevel.PACKAGE;

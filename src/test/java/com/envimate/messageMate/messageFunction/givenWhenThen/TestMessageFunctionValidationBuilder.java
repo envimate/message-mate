@@ -1,6 +1,11 @@
-package com.envimate.messageMate.messageFunction;
+package com.envimate.messageMate.messageFunction.givenWhenThen;
 
 import com.envimate.messageMate.correlation.CorrelationId;
+import com.envimate.messageMate.messageFunction.ResponseFuture;
+import com.envimate.messageMate.messageFunction.testResponses.ErrorTestResponse;
+import com.envimate.messageMate.messageFunction.testResponses.RequestResponseFuturePair;
+import com.envimate.messageMate.messageFunction.testResponses.TestRequest;
+import com.envimate.messageMate.messageFunction.testResponses.TestResponse;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.qcec.shared.TestValidation;
 import lombok.RequiredArgsConstructor;
@@ -107,8 +112,31 @@ public final class TestMessageFunctionValidationBuilder {
         return new TestMessageFunctionValidationBuilder(testEnvironment -> {
             final Exception exception = testEnvironment.getPropertyAsType(EXCEPTION, Exception.class);
             assertEquals(exception.getClass(), expectedClass);
-            final String expectedExceptionMessage = testEnvironment.getPropertyAsType(EXPECTED_EXCEPTION_MESSAGE, String.class);
-            assertEquals(exception.getMessage(), expectedExceptionMessage);
+            if (testEnvironment.has(EXPECTED_EXCEPTION_MESSAGE)) {
+                final String expectedExceptionMessage = testEnvironment.getPropertyAsType(EXPECTED_EXCEPTION_MESSAGE, String.class);
+                assertEquals(exception.getMessage(), expectedExceptionMessage);
+            }
+        });
+    }
+
+    public static TestMessageFunctionValidationBuilder expectAFutureToBeFinishedWithException(Class expectedClass) {
+        return new TestMessageFunctionValidationBuilder(testEnvironment -> {
+            final Exception exception = testEnvironment.getPropertyAsType(EXCEPTION, Exception.class);
+            assertEquals(exception.getClass(), expectedClass);
+            final ResponseFuture responseFuture = testEnvironment.getPropertyAsType(RESULT, ResponseFuture.class);
+            assertTrue(responseFuture.isDone());
+            assertFalse(responseFuture.wasSuccessful());
+            assertFalse(responseFuture.isCancelled());
+
+            responseFuture.cancel(true);
+            assertFalse(responseFuture.isCancelled());
+            try {
+                responseFuture.get();
+            } catch (Exception e) {
+                if (!(e instanceof ExecutionException)) {
+                    fail("Unexpected Exception.", e);
+                }
+            }
         });
     }
 

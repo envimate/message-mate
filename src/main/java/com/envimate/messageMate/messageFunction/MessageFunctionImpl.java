@@ -26,6 +26,9 @@ import com.envimate.messageMate.messageFunction.requestResponseRelation.RequestR
 import com.envimate.messageMate.messageFunction.responseHandling.ResponseHandlingSubscriber;
 import com.envimate.messageMate.messageFunction.responseMatching.ExpectedResponse;
 import com.envimate.messageMate.messageFunction.responseMatching.ResponseMatcher;
+import com.envimate.messageMate.messages.DeliveryFailedMessage;
+import com.envimate.messageMate.subscribing.Subscriber;
+import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.NonNull;
 
 import java.util.List;
@@ -46,6 +49,8 @@ final class MessageFunctionImpl<R, S> implements MessageFunction<R, S> {
         for (final Class<S> aClass : responseClassToSubscribe) {
             messageBus.subscribe(aClass, responseHandlingSubscriber);
         }
+        final Subscriber<DeliveryFailedMessage> deliveryFailedHandler = responseHandlingSubscriber.getDeliveryFailedHandler();
+        messageBus.subscribe(DeliveryFailedMessage.class, deliveryFailedHandler);
     }
 
     static <R, S> MessageFunctionImpl<R, S> messageFunction(
@@ -58,7 +63,7 @@ final class MessageFunctionImpl<R, S> implements MessageFunction<R, S> {
     @Override
     public ResponseFuture<S> request(final R request) {
         final List<ResponseMatcher<S>> responseMatchers = requestResponseRelationMap.responseMatchers(request);
-        final ExpectedResponse<S> expectedResponse = ExpectedResponse.forRequest(responseMatchers);
+        final ExpectedResponse<S> expectedResponse = ExpectedResponse.forRequest(request, responseMatchers);
         responseHandlingSubscriber.addResponseMatcher(expectedResponse);
         messageBus.send(request);
         final ResponseFuture<S> responseFuture = expectedResponse.getAssociatedFuture();
@@ -66,7 +71,8 @@ final class MessageFunctionImpl<R, S> implements MessageFunction<R, S> {
     }
 
     @Override
-    public void close() throws Exception {
-        messageBus.close();
+    public void close() {
+        final SubscriptionId subscriptionId = responseHandlingSubscriber.getSubscriptionId();
+        messageBus.unsubcribe(subscriptionId);
     }
 }

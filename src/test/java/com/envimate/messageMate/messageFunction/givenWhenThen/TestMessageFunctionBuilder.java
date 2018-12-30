@@ -1,10 +1,12 @@
-package com.envimate.messageMate.messageFunction;
+package com.envimate.messageMate.messageFunction.givenWhenThen;
 
 import com.envimate.messageMate.correlation.CorrelationId;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusBuilder;
+import com.envimate.messageMate.messageFunction.*;
 import com.envimate.messageMate.messageFunction.building.Step4MessageFunctionBuilder;
 import com.envimate.messageMate.messageFunction.building.Step8FinalMessageFunctionBuilder;
+import com.envimate.messageMate.messageFunction.testResponses.*;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import lombok.RequiredArgsConstructor;
 
@@ -83,6 +85,20 @@ public final class TestMessageFunctionBuilder {
                 .obtainingCorrelationIdsOfRequestsWith(TestRequest::getCorrelationId)
                 .obtainingCorrelationIdsOfResponsesWith(TestResponse::getCorrelationId)
                 .usingMessageBus(messageBus);
+        messageBus.subscribe(SimpleTestRequest.class, simpleTestRequest -> {
+        });
+        return this;
+    }
+
+    public TestMessageFunctionBuilder definedWithReponseThrowingAnException() {
+        finalBuilder = messageFunctionBuilder.with(SimpleTestRequest.class)
+                .answeredBy(SimpleTestResponse.class)
+                .obtainingCorrelationIdsOfRequestsWith(TestRequest::getCorrelationId)
+                .obtainingCorrelationIdsOfResponsesWith(TestResponse::getCorrelationId)
+                .usingMessageBus(messageBus);
+        messageBus.subscribe(SimpleTestRequest.class, simpleTestRequest -> {
+            throw new RuntimeException("Expected exception in subcriber");
+        });
         return this;
     }
 

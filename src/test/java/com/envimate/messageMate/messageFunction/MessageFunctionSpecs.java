@@ -1,11 +1,15 @@
 package com.envimate.messageMate.messageFunction;
 
+import com.envimate.messageMate.messageFunction.givenWhenThen.Given;
 import org.junit.jupiter.api.Test;
 
-import static com.envimate.messageMate.messageFunction.Given.given;
-import static com.envimate.messageMate.messageFunction.TestMessageFunctionActionBuilder.*;
-import static com.envimate.messageMate.messageFunction.TestMessageFunctionBuilder.aMessageFunction;
-import static com.envimate.messageMate.messageFunction.TestMessageFunctionValidationBuilder.*;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+
+import static com.envimate.messageMate.messageFunction.givenWhenThen.Given.given;
+import static com.envimate.messageMate.messageFunction.givenWhenThen.TestMessageFunctionActionBuilder.*;
+import static com.envimate.messageMate.messageFunction.givenWhenThen.TestMessageFunctionBuilder.aMessageFunction;
+import static com.envimate.messageMate.messageFunction.givenWhenThen.TestMessageFunctionValidationBuilder.*;
 
 public class MessageFunctionSpecs {
 
@@ -65,16 +69,13 @@ public class MessageFunctionSpecs {
                 .then(expectAExceptionToBeThrown());
     }
 
-    /*
-    check future contract: e.g. isDone, cancellation, ExecutionException, wake up
     @Test
     public void testMessageFunction_futuresFinishesWhenDeliveryFailedMessageIsReceived() {
-        Given.given(TestMessageFunctionBuilder.aMessageFunction()
-                .definedWithARequestResponseMapping())
-                .when(TestMessageFunctionActionBuilder.aRequestIsSendThatCausesADeliveryFailedMessage())
-                .then(TestMessageFunctionValidationBuilder.expectAExceptionToBeThrownOfType(ExecutionException.class));
+        Given.given(aMessageFunction()
+                .definedWithReponseThrowingAnException())
+                .when(aRequestIsSendThatCausesADeliveryFailedMessage())
+                .then(expectAFutureToBeFinishedWithException(ExecutionException.class));
     }
-    */
 
     @Test
     public void testMessageFunction_getWaitsForTimeout() {
@@ -106,6 +107,14 @@ public class MessageFunctionSpecs {
                 .definedWithAnUnansweredResponse())
                 .when(aRequestsIsCancelledWhileOtherThreadsWait())
                 .then(expectTheRequestToBeCancelledAndNoFollowUpActionToBeExecuted());
+    }
+
+    @Test
+    public void testMessageFunction_throwsExceptionWhenResultOfACancelledResponseIsRequested() {
+        given(aMessageFunction()
+                .definedWithAnUnansweredResponse())
+                .when(theResultOfACancelledRequestIsTaken())
+                .then(expectAExceptionToBeThrownOfType(CancellationException.class));
     }
 
 }
