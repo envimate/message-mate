@@ -52,7 +52,7 @@ public final class QueryValidationBuilder {
     public static QueryValidationBuilder expectNoResult() {
         return new QueryValidationBuilder(testEnvironment -> {
             ensureNoExceptionOccurred(testEnvironment);
-            final Optional result = testEnvironment.getPropertyAsType(RESULT, Optional.class);
+            final Optional<?> result = testEnvironment.getPropertyAsType(RESULT, Optional.class);
             assertFalse(result.isPresent());
         });
     }

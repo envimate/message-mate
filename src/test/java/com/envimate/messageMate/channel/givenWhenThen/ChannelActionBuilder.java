@@ -170,7 +170,9 @@ public final class ChannelActionBuilder extends ActionBuilder<Channel<TestMessag
 
     @Override
     protected <R> void subscribe(final Channel<TestMessage> channel, final Class<R> messageClass, final Subscriber<R> subscriber) {
-        channel.subscribe((Subscriber<TestMessage>) subscriber);
+        @SuppressWarnings("unchecked")
+        final Subscriber<TestMessage> messageSubscriber = (Subscriber<TestMessage>) subscriber;
+        channel.subscribe(messageSubscriber);
     }
 
     @Override

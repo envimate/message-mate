@@ -35,14 +35,14 @@ public final class ConstraintAnswerImpl<T> extends AbstractSharedAnswerImpl<T> {
     private ConstraintAnswerImpl(final Class<T> tClass,
                                  final Predicate<T> responseCondition,
                                  final Consumer<T> responseConsumer,
-                                 final List<TerminationCondition> terminationConditions) {
+                                 final List<TerminationCondition<?>> terminationConditions) {
         super(tClass, responseCondition, responseConsumer, terminationConditions);
     }
 
     static <T> ConstraintAnswerImpl<T> constraintAnswer(final Class<T> tClass,
                                                         final Predicate<T> responseCondition,
                                                         final Consumer<T> responseConsumer,
-                                                        final List<TerminationCondition> terminationConditions) {
+                                                        final List<TerminationCondition<?>> terminationConditions) {
         return new ConstraintAnswerImpl<>(tClass, responseCondition, responseConsumer, terminationConditions);
     }
 

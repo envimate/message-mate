@@ -40,7 +40,7 @@ final class LockingBrokerStrategy implements BrokerStrategy {
     }
 
     @Override
-    public synchronized SubscriptionId add(final Class messageClass, final Subscriber<Object> subscriber) {
+    public synchronized SubscriptionId add(final Class<?> messageClass, final Subscriber<Object> subscriber) {
         return brokerStrategy.add(messageClass, subscriber);
     }
 

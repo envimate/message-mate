@@ -8,7 +8,7 @@ import static com.envimate.messageMate.qcec.querying.givenWhenThen.QueryResolver
 public class QueryResolverConfigurationResolver extends AbstractTestConfigProvider {
 
     @Override
-    protected Class forConfigClass() {
+    protected Class<?> forConfigClass() {
         return TestQueryResolver.class;
     }
 

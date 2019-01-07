@@ -28,7 +28,7 @@ import java.util.Optional;
 
 public interface DocumentBus {
 
-    <T extends Query> AnswerStep1Builder<T> answer(Class<T> queryClass);
+    <T extends Query<?>> AnswerStep1Builder<T> answer(Class<T> queryClass);
 
     <T> AnswerStep1Builder<T> ensure(Class<T> constraintClass);
 

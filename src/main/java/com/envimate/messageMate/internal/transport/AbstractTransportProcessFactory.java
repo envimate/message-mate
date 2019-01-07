@@ -50,7 +50,7 @@ public abstract class AbstractTransportProcessFactory<T> implements MessageTrans
             eventLoop.messageTransportStarted(initialMessage);
             final List<Subscriber<T>> receivers = calculateReceivingSubscriber(initialMessage);
             eventLoop.messageFilteringStarted(initialMessage);
-            filterApplier.applyAll(initialMessage, filters, receivers, new PostFilterActions<>() {
+            filterApplier.applyAll(initialMessage, filters, receivers, new PostFilterActions<T>() {
                 @Override
                 public void onAllPassed(final T message1) {
                     eventLoop.messagePassedAllFilter(message1);

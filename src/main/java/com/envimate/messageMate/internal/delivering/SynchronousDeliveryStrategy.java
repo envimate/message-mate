@@ -25,6 +25,7 @@ import com.envimate.messageMate.configuration.ExceptionCatchingCondition;
 import com.envimate.messageMate.internal.eventloop.DeliveryEventLoop;
 import com.envimate.messageMate.messages.ExceptionInSubscriberException;
 import com.envimate.messageMate.messages.NoSuitableSubscriberException;
+import com.envimate.messageMate.subscribing.AcceptingBehavior;
 import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +49,8 @@ final class SynchronousDeliveryStrategy<T> implements DeliveryStrategy<T> {
         } else {
             for (final Subscriber<T> subscriber : localList) {
                 try {
-                    final boolean proceedWithDelivery = subscriber.accept(message);
+                    final AcceptingBehavior acceptingBehavior = subscriber.accept(message);
+                    final boolean proceedWithDelivery = acceptingBehavior.continueDelivery();
                     if (!proceedWithDelivery) {
                         eventLoop.messageDeliveryPreempted(message);
                         return;

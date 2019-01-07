@@ -19,11 +19,10 @@
  * under the License.
  */
 
-package com.envimate.messageMate.subscribing;
+package com.envimate.messageMate.autoclosable;
 
-public interface Subscriber<T> {
+public interface NoErrorAutoClosable extends AutoCloseable {
 
-    AcceptingBehavior accept(T message);
-
-    SubscriptionId getSubscriptionId();
+    @Override
+    void close();
 }

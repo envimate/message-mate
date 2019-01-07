@@ -29,5 +29,6 @@ public interface ResponseHandlingSubscriber<T> extends Subscriber<T> {
 
     void addResponseMatcher(ExpectedResponse<T> expectedResponse);
 
+    @SuppressWarnings("rawtypes")
     Subscriber<DeliveryFailedMessage> getDeliveryFailedHandler();
 }

@@ -35,14 +35,14 @@ public final class EventAnswerImpl<T> extends AbstractSharedAnswerImpl<T> {
     private EventAnswerImpl(final Class<T> tClass,
                             final Predicate<T> responseCondition,
                             final Consumer<T> responseConsumer,
-                            final List<TerminationCondition> terminationConditions) {
+                            final List<TerminationCondition<?>> terminationConditions) {
         super(tClass, responseCondition, responseConsumer, terminationConditions);
     }
 
     static <T> EventAnswerImpl<T> eventAnswer(final Class<T> tClass,
                                               final Predicate<T> responseCondition,
                                               final Consumer<T> responseConsumer,
-                                              final List<TerminationCondition> terminationConditions) {
+                                              final List<TerminationCondition<?>> terminationConditions) {
         return new EventAnswerImpl<>(tClass, responseCondition, responseConsumer, terminationConditions);
     }
 

@@ -106,21 +106,22 @@ public abstract class ActionBuilder<T> {
         return this.thatUnsubscribesASubscriberSeveralTimes(1);
     }
 
+    @SuppressWarnings("unchecked")
     protected ActionBuilder<T> thatUnsubscribesASubscriberSeveralTimes(final int numberOfUnsubscriptions) {
         final ActionBuilder<T> that = this;
         return this.withAnAction((t, executionContext) -> {
-            final List<Subscriber<Object>> currentSubscriber;
+            final List<Subscriber<?>> currentSubscriber;
             if (executionContext.has(EXPECTED_SUBSCRIBER)) {
-                currentSubscriber = (List<Subscriber<Object>>) executionContext.getProperty(EXPECTED_SUBSCRIBER);
+                currentSubscriber = (List<Subscriber<?>>) executionContext.getProperty(EXPECTED_SUBSCRIBER);
             } else {
-                currentSubscriber = (List<Subscriber<Object>>) executionContext.getProperty(INITIAL_SUBSCRIBER);
+                currentSubscriber = (List<Subscriber<?>>) executionContext.getProperty(INITIAL_SUBSCRIBER);
             }
-            final Subscriber<Object> firstSubscriber = currentSubscriber.get(0);
+            final Subscriber<?> firstSubscriber = currentSubscriber.get(0);
             final SubscriptionId subscriptionId = firstSubscriber.getSubscriptionId();
             for (int i = 0; i < numberOfUnsubscriptions; i++) {
                 that.unsubscribe(t, subscriptionId);
             }
-            final List<Subscriber<Object>> remainingSubscriber = currentSubscriber.subList(1, currentSubscriber.size());
+            final List<Subscriber<?>> remainingSubscriber = currentSubscriber.subList(1, currentSubscriber.size());
             executionContext.setProperty(EXPECTED_SUBSCRIBER, remainingSubscriber);
         });
     }

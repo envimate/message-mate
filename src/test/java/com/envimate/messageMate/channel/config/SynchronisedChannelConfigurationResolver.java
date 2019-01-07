@@ -7,7 +7,7 @@ import static com.envimate.messageMate.channel.config.ChannelTestConfig.aSynchro
 public class SynchronisedChannelConfigurationResolver extends AbstractTestConfigProvider {
 
     @Override
-    protected Class forConfigClass() {
+    protected Class<?> forConfigClass() {
         return ChannelTestConfig.class;
     }
 

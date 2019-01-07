@@ -38,13 +38,13 @@ public final class QueryResolverTestQueryResolver extends TestQueryResolver {
     }
 
     @Override
-    public <T extends Query> SubscriptionId subscribing(final Class<T> queryClass, final Consumer<T> consumer) {
+    public <T extends Query<?>> SubscriptionId subscribing(final Class<T> queryClass, final Consumer<T> consumer) {
         final SubscriptionId subscriptionId = queryResolver.answer(queryClass, consumer);
         return subscriptionId;
     }
 
     @Override
-    public <T extends Query> TestQueryResolver withASubscriber(final Class<T> queryClass, final Consumer<T> consumer) {
+    public <T extends Query<?>> TestQueryResolver withASubscriber(final Class<T> queryClass, final Consumer<T> consumer) {
         subscribing(queryClass, consumer);
         return this;
     }

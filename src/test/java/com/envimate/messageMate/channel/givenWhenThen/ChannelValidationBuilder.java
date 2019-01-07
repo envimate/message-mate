@@ -2,18 +2,21 @@ package com.envimate.messageMate.channel.givenWhenThen;
 
 import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.channel.ChannelStatusInformation;
+import com.envimate.messageMate.shared.givenWhenThen.TestValidation;
 import com.envimate.messageMate.shared.givenWhenThen.TestValidationBuilder;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.subscribing.Subscriber;
-import lombok.RequiredArgsConstructor;
 
 import java.util.LinkedList;
 import java.util.List;
 
-import static lombok.AccessLevel.PRIVATE;
-
-@RequiredArgsConstructor(access = PRIVATE)
 public final class ChannelValidationBuilder extends TestValidationBuilder<Channel<TestMessage>> {
+
+    @SafeVarargs
+    @SuppressWarnings("varargs")
+    private ChannelValidationBuilder(TestValidation<Channel<TestMessage>>... validations) {
+        super(validations);
+    }
 
     public static TestValidationBuilder<Channel<TestMessage>> expectTheMessageToBeReceived() {
         return new ChannelValidationBuilder()
@@ -72,14 +75,14 @@ public final class ChannelValidationBuilder extends TestValidationBuilder<Channe
 
     public static TestValidationBuilder<Channel<TestMessage>> expectEachMessagesToBeReceivedByOnlyOneSubscriber() {
         return new ChannelValidationBuilder()
-                .thathExpectsEachMessagesToBeReceivedByOnlyOneSubscriber();
+                .thatExpectsEachMessagesToBeReceivedByOnlyOneSubscriber();
     }
 
     @Override
-    protected List<Subscriber> getAllSubscribers(final Channel<TestMessage> channel) {
+    protected List<Subscriber<?>> getAllSubscribers(final Channel<TestMessage> channel) {
         final ChannelStatusInformation<TestMessage> statusInformation = channel.getStatusInformation();
         final List<Subscriber<TestMessage>> subscribers = statusInformation.getAllSubscribers();
-        final List<Subscriber> allSubscribers = new LinkedList<>(subscribers);
+        final List<Subscriber<?>> allSubscribers = new LinkedList<>(subscribers);
         return allSubscribers;
     }
 

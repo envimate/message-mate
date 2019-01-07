@@ -21,6 +21,7 @@ public final class ConstraintValidationBuilder {
     public static ConstraintValidationBuilder expectTheConstraintToBeReceivedByAll() {
         return new ConstraintValidationBuilder(testEnvironment -> {
             ensureNoExceptionOccurred(testEnvironment);
+            @SuppressWarnings("unchecked")
             final List<TestReceiver<TestConstraint>> expectedReceivers = (List<TestReceiver<TestConstraint>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
             final TestConstraint sendConstraint = testEnvironment.getPropertyAsType(TEST_OBJECT, TestConstraint.class);
             for (final TestReceiver<TestConstraint> receiver : expectedReceivers) {

@@ -29,7 +29,7 @@ import java.util.function.Consumer;
 public interface QueryResolver {
     <R> Optional<R> query(Query<R> query);
 
-    <T extends Query> SubscriptionId answer(Class<T> queryType, Consumer<T> responder);
+    <T extends Query<?>> SubscriptionId answer(Class<T> queryType, Consumer<T> responder);
 
     <R> R queryRequired(Query<R> query);
 

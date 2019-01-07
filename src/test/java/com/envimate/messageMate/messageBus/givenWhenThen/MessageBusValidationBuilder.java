@@ -3,6 +3,7 @@ package com.envimate.messageMate.messageBus.givenWhenThen;
 
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messages.DeliveryFailedMessage;
+import com.envimate.messageMate.shared.givenWhenThen.TestValidation;
 import com.envimate.messageMate.shared.givenWhenThen.TestValidationBuilder;
 import com.envimate.messageMate.shared.subscriber.TestSubscriber;
 import com.envimate.messageMate.subscribing.Subscriber;
@@ -16,7 +17,13 @@ import static com.envimate.messageMate.shared.context.TestExecutionProperty.RESU
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
-public class MessageBusValidationBuilder extends TestValidationBuilder<MessageBus> {
+public final class MessageBusValidationBuilder extends TestValidationBuilder<MessageBus> {
+
+    @SafeVarargs
+    @SuppressWarnings("varargs")
+    private MessageBusValidationBuilder(TestValidation<MessageBus>... validations) {
+        super(validations);
+    }
 
     public static TestValidationBuilder<MessageBus> expectTheMessageToBeReceived() {
         return new MessageBusValidationBuilder()
@@ -68,9 +75,10 @@ public class MessageBusValidationBuilder extends TestValidationBuilder<MessageBu
                 .thatExpectsAListOfSize(expectedSize);
     }
 
-    public static TestValidationBuilder<MessageBus> expectSubscriberOfType(final int expectedNumberOfSubscribers, final Class messageClass) {
+    public static TestValidationBuilder<MessageBus> expectSubscriberOfType(final int expectedNumberOfSubscribers, final Class<?> messageClass) {
         return new MessageBusValidationBuilder()
                 .withAValidation((messageBus, executionContext) -> {
+                    @SuppressWarnings("unchecked")
                     final Map<Object, List<Subscriber<Object>>> resultMap = (Map<Object, List<Subscriber<Object>>>) executionContext.getProperty(RESULT);
                     final List<Subscriber<Object>> subscribersForType = resultMap.get(messageClass);
                     assertThat(subscribersForType.size(), equalTo(expectedNumberOfSubscribers));
@@ -87,14 +95,15 @@ public class MessageBusValidationBuilder extends TestValidationBuilder<MessageBu
                 .thatExpectsTheMessageBusToBeShutdown();
     }
 
-    public static TestValidationBuilder<MessageBus> expectErrorMessageWithCause(final Class expectedCauseClass) {
+    public static TestValidationBuilder<MessageBus> expectErrorMessageWithCause(final Class<?> expectedCauseClass) {
         return new MessageBusValidationBuilder().withAValidation(
                 (messageBus, executionContext) -> {
-                    final TestSubscriber testSubscriber = executionContext.getPropertyAsType(ERROR_SUBSCRIBER, TestSubscriber.class);
-                    final List receivedMessages = testSubscriber.getReceivedMessages();
+                    final TestSubscriber<?> testSubscriber = executionContext.getPropertyAsType(ERROR_SUBSCRIBER, TestSubscriber.class);
+                    final List<?> receivedMessages = testSubscriber.getReceivedMessages();
                     assertThat(receivedMessages.size(), equalTo(1));
                     final Object firstMessage = receivedMessages.get(0);
                     assertThat(firstMessage.getClass(), equalTo(DeliveryFailedMessage.class));
+                    @SuppressWarnings("unchecked")
                     final DeliveryFailedMessage<Object> errorMessage = (DeliveryFailedMessage<Object>) firstMessage;
                     assertThat(errorMessage.getCause().getClass(), equalTo(expectedCauseClass));
                 }
@@ -104,7 +113,7 @@ public class MessageBusValidationBuilder extends TestValidationBuilder<MessageBu
 
     public static TestValidationBuilder<MessageBus> expectEachMessagesToBeReceivedByOnlyOneSubscriber() {
         return new MessageBusValidationBuilder()
-                .thathExpectsEachMessagesToBeReceivedByOnlyOneSubscriber();
+                .thatExpectsEachMessagesToBeReceivedByOnlyOneSubscriber();
     }
 
     @Override
@@ -113,9 +122,9 @@ public class MessageBusValidationBuilder extends TestValidationBuilder<MessageBu
     }
 
     @Override
-    protected List<Subscriber> getAllSubscribers(final MessageBus messageBus) {
+    protected List<Subscriber<?>> getAllSubscribers(final MessageBus messageBus) {
         final List<Subscriber<Object>> allSubscribers = messageBus.getStatusInformation().getAllSubscribers();
-        final LinkedList<Subscriber> subscribers = new LinkedList<>(allSubscribers);
+        final LinkedList<Subscriber<?>> subscribers = new LinkedList<>(allSubscribers);
         return subscribers;
     }
 

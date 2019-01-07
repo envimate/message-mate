@@ -21,7 +21,9 @@
 
 package com.envimate.messageMate.messageFunction;
 
-public interface MessageFunction<R, S> extends AutoCloseable {
+import com.envimate.messageMate.autoclosable.NoErrorAutoClosable;
+
+public interface MessageFunction<R, S> extends NoErrorAutoClosable {
 
     ResponseFuture<S> request(R request);
 

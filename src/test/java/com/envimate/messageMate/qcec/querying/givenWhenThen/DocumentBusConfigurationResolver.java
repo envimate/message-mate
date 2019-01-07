@@ -8,7 +8,7 @@ import static com.envimate.messageMate.qcec.querying.givenWhenThen.DocumentBusTe
 public class DocumentBusConfigurationResolver extends AbstractTestConfigProvider {
 
     @Override
-    protected Class forConfigClass() {
+    protected Class<?> forConfigClass() {
         return TestQueryResolver.class;
     }
 

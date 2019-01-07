@@ -51,6 +51,7 @@ final class RequestResponseRelationMapImpl<R, S> implements RequestResponseRelat
 
     @Override
     public <T extends R> List<ResponseMatcher<S>> responseMatchers(final T request) {
+        @SuppressWarnings("unchecked")
         final Class<T> requestClass = (Class<T>) request.getClass();
         final CorrelationId requestCorrelationId = requestCorrelationIdExtractor.extract(request);
         final List<ResponseMatcher<S>> responseMatchers = new LinkedList<>();

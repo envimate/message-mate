@@ -36,7 +36,7 @@ public class When<T> {
             blockingSemaphoreToReleaseAfterExecution.release(1000);
         }
         if (t instanceof Channel) {
-            final Channel channel = (Channel) t;
+            final Channel<?> channel = (Channel) t;
             channel.close(true);
             if (!channel.awaitTermination(3, TimeUnit.SECONDS)) {
                 throw new RuntimeException("Channel did shutdown within timeout interval.");

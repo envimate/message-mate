@@ -31,13 +31,13 @@ public final class DocumentBusTestQueryResolver extends TestQueryResolver {
     }
 
     @Override
-    public <T extends Query> SubscriptionId subscribing(final Class<T> queryClass, final Consumer<T> consumer) {
+    public <T extends Query<?>> SubscriptionId subscribing(final Class<T> queryClass, final Consumer<T> consumer) {
         return documentBus.answer(queryClass)
                 .using(consumer);
     }
 
     @Override
-    public <T extends Query> TestQueryResolver withASubscriber(final Class<T> queryClass, final Consumer<T> consumer) {
+    public <T extends Query<?>> TestQueryResolver withASubscriber(final Class<T> queryClass, final Consumer<T> consumer) {
         subscribing(queryClass, consumer);
         return this;
     }

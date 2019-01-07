@@ -41,7 +41,7 @@ final class MessageHashMapBrokerStrategy implements BrokerStrategy {
     }
 
     @Override
-    public SubscriptionId add(final Class messageClass, final Subscriber<Object> subscriber) {
+    public SubscriptionId add(final Class<?> messageClass, final Subscriber<Object> subscriber) {
         return hashMapBrokerStrategy.add(messageClass, subscriber);
     }
 

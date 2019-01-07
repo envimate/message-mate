@@ -40,8 +40,9 @@ public abstract class AbstractSharedAnswerImpl<T> implements Answer {
     protected final Class<T> tClass;
     protected final Predicate<T> responseCondition;
     protected final Consumer<T> responseConsumer;
-    protected final List<TerminationCondition> terminationConditions;
+    protected final List<TerminationCondition<?>> terminationConditions;
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public SubscriptionId register(final QueryResolver queryResolver,
                                    final ConstraintEnforcer constraintEnforcer,
@@ -49,8 +50,8 @@ public abstract class AbstractSharedAnswerImpl<T> implements Answer {
         executeAnswerSpecificSubscription(tClass, queryResolver, constraintEnforcer, eventBus);
 
         for (final TerminationCondition terminationCondition : terminationConditions) {
-            final Class eventClass = terminationCondition.getEventClass();
-            final Predicate conditionFunction = terminationCondition.getConditionFunction();
+            final Class<T> eventClass = terminationCondition.getEventClass();
+            final Predicate<T> conditionFunction = terminationCondition.getConditionFunction();
             final SubscriptionId eventSubscriptionId = eventBus.reactTo(eventClass, o -> {
                 if (conditionFunction.test(o)) {
                     this.unregister(queryResolver, constraintEnforcer, eventBus);

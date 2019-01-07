@@ -18,9 +18,9 @@ public abstract class TestQueryResolver {
 
     public abstract <R> R executeRequiredQuery(Query<R> query);
 
-    public abstract <T extends Query> SubscriptionId subscribing(final Class<T> queryClass, Consumer<T> consumer);
+    public abstract <T extends Query<?>> SubscriptionId subscribing(final Class<T> queryClass, Consumer<T> consumer);
 
-    public abstract <T extends Query> TestQueryResolver withASubscriber(final Class<T> queryClass, Consumer<T> consumer);
+    public abstract <T extends Query<?>> TestQueryResolver withASubscriber(final Class<T> queryClass, Consumer<T> consumer);
 
     public abstract void unsubscribe(SubscriptionId subscriptionId);
 

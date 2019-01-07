@@ -55,10 +55,10 @@ public final class AsynchronousDeliveryStrategyConfiguration {
     public static AsynchronousDeliveryStrategyConfiguration asynchronousDeliveryStrategyConfiguration(
             @NonNull final BlockingQueue<Runnable> workingQueue,
             @NonNull final TimeUnit timeUnit,
-            @NonNull final int timeout,
-            @NonNull final int maximumPoolSize,
-            @NonNull final int corePoolSize,
-            @NonNull final ExceptionCatchingCondition exceptionCatchingCondition) {
+            final int timeout,
+            final int maximumPoolSize,
+            final int corePoolSize,
+            final ExceptionCatchingCondition exceptionCatchingCondition) {
         return new AsynchronousDeliveryStrategyConfiguration(workingQueue, timeUnit, timeout, maximumPoolSize,
                 corePoolSize, exceptionCatchingCondition);
     }

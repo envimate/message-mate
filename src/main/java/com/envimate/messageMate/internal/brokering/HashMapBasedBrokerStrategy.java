@@ -34,7 +34,8 @@ import java.util.stream.Collectors;
 final class HashMapBasedBrokerStrategy implements BrokerStrategy {
 
     private final Map<Object, List<Subscriber<Object>>> receiverMap = new HashMap<>();
-    private final Map<SubscriptionId, List<Class>> reverseLookupMap = new HashMap<>();
+
+    private final Map<SubscriptionId, List<Class<?>>> reverseLookupMap = new HashMap<>();
 
     @Override
     public List<Subscriber<Object>> calculateReceivingSubscriber(final Object messageClass) {
@@ -42,13 +43,13 @@ final class HashMapBasedBrokerStrategy implements BrokerStrategy {
     }
 
     @Override
-    public SubscriptionId add(final Class messageClass, final Subscriber<Object> subscriber) {
+    public SubscriptionId add(final Class<?> messageClass, final Subscriber<Object> subscriber) {
         final List<Subscriber<Object>> receiver = receiverMap.getOrDefault(messageClass, new LinkedList<>());
         receiver.add(subscriber);
         receiverMap.put(messageClass, receiver);
 
         final SubscriptionId subscriptionId = subscriber.getSubscriptionId();
-        final List<Class> classesForSubscriptionId = reverseLookupMap.getOrDefault(subscriptionId, new LinkedList<>());
+        final List<Class<?>> classesForSubscriptionId = reverseLookupMap.getOrDefault(subscriptionId, new LinkedList<>());
         classesForSubscriptionId.add(messageClass);
         reverseLookupMap.put(subscriptionId, classesForSubscriptionId);
         return subscriptionId;
@@ -57,8 +58,8 @@ final class HashMapBasedBrokerStrategy implements BrokerStrategy {
     @Override
     public void remove(final SubscriptionId subscriptionId) {
         if (reverseLookupMap.containsKey(subscriptionId)) {
-            final List<Class> classes = reverseLookupMap.get(subscriptionId);
-            for (final Class messageClass : classes) {
+            final List<Class<?>> classes = reverseLookupMap.get(subscriptionId);
+            for (final Class<?> messageClass : classes) {
                 final List<Subscriber<Object>> receivers = receiverMap.get(messageClass);
                 receivers.removeIf(subscriber -> subscriber.getSubscriptionId().equals(subscriptionId));
             }

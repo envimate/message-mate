@@ -1,5 +1,6 @@
 package com.envimate.messageMate.shared.subscriber;
 
+import com.envimate.messageMate.subscribing.AcceptingBehavior;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,7 @@ public final class ErrorThrowingTestSubscriber<T> implements TestSubscriber<T> {
     }
 
     @Override
-    public boolean accept(final T message) {
+    public AcceptingBehavior accept(final T message) {
         throw new RuntimeException("Simulated error in receiver");
     }
 

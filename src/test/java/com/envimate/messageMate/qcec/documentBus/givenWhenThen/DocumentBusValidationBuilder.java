@@ -19,7 +19,7 @@ public final class DocumentBusValidationBuilder {
 
     public static DocumentBusValidationBuilder expectNoQueryAfterTheEventToHaveAResult() {
         return new DocumentBusValidationBuilder(testEnvironment -> {
-            final List results = testEnvironment.getPropertyAsType(RESULT, List.class);
+            final List<?> results = testEnvironment.getPropertyAsType(RESULT, List.class);
             final Object expectedQueryResult = testEnvironment.getProperty(EXPECTED_RESULT);
             boolean eventSeen = false;
             for (final Object result : results) {
@@ -48,10 +48,11 @@ public final class DocumentBusValidationBuilder {
 
     private static DocumentBusValidationBuilder expectOnlyTheExpectedResultToBeReceived() {
         return new DocumentBusValidationBuilder(testEnvironment -> {
-            final List<TestReceiver> receivers = (List<TestReceiver>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
+            @SuppressWarnings("unchecked")
+            final List<TestReceiver<?>> receivers = (List<TestReceiver<?>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
             final Object expectedReceivedEvent = testEnvironment.getProperty(EXPECTED_RESULT);
-            for (final TestReceiver receiver : receivers) {
-                final List receivedObjects = receiver.getReceivedObjects();
+            for (final TestReceiver<?> receiver : receivers) {
+                final List<?> receivedObjects = receiver.getReceivedObjects();
                 assertThat(receivedObjects.size(), equalTo(1));
                 final Object receivedEvent = receivedObjects.get(0);
                 assertThat(receivedEvent, equalTo(expectedReceivedEvent));
@@ -74,6 +75,7 @@ public final class DocumentBusValidationBuilder {
 
     private static DocumentBusValidationBuilder expectOnlyObjectsOfInterestToBeReceived() {
         return new DocumentBusValidationBuilder(testEnvironment -> {
+            @SuppressWarnings("unchecked")
             final List<TestReceiver<SpecificQuery>> receivers = (List<TestReceiver<SpecificQuery>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
             final Object expectedReceivedObject = testEnvironment.getProperty(TEST_OBJECT);
             for (final TestReceiver<SpecificQuery> receiver : receivers) {

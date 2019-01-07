@@ -108,7 +108,7 @@ public final class ChannelImpl<T> implements Channel<T> {
 
     @Override
     public ChannelStatusInformation<T> getStatusInformation() {
-        return new ChannelStatusInformation<>() {
+        return new ChannelStatusInformation<T>() {
             @Override
             public MessageStatistics getCurrentMessageStatistics() {
                 return statisticsCollector.getCurrentStatistics();

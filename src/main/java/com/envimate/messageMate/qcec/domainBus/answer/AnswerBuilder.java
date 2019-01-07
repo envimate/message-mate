@@ -40,12 +40,12 @@ import static lombok.AccessLevel.PRIVATE;
 @RequiredArgsConstructor(access = PRIVATE)
 public final class AnswerBuilder<T> implements AnswerStep1Builder<T>, AnswerStep2Builder<T> {
     private final List<Predicate<T>> onlyIfConditions = new ArrayList<>();
-    private final List<TerminationCondition> terminationConditions = new ArrayList<>();
+    private final List<TerminationCondition<?>> terminationConditions = new ArrayList<>();
     private final AnswerCreation<T> answerCreation;
     private final AnswerRegister answerRegister;
 
-    public static <T extends Query> AnswerStep1Builder<T> anQueryAnswerForClass(final Class<T> queryClass,
-                                                                                final AnswerRegister answerRegister) {
+    public static <T extends Query<?>> AnswerStep1Builder<T> anQueryAnswerForClass(final Class<T> queryClass,
+                                                                                   final AnswerRegister answerRegister) {
         final AnswerCreation<T> answerCreation = (responseCondition, responseConsumer, terminationConditions) -> {
             return queryAnswer(queryClass, responseCondition, responseConsumer, terminationConditions);
         };
@@ -103,6 +103,6 @@ public final class AnswerBuilder<T> implements AnswerStep1Builder<T>, AnswerStep
     }
 
     private interface AnswerCreation<T> {
-        Answer create(Predicate<T> respCondition, Consumer<T> responseConsumer, List<TerminationCondition> terminationConditions);
+        Answer create(Predicate<T> respCondition, Consumer<T> responseConsumer, List<TerminationCondition<?>> termConditions);
     }
 }

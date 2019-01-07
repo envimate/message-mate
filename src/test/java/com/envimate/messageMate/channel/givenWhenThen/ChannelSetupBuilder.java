@@ -20,7 +20,7 @@ public class ChannelSetupBuilder extends SetupBuilder<Channel<TestMessage>> {
         return new ChannelSetupBuilder();
     }
 
-    public Setup build() {
+    public Setup<Channel<TestMessage>> build() {
         final Channel<TestMessage> channel = channelBuilder.build();
         return Setup.setup(channel, executionContext, setupActions);
     }
@@ -59,6 +59,7 @@ public class ChannelSetupBuilder extends SetupBuilder<Channel<TestMessage>> {
 
     @Override
     public <R> void subscribe(final Channel<TestMessage> channel, final Class<R> rClass, final Subscriber<R> subscriber) {
+        @SuppressWarnings("unchecked")
         final Subscriber<TestMessage> castedSubscriber = (Subscriber<TestMessage>) subscriber;
         channel.subscribe(castedSubscriber);
     }

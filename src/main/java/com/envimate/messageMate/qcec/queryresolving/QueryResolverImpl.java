@@ -44,7 +44,7 @@ public class QueryResolverImpl implements QueryResolver {
     }
 
     @Override
-    public <T extends Query> SubscriptionId answer(final Class<T> queryType, final Consumer<T> responder) {
+    public <T extends Query<?>> SubscriptionId answer(final Class<T> queryType, final Consumer<T> responder) {
         final PreemptiveSubscriber<T> subscriber = PreemptiveSubscriber.preemptiveSubscriber(t -> {
             responder.accept(t);
             final boolean continueDelivery = !t.finished();
@@ -87,6 +87,7 @@ public class QueryResolverImpl implements QueryResolver {
         messageBus.unsubcribe(subscriptionId);
     }
 
+    @SuppressWarnings("rawtypes")
     private class DeliveryFailedMessageConsumer implements Consumer<DeliveryFailedMessage> {
         @Override
         public void accept(final DeliveryFailedMessage deliveryFailedMessage) {

@@ -45,7 +45,7 @@ final class AsynchronousDeliveryStrategy<T> implements DeliveryStrategy<T> {
     private final DeliveryEventLoop<T> eventLoop;
 
     AsynchronousDeliveryStrategy(final AsynchronousDeliveryStrategyConfiguration configuration,
-                                 final DeliveryEventLoop eventLoop) {
+                                 final DeliveryEventLoop<T> eventLoop) {
         final BlockingQueue<Runnable> workingQueue = configuration.getWorkingQueue();
         final TimeUnit timeUnit = configuration.getTimeUnit();
         final int timeout = configuration.getTimeout();

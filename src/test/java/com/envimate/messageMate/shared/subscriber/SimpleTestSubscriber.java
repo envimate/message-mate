@@ -1,5 +1,6 @@
 package com.envimate.messageMate.shared.subscriber;
 
+import com.envimate.messageMate.subscribing.AcceptingBehavior;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -7,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import static com.envimate.messageMate.subscribing.AcceptingBehavior.acceptingBehavior;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class SimpleTestSubscriber<T> implements TestSubscriber<T> {
@@ -23,10 +26,10 @@ public final class SimpleTestSubscriber<T> implements TestSubscriber<T> {
     }
 
     @Override
-    public boolean accept(final T message) {
+    public AcceptingBehavior accept(final T message) {
         receivedMessages.add(message);
         final boolean continueDelivery = !isInterrupting;
-        return continueDelivery;
+        return acceptingBehavior(continueDelivery);
     }
 
     @Override

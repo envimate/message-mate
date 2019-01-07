@@ -7,7 +7,7 @@ import static com.envimate.messageMate.messageBus.config.MessageBusTestConfig.aS
 public class AsynchronousDeliveryMessageBusConfigurationResolver extends AbstractTestConfigProvider {
 
     @Override
-    protected Class forConfigClass() {
+    protected Class<?> forConfigClass() {
         return MessageBusTestConfig.class;
     }
 

@@ -33,9 +33,9 @@ public class DirectInheritedInterfaceIncludingBrokerStrategy implements BrokerSt
     public List<Subscriber<Object>> calculateReceivingSubscriber(final Object message) {
         final Set<Subscriber<Object>> allSubscribers = new HashSet<>();
         final Class<?> messageClass = message.getClass();
-        final List<Class> allClasses = getClassAndInterfaces(messageClass);
+        final List<Class<?>> allClasses = getClassAndInterfaces(messageClass);
         synchronized (this) {
-            for (final Class aClass : allClasses) {
+            for (final Class<?> aClass : allClasses) {
                 final List<Subscriber<Object>> subscribersOfClass = hashMapBrokerStrategy.calculateReceivingSubscriber(aClass);
                 allSubscribers.addAll(subscribersOfClass);
             }
@@ -44,10 +44,10 @@ public class DirectInheritedInterfaceIncludingBrokerStrategy implements BrokerSt
     }
 
     @Override
-    public SubscriptionId add(final Class messageClass, final Subscriber<Object> subscriber) {
-        final List<Class> allClasses = getClassAndInterfaces(messageClass);
+    public SubscriptionId add(final Class<?> messageClass, final Subscriber<Object> subscriber) {
+        final List<Class<?>> allClasses = getClassAndInterfaces(messageClass);
         synchronized (this) {
-            for (final Class aClass : allClasses) {
+            for (final Class<?> aClass : allClasses) {
                 hashMapBrokerStrategy.add(aClass, subscriber);
             }
         }
@@ -59,8 +59,8 @@ public class DirectInheritedInterfaceIncludingBrokerStrategy implements BrokerSt
         hashMapBrokerStrategy.remove(subscriptionId);
     }
 
-    private List<Class> getClassAndInterfaces(final Class baseClass) {
-        final LinkedList<Class> linkedList = new LinkedList<>();
+    private List<Class<?>> getClassAndInterfaces(final Class<?> baseClass) {
+        final LinkedList<Class<?>> linkedList = new LinkedList<>();
         linkedList.add(baseClass);
         final Class<?>[] inheritedInterfaces = baseClass.getInterfaces();
         linkedList.addAll(Arrays.asList(inheritedInterfaces));

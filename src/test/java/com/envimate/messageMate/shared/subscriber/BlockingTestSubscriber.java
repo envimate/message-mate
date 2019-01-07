@@ -1,5 +1,6 @@
 package com.envimate.messageMate.shared.subscriber;
 
+import com.envimate.messageMate.subscribing.AcceptingBehavior;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -7,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Semaphore;
+
+import static com.envimate.messageMate.subscribing.AcceptingBehavior.MESSAGE_ACCEPTED;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class BlockingTestSubscriber<T> implements TestSubscriber<T> {
@@ -20,15 +23,14 @@ public final class BlockingTestSubscriber<T> implements TestSubscriber<T> {
 
 
     @Override
-    public boolean accept(final T message) {
+    public AcceptingBehavior accept(final T message) {
         try {
             semaphoreToWaitUntilExecutionIsDone.acquire();
             receivedMessages.add(message);
-            return true;
         } catch (final InterruptedException ignored) {
             receivedMessages.add(message);
-            return true;
         }
+        return MESSAGE_ACCEPTED;
     }
 
     @Override

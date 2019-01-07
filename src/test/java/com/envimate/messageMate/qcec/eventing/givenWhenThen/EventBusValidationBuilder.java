@@ -25,6 +25,7 @@ public final class EventBusValidationBuilder {
         return new EventBusValidationBuilder(testEnvironment -> {
             ensureNoExceptionOccurred(testEnvironment);
             final TestEvent testEvent = testEnvironment.getPropertyAsType(TEST_OBJECT, TestEvent.class);
+            @SuppressWarnings("unchecked")
             final List<TestReceiver<TestEvent>> receivers = (List<TestReceiver<TestEvent>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
             for (final TestReceiver<TestEvent> receiver : receivers) {
                 assertTrue(receiver.hasReceived(testEvent));
@@ -44,12 +45,13 @@ public final class EventBusValidationBuilder {
     public static EventBusValidationBuilder expectTheExceptionToBeDeliveredInADeliveryFailedMessage() {
         return new EventBusValidationBuilder(testEnvironment -> {
             ensureNoExceptionOccurred(testEnvironment);
-            final List<TestReceiver<DeliveryFailedMessage>> receivers = (List<TestReceiver<DeliveryFailedMessage>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
+            @SuppressWarnings("unchecked")
+            final List<TestReceiver<DeliveryFailedMessage<?>>> receivers = (List<TestReceiver<DeliveryFailedMessage<?>>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
             assertThat(receivers.size(), equalTo(1));
-            final TestReceiver<DeliveryFailedMessage> errorReceiver = receivers.get(0);
+            final TestReceiver<DeliveryFailedMessage<?>> errorReceiver = receivers.get(0);
             final List<Object> deliveryFailedMessages = errorReceiver.getReceivedObjects();
             assertThat(deliveryFailedMessages.size(), equalTo(1));
-            final DeliveryFailedMessage deliveryFailedMessage = (DeliveryFailedMessage) deliveryFailedMessages.get(0);
+            final DeliveryFailedMessage<?> deliveryFailedMessage = (DeliveryFailedMessage) deliveryFailedMessages.get(0);
             final Exception cause = deliveryFailedMessage.getCause();
             assertThat(cause.getClass(), equalTo(ExceptionInSubscriberException.class));
             final ExceptionInSubscriberException exceptionInSubscriberException = (ExceptionInSubscriberException) cause;

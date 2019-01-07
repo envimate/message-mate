@@ -45,7 +45,7 @@ public class DocumentBusImpl implements DocumentBus, AnswerRegister {
     private final EventBus eventBus;
 
     @Override
-    public <T extends Query> AnswerStep1Builder<T> answer(final Class<T> queryClass) {
+    public <T extends Query<?>> AnswerStep1Builder<T> answer(final Class<T> queryClass) {
         return anQueryAnswerForClass(queryClass, this);
     }
 

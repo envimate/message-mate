@@ -40,6 +40,7 @@ public final class CorrelationIdExtractor<T> {
         return new CorrelationIdExtractor<>();
     }
 
+    @SuppressWarnings("unchecked")
     public CorrelationId extract(final T message) {
         final Class<T> messageClass = (Class<T>) message.getClass();
         final CorrelationIdExtraction<T> correlationIdExtraction = extractionFor(messageClass);

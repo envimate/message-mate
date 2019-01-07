@@ -14,11 +14,11 @@ public abstract class AbstractTestConfigProvider implements ParameterResolver {
     public boolean supportsParameter(final ParameterContext parameterContext, final ExtensionContext extensionContext) throws ParameterResolutionException {
         final Parameter parameter = parameterContext.getParameter();
         final Type type = parameter.getAnnotatedType().getType();
-        final Class suitedConfigClass = forConfigClass();
+        final Class<?> suitedConfigClass = forConfigClass();
         return type.equals(suitedConfigClass);
     }
 
-    protected abstract Class forConfigClass();
+    protected abstract Class<?> forConfigClass();
 
     @Override
     public Object resolveParameter(final ParameterContext parameterContext, final ExtensionContext extensionContext) throws ParameterResolutionException {

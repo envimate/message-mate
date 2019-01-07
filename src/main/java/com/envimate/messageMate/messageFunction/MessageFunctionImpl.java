@@ -49,6 +49,8 @@ final class MessageFunctionImpl<R, S> implements MessageFunction<R, S> {
         for (final Class<S> aClass : responseClassToSubscribe) {
             messageBus.subscribe(aClass, responseHandlingSubscriber);
         }
+
+        @SuppressWarnings("rawtypes")
         final Subscriber<DeliveryFailedMessage> deliveryFailedHandler = responseHandlingSubscriber.getDeliveryFailedHandler();
         messageBus.subscribe(DeliveryFailedMessage.class, deliveryFailedHandler);
     }

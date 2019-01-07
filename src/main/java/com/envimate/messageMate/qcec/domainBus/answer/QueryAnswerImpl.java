@@ -31,19 +31,19 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-public final class QueryAnswerImpl<T extends Query> extends AbstractSharedAnswerImpl<T> {
+public final class QueryAnswerImpl<T extends Query<?>> extends AbstractSharedAnswerImpl<T> {
 
     private QueryAnswerImpl(final Class<T> tClass,
                             final Predicate<T> responseCondition,
                             final Consumer<T> responseConsumer,
-                            final List<TerminationCondition> terminationConditions) {
+                            final List<TerminationCondition<?>> terminationConditions) {
         super(tClass, responseCondition, responseConsumer, terminationConditions);
     }
 
-    static <T extends Query> QueryAnswerImpl<T> queryAnswer(final Class<T> tClass,
-                                                            final Predicate<T> responseCondition,
-                                                            final Consumer<T> responseConsumer,
-                                                            final List<TerminationCondition> terminationConditions) {
+    static <T extends Query<?>> QueryAnswerImpl<T> queryAnswer(final Class<T> tClass,
+                                                               final Predicate<T> responseCondition,
+                                                               final Consumer<T> responseConsumer,
+                                                               final List<TerminationCondition<?>> terminationConditions) {
         return new QueryAnswerImpl<>(tClass, responseCondition, responseConsumer, terminationConditions);
     }
 

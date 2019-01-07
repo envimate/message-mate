@@ -2,7 +2,6 @@ package com.envimate.messageMate.shared.givenWhenThen;
 
 import com.envimate.messageMate.messages.DeliveryFailedMessage;
 import com.envimate.messageMate.shared.context.TestExecutionContext;
-import com.envimate.messageMate.shared.context.TestExecutionProperty;
 import com.envimate.messageMate.shared.subscriber.ErrorThrowingTestSubscriber;
 import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
@@ -14,7 +13,6 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 
 import static com.envimate.messageMate.shared.context.TestExecutionProperty.*;
-import static com.envimate.messageMate.shared.context.TestExecutionProperty.EXPECTED_CHANGED_CONTENT;
 import static com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber.blockingTestSubscriber;
 import static com.envimate.messageMate.shared.subscriber.ErrorThrowingTestSubscriber.errorThrowingTestSubscriber;
 import static com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber.testSubscriber;
@@ -101,6 +99,7 @@ public abstract class SetupBuilder<T> {
     public SetupBuilder<T> withAnErrorAcceptingSubscriber() {
         final SetupBuilder<T> that = this;
         setupActions.add((t, executionContext) -> {
+            @SuppressWarnings("rawtypes")
             final SimpleTestSubscriber<DeliveryFailedMessage> errorSubscriber = testSubscriber();
             that.subscribe(t, DeliveryFailedMessage.class, errorSubscriber);
             executionContext.setProperty(ERROR_SUBSCRIBER, errorSubscriber);

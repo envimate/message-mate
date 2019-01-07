@@ -7,7 +7,7 @@ import static com.envimate.messageMate.qcec.constrainig.givenWhenThen.Constraint
 
 public class ConstraintEnforcerTestConstraintEnforcerParameterResolver extends AbstractTestConfigProvider {
     @Override
-    protected Class forConfigClass() {
+    protected Class<?> forConfigClass() {
         return TestConstraintEnforcer.class;
     }
 

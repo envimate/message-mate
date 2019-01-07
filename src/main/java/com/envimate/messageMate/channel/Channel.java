@@ -21,6 +21,7 @@
 
 package com.envimate.messageMate.channel;
 
+import com.envimate.messageMate.autoclosable.NoErrorAutoClosable;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
@@ -28,7 +29,7 @@ import com.envimate.messageMate.subscribing.SubscriptionId;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-public interface Channel<T> extends AutoCloseable {
+public interface Channel<T> extends NoErrorAutoClosable {
 
     void send(T message);
 

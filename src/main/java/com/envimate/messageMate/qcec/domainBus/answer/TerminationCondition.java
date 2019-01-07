@@ -29,15 +29,15 @@ import java.util.function.Predicate;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
-public final class TerminationCondition {
+public final class TerminationCondition<R> {
 
     @Getter
-    private final Class<?> eventClass;
+    private final Class<R> eventClass;
 
     @Getter
-    private final Predicate<?> conditionFunction;
+    private final Predicate<R> conditionFunction;
 
-    static <R> TerminationCondition terminationCondition(final Class<R> eventClass, final Predicate<R> conditionFunction) {
-        return new TerminationCondition(eventClass, conditionFunction);
+    static <R> TerminationCondition<R> terminationCondition(final Class<R> eventClass, final Predicate<R> conditionFunction) {
+        return new TerminationCondition<>(eventClass, conditionFunction);
     }
 }

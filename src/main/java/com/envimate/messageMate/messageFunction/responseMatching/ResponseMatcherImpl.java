@@ -37,7 +37,7 @@ public final class ResponseMatcherImpl<S> implements ResponseMatcher<S> {
     public static <S> ResponseMatcherImpl<S> responseMatcher(@NonNull final Class<S> expectedResponseClass,
                                                              @NonNull final CorrelationId correlationId,
                                                              @NonNull final CorrelationIdExtraction<S> correlationIdExtraction,
-                                                             @NonNull final boolean isSuccessResponse) {
+                                                             final boolean isSuccessResponse) {
         return new ResponseMatcherImpl<>(expectedResponseClass, correlationId, correlationIdExtraction, isSuccessResponse);
     }
 

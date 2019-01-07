@@ -21,9 +21,22 @@
 
 package com.envimate.messageMate.subscribing;
 
-public interface Subscriber<T> {
+import lombok.RequiredArgsConstructor;
 
-    AcceptingBehavior accept(T message);
+import static lombok.AccessLevel.PRIVATE;
 
-    SubscriptionId getSubscriptionId();
+@RequiredArgsConstructor(access = PRIVATE)
+public final class AcceptingBehavior {
+    public static final AcceptingBehavior MESSAGE_ACCEPTED = new AcceptingBehavior(true);
+    public static final AcceptingBehavior MESSAGE_ACCEPTED_AND_STOP_DELIVERY = new AcceptingBehavior(false);
+
+    private final boolean continueDelivery;
+
+    public static AcceptingBehavior acceptingBehavior(final boolean continueDelivery) {
+        return new AcceptingBehavior(continueDelivery);
+    }
+
+    public boolean continueDelivery() {
+        return continueDelivery;
+    }
 }

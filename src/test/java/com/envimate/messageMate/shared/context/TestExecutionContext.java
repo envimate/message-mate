@@ -21,11 +21,13 @@ public final class TestExecutionContext {
     }
 
     public synchronized void addToListProperty(final TestExecutionProperty property, final Object o) {
+        @SuppressWarnings("unchecked")
         final List<Object> list = (List<Object>) definedPropertiesMap.getOrDefault(property, new LinkedList<>());
         list.add(o);
         definedPropertiesMap.put(property, list);
     }
 
+    @SuppressWarnings("unchecked")
     public <T> T getPropertyAsType(final TestExecutionProperty property, final Class<T> tClass) {
         return (T) getProperty(property);
     }

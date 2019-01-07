@@ -80,7 +80,9 @@ final class MessageBusImpl implements MessageBus {
 
     @Override
     public <T> SubscriptionId subscribe(final Class<T> messageClass, final Subscriber<T> subscriber) {
-        return brokerStrategy.add(messageClass, (Subscriber<Object>) subscriber);
+        @SuppressWarnings("unchecked")
+        final Subscriber<Object> objectSubscriber = (Subscriber<Object>) subscriber;
+        return brokerStrategy.add(messageClass, objectSubscriber);
     }
 
     @Override

@@ -60,30 +60,35 @@ class GenerifiedMessageFunctionMessageFunctionBuilder<R, S> implements Step4Mess
         requestResponseRelationMap = aRequestResponseRelationMap(requestCorrelationIdExtractor, responseCorrelationIdExtractor);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <U extends R> Step4RequestAnswerStep1MessageFunctionBuilder<R, S> with(final Class<U> requestClass) {
         currentHandledResponse = (Class<R>) requestClass;
         return this;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <U extends S> Step4RequestAnswerStep2MessageFunctionBuilder<R, S> answeredBy(final Class<U> responseClass) {
         requestResponseRelationMap.addSuccessResponse(currentHandledResponse, (Class<S>) responseClass);
         return this;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <U extends S> Step4RequestAnswerStep2MessageFunctionBuilder<R, S> or(final Class<U> responseClass) {
         requestResponseRelationMap.addSuccessResponse(currentHandledResponse, (Class<S>) responseClass);
         return this;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <U extends S> Step4RequestAnswerStep2MessageFunctionBuilder<R, S> orByError(final Class<U> responseClass) {
         requestResponseRelationMap.addErrorResponse(currentHandledResponse, (Class<S>) responseClass);
         return this;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <U extends S> Step5RequestCorrelationIdMessageFunctionBuilder<R, S> withGeneralErrorResponse(
             final Class<U> generalErrorResponse) {
@@ -91,6 +96,7 @@ class GenerifiedMessageFunctionMessageFunctionBuilder<R, S> implements Step4Mess
         return this;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <U extends R> Step6ResponseCorrelationIdMessageFunctionBuilder<R, S> obtainingCorrelationIdsOfRequestsWith(
             final Function<U, CorrelationId> consumer) {
@@ -98,6 +104,7 @@ class GenerifiedMessageFunctionMessageFunctionBuilder<R, S> implements Step4Mess
         return this;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <U extends S> Step7UsingMessageBusMessageFunctionBuilder<R, S> obtainingCorrelationIdsOfResponsesWith(
             final Function<U, CorrelationId> consumer) {

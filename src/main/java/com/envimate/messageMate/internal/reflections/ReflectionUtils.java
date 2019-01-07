@@ -38,7 +38,7 @@ public final class ReflectionUtils {
         return classes;
     }
 
-    public static Set<Class<?>> getAllSuperClassesAndInterfaces(final Class aClass) {
+    public static Set<Class<?>> getAllSuperClassesAndInterfaces(final Class<?> aClass) {
         final Set<Class<?>> classes = new HashSet<>();
         classes.add(aClass);
         collectInheritedClasses(aClass, classes);

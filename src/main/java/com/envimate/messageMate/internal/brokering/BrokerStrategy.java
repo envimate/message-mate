@@ -31,7 +31,7 @@ public interface BrokerStrategy {
 
     List<Subscriber<Object>> calculateReceivingSubscriber(Object message);
 
-    SubscriptionId add(Class messageClass, Subscriber<Object> subscriber);
+    SubscriptionId add(Class<?> messageClass, Subscriber<Object> subscriber);
 
     void remove(SubscriptionId subscriptionId);
 

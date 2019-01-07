@@ -34,8 +34,8 @@ public class QueryResolvingBrokerStrategy implements BrokerStrategy {
     public List<Subscriber<Object>> calculateReceivingSubscriber(final Object message) {
         final Set<Subscriber<Object>> allSubscribers = new HashSet<>();
         final Class<?> messageClass = message.getClass();
-        final List<Class> allClasses = getClassAndInterfacesExceptQuerySuperclass(messageClass);
-        for (final Class aClass : allClasses) {
+        final List<Class<?>> allClasses = getClassAndInterfacesExceptQuerySuperclass(messageClass);
+        for (final Class<?> aClass : allClasses) {
             final List<Subscriber<Object>> subscribersOfClass = hashMapBrokerStrategy.calculateReceivingSubscriber(aClass);
             allSubscribers.addAll(subscribersOfClass);
         }
@@ -43,9 +43,9 @@ public class QueryResolvingBrokerStrategy implements BrokerStrategy {
     }
 
     @Override
-    public SubscriptionId add(final Class messageClass, final Subscriber<Object> subscriber) {
-        final List<Class> allClasses = getClassAndInterfacesExceptQuerySuperclass(messageClass);
-        for (final Class aClass : allClasses) {
+    public SubscriptionId add(final Class<?> messageClass, final Subscriber<Object> subscriber) {
+        final List<Class<?>> allClasses = getClassAndInterfacesExceptQuerySuperclass(messageClass);
+        for (final Class<?> aClass : allClasses) {
             hashMapBrokerStrategy.add(aClass, subscriber);
         }
         return subscriber.getSubscriptionId();
@@ -56,8 +56,8 @@ public class QueryResolvingBrokerStrategy implements BrokerStrategy {
         hashMapBrokerStrategy.remove(subscriptionId);
     }
 
-    private List<Class> getClassAndInterfacesExceptQuerySuperclass(final Class baseClass) {
-        final LinkedList<Class> classes = new LinkedList<>();
+    private List<Class<?>> getClassAndInterfacesExceptQuerySuperclass(final Class<?> baseClass) {
+        final LinkedList<Class<?>> classes = new LinkedList<>();
         classes.add(baseClass);
          Arrays.stream(baseClass.getInterfaces())
                 .filter(aClass -> !aClass.equals(Query.class))

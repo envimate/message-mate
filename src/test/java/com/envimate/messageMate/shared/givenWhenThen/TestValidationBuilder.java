@@ -14,15 +14,18 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+
 public abstract class TestValidationBuilder<T> {
     private final List<TestValidation<T>> validations;
 
+    @SafeVarargs
+    @SuppressWarnings("varargs")
     public TestValidationBuilder(final TestValidation<T>... validations) {
         this.validations = new LinkedList<>();
         this.validations.addAll(Arrays.asList(validations));
     }
 
-    private static List<SimpleTestSubscriber> subscribersThatReceivedMessage(final List<SimpleTestSubscriber> receivers, final Object expectedMessage) {
+    private static List<SimpleTestSubscriber<?>> subscribersThatReceivedMessage(final List<SimpleTestSubscriber<?>> receivers, final Object expectedMessage) {
         return receivers.stream()
                 .filter(subscriber -> subscriber.getReceivedMessages().contains(expectedMessage))
                 .collect(Collectors.toList());
@@ -36,9 +39,10 @@ public abstract class TestValidationBuilder<T> {
     protected TestValidationBuilder<T> thatExpectsTheMessageToBeReceived() {
         return withAValidation(
                 (t, executionContext) -> {
-                    final List<SimpleTestSubscriber> receivers = (List<SimpleTestSubscriber>) executionContext.getProperty(EXPECTED_RECEIVERS);
-                    for (final SimpleTestSubscriber receiver : receivers) {
-                        final List receivedMessages = receiver.getReceivedMessages();
+                    @SuppressWarnings("unchecked")
+                    final List<SimpleTestSubscriber<?>> receivers = (List<SimpleTestSubscriber<?>>) executionContext.getProperty(EXPECTED_RECEIVERS);
+                    for (final SimpleTestSubscriber<?> receiver : receivers) {
+                        final List<?> receivedMessages = receiver.getReceivedMessages();
                         assertEquals(receivedMessages.size(), 1);
                         final Object receivedMessage = receivedMessages.get(0);
                         final Object expectedMessage = executionContext.getProperty(SINGLE_SEND_MESSAGE);
@@ -51,10 +55,12 @@ public abstract class TestValidationBuilder<T> {
     protected TestValidationBuilder<T> thatExpectsAllMessagesToBeReceivedByAllSubscribers() {
         return withAValidation(
                 (t, executionContext) -> {
+                    @SuppressWarnings("unchecked")
                     final List<Object> expectedReceivedMessages = (List<Object>) executionContext.getProperty(MESSAGES_SEND_OF_INTEREST);
-                    final List<SimpleTestSubscriber> receivers = (List<SimpleTestSubscriber>) executionContext.getProperty(EXPECTED_RECEIVERS);
-                    for (final SimpleTestSubscriber receiver : receivers) {
-                        final List<Object> receivedMessages = receiver.getReceivedMessages();
+                    @SuppressWarnings("unchecked")
+                    final List<SimpleTestSubscriber<?>> receivers = (List<SimpleTestSubscriber<?>>) executionContext.getProperty(EXPECTED_RECEIVERS);
+                    for (final SimpleTestSubscriber<?> receiver : receivers) {
+                        final List<?> receivedMessages = receiver.getReceivedMessages();
                         assertEquals(receivedMessages.size(), expectedReceivedMessages.size());
                         final Object[] ar = expectedReceivedMessages.toArray();
                         assertThat(receivedMessages, containsInAnyOrder(ar));
@@ -67,21 +73,23 @@ public abstract class TestValidationBuilder<T> {
         final TestValidationBuilder<T> that = this;
         return withAValidation(
                 (t, executionContext) -> {
-                    final List<Subscriber<Object>> expectedSubscriber = (List<Subscriber<Object>>) executionContext.getProperty(EXPECTED_SUBSCRIBER);
-                    final List<Subscriber> allSubscribers = that.getAllSubscribers(t);
+                    @SuppressWarnings("unchecked")
+                    final List<Subscriber<?>> expectedSubscriber = (List<Subscriber<?>>) executionContext.getProperty(EXPECTED_SUBSCRIBER);
+                    final List<Subscriber<?>> allSubscribers = that.getAllSubscribers(t);
                     assertThat(allSubscribers, containsInAnyOrder(expectedSubscriber.toArray()));
                 }
         );
     }
 
+    @SuppressWarnings("unchecked")
     public TestValidationBuilder<T> thatExpectsAllMessagesToHaveTheContentChanged() {
         final TestValidationBuilder<T> that = this;
         return withAValidation(
                 (t, executionContext) -> {
-                    final List<Object> expectedMessages = (List<Object>) executionContext.getProperty(MESSAGES_SEND_OF_INTEREST);
-                    final List<Subscriber> subscribers = that.getAllSubscribers(t);
+                    final List<?> expectedMessages = (List<?>) executionContext.getProperty(MESSAGES_SEND_OF_INTEREST);
+                    final List<Subscriber<?>> subscribers = that.getAllSubscribers(t);
                     final String expectedContent = executionContext.getPropertyAsType(EXPECTED_CHANGED_CONTENT, String.class);
-                    for (final Subscriber subscriber : subscribers) {
+                    for (final Subscriber<?> subscriber : subscribers) {
                         final TestSubscriber<TestMessageOfInterest> testSubscriber = (TestSubscriber<TestMessageOfInterest>) subscriber;
                         final List<TestMessageOfInterest> receivedMessages = testSubscriber.getReceivedMessages();
                         assertThat(expectedMessages.size(), equalTo(receivedMessages.size()));
@@ -93,13 +101,14 @@ public abstract class TestValidationBuilder<T> {
         );
     }
 
+    @SuppressWarnings("unchecked")
     public TestValidationBuilder<T> thatExpectsOnlyValidMessageToBeReceived() {
         return withAValidation(
                 (t, executionContext) -> {
-                    final List<Object> expectedReceivedMessages = (List<Object>) executionContext.getProperty(MESSAGES_SEND);
-                    final List<SimpleTestSubscriber> receivers = (List<SimpleTestSubscriber>) executionContext.getProperty(EXPECTED_RECEIVERS);
-                    for (final SimpleTestSubscriber receiver : receivers) {
-                        final List receivedMessages = receiver.getReceivedMessages();
+                    final List<?> expectedReceivedMessages = (List<?>) executionContext.getProperty(MESSAGES_SEND);
+                    final List<SimpleTestSubscriber<?>> receivers = (List<SimpleTestSubscriber<?>>) executionContext.getProperty(EXPECTED_RECEIVERS);
+                    for (final SimpleTestSubscriber<?> receiver : receivers) {
+                        final List<?> receivedMessages = receiver.getReceivedMessages();
                         assertThat(receivedMessages.size(), equalTo(expectedReceivedMessages.size()));
                         for (final Object receivedMessage : receivedMessages) {
                             if (!(receivedMessage instanceof TestMessageOfInterest)) {
@@ -111,18 +120,19 @@ public abstract class TestValidationBuilder<T> {
         );
     }
 
+    @SuppressWarnings("unchecked")
     public TestValidationBuilder<T> thatExpectsXMessagesToBeDelivered(final int expectedNumberOfDeliveredMessages) {
         return withAValidation(
                 (t, executionContext) -> {
-                    final List<TestSubscriber> receiver;
+                    final List<TestSubscriber<?>> receiver;
                     if (executionContext.has(SINGLE_RECEIVER)) {
-                        final TestSubscriber singleSubscriber = executionContext.getPropertyAsType(SINGLE_RECEIVER, TestSubscriber.class);
+                        final TestSubscriber<?> singleSubscriber = executionContext.getPropertyAsType(SINGLE_RECEIVER, TestSubscriber.class);
                         receiver = Collections.singletonList(singleSubscriber);
                     } else {
-                        receiver = (List<TestSubscriber>) executionContext.getPropertyAsType(EXPECTED_RECEIVERS, List.class);
+                        receiver = (List<TestSubscriber<?>>) executionContext.getPropertyAsType(EXPECTED_RECEIVERS, List.class);
                     }
-                    for (final TestSubscriber currentReceiver : receiver) {
-                        final List receivedMessages = currentReceiver.getReceivedMessages();
+                    for (final TestSubscriber<?> currentReceiver : receiver) {
+                        final List<?> receivedMessages = currentReceiver.getReceivedMessages();
                         assertEquals(expectedNumberOfDeliveredMessages, receivedMessages.size());
                     }
                 }
@@ -158,7 +168,7 @@ public abstract class TestValidationBuilder<T> {
     public TestValidationBuilder<T> thatExpectsAListOfSize(final int expectedSize) {
         return withAValidation(
                 (t, executionContext) -> {
-                    final List list = executionContext.getPropertyAsType(RESULT, List.class);
+                    final List<?> list = executionContext.getPropertyAsType(RESULT, List.class);
                     assertThat(list.size(), equalTo(expectedSize));
                 }
         );
@@ -182,20 +192,21 @@ public abstract class TestValidationBuilder<T> {
         );
     }
 
-    public TestValidationBuilder<T> thathExpectsEachMessagesToBeReceivedByOnlyOneSubscriber() {
+    @SuppressWarnings("unchecked")
+    public TestValidationBuilder<T> thatExpectsEachMessagesToBeReceivedByOnlyOneSubscriber() {
         return withAValidation(
                 (t, executionContext) -> {
-                    final List<Object> expectedMessages = (List<Object>) executionContext.getProperty(MESSAGES_SEND_OF_INTEREST);
-                    final List<SimpleTestSubscriber> receivers = (List<SimpleTestSubscriber>) executionContext.getProperty(POTENTIAL_RECEIVERS);
+                    final List<?> expectedMessages = (List<?>) executionContext.getProperty(MESSAGES_SEND_OF_INTEREST);
+                    final List<SimpleTestSubscriber<?>> receivers = (List<SimpleTestSubscriber<?>>) executionContext.getProperty(POTENTIAL_RECEIVERS);
                     for (final Object expectedMessage : expectedMessages) {
-                        final List<SimpleTestSubscriber> subscribersThatReceivedMessage = subscribersThatReceivedMessage(receivers, expectedMessage);
+                        final List<SimpleTestSubscriber<?>> subscribersThatReceivedMessage = subscribersThatReceivedMessage(receivers, expectedMessage);
                         assertThat(subscribersThatReceivedMessage.size(), equalTo(1));
                     }
                 }
         );
     }
 
-    protected abstract List<Subscriber> getAllSubscribers(T t);
+    protected abstract List<Subscriber<?>> getAllSubscribers(T t);
 
     protected abstract boolean isShutdown(T t);
 

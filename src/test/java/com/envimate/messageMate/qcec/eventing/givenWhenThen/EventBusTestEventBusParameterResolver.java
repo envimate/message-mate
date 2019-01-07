@@ -7,7 +7,7 @@ import static com.envimate.messageMate.qcec.eventing.givenWhenThen.EventBusTestE
 
 public class EventBusTestEventBusParameterResolver extends AbstractTestConfigProvider {
     @Override
-    protected Class forConfigClass() {
+    protected Class<?> forConfigClass() {
         return TestEventBus.class;
     }
 

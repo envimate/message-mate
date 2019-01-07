@@ -25,7 +25,10 @@ import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+
 import java.util.function.Consumer;
+
+import static com.envimate.messageMate.subscribing.AcceptingBehavior.MESSAGE_ACCEPTED;
 
 @ToString
 @EqualsAndHashCode
@@ -39,9 +42,9 @@ public final class ConsumerSubscriber<T> implements Subscriber<T> {
     }
 
     @Override
-    public boolean accept(final T message) {
+    public AcceptingBehavior accept(final T message) {
         consumer.accept(message);
-        return true;
+        return MESSAGE_ACCEPTED;
     }
 
     @Override

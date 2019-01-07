@@ -16,6 +16,7 @@ public class Then<T> {
     public void then(final TestValidationBuilder<T> testValidationBuilder) {
         final List<TestValidation<T>> validations = testValidationBuilder.build();
         final TestExecutionContext testExecutionContext = setup.testExecutionContext;
+        @SuppressWarnings("unchecked")
         final T t = (T) testExecutionContext.getProperty(SUT);
         for (final TestValidation<T> validation : validations) {
             validation.validate(t, testExecutionContext);

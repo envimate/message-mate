@@ -28,6 +28,8 @@ import lombok.ToString;
 
 import java.util.function.Predicate;
 
+import static com.envimate.messageMate.subscribing.AcceptingBehavior.acceptingBehavior;
+
 @ToString
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
@@ -40,8 +42,9 @@ public final class PreemptiveSubscriber<T> implements Subscriber<T> {
     }
 
     @Override
-    public boolean accept(final T message) {
-        return predicate.test(message);
+    public AcceptingBehavior accept(final T message) {
+        final boolean continueDelivery = predicate.test(message);
+        return acceptingBehavior(continueDelivery);
     }
 
     @Override
