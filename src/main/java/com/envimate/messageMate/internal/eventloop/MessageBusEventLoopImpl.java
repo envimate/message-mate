@@ -26,13 +26,13 @@ import com.envimate.messageMate.internal.delivering.DeliveryStrategy;
 import com.envimate.messageMate.internal.statistics.StatisticsCollector;
 import com.envimate.messageMate.internal.transport.MessageTransportProcess;
 import com.envimate.messageMate.internal.transport.MessageTransportProcessFactory;
-import com.envimate.messageMate.messages.DeliveryFailedMessage;
+import com.envimate.messageMate.error.DeliveryFailedMessage;
 import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.NonNull;
 
 import java.util.List;
 
-import static com.envimate.messageMate.messages.DeliveryFailedMessage.deliveryFailedMessage;
+import static com.envimate.messageMate.error.DeliveryFailedMessage.deliveryFailedMessage;
 
 public class MessageBusEventLoopImpl implements EventLoop<Object> {
     private MessageAcceptingStrategy<Object> acceptingStrategy;

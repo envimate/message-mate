@@ -19,16 +19,28 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageFunction.responseHandling;
+package com.envimate.messageMate.useCaseConnecting;
 
-import com.envimate.messageMate.messageFunction.responseMatching.ExpectedResponse;
-import com.envimate.messageMate.error.DeliveryFailedMessage;
-import com.envimate.messageMate.subscribing.Subscriber;
+import com.envimate.messageMate.correlation.CorrelationId;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-public interface ResponseHandlingSubscriber<T> extends Subscriber<T> {
+import static lombok.AccessLevel.PRIVATE;
 
-    void addResponseMatcher(ExpectedResponse<T> expectedResponse);
+@EqualsAndHashCode
+@RequiredArgsConstructor(access = PRIVATE)
+public final class UseCaseResponse {
+    @Getter
+    private final Object response;
+    @Getter
+    private final UseCaseRequest useCaseRequest;
 
-    @SuppressWarnings("rawtypes")
-    Subscriber<DeliveryFailedMessage> getDeliveryFailedHandler();
+    public static UseCaseResponse useCaseResponse(final Object response, final UseCaseRequest useCaseRequest) {
+        return new UseCaseResponse(response, useCaseRequest);
+    }
+
+    public CorrelationId getCorrelationId() {
+        return useCaseRequest.getCorrelationId();
+    }
 }

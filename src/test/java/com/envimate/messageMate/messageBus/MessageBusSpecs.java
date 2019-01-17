@@ -2,8 +2,8 @@ package com.envimate.messageMate.messageBus;
 
 
 import com.envimate.messageMate.messageBus.config.MessageBusTestConfig;
-import com.envimate.messageMate.messages.ExceptionInSubscriberException;
-import com.envimate.messageMate.messages.NoSuitableSubscriberException;
+import com.envimate.messageMate.error.ExceptionInSubscriberException;
+import com.envimate.messageMate.error.NoSuitableSubscriberException;
 import com.envimate.messageMate.shared.testMessages.InvalidTestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 import org.junit.jupiter.api.Test;
@@ -51,18 +51,6 @@ public interface MessageBusSpecs {
                         .andThen(aShortWaitIsDone(5, MILLISECONDS)))
                 .then(expectAllMessagesToBeReceivedByAllSubscribers());
     }
-
-    /*
-    Better;
-    @Test
-    default void testMessageBus_canSendAndReceiveMessagesAsynchronously(final TestMessageBus aMessageBus) throws Exception {
-        given(aMessageBus
-                .withSeveralSubscriber(5))
-                .when(severalMessagesAreSendAsynchronously(5, 10)
-                        .andThen(aShortWaitIsDone(5, MILLISECONDS)))
-                .then(expectAllMessagesToBeReceivedByAllSubscribers());
-    }
-     */
 
     //unsubscribe
     @Test

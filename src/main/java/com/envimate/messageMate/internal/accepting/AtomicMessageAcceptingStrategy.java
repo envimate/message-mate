@@ -66,7 +66,6 @@ final class AtomicMessageAcceptingStrategy<T> implements MessageAcceptingStrateg
     @Override
     public void close(final boolean finishRemainingTasks) {
         if (isRunning) {
-            //TODO REVIEW: no remaining waiting threads?
             isRunning = false;
         }
     }

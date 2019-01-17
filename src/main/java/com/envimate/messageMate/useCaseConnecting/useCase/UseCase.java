@@ -19,11 +19,8 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messages;
+package com.envimate.messageMate.useCaseConnecting.useCase;
 
-public class ExceptionInSubscriberException extends Exception {
-
-    public ExceptionInSubscriberException(final Throwable cause) {
-        super(cause);
-    }
+public interface UseCase {
+    Object invoke(Object request);
 }

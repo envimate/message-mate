@@ -19,16 +19,14 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageFunction.responseHandling;
+package com.envimate.messageMate.useCaseConnecting.building;
 
-import com.envimate.messageMate.messageFunction.responseMatching.ExpectedResponse;
-import com.envimate.messageMate.error.DeliveryFailedMessage;
-import com.envimate.messageMate.subscribing.Subscriber;
+import com.envimate.messageMate.messageBus.MessageBus;
+import com.envimate.messageMate.useCaseConnecting.UseCaseConnector;
 
-public interface ResponseHandlingSubscriber<T> extends Subscriber<T> {
+public interface UseCaseConnectorStep3Builder {
 
-    void addResponseMatcher(ExpectedResponse<T> expectedResponse);
+    UseCaseConnectorStep2Builder delivering(Class<?> aClass);
 
-    @SuppressWarnings("rawtypes")
-    Subscriber<DeliveryFailedMessage> getDeliveryFailedHandler();
+    UseCaseConnector using(MessageBus messageBus);
 }

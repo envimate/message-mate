@@ -19,16 +19,15 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageFunction.responseHandling;
+package com.envimate.messageMate.useCaseConnecting;
 
-import com.envimate.messageMate.messageFunction.responseMatching.ExpectedResponse;
-import com.envimate.messageMate.error.DeliveryFailedMessage;
-import com.envimate.messageMate.subscribing.Subscriber;
+import com.envimate.messageMate.autoclosable.NoErrorAutoClosable;
 
-public interface ResponseHandlingSubscriber<T> extends Subscriber<T> {
+import java.util.function.Consumer;
 
-    void addResponseMatcher(ExpectedResponse<T> expectedResponse);
+public interface UseCaseConnector extends NoErrorAutoClosable {
 
-    @SuppressWarnings("rawtypes")
-    Subscriber<DeliveryFailedMessage> getDeliveryFailedHandler();
+    void send(Object request, Consumer<Object> onResponseCallback);
+
+    void close();
 }

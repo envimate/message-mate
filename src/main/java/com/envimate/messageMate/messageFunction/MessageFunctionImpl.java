@@ -26,7 +26,7 @@ import com.envimate.messageMate.messageFunction.requestResponseRelation.RequestR
 import com.envimate.messageMate.messageFunction.responseHandling.ResponseHandlingSubscriber;
 import com.envimate.messageMate.messageFunction.responseMatching.ExpectedResponse;
 import com.envimate.messageMate.messageFunction.responseMatching.ResponseMatcher;
-import com.envimate.messageMate.messages.DeliveryFailedMessage;
+import com.envimate.messageMate.error.DeliveryFailedMessage;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.NonNull;
@@ -38,6 +38,7 @@ final class MessageFunctionImpl<R, S> implements MessageFunction<R, S> {
     private final MessageBus messageBus;
     private final ResponseHandlingSubscriber<S> responseHandlingSubscriber;
     private final RequestResponseRelationMap<R, S> requestResponseRelationMap;
+    private boolean closed;
 
     private MessageFunctionImpl(@NonNull final MessageBus messageBus,
                                 @NonNull final ResponseHandlingSubscriber<S> responseHandlingSubscriber,
@@ -64,6 +65,9 @@ final class MessageFunctionImpl<R, S> implements MessageFunction<R, S> {
 
     @Override
     public ResponseFuture<S> request(final R request) {
+        if (closed) {
+            return null;
+        }
         final List<ResponseMatcher<S>> responseMatchers = requestResponseRelationMap.responseMatchers(request);
         final ExpectedResponse<S> expectedResponse = ExpectedResponse.forRequest(request, responseMatchers);
         responseHandlingSubscriber.addResponseMatcher(expectedResponse);
@@ -72,8 +76,10 @@ final class MessageFunctionImpl<R, S> implements MessageFunction<R, S> {
         return responseFuture;
     }
 
+    //No automatic cancel right now
     @Override
     public void close() {
+        closed = true;
         final SubscriptionId subscriptionId = responseHandlingSubscriber.getSubscriptionId();
         messageBus.unsubcribe(subscriptionId);
     }

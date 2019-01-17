@@ -19,25 +19,25 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messages;
+package com.envimate.messageMate.useCaseConnecting;
 
-import lombok.AccessLevel;
+import com.envimate.messageMate.correlation.CorrelationId;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public final class DeliveryFailedMessage<T> {
-    private final T originalMessage;
-    private final Exception cause;
+import static lombok.AccessLevel.PRIVATE;
 
-    public static <T> DeliveryFailedMessage<T> deliveryFailedMessage(final T originalMessage, final Exception cause) {
-        return new DeliveryFailedMessage<>(originalMessage, cause);
-    }
+@EqualsAndHashCode
+@RequiredArgsConstructor(access = PRIVATE)
+public final class UseCaseRequest {
+    @Getter
+    private final Object request;
+    @Getter
+    private final CorrelationId correlationId;
 
-    public T getOriginalMessage() {
-        return originalMessage;
-    }
-
-    public Exception getCause() {
-        return cause;
+    public static UseCaseRequest useCaseRequest(final Object request) {
+        final CorrelationId correlationId = CorrelationId.newUniqueId();
+        return new UseCaseRequest(request, correlationId);
     }
 }

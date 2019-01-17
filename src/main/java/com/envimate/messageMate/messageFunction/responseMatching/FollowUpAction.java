@@ -23,5 +23,5 @@ package com.envimate.messageMate.messageFunction.responseMatching;
 
 public interface FollowUpAction<T> {
 
-    void apply(T t, boolean wasSuccessful);
+    void apply(T t, boolean wasSuccessful, Exception exception);
 }

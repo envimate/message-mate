@@ -10,4 +10,5 @@ public enum TestEnvironmentProperty {
     RECEIVERS,
     TEST_OBJECT,
     MOCK,
+    CONTROLLABLE_ENV_OBJECT,
 }

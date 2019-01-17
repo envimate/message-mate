@@ -56,9 +56,17 @@ public class MessageFunctionSpecs {
     @Test
     public void testMessageFunction_executesFollowUpWhenFuturesIsFulfilled() {
         given(aMessageFunction()
-                .definedWithARequestResponseMapping())
+                .definedWithAnUnansweredResponse())
                 .when(aFollowUpActionIsAddedBeforeSend())
                 .then(expectTheFollowUpToBeExecuted());
+    }
+
+    @Test
+    public void testMessageFunction_getsAccessToExceptionInFollowUp() {
+        given(aMessageFunction()
+                .definedWithReponseThrowingAnException())
+                .when(aFollowUpActionForAnExceptionIsAdded())
+                .then(expectAExceptionToBeThrown());
     }
 
     @Test

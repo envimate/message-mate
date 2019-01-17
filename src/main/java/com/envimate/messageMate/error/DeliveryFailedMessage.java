@@ -19,9 +19,25 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messages;
+package com.envimate.messageMate.error;
 
-public class NoSuitableSubscriberException extends Exception {
-    public NoSuitableSubscriberException() {
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public final class DeliveryFailedMessage<T> {
+    private final T originalMessage;
+    private final Exception cause;
+
+    public static <T> DeliveryFailedMessage<T> deliveryFailedMessage(final T originalMessage, final Exception cause) {
+        return new DeliveryFailedMessage<>(originalMessage, cause);
+    }
+
+    public T getOriginalMessage() {
+        return originalMessage;
+    }
+
+    public Exception getCause() {
+        return cause;
     }
 }

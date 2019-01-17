@@ -1,6 +1,6 @@
 package com.envimate.messageMate.qcec.eventing.givenWhenThen;
 
-import com.envimate.messageMate.messages.DeliveryFailedMessage;
+import com.envimate.messageMate.error.DeliveryFailedMessage;
 import com.envimate.messageMate.qcec.shared.TestAction;
 import com.envimate.messageMate.qcec.shared.TestReceiver;
 import com.envimate.messageMate.qcec.shared.testEvents.TestEvent;

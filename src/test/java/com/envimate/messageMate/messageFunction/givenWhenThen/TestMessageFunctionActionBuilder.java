@@ -6,6 +6,7 @@ import com.envimate.messageMate.messageFunction.MessageFunction;
 import com.envimate.messageMate.messageFunction.ResponseFuture;
 import com.envimate.messageMate.messageFunction.testResponses.*;
 import com.envimate.messageMate.qcec.shared.TestAction;
+import com.envimate.messageMate.qcec.shared.TestEnvironmentProperty;
 import lombok.RequiredArgsConstructor;
 
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ import java.util.function.Consumer;
 
 import static com.envimate.messageMate.messageFunction.testResponses.RequestResponseFuturePair.requestResponseFuturePair;
 import static com.envimate.messageMate.messageFunction.testResponses.SimpleTestRequest.testRequest;
+import static com.envimate.messageMate.messageFunction.testResponses.SimpleTestResponse.testResponse;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -83,10 +85,23 @@ public final class TestMessageFunctionActionBuilder {
         return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
             final SimpleTestRequest testRequest = testRequest();
             testEnvironment.setProperty(TEST_OBJECT, testRequest);
-            final ResponseFuture<TestResponse> responseFuture = messageFunction.request(testRequest);
             final String expectedResult = "success";
             testEnvironment.setProperty(EXPECTED_RESULT, expectedResult);
-            responseFuture.then((testResponse, wasSuccessful) -> testEnvironment.setProperty(RESULT, expectedResult));
+            final ResponseFuture<TestResponse> responseFuture = messageFunction.request(testRequest);
+            responseFuture.then((testResponse, wasSuccessful, exception) -> testEnvironment.setProperty(RESULT, expectedResult));
+            final MessageBus messageBus = testEnvironment.getPropertyAsType(TestEnvironmentProperty.MOCK, MessageBus.class);
+            final SimpleTestResponse testResponse = testResponse(testRequest.getCorrelationId());
+            messageBus.send(testResponse);
+            return null;
+        });
+    }
+
+    public static TestMessageFunctionActionBuilder aFollowUpActionForAnExceptionIsAdded() {
+        return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
+            final SimpleTestRequest testRequest = testRequest();
+            testEnvironment.setProperty(TEST_OBJECT, testRequest);
+            final ResponseFuture<TestResponse> responseFuture = messageFunction.request(testRequest);
+            responseFuture.then((testResponse, wasSuccessful, exception) -> testEnvironment.setProperty(EXCEPTION, exception));
             return null;
         });
     }
@@ -97,7 +112,7 @@ public final class TestMessageFunctionActionBuilder {
             final String expectedExceptionMessage = "Expected exception message.";
             testEnvironment.setProperty(EXPECTED_EXCEPTION_MESSAGE, expectedExceptionMessage);
             final ResponseFuture<TestResponse> responseFuture = messageFunction.request(testRequest);
-            responseFuture.then((testResponse, wasSuccessful) -> {
+            responseFuture.then((testResponse, wasSuccessful, exception) -> {
                 throw new RuntimeException(expectedExceptionMessage);
             });
             return null;
@@ -149,14 +164,14 @@ public final class TestMessageFunctionActionBuilder {
         return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
             final SimpleTestRequest testRequest = SimpleTestRequest.testRequest();
             final ResponseFuture<TestResponse> responseFuture = messageFunction.request(testRequest);
-            responseFuture.then((testResponse, wasSuccessful) -> {
+            responseFuture.then((testResponse, wasSuccessful, exception) -> {
                 throw new RuntimeException("This FollowUpActionShouldNotBeCalled");
             });
             for (int i = 0; i < cancelCalls; i++) {
                 responseFuture.cancel(true);
             }
             final MessageBus messageBus = testEnvironment.getPropertyAsType(MOCK, MessageBus.class);
-            messageBus.send(SimpleTestResponse.testResponse(testRequest.getCorrelationId()));
+            messageBus.send(testResponse(testRequest.getCorrelationId()));
             return responseFuture;
         });
     }

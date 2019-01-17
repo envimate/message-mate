@@ -2,7 +2,7 @@ package com.envimate.messageMate.messageBus.givenWhenThen;
 
 
 import com.envimate.messageMate.messageBus.MessageBus;
-import com.envimate.messageMate.messages.DeliveryFailedMessage;
+import com.envimate.messageMate.error.DeliveryFailedMessage;
 import com.envimate.messageMate.shared.givenWhenThen.TestValidation;
 import com.envimate.messageMate.shared.givenWhenThen.TestValidationBuilder;
 import com.envimate.messageMate.shared.subscriber.TestSubscriber;

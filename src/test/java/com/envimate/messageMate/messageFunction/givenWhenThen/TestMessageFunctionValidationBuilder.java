@@ -104,8 +104,10 @@ public final class TestMessageFunctionValidationBuilder {
     public static TestMessageFunctionValidationBuilder expectAExceptionToBeThrown() {
         return new TestMessageFunctionValidationBuilder(testEnvironment -> {
             final Exception exception = testEnvironment.getPropertyAsType(EXCEPTION, Exception.class);
-            final String expectedExceptionMessage = testEnvironment.getPropertyAsType(EXPECTED_EXCEPTION_MESSAGE, String.class);
-            assertEquals(exception.getMessage(), expectedExceptionMessage);
+            if (testEnvironment.has(EXPECTED_EXCEPTION_MESSAGE)) {
+                final String expectedExceptionMessage = testEnvironment.getPropertyAsType(EXPECTED_EXCEPTION_MESSAGE, String.class);
+                assertEquals(exception.getMessage(), expectedExceptionMessage);
+            }
         });
     }
 

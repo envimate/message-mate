@@ -22,7 +22,7 @@
 package com.envimate.messageMate.messageFunction.responseHandling;
 
 import com.envimate.messageMate.messageFunction.responseMatching.ExpectedResponse;
-import com.envimate.messageMate.messages.DeliveryFailedMessage;
+import com.envimate.messageMate.error.DeliveryFailedMessage;
 import com.envimate.messageMate.subscribing.AcceptingBehavior;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;

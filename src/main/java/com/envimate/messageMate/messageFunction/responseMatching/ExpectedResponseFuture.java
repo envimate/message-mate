@@ -45,7 +45,7 @@ final class ExpectedResponseFuture<S> implements ResponseFuture<S> {
         this.successful = successful;
         countDownLatch.countDown();
         if (followUpAction != null) {
-            followUpAction.apply(response, successful);
+            followUpAction.apply(response, successful, null);
         }
     }
 
@@ -53,6 +53,9 @@ final class ExpectedResponseFuture<S> implements ResponseFuture<S> {
         this.thrownException = e;
         this.successful = false;
         countDownLatch.countDown();
+        if (followUpAction != null) {
+            followUpAction.apply(null, this.successful, e);
+        }
     }
 
     @Override
@@ -137,7 +140,7 @@ final class ExpectedResponseFuture<S> implements ResponseFuture<S> {
                 if (isCancelled()) {
                     throw new CancellationException();
                 } else {
-                    followUpAction.apply(response, wasSuccessful());
+                    followUpAction.apply(this.response, wasSuccessful(), this.thrownException);
                 }
             }
         }

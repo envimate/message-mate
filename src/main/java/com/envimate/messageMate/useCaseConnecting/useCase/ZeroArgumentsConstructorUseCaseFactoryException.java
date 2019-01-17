@@ -19,16 +19,17 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageFunction.responseHandling;
+package com.envimate.messageMate.useCaseConnecting.useCase;
 
-import com.envimate.messageMate.messageFunction.responseMatching.ExpectedResponse;
-import com.envimate.messageMate.error.DeliveryFailedMessage;
-import com.envimate.messageMate.subscribing.Subscriber;
+public final class ZeroArgumentsConstructorUseCaseFactoryException extends RuntimeException {
 
-public interface ResponseHandlingSubscriber<T> extends Subscriber<T> {
+    private ZeroArgumentsConstructorUseCaseFactoryException(final String message, final Throwable cause) {
+        super(message, cause);
+    }
 
-    void addResponseMatcher(ExpectedResponse<T> expectedResponse);
-
-    @SuppressWarnings("rawtypes")
-    Subscriber<DeliveryFailedMessage> getDeliveryFailedHandler();
+    static ZeroArgumentsConstructorUseCaseFactoryException zeroArgumentsConstructorUseCaseFactoryException(
+            final Class<?> type, final Throwable cause) {
+        return new ZeroArgumentsConstructorUseCaseFactoryException("Exception during instantiation " +
+                "of " + type.getName() + " using zero argument constructor", cause);
+    }
 }

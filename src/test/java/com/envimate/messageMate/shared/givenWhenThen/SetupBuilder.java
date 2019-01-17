@@ -1,6 +1,6 @@
 package com.envimate.messageMate.shared.givenWhenThen;
 
-import com.envimate.messageMate.messages.DeliveryFailedMessage;
+import com.envimate.messageMate.error.DeliveryFailedMessage;
 import com.envimate.messageMate.shared.context.TestExecutionContext;
 import com.envimate.messageMate.shared.subscriber.ErrorThrowingTestSubscriber;
 import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
@@ -69,7 +69,7 @@ public abstract class SetupBuilder<T> {
     public SetupBuilder<T> withAFilterThatReplacesWrongMessages() {
         final SetupBuilder<T> that = this;
         setupActions.add((t, executionContext) -> {
-            executionContext.setProperty(EXECUTE_MESSAGE_BUS_IN_OWN_THREAD, true); //TODO: necessary?
+            executionContext.setProperty(EXECUTE_MESSAGE_BUS_IN_OWN_THREAD, true);
             that.addFilterThatReplacesWrongMessage(t);
         });
         return this;
