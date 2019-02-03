@@ -1,6 +1,7 @@
 package com.envimate.messageMate.shared.givenWhenThen;
 
 
+import com.envimate.messageMate.shared.context.TestExecutionProperty;
 import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
 import com.envimate.messageMate.shared.subscriber.TestSubscriber;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
@@ -37,6 +38,7 @@ public abstract class TestValidationBuilder<T> {
     }
 
     protected TestValidationBuilder<T> thatExpectsTheMessageToBeReceived() {
+        ensureNoExceptionThrown();
         return withAValidation(
                 (t, executionContext) -> {
                     @SuppressWarnings("unchecked")
@@ -53,6 +55,7 @@ public abstract class TestValidationBuilder<T> {
     }
 
     protected TestValidationBuilder<T> thatExpectsAllMessagesToBeReceivedByAllSubscribers() {
+        ensureNoExceptionThrown();
         return withAValidation(
                 (t, executionContext) -> {
                     @SuppressWarnings("unchecked")
@@ -70,6 +73,7 @@ public abstract class TestValidationBuilder<T> {
     }
 
     public TestValidationBuilder<T> thatExpectsAllRemainingSubscribersToStillBeSubscribed() {
+        ensureNoExceptionThrown();
         final TestValidationBuilder<T> that = this;
         return withAValidation(
                 (t, executionContext) -> {
@@ -83,6 +87,7 @@ public abstract class TestValidationBuilder<T> {
 
     @SuppressWarnings("unchecked")
     public TestValidationBuilder<T> thatExpectsAllMessagesToHaveTheContentChanged() {
+        ensureNoExceptionThrown();
         final TestValidationBuilder<T> that = this;
         return withAValidation(
                 (t, executionContext) -> {
@@ -103,6 +108,7 @@ public abstract class TestValidationBuilder<T> {
 
     @SuppressWarnings("unchecked")
     public TestValidationBuilder<T> thatExpectsOnlyValidMessageToBeReceived() {
+        ensureNoExceptionThrown();
         return withAValidation(
                 (t, executionContext) -> {
                     final List<?> expectedReceivedMessages = (List<?>) executionContext.getProperty(MESSAGES_SEND);
@@ -122,6 +128,7 @@ public abstract class TestValidationBuilder<T> {
 
     @SuppressWarnings("unchecked")
     public TestValidationBuilder<T> thatExpectsXMessagesToBeDelivered(final int expectedNumberOfDeliveredMessages) {
+        ensureNoExceptionThrown();
         return withAValidation(
                 (t, executionContext) -> {
                     final List<TestSubscriber<?>> receiver;
@@ -140,6 +147,7 @@ public abstract class TestValidationBuilder<T> {
     }
 
     public TestValidationBuilder<T> thatExpectsResultToBe(final Object expectedResult) {
+        ensureNoExceptionThrown();
         return withAValidation(
                 (t, executionContext) -> {
                     final Object result = executionContext.getProperty(RESULT);
@@ -155,6 +163,7 @@ public abstract class TestValidationBuilder<T> {
     }
 
     public TestValidationBuilder<T> thatExpectsTimestampToBeInTheLastXSeconds(final long maximumSecondsDifference) {
+        ensureNoExceptionThrown();
         return withAValidation(
                 (t, executionContext) -> {
                     final Date now = new Date();
@@ -166,6 +175,7 @@ public abstract class TestValidationBuilder<T> {
     }
 
     public TestValidationBuilder<T> thatExpectsAListOfSize(final int expectedSize) {
+        ensureNoExceptionThrown();
         return withAValidation(
                 (t, executionContext) -> {
                     final List<?> list = executionContext.getPropertyAsType(RESULT, List.class);
@@ -175,6 +185,7 @@ public abstract class TestValidationBuilder<T> {
     }
 
     public TestValidationBuilder<T> thatExpectsTheMessageBusToBeShutdownInTime() {
+        ensureNoExceptionThrown();
         final TestValidationBuilder<T> that = this;
         return withAValidation(
                 (t, executionContext) -> {
@@ -186,6 +197,7 @@ public abstract class TestValidationBuilder<T> {
     }
 
     public TestValidationBuilder<T> thatExpectsTheMessageBusToBeShutdown() {
+        ensureNoExceptionThrown();
         final TestValidationBuilder<T> that = this;
         return withAValidation(
                 (t, executionContext) -> assertTrue(that.isShutdown(t))
@@ -194,6 +206,7 @@ public abstract class TestValidationBuilder<T> {
 
     @SuppressWarnings("unchecked")
     public TestValidationBuilder<T> thatExpectsEachMessagesToBeReceivedByOnlyOneSubscriber() {
+        ensureNoExceptionThrown();
         return withAValidation(
                 (t, executionContext) -> {
                     final List<?> expectedMessages = (List<?>) executionContext.getProperty(MESSAGES_SEND_OF_INTEREST);
@@ -206,14 +219,56 @@ public abstract class TestValidationBuilder<T> {
         );
     }
 
+    public TestValidationBuilder<T> thatExpectsTheExceptionClass(final Class<?> expectedExceptionClass) {
+        return withAValidation(
+                (t, executionContext) -> {
+                    final Exception exception = executionContext.getPropertyAsType(TestExecutionProperty.EXCEPTION, Exception.class);
+                    assertThat(exception.getClass(), equalTo(expectedExceptionClass));
+                }
+        );
+    }
+
+    public TestValidationBuilder<T> thatExpectsAListOfAllFilters() {
+        ensureNoExceptionThrown();
+        return withAValidation(
+                (t, executionContext) -> {
+                    final List<?> expectedFilter = (List<?>) executionContext.getProperty(EXPECTED_FILTER);
+                    final List<?> list = executionContext.getPropertyAsType(RESULT, List.class);
+                    assertThat(list, containsInAnyOrder(expectedFilter.toArray()));
+                }
+        );
+    }
+
+    public TestValidationBuilder<T> thatExpectsTheSutToHaveAllRemainingFilters() {
+        ensureNoExceptionThrown();
+        final TestValidationBuilder<T> that = this;
+        return withAValidation(
+                (t, executionContext) -> {
+                    final List<?> expectedFilter = (List<?>) executionContext.getProperty(EXPECTED_FILTER);
+                    final List<?> list = that.getFilter(t);
+                    assertThat(list, containsInAnyOrder(expectedFilter.toArray()));
+                }
+        );
+    }
+
     protected abstract List<Subscriber<?>> getAllSubscribers(T t);
 
     protected abstract boolean isShutdown(T t);
 
+    protected abstract List<?> getFilter(T t);
 
     public TestValidationBuilder<T> and(final TestValidationBuilder<T> followUpValidationBuilder) {
         this.validations.addAll(followUpValidationBuilder.validations);
         return this;
+    }
+
+    private void ensureNoExceptionThrown() {
+        withAValidation((t, executionContext) -> {
+            if (executionContext.has(EXCEPTION)) {
+                final Exception exception = executionContext.getPropertyAsType(EXCEPTION, Exception.class);
+                fail("Unexpected exception: ", exception);
+            }
+        });
     }
 
     public List<TestValidation<T>> build() {

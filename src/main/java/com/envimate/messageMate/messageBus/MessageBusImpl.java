@@ -96,6 +96,21 @@ final class MessageBusImpl implements MessageBus {
     }
 
     @Override
+    public void add(final Filter<Object> filter, final int position) {
+        filters.add(position, filter);
+    }
+
+    @Override
+    public List<Filter<Object>> getFilter() {
+        return filters;
+    }
+
+    @Override
+    public void remove(final Filter<Object> filter) {
+        filters.remove(filter);
+    }
+
+    @Override
     public void close(final boolean finishRemainingTasks) {
         if (!closedAlreadyCalled) {
             closedAlreadyCalled = true;

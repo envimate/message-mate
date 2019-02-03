@@ -1,6 +1,7 @@
 package com.envimate.messageMate.messageBus.givenWhenThen;
 
 
+import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.internal.statistics.MessageStatistics;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.shared.givenWhenThen.ActionBuilder;
@@ -170,6 +171,16 @@ public final class MessageBusActionBuilder extends ActionBuilder<MessageBus> {
                 .thatAwaitsTheShutdownTimeoutInSeconds(timeoutInSeconds);
     }
 
+    public static ActionBuilder<MessageBus> theListOfFiltersIsQueried() {
+        return new MessageBusActionBuilder()
+                .thatQueriesTheListOfFilters();
+    }
+
+    public static ActionBuilder<MessageBus> aFilterIsRemoved() {
+        return new MessageBusActionBuilder()
+                .thatRemovesAFilter();
+    }
+
     @Override
     public void send(final MessageBus messageBus, final TestMessage message) {
         messageBus.send(message);
@@ -198,5 +209,19 @@ public final class MessageBusActionBuilder extends ActionBuilder<MessageBus> {
     @Override
     protected boolean awaitTermination(final MessageBus messageBus, final int timeout, final TimeUnit timeUnit) throws InterruptedException {
         return messageBus.awaitTermination(timeout, timeUnit);
+    }
+
+    @Override
+    protected List<?> getFilter(final MessageBus messageBus) {
+        return messageBus.getFilter();
+    }
+
+    @Override
+    protected Object removeAFilter(final MessageBus messageBus) {
+        final List<Filter<Object>> filters = messageBus.getFilter();
+        final int indexToRemove = (int) (Math.random() * filters.size());
+        final Filter<Object> filter = filters.get(indexToRemove);
+        messageBus.remove(filter);
+        return filter;
     }
 }

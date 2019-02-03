@@ -26,6 +26,7 @@ import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -41,6 +42,12 @@ public interface Channel<T> extends NoErrorAutoClosable {
 
     void add(Filter<T> filter);
 
+    void add(Filter<T> filter, int position);
+
+    List<Filter<T>> getFilter();
+
+    void remove(Filter<T> filter);
+
     void close(boolean finishRemainingTasks);
 
     ChannelStatusInformation<T> getStatusInformation();
@@ -48,4 +55,5 @@ public interface Channel<T> extends NoErrorAutoClosable {
     boolean isShutdown();
 
     boolean awaitTermination(int timeout, TimeUnit timeUnit) throws InterruptedException;
+
 }

@@ -4,14 +4,13 @@ import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusBuilder;
 import com.envimate.messageMate.messageBus.config.MessageBusTestConfig;
-import com.envimate.messageMate.shared.context.TestExecutionProperty;
 import com.envimate.messageMate.shared.givenWhenThen.Setup;
 import com.envimate.messageMate.shared.givenWhenThen.SetupBuilder;
 import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
 import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.RequiredArgsConstructor;
 
-import static com.envimate.messageMate.shared.context.TestExecutionProperty.*;
+import static com.envimate.messageMate.shared.context.TestExecutionProperty.EXPECTED_RECEIVERS;
 import static com.envimate.messageMate.shared.givenWhenThen.TestFilter.*;
 import static lombok.AccessLevel.PRIVATE;
 
@@ -31,26 +30,33 @@ public final class MessageBusSetupBuilder extends SetupBuilder<MessageBus> {
 
     @Override
     protected void addFilterThatChangesTheContent(final MessageBus messageBus) {
-        final Filter<Object> filter = aContentChangingFilter(Object.class);
+        final Filter<Object> filter = aContentChangingFilter();
         messageBus.add(filter);
     }
 
     @Override
     protected void addFilterThatDropsMessages(final MessageBus messageBus) {
-        final Filter<Object> filter = aMessageDroppingFilter(Object.class);
+        final Filter<Object> filter = aMessageDroppingFilter();
         messageBus.add(filter);
     }
 
     @Override
     protected void addFilterThatReplacesWrongMessage(final MessageBus messageBus) {
-        final Filter<Object> filter = aMessageReplacingFilter(Object.class);
+        final Filter<Object> filter = aMessageReplacingFilter();
         messageBus.add(filter);
     }
 
     @Override
     protected void addFilterThatDoesNotCallAnyFilterMethod(final MessageBus messageBus) {
-        final Filter<Object> filter = aMessageThatDoesNotCallAnyMethod(Object.class);
+        final Filter<Object> filter = aMessageFilterThatDoesNotCallAnyMethod();
         messageBus.add(filter);
+    }
+
+    @Override
+    protected Filter<?> addFilterAtPositionThatAppendsTheContent(final String contentToAppend, final int position, final MessageBus messageBus) {
+        final Filter<Object> filter = aContentAppendingFilter(contentToAppend);
+        messageBus.add(filter, position);
+        return filter;
     }
 
     @Override

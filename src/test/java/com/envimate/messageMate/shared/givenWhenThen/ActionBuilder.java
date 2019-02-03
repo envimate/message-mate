@@ -1,7 +1,6 @@
 package com.envimate.messageMate.shared.givenWhenThen;
 
 
-
 import com.envimate.messageMate.internal.statistics.MessageStatistics;
 import com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber;
 import com.envimate.messageMate.shared.subscriber.TestSubscriber;
@@ -438,26 +437,43 @@ public abstract class ActionBuilder<T> {
     }
 
 
-    protected abstract <R> void subscribe(T t, Class<R> messageClass, Subscriber<R> subscriber);
+    protected ActionBuilder<T> thatQueriesTheListOfFilters() {
+        final ActionBuilder<T> that = this;
+        return this.withAnAction((t, executionContext) -> {
+            final List<?> filter = that.getFilter(t);
+            executionContext.setProperty(RESULT, filter);
+        });
+    }
 
-    protected abstract void close(T t, boolean finishRemainingTasks);
-
-    protected abstract boolean awaitTermination(T t, int timeout, TimeUnit timeUnit) throws InterruptedException;
-
+    protected ActionBuilder<T> thatRemovesAFilter() {
+        final ActionBuilder<T> that = this;
+        return this.withAnAction((t, executionContext) -> {
+            final Object removedFilter = that.removeAFilter(t);
+            final List<?> expectedFilter = executionContext.getPropertyAsType(EXPECTED_FILTER, List.class);
+            expectedFilter.remove(removedFilter);
+        });
+    }
 
     public ActionBuilder<T> andThen(final ActionBuilder<T> followUpBuilder) {
         actions.addAll(followUpBuilder.actions);
         return this;
     }
 
+    protected abstract <R> void subscribe(T t, Class<R> messageClass, Subscriber<R> subscriber);
+
+    protected abstract void close(T t, boolean finishRemainingTasks);
+
+    protected abstract boolean awaitTermination(T t, int timeout, TimeUnit timeUnit) throws InterruptedException;
+
+    protected abstract List<?> getFilter(T t);
 
     protected abstract void unsubscribe(T t, SubscriptionId subscriptionId);
-
 
     protected abstract void send(T t, TestMessage message);
 
     protected abstract MessageStatistics getMessageStatistics(T t);
 
+    protected abstract Object removeAFilter(T t);
 
     public ActionSetup<T> build() {
         return ActionSetup.actionSetup(actions);

@@ -1,9 +1,9 @@
 package com.envimate.messageMate.messageBus;
 
 
-import com.envimate.messageMate.messageBus.config.MessageBusTestConfig;
 import com.envimate.messageMate.error.ExceptionInSubscriberException;
 import com.envimate.messageMate.error.NoSuitableSubscriberException;
+import com.envimate.messageMate.messageBus.config.MessageBusTestConfig;
 import com.envimate.messageMate.shared.testMessages.InvalidTestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 import org.junit.jupiter.api.Test;
@@ -123,6 +123,54 @@ public interface MessageBusSpecs {
                 .when(severalInvalidMessagesAreSendAsynchronously(3, 10))
                 .then(expectNoMessagesToBeDelivered());
     }
+
+    @Test
+    default void testMessageBus_throwsExceptionForPositionBelowZero(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aMessageBus()
+                .configuredWith(messageBusTestConfig)
+                .withAFilterAtAnInvalidPosition(-1))
+                .when(aSingleMessageIsSend())
+                .then(expectTheException(IndexOutOfBoundsException.class));
+    }
+
+    @Test
+    default void testMessageBus_throwsExceptionForPositionGreaterThanAllowed(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aMessageBus()
+                .configuredWith(messageBusTestConfig)
+                .withAFilterAtAnInvalidPosition(100))
+                .when(aSingleMessageIsSend())
+                .then(expectTheException(IndexOutOfBoundsException.class));
+    }
+
+    @Test
+    default void testMessageBus_canQueryListOfFilter(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aMessageBus()
+                .configuredWith(messageBusTestConfig)
+                .withTwoFilterOnSpecificPositions())
+                .when(theListOfFiltersIsQueried())
+                .then(expectAListWithAllFilters());
+    }
+
+    @Test
+    default void testMessageBus_canRemoveFilter(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aMessageBus()
+                .configuredWith(messageBusTestConfig)
+                .withTwoFilterOnSpecificPositions())
+                .when(aFilterIsRemoved())
+                .then(expectTheRemainingFilter());
+    }
+
+    /*
+    @Test
+    default void testChannel_canRemoveFilter(final ChannelTestConfig testConfig) throws Exception {
+        given(aChannel()
+                .configuredWith(testConfig)
+                .withTwoFilterOnSpecificPositions())
+                .when(aFilterIsRemoved())
+                .then(expectTheRemainingFilter());
+    }
+
+     */
 
     //messageStatistics
     @Test

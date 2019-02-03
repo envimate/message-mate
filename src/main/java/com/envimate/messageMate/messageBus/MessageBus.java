@@ -26,6 +26,7 @@ import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -40,6 +41,12 @@ public interface MessageBus extends NoErrorAutoClosable {
     void unsubcribe(SubscriptionId subscriptionId);
 
     void add(Filter<Object> filter);
+
+    void add(Filter<Object> filter, int position);
+
+    List<Filter<Object>> getFilter();
+
+    void remove(Filter<Object> filter);
 
     void close(boolean finishRemainingTasks);
 

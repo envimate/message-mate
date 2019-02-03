@@ -1,6 +1,7 @@
 package com.envimate.messageMate.shared.givenWhenThen;
 
 import com.envimate.messageMate.error.DeliveryFailedMessage;
+import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.shared.context.TestExecutionContext;
 import com.envimate.messageMate.shared.subscriber.ErrorThrowingTestSubscriber;
 import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
@@ -83,8 +84,31 @@ public abstract class SetupBuilder<T> {
         return this;
     }
 
+    public SetupBuilder<T> withTwoFilterOnSpecificPositions() {
+        final SetupBuilder<T> that = this;
+        final String firstAppend = "1nd";
+        final String secondAppend = "2nd";
+        executionContext.setProperty(EXPECTED_CHANGED_CONTENT, TestMessageOfInterest.CONTENT + firstAppend + secondAppend);
+        setupActions.add((t, executionContext) -> {
+            final Filter<?> filter = that.addFilterAtPositionThatAppendsTheContent(secondAppend, 0, t);
+            executionContext.addToListProperty(EXPECTED_FILTER, filter);
+        });
+        setupActions.add((t, executionContext) -> {
+            final Filter<?> filter = that.addFilterAtPositionThatAppendsTheContent(firstAppend, 0, t);
+            executionContext.addToListProperty(EXPECTED_FILTER, filter);
+        });
+        return this;
+    }
+
+    public SetupBuilder<T> withAFilterAtAnInvalidPosition(final int position) {
+        final SetupBuilder<T> that = this;
+        setupActions.add((t, executionContext) -> that.addFilterAtPositionThatAppendsTheContent(null, position, t));
+        return this;
+    }
+
     protected abstract void addFilterThatDoesNotCallAnyFilterMethod(T t);
 
+    protected abstract Filter<?> addFilterAtPositionThatAppendsTheContent(String contentToAppend, int position, T t);
 
     public SetupBuilder<T> withASubscriberThatBlocksWhenAccepting() {
         final SetupBuilder<T> that = this;

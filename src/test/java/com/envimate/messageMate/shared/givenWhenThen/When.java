@@ -21,16 +21,26 @@ public class When<T> {
         final Setup<T> setup = setupBuilder.build();
         final TestExecutionContext testExecutionContext = setup.testExecutionContext;
         final T t = setup.t;
-        setup.setupActions.forEach(setupAction -> setupAction.execute(t, testExecutionContext));
+        try {
+            setup.setupActions.forEach(setupAction -> setupAction.execute(t, testExecutionContext));
+        } catch (final Exception e) {
+            testExecutionContext.setProperty(EXCEPTION, e);
+        }
         final ActionSetup<T> actionSetup = actionBuilder.build();
         testExecutionContext.setProperty(CHANNEL, t);
         testExecutionContext.setProperty(MESSAGE_BUS, t);
         testExecutionContext.setProperty(SUT, t);
 
         final List<TestAction<T>> channelActions = actionSetup.channelActions;
-        for (final TestAction<T> testAction : channelActions) {
-            testAction.execute(t, testExecutionContext);
+
+        try {
+            for (final TestAction<T> testAction : channelActions) {
+                testAction.execute(t, testExecutionContext);
+            }
+        } catch (final Exception e) {
+            testExecutionContext.setProperty(EXCEPTION, e);
         }
+
         if (testExecutionContext.has(EXECUTION_END_SEMAPHORE)) {
             final Semaphore blockingSemaphoreToReleaseAfterExecution = testExecutionContext.getPropertyAsType(EXECUTION_END_SEMAPHORE, Semaphore.class);
             blockingSemaphoreToReleaseAfterExecution.release(1000);

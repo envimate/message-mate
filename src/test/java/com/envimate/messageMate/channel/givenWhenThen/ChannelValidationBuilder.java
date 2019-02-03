@@ -78,6 +78,21 @@ public final class ChannelValidationBuilder extends TestValidationBuilder<Channe
                 .thatExpectsEachMessagesToBeReceivedByOnlyOneSubscriber();
     }
 
+    public static TestValidationBuilder<Channel<TestMessage>> expectTheException(final Class<?> expectedExceptionClass) {
+        return new ChannelValidationBuilder()
+                .thatExpectsTheExceptionClass(expectedExceptionClass);
+    }
+
+    public static TestValidationBuilder<Channel<TestMessage>> expectAListWithAllFilters() {
+        return new ChannelValidationBuilder()
+                .thatExpectsAListOfAllFilters();
+    }
+
+    public static TestValidationBuilder<Channel<TestMessage>> expectTheRemainingFilter() {
+        return new ChannelValidationBuilder()
+                .thatExpectsTheSutToHaveAllRemainingFilters();
+    }
+
     @Override
     protected List<Subscriber<?>> getAllSubscribers(final Channel<TestMessage> channel) {
         final ChannelStatusInformation<TestMessage> statusInformation = channel.getStatusInformation();
@@ -89,5 +104,10 @@ public final class ChannelValidationBuilder extends TestValidationBuilder<Channe
     @Override
     protected boolean isShutdown(final Channel<TestMessage> channel) {
         return channel.isShutdown();
+    }
+
+    @Override
+    protected List<?> getFilter(final Channel<TestMessage> channel) {
+        return channel.getFilter();
     }
 }

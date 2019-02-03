@@ -17,4 +17,6 @@ public enum TestExecutionProperty {
     RESULT,
     EXECUTE_MESSAGE_BUS_IN_OWN_THREAD,
     ERROR_SUBSCRIBER,
+    EXPECTED_FILTER,
+    EXCEPTION,
 }

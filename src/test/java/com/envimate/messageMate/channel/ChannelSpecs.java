@@ -112,6 +112,53 @@ public interface ChannelSpecs {
                 .then(expectNoMessagesToBeDelivered());
     }
 
+    @Test
+    default void testChannel_canAddFilterAtASpecificPosition(final ChannelTestConfig testConfig) throws Exception {
+        given(aChannel()
+                .configuredWith(testConfig)
+                .withSeveralSubscriber(3)
+                .withTwoFilterOnSpecificPositions())
+                .when(severalMessagesAreSend(3)
+                        .andThen(aShortWaitIsDone(5, MILLISECONDS)))
+                .then(expectAllMessagesToHaveTheContentChanged());
+    }
+
+    @Test
+    default void testChannel_throwsExceptionForPositionBelowZero(final ChannelTestConfig testConfig) throws Exception {
+        given(aChannel()
+                .configuredWith(testConfig)
+                .withAFilterAtAnInvalidPosition(-1))
+                .when(aSingleMessageIsSend())
+                .then(expectTheException(IndexOutOfBoundsException.class));
+    }
+
+    @Test
+    default void testChannel_throwsExceptionForPositionGreaterThanAllowed(final ChannelTestConfig testConfig) throws Exception {
+        given(aChannel()
+                .configuredWith(testConfig)
+                .withAFilterAtAnInvalidPosition(100))
+                .when(aSingleMessageIsSend())
+                .then(expectTheException(IndexOutOfBoundsException.class));
+    }
+
+    @Test
+    default void testChannel_canQueryListOfFilter(final ChannelTestConfig testConfig) throws Exception {
+        given(aChannel()
+                .configuredWith(testConfig)
+                .withTwoFilterOnSpecificPositions())
+                .when(theListOfFiltersIsQueried())
+                .then(expectAListWithAllFilters());
+    }
+
+    @Test
+    default void testChannel_canRemoveFilter(final ChannelTestConfig testConfig) throws Exception {
+        given(aChannel()
+                .configuredWith(testConfig)
+                .withTwoFilterOnSpecificPositions())
+                .when(aFilterIsRemoved())
+                .then(expectTheRemainingFilter());
+    }
+
     //messageStatistics
     @Test
     default void testChannel_returnsCorrectNumberOfAcceptedMessages(final ChannelTestConfig testConfig) throws Exception {

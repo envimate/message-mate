@@ -93,6 +93,21 @@ public final class ChannelImpl<T> implements Channel<T> {
     }
 
     @Override
+    public void add(final Filter<T> filter, final int position) {
+        filters.add(position, filter);
+    }
+
+    @Override
+    public List<Filter<T>> getFilter() {
+        return filters;
+    }
+
+    @Override
+    public void remove(final Filter<T> filter) {
+        filters.remove(filter);
+    }
+
+    @Override
     public void close(final boolean finishRemainingTasks) {
         if (!closedAlreadyCalled) {
             closedAlreadyCalled = true;

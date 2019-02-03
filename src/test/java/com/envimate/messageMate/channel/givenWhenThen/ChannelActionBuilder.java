@@ -2,6 +2,7 @@ package com.envimate.messageMate.channel.givenWhenThen;
 
 
 import com.envimate.messageMate.channel.Channel;
+import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.internal.statistics.MessageStatistics;
 import com.envimate.messageMate.shared.givenWhenThen.ActionBuilder;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
@@ -9,6 +10,7 @@ import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static lombok.AccessLevel.PRIVATE;
@@ -152,6 +154,15 @@ public final class ChannelActionBuilder extends ActionBuilder<Channel<TestMessag
                 .thatAwaitsTheShutdownTimeoutInSeconds(timeoutInSeconds);
     }
 
+    public static ActionBuilder<Channel<TestMessage>> theListOfFiltersIsQueried() {
+        return new ChannelActionBuilder()
+                .thatQueriesTheListOfFilters();
+    }
+
+    public static ActionBuilder<Channel<TestMessage>> aFilterIsRemoved() {
+        return new ChannelActionBuilder()
+                .thatRemovesAFilter();
+    }
 
     @Override
     public void send(final Channel<TestMessage> channel, final TestMessage message) {
@@ -183,5 +194,20 @@ public final class ChannelActionBuilder extends ActionBuilder<Channel<TestMessag
     @Override
     protected boolean awaitTermination(final Channel<TestMessage> channel, final int timeout, final TimeUnit timeUnit) throws InterruptedException {
         return channel.awaitTermination(timeout, timeUnit);
+    }
+
+    @Override
+    protected List<?> getFilter(final Channel<TestMessage> channel) {
+        final List<?> filters = channel.getFilter();
+        return filters;
+    }
+
+    @Override
+    protected Object removeAFilter(final Channel<TestMessage> channel) {
+        final List<Filter<TestMessage>> filters = channel.getFilter();
+        final int indexToRemove = (int) (Math.random() * filters.size());
+        final Filter<TestMessage> filter = filters.get(indexToRemove);
+        channel.remove(filter);
+        return filter;
     }
 }

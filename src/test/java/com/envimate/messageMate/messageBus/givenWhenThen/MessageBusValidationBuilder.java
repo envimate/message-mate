@@ -1,8 +1,8 @@
 package com.envimate.messageMate.messageBus.givenWhenThen;
 
 
-import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.error.DeliveryFailedMessage;
+import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.shared.givenWhenThen.TestValidation;
 import com.envimate.messageMate.shared.givenWhenThen.TestValidationBuilder;
 import com.envimate.messageMate.shared.subscriber.TestSubscriber;
@@ -110,10 +110,24 @@ public final class MessageBusValidationBuilder extends TestValidationBuilder<Mes
         );
     }
 
-
     public static TestValidationBuilder<MessageBus> expectEachMessagesToBeReceivedByOnlyOneSubscriber() {
         return new MessageBusValidationBuilder()
                 .thatExpectsEachMessagesToBeReceivedByOnlyOneSubscriber();
+    }
+
+    public static TestValidationBuilder<MessageBus> expectTheException(final Class<?> expectedExceptionClass) {
+        return new MessageBusValidationBuilder()
+                .thatExpectsTheExceptionClass(expectedExceptionClass);
+    }
+
+    public static TestValidationBuilder<MessageBus> expectAListWithAllFilters() {
+        return new MessageBusValidationBuilder()
+                .thatExpectsAListOfAllFilters();
+    }
+
+    public static TestValidationBuilder<MessageBus> expectTheRemainingFilter() {
+        return new MessageBusValidationBuilder()
+                .thatExpectsTheSutToHaveAllRemainingFilters();
     }
 
     @Override
@@ -128,4 +142,8 @@ public final class MessageBusValidationBuilder extends TestValidationBuilder<Mes
         return subscribers;
     }
 
+    @Override
+    protected List<?> getFilter(final MessageBus messageBus) {
+        return messageBus.getFilter();
+    }
 }

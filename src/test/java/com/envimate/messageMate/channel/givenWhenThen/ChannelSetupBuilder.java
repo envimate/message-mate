@@ -35,26 +35,33 @@ public class ChannelSetupBuilder extends SetupBuilder<Channel<TestMessage>> {
 
     @Override
     protected void addFilterThatChangesTheContent(final Channel<TestMessage> channel) {
-        final Filter<TestMessage> filter = aContentChangingFilter(TestMessage.class);
+        final Filter<TestMessage> filter = aContentChangingFilter();
         channel.add(filter);
     }
 
     @Override
     protected void addFilterThatDropsMessages(final Channel<TestMessage> channel) {
-        final Filter<TestMessage> filter = aMessageDroppingFilter(TestMessage.class);
+        final Filter<TestMessage> filter = aMessageDroppingFilter();
         channel.add(filter);
     }
 
     @Override
     protected void addFilterThatReplacesWrongMessage(final Channel<TestMessage> channel) {
-        final Filter<TestMessage> filter = aMessageReplacingFilter(TestMessage.class);
+        final Filter<TestMessage> filter = aMessageReplacingFilter();
         channel.add(filter);
     }
 
     @Override
     protected void addFilterThatDoesNotCallAnyFilterMethod(final Channel<TestMessage> channel) {
-        final Filter<TestMessage> filter = aMessageThatDoesNotCallAnyMethod(TestMessage.class);
+        final Filter<TestMessage> filter = aMessageFilterThatDoesNotCallAnyMethod();
         channel.add(filter);
+    }
+
+    @Override
+    protected Filter<?> addFilterAtPositionThatAppendsTheContent(final String contentToAppend, final int position, final Channel<TestMessage> channel) {
+        final Filter<TestMessage> filter = aContentAppendingFilter(contentToAppend);
+        channel.add(filter, position);
+        return filter;
     }
 
     @Override

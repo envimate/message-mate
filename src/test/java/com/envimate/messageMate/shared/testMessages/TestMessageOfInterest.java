@@ -7,7 +7,7 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 public final class TestMessageOfInterest implements TestMessage {
-
+    public static final String CONTENT = "TestContent";
     public String content;
 
     private TestMessageOfInterest(final String content) {
@@ -15,7 +15,6 @@ public final class TestMessageOfInterest implements TestMessage {
     }
 
     public static TestMessageOfInterest messageOfInterest() {
-        final String testContent = "TestContent";
-        return new TestMessageOfInterest(testContent);
+        return new TestMessageOfInterest(CONTENT);
     }
 }
