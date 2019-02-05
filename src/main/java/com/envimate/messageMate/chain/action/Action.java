@@ -19,17 +19,7 @@
  * under the License.
  */
 
-package com.envimate.messageMate.configuration;
+package com.envimate.messageMate.chain.action;
 
-public interface ExceptionCatchingCondition {
-
-    static ExceptionCatchingCondition allCatchingExceptionCondition() {
-        return e -> true;
-    }
-
-    static ExceptionCatchingCondition allThrowingExceptionCondition() {
-        return e -> false;
-    }
-
-    boolean shouldBeCaught(Exception e);
+public interface Action<T> {
 }

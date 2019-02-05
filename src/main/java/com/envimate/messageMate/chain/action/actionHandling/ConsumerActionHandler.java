@@ -19,17 +19,24 @@
  * under the License.
  */
 
-package com.envimate.messageMate.configuration;
+package com.envimate.messageMate.chain.action.actionHandling;
 
-public interface ExceptionCatchingCondition {
+import com.envimate.messageMate.chain.ProcessingContext;
+import com.envimate.messageMate.chain.action.Consume;
+import lombok.RequiredArgsConstructor;
 
-    static ExceptionCatchingCondition allCatchingExceptionCondition() {
-        return e -> true;
+import static lombok.AccessLevel.PRIVATE;
+
+@RequiredArgsConstructor(access = PRIVATE)
+public final class ConsumerActionHandler<T> implements ActionHandler<Consume<T>, T> {
+
+    public static <T> ConsumerActionHandler<T> consumerActionHandler() {
+        return new ConsumerActionHandler<>();
     }
 
-    static ExceptionCatchingCondition allThrowingExceptionCondition() {
-        return e -> false;
+    @Override
+    public void handle(final Consume<T> consume, final ProcessingContext<T> processingContext) {
+        consume.accept(processingContext);
     }
-
-    boolean shouldBeCaught(Exception e);
 }
+

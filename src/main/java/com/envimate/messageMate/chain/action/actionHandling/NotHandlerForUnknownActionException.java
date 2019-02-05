@@ -19,17 +19,13 @@
  * under the License.
  */
 
-package com.envimate.messageMate.configuration;
+package com.envimate.messageMate.chain.action.actionHandling;
 
-public interface ExceptionCatchingCondition {
+import com.envimate.messageMate.chain.action.Action;
 
-    static ExceptionCatchingCondition allCatchingExceptionCondition() {
-        return e -> true;
+public class NotHandlerForUnknownActionException extends RuntimeException {
+
+    public NotHandlerForUnknownActionException(final Action<?> action) {
+        super("No registered handler for " + action.getClass().getSimpleName() + ".");
     }
-
-    static ExceptionCatchingCondition allThrowingExceptionCondition() {
-        return e -> false;
-    }
-
-    boolean shouldBeCaught(Exception e);
 }

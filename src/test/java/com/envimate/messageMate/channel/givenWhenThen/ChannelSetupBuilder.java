@@ -14,7 +14,7 @@ import static com.envimate.messageMate.shared.givenWhenThen.TestFilter.*;
 
 public class ChannelSetupBuilder extends SetupBuilder<Channel<TestMessage>> {
 
-    private final ChannelBuilder<TestMessage> channelBuilder = ChannelBuilder.aChannelForClass(TestMessage.class);
+    private final ChannelBuilder<TestMessage> channelBuilder = ChannelBuilder.aChannel();
 
     public static ChannelSetupBuilder aChannel() {
         return new ChannelSetupBuilder();

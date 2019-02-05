@@ -19,17 +19,12 @@
  * under the License.
  */
 
-package com.envimate.messageMate.configuration;
+package com.envimate.messageMate.chain.action.actionHandling;
 
-public interface ExceptionCatchingCondition {
+import com.envimate.messageMate.chain.ProcessingContext;
+import com.envimate.messageMate.chain.action.Action;
 
-    static ExceptionCatchingCondition allCatchingExceptionCondition() {
-        return e -> true;
-    }
+public interface ActionHandler<T extends Action<R>, R> {
 
-    static ExceptionCatchingCondition allThrowingExceptionCondition() {
-        return e -> false;
-    }
-
-    boolean shouldBeCaught(Exception e);
+    void handle(T action, ProcessingContext<R> processingContext);
 }

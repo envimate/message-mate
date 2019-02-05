@@ -19,17 +19,23 @@
  * under the License.
  */
 
-package com.envimate.messageMate.configuration;
+package com.envimate.messageMate.chain.action.actionHandling;
 
-public interface ExceptionCatchingCondition {
+import com.envimate.messageMate.chain.ProcessingContext;
+import com.envimate.messageMate.chain.action.Call;
+import lombok.RequiredArgsConstructor;
 
-    static ExceptionCatchingCondition allCatchingExceptionCondition() {
-        return e -> true;
+import static lombok.AccessLevel.PRIVATE;
+
+@RequiredArgsConstructor(access = PRIVATE)
+public final class CallActionHandler<T> implements ActionHandler<Call<T>, T> {
+
+    public static <T> CallActionHandler<T> callActionHandler() {
+        return new CallActionHandler<>();
     }
 
-    static ExceptionCatchingCondition allThrowingExceptionCondition() {
-        return e -> false;
+    @Override
+    public void handle(final Call<T> action, final ProcessingContext<T> processingContext) {
+        throw new CallNotAllowedAsFinalChainAction();
     }
-
-    boolean shouldBeCaught(Exception e);
 }

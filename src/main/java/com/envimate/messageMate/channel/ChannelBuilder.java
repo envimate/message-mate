@@ -41,6 +41,10 @@ public final class ChannelBuilder<T> {
     private MessageAcceptingStrategyFactory<T> messageAcceptingStrategyFactory;
     private StatisticsCollector statisticsCollector;
 
+    public static <T> ChannelBuilder<T> aChannel() {
+        return new ChannelBuilder<>();
+    }
+
     public static <T> ChannelBuilder<T> aChannelForClass(final Class<T> tClass) {
         return new ChannelBuilder<>();
     }

@@ -19,17 +19,10 @@
  * under the License.
  */
 
-package com.envimate.messageMate.configuration;
+package com.envimate.messageMate.chain.action.actionHandling;
 
-public interface ExceptionCatchingCondition {
-
-    static ExceptionCatchingCondition allCatchingExceptionCondition() {
-        return e -> true;
+public class ReturnWithoutCallException extends RuntimeException {
+    public ReturnWithoutCallException() {
+        super("Found Return without a previous not yet returned call.");
     }
-
-    static ExceptionCatchingCondition allThrowingExceptionCondition() {
-        return e -> false;
-    }
-
-    boolean shouldBeCaught(Exception e);
 }
