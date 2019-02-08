@@ -19,9 +19,19 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageFunction.responseMatching;
+package com.envimate.messageMate.internal.reflections;
 
-public interface FollowUpAction<T> {
+import lombok.RequiredArgsConstructor;
 
-    void apply(T response, boolean wasSuccessful, Exception exception);
+import java.util.Collection;
+import java.util.HashSet;
+
+import static java.util.Arrays.asList;
+import static java.util.Collections.unmodifiableSet;
+import static lombok.AccessLevel.PRIVATE;
+
+@RequiredArgsConstructor(access = PRIVATE)
+public final class ForbiddenUseCaseMethods {
+    public static final Collection<String> NOT_ALLOWED_USECASE_PUBLIC_METHODS = unmodifiableSet(new HashSet<>(asList("equals",
+            "hashCode", "toString", "clone", "finalize", "wait", "getClass", "notify", "notifyAll")));
 }

@@ -19,9 +19,13 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageFunction.responseMatching;
+package com.envimate.messageMate.soonToBeExternal.usecaseInvoking;
 
-public interface FollowUpAction<T> {
+import com.envimate.messageMate.soonToBeExternal.EventFactory;
 
-    void apply(T response, boolean wasSuccessful, Exception exception);
+public interface UseCaseInvoker {
+
+    UseCaseInvocationInformation getInvocationInformation();
+
+    EventFactory getEventFactory();
 }

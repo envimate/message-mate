@@ -19,9 +19,15 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageFunction.responseMatching;
+package com.envimate.messageMate.soonToBeExternal;
 
-public interface FollowUpAction<T> {
+import java.util.List;
 
-    void apply(T response, boolean wasSuccessful, Exception exception);
+public interface EventFactory {
+
+    Class<?> eventType();
+
+    List<Class<?>> parameterTypes();
+
+    Object createEvent(List<Object> parameters);
 }

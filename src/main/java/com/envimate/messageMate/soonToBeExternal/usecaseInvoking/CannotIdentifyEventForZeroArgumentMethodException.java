@@ -19,9 +19,22 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageFunction.responseMatching;
+package com.envimate.messageMate.soonToBeExternal.usecaseInvoking;
 
-public interface FollowUpAction<T> {
+import java.lang.reflect.Method;
 
-    void apply(T response, boolean wasSuccessful, Exception exception);
+import static java.lang.String.format;
+
+public final class CannotIdentifyEventForZeroArgumentMethodException extends RuntimeException {
+
+    private CannotIdentifyEventForZeroArgumentMethodException(final String message) {
+        super(message);
+    }
+
+    public static CannotIdentifyEventForZeroArgumentMethodException exceptionThatNoEventCanBeIdentifiedForMethodWithoutParameter(
+            final Method method) {
+        final String message = format("Cannot use first argument as event type for method %s when method has no arguments.",
+                method);
+        return new CannotIdentifyEventForZeroArgumentMethodException(message);
+    }
 }

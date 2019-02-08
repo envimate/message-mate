@@ -19,9 +19,17 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageFunction.responseMatching;
+package com.envimate.messageMate.soonToBeExternal.usecaseCreating;
 
-public interface FollowUpAction<T> {
+public final class ZeroArgumentsConstructorUseCaseFactoryException extends RuntimeException {
 
-    void apply(T response, boolean wasSuccessful, Exception exception);
+    private ZeroArgumentsConstructorUseCaseFactoryException(final String message, final Throwable cause) {
+        super(message, cause);
+    }
+
+    static ZeroArgumentsConstructorUseCaseFactoryException zeroArgumentsConstructorUseCaseFactoryException(
+            final Class<?> type, final Throwable cause) {
+        return new ZeroArgumentsConstructorUseCaseFactoryException("Exception during instantiation " +
+                "of " + type.getName() + " using zero argument constructor", cause);
+    }
 }

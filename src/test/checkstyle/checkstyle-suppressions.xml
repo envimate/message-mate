@@ -39,8 +39,10 @@
     <suppress checks="HideUtilityClassConstructor" files="ReflectionUtils.java" />
     <suppress checks="HideUtilityClassConstructor" files="RequestResponseRelationMapFactory.java" />
     <suppress checks="HideUtilityClassConstructor" files="DefaultActionHandlerSet.java"/>
+    <suppress checks="HideUtilityClassConstructor" files="ForbiddenUseCaseMethods.java"/>
     <suppress checks="ParameterNumber" files="MessageStatistics.java" />
     <suppress checks="IllegalCatch" files="SynchronousDeliveryStrategy.java" />
     <suppress checks="IllegalCatch" files="AsynchronousDeliveryStrategy.java" />
+    <suppress checks="IllegalCatch" files="EventToUseCaseDispatcherBuilder.java"/>
     <suppress checks="VisibilityModifierCheck" files="AbstractSharedAnswerImpl.java" />
 </suppressions>

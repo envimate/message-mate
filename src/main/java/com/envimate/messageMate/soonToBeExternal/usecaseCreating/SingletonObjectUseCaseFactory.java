@@ -19,9 +19,22 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageFunction.responseMatching;
+package com.envimate.messageMate.soonToBeExternal.usecaseCreating;
 
-public interface FollowUpAction<T> {
+import lombok.RequiredArgsConstructor;
 
-    void apply(T response, boolean wasSuccessful, Exception exception);
+import static lombok.AccessLevel.PRIVATE;
+
+@RequiredArgsConstructor(access = PRIVATE)
+public final class SingletonObjectUseCaseFactory implements UseCaseFactory {
+    private final Object singletonInstance;
+
+    public static SingletonObjectUseCaseFactory singletonObjectUseCaseFactory(final Object singletonInstance) {
+        return new SingletonObjectUseCaseFactory(singletonInstance);
+    }
+
+    @Override
+    public Object createInstance() {
+        return singletonInstance;
+    }
 }

@@ -19,9 +19,8 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageFunction.responseMatching;
+package com.envimate.messageMate.soonToBeExternal.usecaseCreating;
 
-public interface FollowUpAction<T> {
-
-    void apply(T response, boolean wasSuccessful, Exception exception);
+public interface UseCaseFactory {
+    Object createInstance();
 }

@@ -19,9 +19,12 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageFunction.responseMatching;
+package com.envimate.messageMate.soonToBeExternal.methodInvoking;
 
-public interface FollowUpAction<T> {
+import java.util.List;
 
-    void apply(T response, boolean wasSuccessful, Exception exception);
+public interface UseCaseMethodInvoker {
+
+    Object invoke(Object useCase, Object event, List<Object> parameter);
+
 }

@@ -19,9 +19,10 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageFunction.responseMatching;
+package com.envimate.messageMate.soonToBeExternal;
 
-public interface FollowUpAction<T> {
-
-    void apply(T response, boolean wasSuccessful, Exception exception);
+public class NoUseCaseKnownForEventException extends RuntimeException {
+    public NoUseCaseKnownForEventException(final Object event) {
+        super("No usecase is known for event: " + event);
+    }
 }

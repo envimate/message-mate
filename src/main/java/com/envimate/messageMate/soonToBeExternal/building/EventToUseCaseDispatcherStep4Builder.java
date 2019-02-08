@@ -19,9 +19,11 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageFunction.responseMatching;
+package com.envimate.messageMate.soonToBeExternal.building;
 
-public interface FollowUpAction<T> {
+import com.envimate.messageMate.soonToBeExternal.EventToUseCaseDispatcher;
 
-    void apply(T response, boolean wasSuccessful, Exception exception);
+public interface EventToUseCaseDispatcherStep4Builder {
+
+    EventToUseCaseDispatcher build();
 }

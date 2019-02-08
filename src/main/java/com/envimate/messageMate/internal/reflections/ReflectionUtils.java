@@ -23,9 +23,14 @@ package com.envimate.messageMate.internal.reflections;
 
 import lombok.RequiredArgsConstructor;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.*;
 
+import static java.util.Arrays.stream;
+import static java.util.Comparator.comparingInt;
+import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
@@ -55,6 +60,31 @@ public final class ReflectionUtils {
         for (final Class<?> anInterface : interfaces) {
             classes.add(anInterface);
             collectInheritedClasses(anInterface, classes);
+        }
+    }
+
+    public static List<Method> getAllPublicMethods(final Class<?> useCaseClass, final Collection<String> excludedMethods) {
+        final Method[] methods = useCaseClass.getMethods();
+        return Arrays.stream(methods)
+                .filter(method -> Modifier.isPublic(method.getModifiers()))
+                .filter(method -> !Modifier.isStatic(method.getModifiers()))
+                .filter(method -> !Modifier.isAbstract(method.getModifiers()))
+                .filter(method -> method.getDeclaringClass().equals(useCaseClass))
+                .filter(method -> !excludedMethods.contains(method.getName()))
+                .collect(toList());
+    }
+
+    public static Constructor<?> getConstructorWithFewestArguments(final Class<?> eventClass) {
+        final Constructor<?>[] declaredConstructors = eventClass.getDeclaredConstructors();
+        if (declaredConstructors.length == 1) {
+            return declaredConstructors[0];
+        } else if (declaredConstructors.length > 1) {
+            return stream(declaredConstructors)
+                    .min(comparingInt(Constructor::getParameterCount))
+                    .get();
+        } else {
+            final String message = "Cannot use constructor of event " + eventClass + " when no constructor exists.";
+            throw new UnsupportedOperationException(message);
         }
     }
 

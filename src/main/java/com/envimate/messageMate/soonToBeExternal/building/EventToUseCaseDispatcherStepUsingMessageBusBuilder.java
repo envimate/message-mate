@@ -19,9 +19,10 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageFunction.responseMatching;
+package com.envimate.messageMate.soonToBeExternal.building;
 
-public interface FollowUpAction<T> {
+import com.envimate.messageMate.messageBus.MessageBus;
 
-    void apply(T response, boolean wasSuccessful, Exception exception);
+public interface EventToUseCaseDispatcherStepUsingMessageBusBuilder {
+    EventToUseCaseDispatcherStep4Builder usingMessageBus(MessageBus messageBus);
 }
