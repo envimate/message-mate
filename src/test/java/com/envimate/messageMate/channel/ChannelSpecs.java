@@ -4,9 +4,9 @@ import com.envimate.messageMate.channel.config.ChannelTestConfig;
 import org.junit.jupiter.api.Test;
 
 import static com.envimate.messageMate.channel.givenWhenThen.ChannelActionBuilder.*;
-import static com.envimate.messageMate.channel.givenWhenThen.ChannelSetupBuilder.aChannel;
+import static com.envimate.messageMate.channel.givenWhenThen.ChannelSetupBuilder.aConfiguredChannel;
 import static com.envimate.messageMate.channel.givenWhenThen.ChannelValidationBuilder.*;
-import static com.envimate.messageMate.shared.givenWhenThen.Given.given;
+import static com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.Given.given;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public interface ChannelSpecs {
@@ -14,8 +14,7 @@ public interface ChannelSpecs {
     //sending and subscribe
     @Test
     default void testChannel_canSendSingleMessageToOneReceiver(final ChannelTestConfig testConfig) throws Exception {
-        given(aChannel()
-                .configuredWith(testConfig)
+        given(aConfiguredChannel(testConfig)
                 .withASingleSubscriber())
                 .when(aSingleMessageIsSend())
                 .then(expectTheMessageToBeReceived());
@@ -23,8 +22,7 @@ public interface ChannelSpecs {
 
     @Test
     default void testChannel_canSendSeveralMessagesToSeveralSubscriber(final ChannelTestConfig testConfig) throws Exception {
-        given(aChannel()
-                .configuredWith(testConfig)
+        given(aConfiguredChannel(testConfig)
                 .withSeveralSubscriber(1))
                 .when(severalMessagesAreSend(10))
                 .then(expectAllMessagesToBeReceivedByAllSubscribers());
@@ -32,8 +30,7 @@ public interface ChannelSpecs {
 
     @Test
     default void testChannel_canSendAsynchronouslyReceivedMessages(final ChannelTestConfig testConfig) throws Exception {
-        given(aChannel()
-                .configuredWith(testConfig)
+        given(aConfiguredChannel(testConfig)
                 .withSeveralSubscriber(5))
                 .when(severalMessagesAreSendAsynchronously(5, 10))
                 .then(expectAllMessagesToBeReceivedByAllSubscribers());
@@ -43,8 +40,7 @@ public interface ChannelSpecs {
 
     @Test
     default void testChannel_canUnsubscribe(final ChannelTestConfig testConfig) throws Exception {
-        given(aChannel()
-                .configuredWith(testConfig)
+        given(aConfiguredChannel(testConfig)
                 .withSeveralSubscriber(5))
                 .when(oneSubscriberUnsubscribes())
                 .then(expectAllRemainingSubscribersToStillBeSubscribed());
@@ -52,8 +48,7 @@ public interface ChannelSpecs {
 
     @Test
     default void testChannel_canUnsubscribeTwoSubscribers(final ChannelTestConfig testConfig) throws Exception {
-        given(aChannel()
-                .configuredWith(testConfig)
+        given(aConfiguredChannel(testConfig)
                 .withSeveralSubscriber(5))
                 .when(oneSubscriberUnsubscribes()
                         .andThen(oneSubscriberUnsubscribes()))
@@ -62,8 +57,7 @@ public interface ChannelSpecs {
 
     @Test
     default void testChannel_canUnsubscribeTheSameSubscriberSeveralTimes(final ChannelTestConfig testConfig) throws Exception {
-        given(aChannel()
-                .configuredWith(testConfig)
+        given(aConfiguredChannel(testConfig)
                 .withSeveralSubscriber(5))
                 .when(oneSubscriberUnsubscribesSeveralTimes(2))
                 .then(expectAllRemainingSubscribersToStillBeSubscribed());
@@ -72,8 +66,7 @@ public interface ChannelSpecs {
     //filter
     @Test
     default void testChannel_allowsFiltersToChangeMessages(final ChannelTestConfig testConfig) throws Exception {
-        given(aChannel()
-                .configuredWith(testConfig)
+        given(aConfiguredChannel(testConfig)
                 .withSeveralSubscriber(3)
                 .withAFilterThatChangesTheContentOfEveryMessage())
                 .when(severalMessagesAreSend(10)
@@ -83,8 +76,7 @@ public interface ChannelSpecs {
 
     @Test
     default void testChannel_allowsFiltersToDropMessages(final ChannelTestConfig testConfig) throws Exception {
-        given(aChannel()
-                .configuredWith(testConfig)
+        given(aConfiguredChannel(testConfig)
                 .withSeveralSubscriber(3)
                 .withAFilterThatDropsWrongMessages())
                 .when(bothValidAndInvalidMessagesAreSendAsynchronously(3, 10))
@@ -94,8 +86,7 @@ public interface ChannelSpecs {
 
     @Test
     default void testChannel_allowsFiltersToReplaceMessages(final ChannelTestConfig testConfig) throws Exception {
-        given(aChannel()
-                .configuredWith(testConfig)
+        given(aConfiguredChannel(testConfig)
                 .withSeveralSubscriber(3)
                 .withAFilterThatReplacesWrongMessages())
                 .when(severalInvalidMessagesAreSendAsynchronously(3, 10))
@@ -104,8 +95,7 @@ public interface ChannelSpecs {
 
     @Test
     default void testChannel_whenAFilterDoesNotUseAMethod_messageIsDropped(final ChannelTestConfig testConfig) throws Exception {
-        given(aChannel()
-                .configuredWith(testConfig)
+        given(aConfiguredChannel(testConfig)
                 .withSeveralSubscriber(3)
                 .withAnInvalidFilterThatDoesNotUseAnyFilterMethods())
                 .when(severalInvalidMessagesAreSendAsynchronously(3, 10))
@@ -114,8 +104,7 @@ public interface ChannelSpecs {
 
     @Test
     default void testChannel_canAddFilterAtASpecificPosition(final ChannelTestConfig testConfig) throws Exception {
-        given(aChannel()
-                .configuredWith(testConfig)
+        given(aConfiguredChannel(testConfig)
                 .withSeveralSubscriber(3)
                 .withTwoFilterOnSpecificPositions())
                 .when(severalMessagesAreSend(3)
@@ -125,8 +114,7 @@ public interface ChannelSpecs {
 
     @Test
     default void testChannel_throwsExceptionForPositionBelowZero(final ChannelTestConfig testConfig) throws Exception {
-        given(aChannel()
-                .configuredWith(testConfig)
+        given(aConfiguredChannel(testConfig)
                 .withAFilterAtAnInvalidPosition(-1))
                 .when(aSingleMessageIsSend())
                 .then(expectTheException(IndexOutOfBoundsException.class));
@@ -134,8 +122,7 @@ public interface ChannelSpecs {
 
     @Test
     default void testChannel_throwsExceptionForPositionGreaterThanAllowed(final ChannelTestConfig testConfig) throws Exception {
-        given(aChannel()
-                .configuredWith(testConfig)
+        given(aConfiguredChannel(testConfig)
                 .withAFilterAtAnInvalidPosition(100))
                 .when(aSingleMessageIsSend())
                 .then(expectTheException(IndexOutOfBoundsException.class));
@@ -143,8 +130,7 @@ public interface ChannelSpecs {
 
     @Test
     default void testChannel_canQueryListOfFilter(final ChannelTestConfig testConfig) throws Exception {
-        given(aChannel()
-                .configuredWith(testConfig)
+        given(aConfiguredChannel(testConfig)
                 .withTwoFilterOnSpecificPositions())
                 .when(theListOfFiltersIsQueried())
                 .then(expectAListWithAllFilters());
@@ -152,8 +138,7 @@ public interface ChannelSpecs {
 
     @Test
     default void testChannel_canRemoveFilter(final ChannelTestConfig testConfig) throws Exception {
-        given(aChannel()
-                .configuredWith(testConfig)
+        given(aConfiguredChannel(testConfig)
                 .withTwoFilterOnSpecificPositions())
                 .when(aFilterIsRemoved())
                 .then(expectTheRemainingFilter());
@@ -162,8 +147,7 @@ public interface ChannelSpecs {
     //messageStatistics
     @Test
     default void testChannel_returnsCorrectNumberOfAcceptedMessages(final ChannelTestConfig testConfig) throws Exception {
-        given(aChannel()
-                .configuredWith(testConfig)
+        given(aConfiguredChannel(testConfig)
                 .withASingleSubscriber())
                 .when(severalMessagesAreSendAsynchronously(3, 5)
                         .andThen(theNumberOfAcceptedMessagesIsQueried()))
@@ -172,8 +156,7 @@ public interface ChannelSpecs {
 
     @Test
     default void testChannel_returnsCorrectNumberOfSuccessfulMessages(final ChannelTestConfig testConfig) throws Exception {
-        given(aChannel()
-                .configuredWith(testConfig)
+        given(aConfiguredChannel(testConfig)
                 .withASingleSubscriber())
                 .when(severalMessagesAreSendAsynchronously(3, 5)
                         .andThen(aShortWaitIsDone(10, MILLISECONDS))
@@ -183,8 +166,7 @@ public interface ChannelSpecs {
 
     @Test
     default void testChannel_returnsCorrectNumberOfDeliveryFailedMessages(final ChannelTestConfig testConfig) throws Exception {
-        given(aChannel()
-                .configuredWith(testConfig)
+        given(aConfiguredChannel(testConfig)
                 .withoutASubscriber())
                 .when(severalMessagesAreSendAsynchronously(3, 5)
                         .andThen(theNumberOfFailedMessagesIsQueried()))
@@ -193,8 +175,7 @@ public interface ChannelSpecs {
 
     @Test
     default void testChannel_returnsCorrectNumberOfDroppedMessages(final ChannelTestConfig testConfig) throws Exception {
-        given(aChannel()
-                .configuredWith(testConfig)
+        given(aConfiguredChannel(testConfig)
                 .withASingleSubscriber()
                 .withAFilterThatDropsWrongMessages())
                 .when(severalInvalidMessagesAreSendAsynchronously(3, 5)
@@ -204,8 +185,7 @@ public interface ChannelSpecs {
 
     @Test
     default void testChannel_returnsCorrectNumberOfReplacedMessages(final ChannelTestConfig testConfig) throws Exception {
-        given(aChannel()
-                .configuredWith(testConfig)
+        given(aConfiguredChannel(testConfig)
                 .withASingleSubscriber()
                 .withAFilterThatReplacesWrongMessages())
                 .when(severalInvalidMessagesAreSendAsynchronously(3, 5)
@@ -215,8 +195,7 @@ public interface ChannelSpecs {
 
     @Test
     default void testChannel_whenAFilterDoesNotUseAMethod_theMessageIsMarkedAsForgotten(final ChannelTestConfig testConfig) throws Exception {
-        given(aChannel()
-                .configuredWith(testConfig)
+        given(aConfiguredChannel(testConfig)
                 .withSeveralSubscriber(3)
                 .withAnInvalidFilterThatDoesNotUseAnyFilterMethods())
                 .when(aSingleMessageIsSend()
@@ -226,8 +205,7 @@ public interface ChannelSpecs {
 
     @Test
     default void testChannel_returnsAValidTimestampForStatistics(final ChannelTestConfig testConfig) throws Exception {
-        given(aChannel()
-                .configuredWith(testConfig)
+        given(aConfiguredChannel(testConfig)
                 .withoutASubscriber())
                 .when(theTimestampOfTheStatisticsIsQueried())
                 .then(expectTimestampToBeInTheLastXSeconds(3));
@@ -236,8 +214,7 @@ public interface ChannelSpecs {
     //shutdown
     @Test
     default void testChannel_canShutdown_evenIfIsBlocked(final ChannelTestConfig testConfig) throws Exception {
-        given(aChannel()
-                .configuredWith(testConfig)
+        given(aConfiguredChannel(testConfig)
                 .withASubscriberThatBlocksWhenAccepting())
                 .when(severalMessagesAreSendAsynchronouslyBeforeTheChannelIsShutdown(3, 5)
                         .andThen(theChannelShutdownIsExpectedForTimeoutInSeconds(1)))
@@ -246,8 +223,7 @@ public interface ChannelSpecs {
 
     @Test
     default void testChannel_shutdownCallIsIdempotent(final ChannelTestConfig testConfig) throws Exception {
-        given(aChannel()
-                .configuredWith(testConfig)
+        given(aConfiguredChannel(testConfig)
                 .withASubscriberThatBlocksWhenAccepting())
                 .when(theChannelIsShutdownAsynchronouslyXTimes(6)
                         .andThen(theChannelIsShutdown()))

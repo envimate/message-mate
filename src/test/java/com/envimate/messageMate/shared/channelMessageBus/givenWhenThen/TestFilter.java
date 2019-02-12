@@ -1,4 +1,4 @@
-package com.envimate.messageMate.shared.givenWhenThen;
+package com.envimate.messageMate.shared.channelMessageBus.givenWhenThen;
 
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.shared.testMessages.InvalidTestMessage;

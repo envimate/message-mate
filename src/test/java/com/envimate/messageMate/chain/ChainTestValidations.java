@@ -16,28 +16,9 @@ import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
 import static lombok.AccessLevel.PRIVATE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.fail;
 
 @RequiredArgsConstructor(access = PRIVATE)
 final class ChainTestValidations {
-
-    static void assertResultAndExpectedResultAreEqual(final TestEnvironment testEnvironment) {
-        final Object result = testEnvironment.getProperty(RESULT);
-        final Object expectedResult = testEnvironment.getProperty(EXPECTED_RESULT);
-        assertThat(result, equalTo(expectedResult));
-    }
-
-    static void assertNoExceptionThrown(final TestEnvironment testEnvironment) {
-        if (testEnvironment.has(EXCEPTION)) {
-            final Exception exception = testEnvironment.getPropertyAsType(EXCEPTION, Exception.class);
-            fail("Unexpected exception", exception);
-        }
-    }
-
-    static void assertExceptionThrownOfType(final TestEnvironment testEnvironment, final Class<?> expectedExceptionClass) {
-        final Exception exception = testEnvironment.getPropertyAsType(EXCEPTION, Exception.class);
-        assertThat(exception.getClass(), equalTo(expectedExceptionClass));
-    }
 
     static void assertResultTraversedAllChainsBasedOnTheirDefaultActions(final TestEnvironment testEnvironment,
                                                                          final List<Chain<TestMessage>> expectedTraversedChains) {

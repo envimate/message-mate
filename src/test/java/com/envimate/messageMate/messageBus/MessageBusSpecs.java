@@ -9,14 +9,13 @@ import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 import org.junit.jupiter.api.Test;
 
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusActionBuilder.*;
-import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusSetupBuilder.aMessageBus;
+import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusSetupBuilder.aConfiguredMessageBus;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusValidationBuilder.*;
-import static com.envimate.messageMate.shared.givenWhenThen.Given.given;
+import static com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.Given.given;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /*
 TODO:
-- TestMessageBus injected instead of MessageBusTestConfig + configuredWith Combo
 - instead of waits: TestExecutionContext contains information, if there are asynchronous parts and adapt the then validations
  */
 
@@ -25,8 +24,7 @@ public interface MessageBusSpecs {
     //Send and subscribe
     @Test
     default void testMessageBus_canSendAndReceiveASingleMessage(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aMessageBus()
-                .configuredWith(messageBusTestConfig)
+        given(aConfiguredMessageBus(messageBusTestConfig)
                 .withASingleSubscriber())
                 .when(aSingleMessageIsSend())
                 .then(expectTheMessageToBeReceived());
@@ -34,8 +32,7 @@ public interface MessageBusSpecs {
 
     @Test
     default void testMessageBus_canSendAndReceiveSeveralMessagesWithSeveralSubscriber(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aMessageBus()
-                .configuredWith(messageBusTestConfig)
+        given(aConfiguredMessageBus(messageBusTestConfig)
                 .withSeveralSubscriber(5))
                 .when(severalMessagesAreSend(10)
                         .andThen(aShortWaitIsDone(5, MILLISECONDS)))
@@ -44,8 +41,7 @@ public interface MessageBusSpecs {
 
     @Test
     default void testMessageBus_canSendAndReceiveMessagesAsynchronously(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aMessageBus()
-                .configuredWith(messageBusTestConfig)
+        given(aConfiguredMessageBus(messageBusTestConfig)
                 .withSeveralSubscriber(5))
                 .when(severalMessagesAreSendAsynchronously(5, 10)
                         .andThen(aShortWaitIsDone(5, MILLISECONDS)))
@@ -55,8 +51,7 @@ public interface MessageBusSpecs {
     //unsubscribe
     @Test
     default void testMessageBus_canUnsubscribe(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aMessageBus()
-                .configuredWith(messageBusTestConfig)
+        given(aConfiguredMessageBus(messageBusTestConfig)
                 .withSeveralSubscriber(5))
                 .when(oneSubscriberUnsubscribes())
                 .then(expectAllRemainingSubscribersToStillBeSubscribed());
@@ -64,8 +59,7 @@ public interface MessageBusSpecs {
 
     @Test
     default void testMessageBus_canUnsubscribeTwoSubscribers(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aMessageBus()
-                .configuredWith(messageBusTestConfig)
+        given(aConfiguredMessageBus(messageBusTestConfig)
                 .withSeveralSubscriber(5))
                 .when(oneSubscriberUnsubscribes()
                         .andThen(oneSubscriberUnsubscribes()))
@@ -74,8 +68,7 @@ public interface MessageBusSpecs {
 
     @Test
     default void testMessageBus_canUnsubscribeTheSameSubscriberSeveralTimes(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aMessageBus()
-                .configuredWith(messageBusTestConfig)
+        given(aConfiguredMessageBus(messageBusTestConfig)
                 .withSeveralSubscriber(5))
                 .when(oneSubscriberUnsubscribesSeveralTimes(2))
                 .then(expectAllRemainingSubscribersToStillBeSubscribed());
@@ -84,8 +77,7 @@ public interface MessageBusSpecs {
     //filter
     @Test
     default void testMessageBus_allowsFiltersToChangeMessages(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aMessageBus()
-                .configuredWith(messageBusTestConfig)
+        given(aConfiguredMessageBus(messageBusTestConfig)
                 .withSeveralSubscriber(3)
                 .withAFilterThatChangesTheContentOfEveryMessage())
                 .when(severalMessagesAreSend(10))
@@ -95,8 +87,7 @@ public interface MessageBusSpecs {
 
     @Test
     default void testMessageBus_allowsFiltersToDropMessages(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aMessageBus()
-                .configuredWith(messageBusTestConfig)
+        given(aConfiguredMessageBus(messageBusTestConfig)
                 .withSeveralSubscriber(3)
                 .withAFilterThatDropsWrongMessages())
                 .when(halfValidAndInvalidMessagesAreSendAsynchronously(3, 10))
@@ -106,8 +97,7 @@ public interface MessageBusSpecs {
 
     @Test
     default void testMessageBus_allowsFiltersToReplaceMessages(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aMessageBus()
-                .configuredWith(messageBusTestConfig)
+        given(aConfiguredMessageBus(messageBusTestConfig)
                 .withSeveralSubscriber(3)
                 .withAFilterThatReplacesWrongMessages())
                 .when(severalInvalidMessagesAreSendAsynchronously(3, 10))
@@ -116,8 +106,7 @@ public interface MessageBusSpecs {
 
     @Test
     default void testMessageBus_whenAFilterDoesNotUseAMethod_messageIsDropped(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aMessageBus()
-                .configuredWith(messageBusTestConfig)
+        given(aConfiguredMessageBus(messageBusTestConfig)
                 .withSeveralSubscriber(3)
                 .withAnInvalidFilterThatDoesNotUseAnyFilterMethods())
                 .when(severalInvalidMessagesAreSendAsynchronously(3, 10))
@@ -126,8 +115,7 @@ public interface MessageBusSpecs {
 
     @Test
     default void testMessageBus_throwsExceptionForPositionBelowZero(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aMessageBus()
-                .configuredWith(messageBusTestConfig)
+        given(aConfiguredMessageBus(messageBusTestConfig)
                 .withAFilterAtAnInvalidPosition(-1))
                 .when(aSingleMessageIsSend())
                 .then(expectTheException(IndexOutOfBoundsException.class));
@@ -135,8 +123,7 @@ public interface MessageBusSpecs {
 
     @Test
     default void testMessageBus_throwsExceptionForPositionGreaterThanAllowed(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aMessageBus()
-                .configuredWith(messageBusTestConfig)
+        given(aConfiguredMessageBus(messageBusTestConfig)
                 .withAFilterAtAnInvalidPosition(100))
                 .when(aSingleMessageIsSend())
                 .then(expectTheException(IndexOutOfBoundsException.class));
@@ -144,8 +131,7 @@ public interface MessageBusSpecs {
 
     @Test
     default void testMessageBus_canQueryListOfFilter(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aMessageBus()
-                .configuredWith(messageBusTestConfig)
+        given(aConfiguredMessageBus(messageBusTestConfig)
                 .withTwoFilterOnSpecificPositions())
                 .when(theListOfFiltersIsQueried())
                 .then(expectAListWithAllFilters());
@@ -153,30 +139,16 @@ public interface MessageBusSpecs {
 
     @Test
     default void testMessageBus_canRemoveFilter(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aMessageBus()
-                .configuredWith(messageBusTestConfig)
+        given(aConfiguredMessageBus(messageBusTestConfig)
                 .withTwoFilterOnSpecificPositions())
                 .when(aFilterIsRemoved())
                 .then(expectTheRemainingFilter());
     }
-
-    /*
-    @Test
-    default void testChannel_canRemoveFilter(final ChannelTestConfig testConfig) throws Exception {
-        given(aChannel()
-                .configuredWith(testConfig)
-                .withTwoFilterOnSpecificPositions())
-                .when(aFilterIsRemoved())
-                .then(expectTheRemainingFilter());
-    }
-
-     */
 
     //messageStatistics
     @Test
     default void testMessageBus_whenAFilterDoesNotUseAMethod_theMessageIsMarkedAsForgotten(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aMessageBus()
-                .configuredWith(messageBusTestConfig)
+        given(aConfiguredMessageBus(messageBusTestConfig)
                 .withSeveralSubscriber(3)
                 .withAnInvalidFilterThatDoesNotUseAnyFilterMethods())
                 .when(aSingleMessageIsSend()
@@ -186,8 +158,7 @@ public interface MessageBusSpecs {
 
     @Test
     default void testMessageBus_returnsCorrectNumberOfAcceptedMessages(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aMessageBus()
-                .configuredWith(messageBusTestConfig)
+        given(aConfiguredMessageBus(messageBusTestConfig)
                 .withASingleSubscriber())
                 .when(severalMessagesAreSendAsynchronously(3, 5)
                         .andThen(theNumberOfAcceptedMessagesIsQueried()))
@@ -196,8 +167,7 @@ public interface MessageBusSpecs {
 
     @Test
     default void testMessageBus_returnsCorrectNumberOfSuccessfulMessages(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aMessageBus()
-                .configuredWith(messageBusTestConfig)
+        given(aConfiguredMessageBus(messageBusTestConfig)
                 .withASingleSubscriber())
                 .when(severalMessagesAreSendAsynchronously(3, 5)
                         .andThen(aShortWaitIsDone(10, MILLISECONDS))
@@ -207,8 +177,7 @@ public interface MessageBusSpecs {
 
     @Test
     default void testMessageBus_returnsCorrectNumberOfDroppedMessages(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aMessageBus()
-                .configuredWith(messageBusTestConfig)
+        given(aConfiguredMessageBus(messageBusTestConfig)
                 .withASingleSubscriber()
                 .withAFilterThatDropsWrongMessages())
                 .when(severalInvalidMessagesAreSendAsynchronously(3, 5)
@@ -218,8 +187,7 @@ public interface MessageBusSpecs {
 
     @Test
     default void testMessageBus_returnsCorrectNumberOfReplacedMessages(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aMessageBus()
-                .configuredWith(messageBusTestConfig)
+        given(aConfiguredMessageBus(messageBusTestConfig)
                 .withASingleSubscriber()
                 .withAFilterThatReplacesWrongMessages())
                 .when(severalInvalidMessagesAreSendAsynchronously(3, 5)
@@ -229,8 +197,7 @@ public interface MessageBusSpecs {
 
     @Test
     default void testMessageBus_returnsCorrectNumberOfDeliveryFailedMessages(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aMessageBus()
-                .configuredWith(messageBusTestConfig)
+        given(aConfiguredMessageBus(messageBusTestConfig)
                 .withoutASubscriber())
                 .when(severalMessagesAreSendAsynchronously(3, 5)
                         .andThen(theNumberOfFailedMessagesIsQueried()))
@@ -239,8 +206,7 @@ public interface MessageBusSpecs {
 
     @Test
     default void testMessageBus_returnsAValidTimestampForStatistics(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aMessageBus()
-                .configuredWith(messageBusTestConfig)
+        given(aConfiguredMessageBus(messageBusTestConfig)
                 .withoutASubscriber())
                 .when(theTimestampOfTheStatisticsIsQueried())
                 .then(expectTimestampToBeInTheLastXSeconds(3));
@@ -250,8 +216,7 @@ public interface MessageBusSpecs {
     //subscribers
     @Test
     default void testMessageBus_returnsCorrectSubscribersPerType(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aMessageBus()
-                .configuredWith(messageBusTestConfig)
+        given(aConfiguredMessageBus(messageBusTestConfig)
                 .withASubscriberForTyp(TestMessageOfInterest.class)
                 .withASubscriberForTyp(TestMessageOfInterest.class)
                 .withASubscriberForTyp(InvalidTestMessage.class))
@@ -262,8 +227,7 @@ public interface MessageBusSpecs {
 
     @Test
     default void testMessageBus_returnsCorrectSubscribersInList(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aMessageBus()
-                .configuredWith(messageBusTestConfig)
+        given(aConfiguredMessageBus(messageBusTestConfig)
                 .withASubscriberForTyp(TestMessageOfInterest.class)
                 .withASubscriberForTyp(InvalidTestMessage.class))
                 .when(allSubscribersAreQueriedAsList())
@@ -273,8 +237,7 @@ public interface MessageBusSpecs {
     //shutdown
     @Test
     default void testMessageBus_canShutdown_evenIfIsBlocked(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aMessageBus()
-                .configuredWith(messageBusTestConfig)
+        given(aConfiguredMessageBus(messageBusTestConfig)
                 .withASubscriberThatBlocksWhenAccepting())
                 .when(severalMessagesAreSendAsynchronouslyBeforeTheMessageBusIsShutdown(3, 5)
                         .andThen(theMessageBusShutdownIsExpectedForTimeoutInSeconds(1)))
@@ -283,8 +246,7 @@ public interface MessageBusSpecs {
 
     @Test
     default void testMessageBus_shutdownCallIsIdempotent(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aMessageBus()
-                .configuredWith(messageBusTestConfig)
+        given(aConfiguredMessageBus(messageBusTestConfig)
                 .withASubscriberThatBlocksWhenAccepting())
                 .when(theMessageBusIsShutdownAsynchronouslyXTimes(6)
                         .andThen(theMessageBusIsShutdown()))
@@ -294,8 +256,7 @@ public interface MessageBusSpecs {
     //error cases
     @Test
     default void testMessageBus_errorMessageIsSend_whenNoSubscriberExists(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aMessageBus()
-                .configuredWith(messageBusTestConfig)
+        given(aConfiguredMessageBus(messageBusTestConfig)
                 .withAnErrorAcceptingSubscriber())
                 .when(aSingleMessageIsSend())
                 .then(expectErrorMessageWithCause(NoSuitableSubscriberException.class));
@@ -303,8 +264,7 @@ public interface MessageBusSpecs {
 
     @Test
     default void testMessageBus_errorMessageIsSend_whenNoSubscriberThrowsError(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aMessageBus()
-                .configuredWith(messageBusTestConfig)
+        given(aConfiguredMessageBus(messageBusTestConfig)
                 .withAnErrorThrowingSubscriber()
                 .withAnErrorAcceptingSubscriber())
                 .when(aSingleMessageIsSend()

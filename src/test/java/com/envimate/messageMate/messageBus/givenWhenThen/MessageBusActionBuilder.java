@@ -1,227 +1,289 @@
 package com.envimate.messageMate.messageBus.givenWhenThen;
 
 
-import com.envimate.messageMate.filtering.Filter;
-import com.envimate.messageMate.internal.statistics.MessageStatistics;
 import com.envimate.messageMate.messageBus.MessageBus;
-import com.envimate.messageMate.shared.givenWhenThen.ActionBuilder;
-import com.envimate.messageMate.shared.testMessages.TestMessage;
+import com.envimate.messageMate.messageBus.MessageBusStatusInformation;
+import com.envimate.messageMate.qcec.shared.TestAction;
+import com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.ActionBuilder;
+import com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.ChannelMessageBusSutActions;
 import com.envimate.messageMate.subscribing.Subscriber;
-import com.envimate.messageMate.subscribing.SubscriptionId;
-import lombok.RequiredArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static com.envimate.messageMate.shared.context.TestExecutionProperty.RESULT;
-import static lombok.AccessLevel.PRIVATE;
+import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActions.messageBusTestActions;
+import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
+import static com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.ChannelMessageBusTestActions.*;
 
-@RequiredArgsConstructor(access = PRIVATE)
-public final class MessageBusActionBuilder extends ActionBuilder<MessageBus> {
 
+//TODO: a lot of unnessary nulls
+public final class MessageBusActionBuilder implements ActionBuilder<MessageBus> {
+    private List<TestAction<MessageBus>> actions = new ArrayList<>();
+
+    private MessageBusActionBuilder(final TestAction<MessageBus> action) {
+        this.actions.add(action);
+    }
 
     public static ActionBuilder<MessageBus> aSingleMessageIsSend() {
-        return new MessageBusActionBuilder()
-                .thatSendsASingleMessage();
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = messageBusTestActions(messageBus);
+            sendASingleMessage(sutActions, testEnvironment);
+            return null;
+        });
     }
 
     public static ActionBuilder<MessageBus> severalMessagesAreSend(final int numberOfMessages) {
-        return new MessageBusActionBuilder()
-                .thatSendsSeveralMessages(numberOfMessages);
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = messageBusTestActions(messageBus);
+            sendSeveralMessages(sutActions, testEnvironment, numberOfMessages);
+            return null;
+        });
     }
 
     public static ActionBuilder<MessageBus> severalMessagesAreSendAsynchronously(final int numberOfSender, final int numberOfMessagesPerSender) {
-        return new MessageBusActionBuilder()
-                .thatSendsSeveralMessagesAsynchronously(numberOfSender, numberOfMessagesPerSender);
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = messageBusTestActions(messageBus);
+            sendSeveralMessagesInTheirOwnThread(sutActions, testEnvironment, numberOfSender, numberOfMessagesPerSender, true);
+            return null;
+        });
     }
 
     public static ActionBuilder<MessageBus> severalMessagesAreSendAsynchronouslyButWillBeBlocked(final int numberOfSender, final int numberOfMessagesPerSender) {
-        return new MessageBusActionBuilder()
-                .thatSendsSeveralMessagesAsynchronouslyButWillBeBlocked(numberOfSender, numberOfMessagesPerSender);
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = messageBusTestActions(messageBus);
+            sendSeveralMessagesInTheirOwnThread(sutActions, testEnvironment, numberOfSender, numberOfMessagesPerSender, false);
+            return null;
+        });
     }
 
     public static ActionBuilder<MessageBus> oneSubscriberUnsubscribesSeveralTimes(final int numberOfUnsubscriptions) {
-        return new MessageBusActionBuilder()
-                .thatUnsubscribesASubscriberSeveralTimes(numberOfUnsubscriptions);
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = messageBusTestActions(messageBus);
+            unsubscribeASubscriberXTimes(sutActions, testEnvironment, numberOfUnsubscriptions);
+            return null;
+        });
     }
 
     public static ActionBuilder<MessageBus> oneSubscriberUnsubscribes() {
-        return new MessageBusActionBuilder()
-                .thatUnsubscribesASubscriber();
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = messageBusTestActions(messageBus);
+            unsubscribeASubscriberXTimes(sutActions, testEnvironment, 1);
+            return null;
+        });
     }
 
     public static ActionBuilder<MessageBus> halfValidAndInvalidMessagesAreSendAsynchronously(final int numberOfSender, final int numberOfMessagesPerSender) {
-        return new MessageBusActionBuilder()
-                .thatSendsBothValidAndInvalidMessagesAsynchronously(numberOfSender, numberOfMessagesPerSender);
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = messageBusTestActions(messageBus);
+            sendBothValidAndInvalidMessagesAsynchronously(sutActions, testEnvironment, numberOfSender, numberOfMessagesPerSender);
+            return null;
+        });
     }
 
     public static ActionBuilder<MessageBus> severalInvalidMessagesAreSendAsynchronously(final int numberOfSender, final int numberOfMessagesPerSender) {
-        return new MessageBusActionBuilder()
-                .thatSendsSeveralInvalidMessagesAsynchronously(numberOfSender, numberOfMessagesPerSender);
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = messageBusTestActions(messageBus);
+            sendSeveralInvalidMessagesAsynchronously(sutActions, testEnvironment, numberOfSender, numberOfMessagesPerSender);
+            return null;
+        });
     }
 
     public static ActionBuilder<MessageBus> theNumberOfAcceptedMessagesIsQueried() {
-        return new MessageBusActionBuilder()
-                .thatQueriesTheNumberOfAcceptedMessages();
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = messageBusTestActions(messageBus);
+            queryTheNumberOfAcceptedMessages(sutActions, testEnvironment);
+            return null;
+        });
     }
 
     public static ActionBuilder<MessageBus> theNumberOfAcceptedMessagesIsQueriedAsynchronously() {
-        return new MessageBusActionBuilder()
-                .thatQueriesTheNumberOfAcceptedMessagesAsynchronously();
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = messageBusTestActions(messageBus);
+            queryTheNumberOfAcceptedMessagesAsynchronously(sutActions, testEnvironment);
+            return null;
+        });
     }
 
     public static ActionBuilder<MessageBus> theNumberOfWaitingMessagesIsQueried() {
-        return new MessageBusActionBuilder()
-                .thatQueriesTheNumberOfWaitingMessages();
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = messageBusTestActions(messageBus);
+            queryTheNumberOfWaitingMessages(sutActions, testEnvironment);
+            return null;
+        });
     }
 
     public static ActionBuilder<MessageBus> theNumberOfSuccessfulMessagesIsQueried() {
-        return new MessageBusActionBuilder()
-                .thatQueriesTheNumberOfSuccessfulDeliveredMessages();
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = messageBusTestActions(messageBus);
+            queryTheNumberOfSuccessfulDeliveredMessages(sutActions, testEnvironment);
+            return null;
+        });
     }
 
     public static ActionBuilder<MessageBus> theNumberOfFailedMessagesIsQueried() {
-        return new MessageBusActionBuilder()
-                .thatQueriesTheNumberOfFailedDeliveredMessages();
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = messageBusTestActions(messageBus);
+            queryTheNumberOfFailedDeliveredMessages(sutActions, testEnvironment);
+            return null;
+        });
     }
 
     public static ActionBuilder<MessageBus> theNumberOfDroppedMessagesIsQueried() {
-        return new MessageBusActionBuilder()
-                .thatQueriesTheNumberOfDroppedMessages();
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = messageBusTestActions(messageBus);
+            queryTheNumberOfDroppedMessages(sutActions, testEnvironment);
+            return null;
+        });
     }
 
     public static ActionBuilder<MessageBus> theNumberOfReplacedMessagesIsQueried() {
-        return new MessageBusActionBuilder()
-                .thatQueriesTheNumberOfReplacedMessages();
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = messageBusTestActions(messageBus);
+            queryTheNumberOfReplacedMessages(sutActions, testEnvironment);
+            return null;
+        });
     }
 
     public static ActionBuilder<MessageBus> theNumberOfForgottenMessagesIsQueried() {
-        return new MessageBusActionBuilder()
-                .thatQueriesTheNumberOfForgottenMessages();
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = messageBusTestActions(messageBus);
+            queryTheNumberOfForgottenMessages(sutActions, testEnvironment);
+            return null;
+        });
     }
 
     public static ActionBuilder<MessageBus> theNumberOfCurrentlyDeliveredMessagesIsQueried() {
-        return new MessageBusActionBuilder()
-                .thatQueriesTheNumberOfCurrentlyDeliveredMessages();
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = messageBusTestActions(messageBus);
+            queryTheNumberOfCurrentlyDeliveredMessages(sutActions, testEnvironment);
+            return null;
+        });
     }
 
     public static ActionBuilder<MessageBus> theNumberOfCurrentlyTransportedMessagesIsQueried() {
-        return new MessageBusActionBuilder()
-                .thatQueriesTheNumberOfCurrentlyTransportedMessages();
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = messageBusTestActions(messageBus);
+            queryTheNumberOfCurrentlyTransportedMessages(sutActions, testEnvironment);
+            return null;
+        });
     }
 
     public static ActionBuilder<MessageBus> theTimestampOfTheStatisticsIsQueried() {
-        return new MessageBusActionBuilder()
-                .thatQueriesTheTimestampOfTheMessageStatistics();
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = messageBusTestActions(messageBus);
+            queryTheTimestampOfTheMessageStatistics(sutActions, testEnvironment);
+            return null;
+        });
     }
 
     public static ActionBuilder<MessageBus> aShortWaitIsDone(final long timeout, final TimeUnit timeUnit) {
-        return new MessageBusActionBuilder()
-                .thatPerformsAShortWait(timeout, timeUnit);
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            performAShortWait(timeout, timeUnit);
+            return null;
+        });
     }
 
     public static ActionBuilder<MessageBus> theSubscriberAreQueriedPerType() {
-        return new MessageBusActionBuilder()
-                .withAnAction((messageBus, executionContext) -> {
-                    final Map<Object, List<Subscriber<Object>>> subscriberMap = messageBus.getStatusInformation().getSubscribersPerType();
-                    executionContext.setProperty(RESULT, subscriberMap);
-                });
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            //TODO: ev noch falsch hier
+            final ChannelMessageBusSutActions sutActions = messageBusTestActions(messageBus);
+            final MessageBusStatusInformation statusInformation = messageBus.getStatusInformation();
+            final Map<Object, List<Subscriber<Object>>> subscribersPerType = statusInformation.getSubscribersPerType();
+            testEnvironment.setProperty(RESULT, subscribersPerType);
+            return null;
+        });
     }
 
     public static ActionBuilder<MessageBus> allSubscribersAreQueriedAsList() {
-        return new MessageBusActionBuilder()
-                .withAnAction((messageBus, executionContext) -> {
-                    final List<Subscriber<Object>> subscribers = messageBus.getStatusInformation().getAllSubscribers();
-                    executionContext.setProperty(RESULT, subscribers);
-                });
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            //TODO: in sutActions -> make usable for channel too
+            final ChannelMessageBusSutActions sutActions = messageBusTestActions(messageBus);
+            final List<Subscriber<Object>> allSubscribers = messageBus.getStatusInformation().getAllSubscribers();
+            testEnvironment.setProperty(RESULT, allSubscribers);
+            return null;
+        });
     }
 
     public static ActionBuilder<MessageBus> severalMessagesAreSendAsynchronouslyBeforeTheMessageBusIsShutdown(final int numberOfSenders, final int numberOfMessages) {
-        return new MessageBusActionBuilder()
-                .thatSendsSeveralMessagesAsynchronouslyBeforeTheObjectIsShutdown(numberOfSenders, numberOfMessages);
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = messageBusTestActions(messageBus);
+            sendSeveralMessagesAsynchronouslyBeforeTheObjectIsShutdown(sutActions, testEnvironment, numberOfSenders, numberOfMessages);
+            return null;
+        });
     }
 
     public static ActionBuilder<MessageBus> theBusIsShutdownAfterHalfOfTheMessagesWereDelivered(final int numberOfMessages) {
         final int numberOfMessagesBeforeShutdown = numberOfMessages / 2;
         final int remainingMessages = numberOfMessages - numberOfMessagesBeforeShutdown;
-        return new MessageBusActionBuilder()
-                .thatSendsXMessagesAShutdownsIsCalledThenSendsYMessage(numberOfMessagesBeforeShutdown, remainingMessages, true);
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = messageBusTestActions(messageBus);
+            sendXMessagesAShutdownsIsCalledThenSendsYMessage(sutActions, testEnvironment, numberOfMessagesBeforeShutdown, remainingMessages, true);
+            return null;
+        });
     }
 
     public static ActionBuilder<MessageBus> theBusIsShutdownAfterHalfOfTheMessagesWereDelivered_withoutFinishingRemainingTasks(final int numberOfMessages) {
         final int numberOfMessagesBeforeShutdown = numberOfMessages / 2;
         final int remainingMessages = numberOfMessages - numberOfMessagesBeforeShutdown;
-        return new MessageBusActionBuilder()
-                .thatSendsXMessagesAShutdownsIsCalledThenSendsYMessage(numberOfMessagesBeforeShutdown, remainingMessages, false);
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = messageBusTestActions(messageBus);
+            sendXMessagesAShutdownsIsCalledThenSendsYMessage(sutActions, testEnvironment, numberOfMessagesBeforeShutdown, remainingMessages, false);
+            return null;
+        });
     }
 
     public static ActionBuilder<MessageBus> theMessageBusIsShutdownAsynchronouslyXTimes(final int numberOfThreads) {
-        return new MessageBusActionBuilder()
-                .thatShutdownsTheObjectAsynchronouslyXTimes(numberOfThreads);
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = messageBusTestActions(messageBus);
+            shutdownTheObjectAsynchronouslyXTimes(sutActions, numberOfThreads);
+            return null;
+        });
     }
 
     public static ActionBuilder<MessageBus> theMessageBusIsShutdown() {
-        return new MessageBusActionBuilder()
-                .thatShutdownsTheObject();
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = messageBusTestActions(messageBus);
+            shutdownTheSut(sutActions);
+            return null;
+        });
     }
 
     public static ActionBuilder<MessageBus> theMessageBusShutdownIsExpectedForTimeoutInSeconds(final int timeoutInSeconds) {
-        return new MessageBusActionBuilder()
-                .thatAwaitsTheShutdownTimeoutInSeconds(timeoutInSeconds);
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = messageBusTestActions(messageBus);
+            awaitTheShutdownTimeoutInSeconds(sutActions, testEnvironment, timeoutInSeconds);
+            return null;
+        });
     }
 
     public static ActionBuilder<MessageBus> theListOfFiltersIsQueried() {
-        return new MessageBusActionBuilder()
-                .thatQueriesTheListOfFilters();
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = messageBusTestActions(messageBus);
+            queryTheListOfFilters(sutActions, testEnvironment);
+            return null;
+        });
     }
 
     public static ActionBuilder<MessageBus> aFilterIsRemoved() {
-        return new MessageBusActionBuilder()
-                .thatRemovesAFilter();
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = messageBusTestActions(messageBus);
+            removeAFilter(sutActions, testEnvironment);
+            return null;
+        });
     }
 
     @Override
-    public void send(final MessageBus messageBus, final TestMessage message) {
-        messageBus.send(message);
+    public ActionBuilder<MessageBus> andThen(final ActionBuilder<MessageBus> followUpBuilder) {
+        if (followUpBuilder instanceof MessageBusActionBuilder) {
+            actions.addAll(((MessageBusActionBuilder) followUpBuilder).actions);
+        }
+        return this;
     }
 
     @Override
-    protected void unsubscribe(final MessageBus messageBus, final SubscriptionId subscriptionId) {
-        messageBus.unsubcribe(subscriptionId);
-    }
-
-    @Override
-    protected MessageStatistics getMessageStatistics(final MessageBus messageBus) {
-        return messageBus.getStatusInformation().getCurrentMessageStatistics();
-    }
-
-    @Override
-    protected <R> void subscribe(final MessageBus messageBus, final Class<R> messageClass, final Subscriber<R> subscriber) {
-        messageBus.subscribe(messageClass, subscriber);
-    }
-
-    @Override
-    protected void close(final MessageBus messageBus, final boolean finishRemainingTasks) {
-        messageBus.close(finishRemainingTasks);
-    }
-
-    @Override
-    protected boolean awaitTermination(final MessageBus messageBus, final int timeout, final TimeUnit timeUnit) throws InterruptedException {
-        return messageBus.awaitTermination(timeout, timeUnit);
-    }
-
-    @Override
-    protected List<?> getFilter(final MessageBus messageBus) {
-        return messageBus.getFilter();
-    }
-
-    @Override
-    protected Object removeAFilter(final MessageBus messageBus) {
-        final List<Filter<Object>> filters = messageBus.getFilter();
-        final int indexToRemove = (int) (Math.random() * filters.size());
-        final Filter<Object> filter = filters.get(indexToRemove);
-        messageBus.remove(filter);
-        return filter;
+    public List<TestAction<MessageBus>> build() {
+        return actions;
     }
 }

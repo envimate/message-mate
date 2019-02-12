@@ -2,212 +2,266 @@ package com.envimate.messageMate.channel.givenWhenThen;
 
 
 import com.envimate.messageMate.channel.Channel;
-import com.envimate.messageMate.filtering.Filter;
-import com.envimate.messageMate.internal.statistics.MessageStatistics;
-import com.envimate.messageMate.shared.givenWhenThen.ActionBuilder;
+import com.envimate.messageMate.qcec.shared.TestAction;
+import com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.ActionBuilder;
+import com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.ChannelMessageBusSutActions;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
-import com.envimate.messageMate.subscribing.Subscriber;
-import com.envimate.messageMate.subscribing.SubscriptionId;
-import lombok.RequiredArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static lombok.AccessLevel.PRIVATE;
+import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestActions.channelTestActions;
+import static com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.ChannelMessageBusTestActions.*;
 
-@RequiredArgsConstructor(access = PRIVATE)
-public final class ChannelActionBuilder extends ActionBuilder<Channel<TestMessage>> {
+/*
+TODO: query subscriber
+ */
+public final class ChannelActionBuilder implements ActionBuilder<Channel<TestMessage>> {
+    private List<TestAction<Channel<TestMessage>>> actions = new ArrayList<>();
 
+    private ChannelActionBuilder(final TestAction<Channel<TestMessage>> action) {
+        this.actions.add(action);
+    }
 
     public static ActionBuilder<Channel<TestMessage>> aSingleMessageIsSend() {
-        return new ChannelActionBuilder()
-                .thatSendsASingleMessage();
+        return new ChannelActionBuilder((channel, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = channelTestActions(channel);
+            sendASingleMessage(sutActions, testEnvironment);
+            return null;
+        });
     }
 
     public static ActionBuilder<Channel<TestMessage>> severalMessagesAreSend(final int numberOfMessages) {
-        return new ChannelActionBuilder()
-                .thatSendsSeveralMessages(numberOfMessages);
+        return new ChannelActionBuilder((channel, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = channelTestActions(channel);
+            sendSeveralMessages(sutActions, testEnvironment, numberOfMessages);
+            return null;
+        });
     }
 
     public static ActionBuilder<Channel<TestMessage>> severalMessagesAreSendAsynchronously(final int numberOfSender, final int numberOfMessagesPerSender) {
-        return new ChannelActionBuilder()
-                .thatSendsSeveralMessagesAsynchronously(numberOfSender, numberOfMessagesPerSender);
+        return new ChannelActionBuilder((channel, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = channelTestActions(channel);
+            sendSeveralMessagesInTheirOwnThread(sutActions, testEnvironment, numberOfSender, numberOfMessagesPerSender, true);
+            return null;
+        });
     }
 
     public static ActionBuilder<Channel<TestMessage>> severalMessagesAreSendAsynchronouslyButWillBeBlocked(final int numberOfSender, final int numberOfMessagesPerSender) {
-        return new ChannelActionBuilder()
-                .thatSendsSeveralMessagesAsynchronouslyButWillBeBlocked(numberOfSender, numberOfMessagesPerSender);
+        return new ChannelActionBuilder((channel, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = channelTestActions(channel);
+            sendSeveralMessagesInTheirOwnThread(sutActions, testEnvironment, numberOfSender, numberOfMessagesPerSender, false);
+            return null;
+        });
     }
 
-
     public static ActionBuilder<Channel<TestMessage>> oneSubscriberUnsubscribesSeveralTimes(final int numberOfUnsubscriptions) {
-        return new ChannelActionBuilder()
-                .thatUnsubscribesASubscriberSeveralTimes(numberOfUnsubscriptions);
+        return new ChannelActionBuilder((channel, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = channelTestActions(channel);
+            unsubscribeASubscriberXTimes(sutActions, testEnvironment, numberOfUnsubscriptions);
+            return null;
+        });
     }
 
     public static ActionBuilder<Channel<TestMessage>> oneSubscriberUnsubscribes() {
-        return new ChannelActionBuilder()
-                .thatUnsubscribesASubscriber();
+        return new ChannelActionBuilder((channel, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = channelTestActions(channel);
+            unsubscribeASubscriberXTimes(sutActions, testEnvironment, 1);
+            return null;
+        });
     }
 
     public static ActionBuilder<Channel<TestMessage>> bothValidAndInvalidMessagesAreSendAsynchronously(final int numberOfSender, final int numberOfMessagesPerSender) {
-        return new ChannelActionBuilder()
-                .thatSendsBothValidAndInvalidMessagesAsynchronously(numberOfSender, numberOfMessagesPerSender);
+        return new ChannelActionBuilder((channel, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = channelTestActions(channel);
+            sendBothValidAndInvalidMessagesAsynchronously(sutActions, testEnvironment, numberOfSender, numberOfMessagesPerSender);
+            return null;
+        });
     }
 
     public static ActionBuilder<Channel<TestMessage>> severalInvalidMessagesAreSendAsynchronously(final int numberOfSender, final int numberOfMessagesPerSender) {
-        return new ChannelActionBuilder()
-                .thatSendsSeveralInvalidMessagesAsynchronously(numberOfSender, numberOfMessagesPerSender);
+        return new ChannelActionBuilder((channel, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = channelTestActions(channel);
+            sendSeveralInvalidMessagesAsynchronously(sutActions, testEnvironment, numberOfSender, numberOfMessagesPerSender);
+            return null;
+        });
     }
 
     public static ActionBuilder<Channel<TestMessage>> theNumberOfAcceptedMessagesIsQueried() {
-        return new ChannelActionBuilder()
-                .thatQueriesTheNumberOfAcceptedMessages();
+        return new ChannelActionBuilder((channel, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = channelTestActions(channel);
+            queryTheNumberOfAcceptedMessages(sutActions, testEnvironment);
+            return null;
+        });
     }
 
     public static ActionBuilder<Channel<TestMessage>> theNumberOfAcceptedMessagesIsQueriedAsynchronously() {
-        return new ChannelActionBuilder()
-                .thatQueriesTheNumberOfAcceptedMessagesAsynchronously();
+        return new ChannelActionBuilder((channel, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = channelTestActions(channel);
+            queryTheNumberOfAcceptedMessagesAsynchronously(sutActions, testEnvironment);
+            return null;
+        });
     }
 
     public static ActionBuilder<Channel<TestMessage>> theNumberOfWaitingMessagesIsQueried() {
-        return new ChannelActionBuilder()
-                .thatQueriesTheNumberOfWaitingMessages();
+        return new ChannelActionBuilder((channel, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = channelTestActions(channel);
+            queryTheNumberOfWaitingMessages(sutActions, testEnvironment);
+            return null;
+        });
     }
 
     public static ActionBuilder<Channel<TestMessage>> theNumberOfSuccessfulMessagesIsQueried() {
-        return new ChannelActionBuilder()
-                .thatQueriesTheNumberOfSuccessfulDeliveredMessages();
+        return new ChannelActionBuilder((channel, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = channelTestActions(channel);
+            queryTheNumberOfSuccessfulDeliveredMessages(sutActions, testEnvironment);
+            return null;
+        });
     }
 
     public static ActionBuilder<Channel<TestMessage>> theNumberOfFailedMessagesIsQueried() {
-        return new ChannelActionBuilder()
-                .thatQueriesTheNumberOfFailedDeliveredMessages();
+        return new ChannelActionBuilder((channel, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = channelTestActions(channel);
+            queryTheNumberOfFailedDeliveredMessages(sutActions, testEnvironment);
+            return null;
+        });
     }
 
     public static ActionBuilder<Channel<TestMessage>> theNumberOfDroppedMessagesIsQueried() {
-        return new ChannelActionBuilder()
-                .thatQueriesTheNumberOfDroppedMessages();
+        return new ChannelActionBuilder((channel, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = channelTestActions(channel);
+            queryTheNumberOfDroppedMessages(sutActions, testEnvironment);
+            return null;
+        });
     }
 
     public static ActionBuilder<Channel<TestMessage>> theNumberOfReplacedMessagesIsQueried() {
-        return new ChannelActionBuilder()
-                .thatQueriesTheNumberOfReplacedMessages();
+        return new ChannelActionBuilder((channel, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = channelTestActions(channel);
+            queryTheNumberOfReplacedMessages(sutActions, testEnvironment);
+            return null;
+        });
     }
 
     public static ActionBuilder<Channel<TestMessage>> theNumberOfForgottenMessagesIsQueried() {
-        return new ChannelActionBuilder()
-                .thatQueriesTheNumberOfForgottenMessages();
+        return new ChannelActionBuilder((channel, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = channelTestActions(channel);
+            queryTheNumberOfForgottenMessages(sutActions, testEnvironment);
+            return null;
+        });
     }
 
     public static ActionBuilder<Channel<TestMessage>> theNumberOfCurrentlyDeliveredMessagesIsQueried() {
-        return new ChannelActionBuilder()
-                .thatQueriesTheNumberOfCurrentlyDeliveredMessages();
+        return new ChannelActionBuilder((channel, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = channelTestActions(channel);
+            queryTheNumberOfCurrentlyDeliveredMessages(sutActions, testEnvironment);
+            return null;
+        });
     }
 
     public static ActionBuilder<Channel<TestMessage>> theNumberOfCurrentlyTransportedMessagesIsQueried() {
-        return new ChannelActionBuilder()
-                .thatQueriesTheNumberOfCurrentlyTransportedMessages();
+        return new ChannelActionBuilder((channel, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = channelTestActions(channel);
+            queryTheNumberOfCurrentlyTransportedMessages(sutActions, testEnvironment);
+            return null;
+        });
     }
 
     public static ActionBuilder<Channel<TestMessage>> theTimestampOfTheStatisticsIsQueried() {
-        return new ChannelActionBuilder()
-                .thatQueriesTheTimestampOfTheMessageStatistics();
+        return new ChannelActionBuilder((channel, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = channelTestActions(channel);
+            queryTheTimestampOfTheMessageStatistics(sutActions, testEnvironment);
+            return null;
+        });
     }
 
     public static ActionBuilder<Channel<TestMessage>> aShortWaitIsDone(final long timeout, final TimeUnit timeUnit) {
-        return new ChannelActionBuilder()
-                .thatPerformsAShortWait(timeout, timeUnit);
+        return new ChannelActionBuilder((channel, testEnvironment) -> {
+            performAShortWait(timeout, timeUnit);
+            return null;
+        });
     }
 
     public static ActionBuilder<Channel<TestMessage>> severalMessagesAreSendAsynchronouslyBeforeTheChannelIsShutdown(final int numberOfSenders, final int numberOfMessages) {
-        return new ChannelActionBuilder()
-                .thatSendsSeveralMessagesAsynchronouslyBeforeTheObjectIsShutdown(numberOfSenders, numberOfMessages);
+        return new ChannelActionBuilder((channel, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = channelTestActions(channel);
+            sendSeveralMessagesAsynchronouslyBeforeTheObjectIsShutdown(sutActions, testEnvironment, numberOfSenders, numberOfMessages);
+            return null;
+        });
     }
 
     public static ActionBuilder<Channel<TestMessage>> theChannelIsShutdownAsynchronouslyXTimes(final int numberOfThreads) {
-        return new ChannelActionBuilder()
-                .thatShutdownsTheObjectAsynchronouslyXTimes(numberOfThreads);
+        return new ChannelActionBuilder((channel, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = channelTestActions(channel);
+            shutdownTheObjectAsynchronouslyXTimes(sutActions, numberOfThreads);
+            return null;
+        });
     }
 
     public static ActionBuilder<Channel<TestMessage>> theChannelIsShutdown() {
-        return new ChannelActionBuilder()
-                .thatShutdownsTheObject();
+        return new ChannelActionBuilder((channel, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = channelTestActions(channel);
+            shutdownTheSut(sutActions);
+            return null;
+        });
     }
 
     public static ActionBuilder<Channel<TestMessage>> theChannelIsShutdownAfterHalfOfTheMessagesWereDelivered(final int numberOfMessages) {
         final int numberOfMessagesBeforeShutdown = numberOfMessages / 2;
         final int remainingMessages = numberOfMessages - numberOfMessagesBeforeShutdown;
-        return new ChannelActionBuilder()
-                .thatSendsXMessagesAShutdownsIsCalledThenSendsYMessage(numberOfMessagesBeforeShutdown, remainingMessages, true);
+        return new ChannelActionBuilder((channel, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = channelTestActions(channel);
+            sendXMessagesAShutdownsIsCalledThenSendsYMessage(sutActions, testEnvironment, numberOfMessagesBeforeShutdown, remainingMessages, true);
+            return null;
+        });
     }
 
     public static ActionBuilder<Channel<TestMessage>> theChannelIsShutdownAfterHalfOfTheMessagesWereDelivered_withoutFinishingRemainingTasks(final int numberOfMessages) {
         final int numberOfMessagesBeforeShutdown = numberOfMessages / 2;
         final int remainingMessages = numberOfMessages - numberOfMessagesBeforeShutdown;
-        return new ChannelActionBuilder()
-                .thatSendsXMessagesAShutdownsIsCalledThenSendsYMessage(numberOfMessagesBeforeShutdown, remainingMessages, false);
+        return new ChannelActionBuilder((channel, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = channelTestActions(channel);
+            sendXMessagesAShutdownsIsCalledThenSendsYMessage(sutActions, testEnvironment, numberOfMessagesBeforeShutdown, remainingMessages, false);
+            return null;
+        });
     }
 
     public static ActionBuilder<Channel<TestMessage>> theChannelShutdownIsExpectedForTimeoutInSeconds(final int timeoutInSeconds) {
-        return new ChannelActionBuilder()
-                .thatAwaitsTheShutdownTimeoutInSeconds(timeoutInSeconds);
+        return new ChannelActionBuilder((channel, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = channelTestActions(channel);
+            awaitTheShutdownTimeoutInSeconds(sutActions, testEnvironment, timeoutInSeconds);
+            return null;
+        });
     }
 
     public static ActionBuilder<Channel<TestMessage>> theListOfFiltersIsQueried() {
-        return new ChannelActionBuilder()
-                .thatQueriesTheListOfFilters();
+        return new ChannelActionBuilder((channel, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = channelTestActions(channel);
+            queryTheListOfFilters(sutActions, testEnvironment);
+            return null;
+        });
     }
 
     public static ActionBuilder<Channel<TestMessage>> aFilterIsRemoved() {
-        return new ChannelActionBuilder()
-                .thatRemovesAFilter();
+        return new ChannelActionBuilder((channel, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = channelTestActions(channel);
+            removeAFilter(sutActions, testEnvironment);
+            return null;
+        });
     }
 
     @Override
-    public void send(final Channel<TestMessage> channel, final TestMessage message) {
-        channel.send(message);
+    public ActionBuilder<Channel<TestMessage>> andThen(final ActionBuilder<Channel<TestMessage>> followUpBuilder) {
+        if (followUpBuilder instanceof ChannelActionBuilder) {
+            actions.addAll(((ChannelActionBuilder) followUpBuilder).actions);
+        }
+        return this;
     }
 
     @Override
-    protected void unsubscribe(final Channel<TestMessage> channel, final SubscriptionId subscriptionId) {
-        channel.unsubscribe(subscriptionId);
+    public List<TestAction<Channel<TestMessage>>> build() {
+        return actions;
     }
 
-    @Override
-    protected MessageStatistics getMessageStatistics(final Channel<TestMessage> channel) {
-        return channel.getStatusInformation().getCurrentMessageStatistics();
-    }
-
-    @Override
-    protected <R> void subscribe(final Channel<TestMessage> channel, final Class<R> messageClass, final Subscriber<R> subscriber) {
-        @SuppressWarnings("unchecked")
-        final Subscriber<TestMessage> messageSubscriber = (Subscriber<TestMessage>) subscriber;
-        channel.subscribe(messageSubscriber);
-    }
-
-    @Override
-    protected void close(final Channel<TestMessage> channel, final boolean finishRemainingTasks) {
-        channel.close(finishRemainingTasks);
-    }
-
-    @Override
-    protected boolean awaitTermination(final Channel<TestMessage> channel, final int timeout, final TimeUnit timeUnit) throws InterruptedException {
-        return channel.awaitTermination(timeout, timeUnit);
-    }
-
-    @Override
-    protected List<?> getFilter(final Channel<TestMessage> channel) {
-        final List<?> filters = channel.getFilter();
-        return filters;
-    }
-
-    @Override
-    protected Object removeAFilter(final Channel<TestMessage> channel) {
-        final List<Filter<TestMessage>> filters = channel.getFilter();
-        final int indexToRemove = (int) (Math.random() * filters.size());
-        final Filter<TestMessage> filter = filters.get(indexToRemove);
-        channel.remove(filter);
-        return filter;
-    }
 }

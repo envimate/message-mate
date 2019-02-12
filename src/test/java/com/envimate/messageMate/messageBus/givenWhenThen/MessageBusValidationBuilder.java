@@ -3,27 +3,27 @@ package com.envimate.messageMate.messageBus.givenWhenThen;
 
 import com.envimate.messageMate.error.DeliveryFailedMessage;
 import com.envimate.messageMate.messageBus.MessageBus;
-import com.envimate.messageMate.shared.givenWhenThen.TestValidation;
-import com.envimate.messageMate.shared.givenWhenThen.TestValidationBuilder;
+import com.envimate.messageMate.qcec.shared.TestEnvironment;
+import com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.ChannelMessageBusSharedTestValidationBuilder;
+import com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.ChannelMessageBusSutActions;
+import com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.TestValidationBuilder;
 import com.envimate.messageMate.shared.subscriber.TestSubscriber;
 import com.envimate.messageMate.subscribing.Subscriber;
+import lombok.RequiredArgsConstructor;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import static com.envimate.messageMate.shared.context.TestExecutionProperty.ERROR_SUBSCRIBER;
-import static com.envimate.messageMate.shared.context.TestExecutionProperty.RESULT;
+import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActions.messageBusTestActions;
+import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
+import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.SUT;
+import static com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.ChannelMessageBusTestProperties.ERROR_SUBSCRIBER;
+import static lombok.AccessLevel.PRIVATE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
-public final class MessageBusValidationBuilder extends TestValidationBuilder<MessageBus> {
-
-    @SafeVarargs
-    @SuppressWarnings("varargs")
-    private MessageBusValidationBuilder(TestValidation<MessageBus>... validations) {
-        super(validations);
-    }
+@RequiredArgsConstructor(access = PRIVATE)
+public final class MessageBusValidationBuilder extends ChannelMessageBusSharedTestValidationBuilder<MessageBus> {
 
     public static TestValidationBuilder<MessageBus> expectTheMessageToBeReceived() {
         return new MessageBusValidationBuilder()
@@ -77,9 +77,9 @@ public final class MessageBusValidationBuilder extends TestValidationBuilder<Mes
 
     public static TestValidationBuilder<MessageBus> expectSubscriberOfType(final int expectedNumberOfSubscribers, final Class<?> messageClass) {
         return new MessageBusValidationBuilder()
-                .withAValidation((messageBus, executionContext) -> {
+                .asValidation(testEnvironment -> {
                     @SuppressWarnings("unchecked")
-                    final Map<Object, List<Subscriber<Object>>> resultMap = (Map<Object, List<Subscriber<Object>>>) executionContext.getProperty(RESULT);
+                    final Map<Object, List<Subscriber<Object>>> resultMap = (Map<Object, List<Subscriber<Object>>>) testEnvironment.getProperty(RESULT);
                     final List<Subscriber<Object>> subscribersForType = resultMap.get(messageClass);
                     assertThat(subscribersForType.size(), equalTo(expectedNumberOfSubscribers));
                 });
@@ -96,18 +96,18 @@ public final class MessageBusValidationBuilder extends TestValidationBuilder<Mes
     }
 
     public static TestValidationBuilder<MessageBus> expectErrorMessageWithCause(final Class<?> expectedCauseClass) {
-        return new MessageBusValidationBuilder().withAValidation(
-                (messageBus, executionContext) -> {
-                    final TestSubscriber<?> testSubscriber = executionContext.getPropertyAsType(ERROR_SUBSCRIBER, TestSubscriber.class);
-                    final List<?> receivedMessages = testSubscriber.getReceivedMessages();
-                    assertThat(receivedMessages.size(), equalTo(1));
-                    final Object firstMessage = receivedMessages.get(0);
-                    assertThat(firstMessage.getClass(), equalTo(DeliveryFailedMessage.class));
-                    @SuppressWarnings("unchecked")
-                    final DeliveryFailedMessage<Object> errorMessage = (DeliveryFailedMessage<Object>) firstMessage;
-                    assertThat(errorMessage.getCause().getClass(), equalTo(expectedCauseClass));
-                }
-        );
+        return new MessageBusValidationBuilder()
+                .asValidation(testEnvironment -> {
+                            final TestSubscriber<?> testSubscriber = testEnvironment.getPropertyAsType(ERROR_SUBSCRIBER, TestSubscriber.class);
+                            final List<?> receivedMessages = testSubscriber.getReceivedMessages();
+                            assertThat(receivedMessages.size(), equalTo(1));
+                            final Object firstMessage = receivedMessages.get(0);
+                            assertThat(firstMessage.getClass(), equalTo(DeliveryFailedMessage.class));
+                            @SuppressWarnings("unchecked")
+                            final DeliveryFailedMessage<Object> errorMessage = (DeliveryFailedMessage<Object>) firstMessage;
+                            assertThat(errorMessage.getCause().getClass(), equalTo(expectedCauseClass));
+                        }
+                );
     }
 
     public static TestValidationBuilder<MessageBus> expectEachMessagesToBeReceivedByOnlyOneSubscriber() {
@@ -131,19 +131,13 @@ public final class MessageBusValidationBuilder extends TestValidationBuilder<Mes
     }
 
     @Override
-    protected boolean isShutdown(final MessageBus messageBus) {
-        return messageBus.isShutdown();
+    protected ChannelMessageBusSutActions sutActions(final TestEnvironment testEnvironment) {
+        final MessageBus messageBus = getMessageBus(testEnvironment);
+        return messageBusTestActions(messageBus);
     }
 
-    @Override
-    protected List<Subscriber<?>> getAllSubscribers(final MessageBus messageBus) {
-        final List<Subscriber<Object>> allSubscribers = messageBus.getStatusInformation().getAllSubscribers();
-        final LinkedList<Subscriber<?>> subscribers = new LinkedList<>(allSubscribers);
-        return subscribers;
-    }
-
-    @Override
-    protected List<?> getFilter(final MessageBus messageBus) {
-        return messageBus.getFilter();
+    private MessageBus getMessageBus(final TestEnvironment testEnvironment) {
+        final MessageBus messageBus = testEnvironment.getPropertyAsType(SUT, MessageBus.class);
+        return messageBus;
     }
 }

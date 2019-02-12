@@ -4,28 +4,23 @@ package com.envimate.messageMate.channel.givenWhenThen;
 import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.channel.ChannelBuilder;
 import com.envimate.messageMate.channel.config.ChannelTestConfig;
-import com.envimate.messageMate.filtering.Filter;
-import com.envimate.messageMate.shared.givenWhenThen.Setup;
-import com.envimate.messageMate.shared.givenWhenThen.SetupBuilder;
+import com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.ChannelMessageBusSharedSetupBuilder;
+import com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.ChannelMessageBusSutActions;
+import com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.Setup;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
-import com.envimate.messageMate.subscribing.Subscriber;
 
-import static com.envimate.messageMate.shared.givenWhenThen.TestFilter.*;
+import static com.envimate.messageMate.channel.ChannelBuilder.aChannel;
+import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestActions.channelTestActions;
 
-public class ChannelSetupBuilder extends SetupBuilder<Channel<TestMessage>> {
+public class ChannelSetupBuilder extends ChannelMessageBusSharedSetupBuilder<Channel<TestMessage>> {
+    private final ChannelBuilder<TestMessage> channelBuilder = aChannel();
 
-    private final ChannelBuilder<TestMessage> channelBuilder = ChannelBuilder.aChannel();
-
-    public static ChannelSetupBuilder aChannel() {
-        return new ChannelSetupBuilder();
+    public static ChannelMessageBusSharedSetupBuilder<Channel<TestMessage>> aConfiguredChannel(final ChannelTestConfig testConfig) {
+        return new ChannelSetupBuilder()
+                .configuredWith(testConfig);
     }
 
-    public Setup<Channel<TestMessage>> build() {
-        final Channel<TestMessage> channel = channelBuilder.build();
-        return Setup.setup(channel, executionContext, setupActions);
-    }
-
-    public ChannelSetupBuilder configuredWith(final ChannelTestConfig testConfig) {
+    private ChannelMessageBusSharedSetupBuilder<Channel<TestMessage>> configuredWith(final ChannelTestConfig testConfig) {
         channelBuilder.withConfiguration(testConfig.channelConfiguration)
                 .withACustomDeliveryStrategyFactory(testConfig.deliveryStrategyFactory)
                 .withACustomMessageAcceptingStrategyFactory(testConfig.messageAcceptingStrategyFactory)
@@ -33,41 +28,13 @@ public class ChannelSetupBuilder extends SetupBuilder<Channel<TestMessage>> {
         return this;
     }
 
-    @Override
-    protected void addFilterThatChangesTheContent(final Channel<TestMessage> channel) {
-        final Filter<TestMessage> filter = aContentChangingFilter();
-        channel.add(filter);
+    public Setup<Channel<TestMessage>> build() {
+        final Channel<TestMessage> channel = channelBuilder.build();
+        return Setup.setup(channel, testEnvironment, setupActions);
     }
 
     @Override
-    protected void addFilterThatDropsMessages(final Channel<TestMessage> channel) {
-        final Filter<TestMessage> filter = aMessageDroppingFilter();
-        channel.add(filter);
-    }
-
-    @Override
-    protected void addFilterThatReplacesWrongMessage(final Channel<TestMessage> channel) {
-        final Filter<TestMessage> filter = aMessageReplacingFilter();
-        channel.add(filter);
-    }
-
-    @Override
-    protected void addFilterThatDoesNotCallAnyFilterMethod(final Channel<TestMessage> channel) {
-        final Filter<TestMessage> filter = aMessageFilterThatDoesNotCallAnyMethod();
-        channel.add(filter);
-    }
-
-    @Override
-    protected Filter<?> addFilterAtPositionThatAppendsTheContent(final String contentToAppend, final int position, final Channel<TestMessage> channel) {
-        final Filter<TestMessage> filter = aContentAppendingFilter(contentToAppend);
-        channel.add(filter, position);
-        return filter;
-    }
-
-    @Override
-    public <R> void subscribe(final Channel<TestMessage> channel, final Class<R> rClass, final Subscriber<R> subscriber) {
-        @SuppressWarnings("unchecked")
-        final Subscriber<TestMessage> castedSubscriber = (Subscriber<TestMessage>) subscriber;
-        channel.subscribe(castedSubscriber);
+    protected ChannelMessageBusSutActions sutActions(final Channel<TestMessage> channel) {
+        return channelTestActions(channel);
     }
 }

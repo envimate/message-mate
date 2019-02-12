@@ -1,4 +1,4 @@
-package com.envimate.messageMate.shared.givenWhenThen;
+package com.envimate.messageMate.shared.channelMessageBus.givenWhenThen;
 
 
 import lombok.RequiredArgsConstructor;

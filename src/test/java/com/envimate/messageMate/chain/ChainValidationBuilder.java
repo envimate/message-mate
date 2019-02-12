@@ -18,6 +18,7 @@ import static com.envimate.messageMate.chain.ChainTestValidations.*;
 import static com.envimate.messageMate.chain.ProcessingFrameHistoryMatcher.aProcessingFrameHistory;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RESULT;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.SUT;
+import static com.envimate.messageMate.shared.validations.SharedTestValidations.*;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
