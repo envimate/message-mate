@@ -52,8 +52,8 @@ public final class AsynchronousSendingTestUtils {
         sutActions.subscribe(TestMessageOfInterest.class, subscriber);
         testEnvironment.setProperty(SINGLE_RECEIVER, subscriber);
 
-        sendXMessagesAsynchronously(numberOfMessagesBeforeShutdown, TestMessageFactory.testMessageFactoryForValidMessages(1, testEnvironment),
-                sutActions, testEnvironment, false);
+        final TestMessageFactory messageFactory = TestMessageFactory.testMessageFactoryForValidMessages(1, testEnvironment);
+        sendXMessagesAsynchronously(numberOfMessagesBeforeShutdown, messageFactory, sutActions, testEnvironment, false);
         try {
             MILLISECONDS.sleep(100);
         } catch (final InterruptedException e) {

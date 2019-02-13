@@ -21,8 +21,16 @@
 
 package com.envimate.messageMate.internal.transport;
 
+import java.util.Date;
+
 public interface MessageTransportProcessFactory<T> {
 
     MessageTransportProcess<T> getNext(T message);
+
+    void close(boolean finishRemainingTasks);
+
+    boolean awaitTermination(Date deadline) throws InterruptedException;
+
+    boolean isShutdown();
 
 }

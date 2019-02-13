@@ -25,7 +25,7 @@ public final class MessageBusSetupBuilder extends ChannelMessageBusSharedSetupBu
     }
 
     private MessageBusSetupBuilder configuredWith(final MessageBusTestConfig testConfig) {
-        messageBusBuilder.withMessageBusConfiguration(testConfig.messageBusConfiguration)
+        messageBusBuilder.withConfiguration(testConfig.messageBusConfiguration)
                 .withACustomBrokerStrategy(testConfig.brokerStrategy)
                 .withACustomDeliveryStrategyFactory(testConfig.deliveryStrategyFactory)
                 .withACustomMessageAcceptingStrategyFactory(testConfig.messageAcceptingStrategyFactory)

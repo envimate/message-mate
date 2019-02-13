@@ -1,6 +1,7 @@
 package com.envimate.messageMate.channel;
 
 import com.envimate.messageMate.channel.config.ChannelTestConfig;
+import com.envimate.messageMate.channel.givenWhenThen.ChannelActionBuilder;
 import org.junit.jupiter.api.Test;
 
 import static com.envimate.messageMate.channel.givenWhenThen.ChannelActionBuilder.*;
@@ -37,7 +38,6 @@ public interface ChannelSpecs {
     }
 
     //unsubscribe
-
     @Test
     default void testChannel_canUnsubscribe(final ChannelTestConfig testConfig) throws Exception {
         given(aConfiguredChannel(testConfig)
@@ -229,5 +229,14 @@ public interface ChannelSpecs {
                         .andThen(theChannelIsShutdown()))
                 .then(expectTheChannelToBeShutdown());
     }
+
+    @Test
+    default void testChannel_awaitReturnsAlwaysFalse_withoutACloseCall(final ChannelTestConfig testConfig) throws Exception {
+        given(aConfiguredChannel(testConfig))
+                .when(ChannelActionBuilder.awaitWithoutACloseIsCalled())
+                .then(expectTheResultToAlwaysBeFalse());
+    }
+
+    //TODO: await explizit testen für alle
 
 }

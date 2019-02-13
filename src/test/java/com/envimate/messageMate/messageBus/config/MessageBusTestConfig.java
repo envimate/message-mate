@@ -2,6 +2,7 @@ package com.envimate.messageMate.messageBus.config;
 
 import com.envimate.messageMate.configuration.MessageBusConfiguration;
 import com.envimate.messageMate.internal.accepting.MessageAcceptingStrategyFactory;
+import com.envimate.messageMate.internal.accepting.MessageAcceptingStrategyType;
 import com.envimate.messageMate.internal.brokering.BrokerStrategy;
 import com.envimate.messageMate.internal.brokering.BrokerStrategyFactory;
 import com.envimate.messageMate.internal.delivering.DeliveryStrategyFactory;
@@ -15,8 +16,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import static com.envimate.messageMate.internal.accepting.MessageAcceptingStrategyAbstractFactory.aMessageAcceptingStrategyFactory;
+import static com.envimate.messageMate.internal.accepting.MessageAcceptingStrategyType.QUEUED;
 import static com.envimate.messageMate.internal.brokering.BrokerStrategyType.DELIVERY_TO_SAME_CLASS_AS_MESSAGE;
 import static com.envimate.messageMate.internal.delivering.AbstractDeliveryStrategyFactory.deliveryStrategyForType;
+import static com.envimate.messageMate.internal.delivering.DeliveryType.SYNCHRONOUS;
 import static com.envimate.messageMate.internal.statistics.StatisticsCollectorFactory.aStatisticsCollector;
 
 
@@ -34,11 +37,12 @@ public final class MessageBusTestConfig {
 
     static MessageBusTestConfig aSynchronousMessageBus() {
         final MessageBusConfiguration configuration = MessageBusConfiguration.defaultConfiguration();
-        configuration.setDeliveryType(DeliveryType.SYNCHRONOUS);
+        configuration.setDeliveryType(SYNCHRONOUS);
         final StatisticsCollector statisticsCollector = aStatisticsCollector();
         final DeliveryStrategyFactory<Object> deliveryStrategyFactory = deliveryStrategyForType(configuration);
         final BrokerStrategy brokerStrategy = BrokerStrategyFactory.aBrokerStrategyForSpecificType(DELIVERY_TO_SAME_CLASS_AS_MESSAGE);
-        final MessageAcceptingStrategyFactory<Object> acceptingStrategyFactory = aMessageAcceptingStrategyFactory();
+        final MessageAcceptingStrategyType messageAcceptingStrategyType = configuration.getMessageAcceptingStrategyType();
+        final MessageAcceptingStrategyFactory<Object> acceptingStrategyFactory = aMessageAcceptingStrategyFactory(messageAcceptingStrategyType);
         return new MessageBusTestConfig("aSynchronousMessageBus", configuration, deliveryStrategyFactory, brokerStrategy, acceptingStrategyFactory, statisticsCollector);
     }
 
@@ -53,8 +57,21 @@ public final class MessageBusTestConfig {
         final StatisticsCollector statisticsCollector = aStatisticsCollector();
         final DeliveryStrategyFactory<Object> deliveryStrategyFactory = deliveryStrategyForType(configuration);
         final BrokerStrategy brokerStrategy = BrokerStrategyFactory.aBrokerStrategyForSpecificType(DELIVERY_TO_SAME_CLASS_AS_MESSAGE);
-        final MessageAcceptingStrategyFactory<Object> acceptingStrategyFactory = aMessageAcceptingStrategyFactory();
+        final MessageAcceptingStrategyType messageAcceptingStrategyType = configuration.getMessageAcceptingStrategyType();
+        final MessageAcceptingStrategyFactory<Object> acceptingStrategyFactory = aMessageAcceptingStrategyFactory(messageAcceptingStrategyType);
         return new MessageBusTestConfig("aSynchronousMessageBusWithAsyncDelivery", configuration, deliveryStrategyFactory, brokerStrategy, acceptingStrategyFactory, statisticsCollector);
+    }
+
+    static MessageBusTestConfig aQueuingAcceptingSynchronousMessageBus() {
+        final MessageBusConfiguration configuration = MessageBusConfiguration.defaultConfiguration();
+        configuration.setDeliveryType(SYNCHRONOUS);
+        configuration.setMessageAcceptingStrategyType(QUEUED);
+        final StatisticsCollector statisticsCollector = aStatisticsCollector();
+        final DeliveryStrategyFactory<Object> deliveryStrategyFactory = deliveryStrategyForType(configuration);
+        final BrokerStrategy brokerStrategy = BrokerStrategyFactory.aBrokerStrategyForSpecificType(DELIVERY_TO_SAME_CLASS_AS_MESSAGE);
+        final MessageAcceptingStrategyType messageAcceptingStrategyType = configuration.getMessageAcceptingStrategyType();
+        final MessageAcceptingStrategyFactory<Object> acceptingStrategyFactory = aMessageAcceptingStrategyFactory(messageAcceptingStrategyType);
+        return new MessageBusTestConfig("aSynchronousMessageBus", configuration, deliveryStrategyFactory, brokerStrategy, acceptingStrategyFactory, statisticsCollector);
     }
 
     @Override

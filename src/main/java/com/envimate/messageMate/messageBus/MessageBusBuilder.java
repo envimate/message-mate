@@ -24,6 +24,7 @@ package com.envimate.messageMate.messageBus;
 import com.envimate.messageMate.configuration.ExceptionCatchingCondition;
 import com.envimate.messageMate.configuration.MessageBusConfiguration;
 import com.envimate.messageMate.internal.accepting.MessageAcceptingStrategyFactory;
+import com.envimate.messageMate.internal.accepting.MessageAcceptingStrategyType;
 import com.envimate.messageMate.internal.brokering.BrokerStrategy;
 import com.envimate.messageMate.internal.brokering.BrokerStrategyType;
 import com.envimate.messageMate.internal.delivering.DeliveryStrategyFactory;
@@ -41,7 +42,7 @@ import static com.envimate.messageMate.internal.statistics.StatisticsCollectorFa
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class MessageBusBuilder {
 
-    private MessageBusConfiguration messageBusConfiguration = MessageBusConfiguration.defaultConfiguration();
+    private MessageBusConfiguration configuration = MessageBusConfiguration.defaultConfiguration();
     private DeliveryStrategyFactory<Object> deliveryStrategyFactory;
     private BrokerStrategy brokerStrategy;
     private MessageAcceptingStrategyFactory<Object> messageAcceptingStrategyFactory;
@@ -52,7 +53,7 @@ public final class MessageBusBuilder {
     }
 
     public MessageBusBuilder withDeliveryType(final DeliveryType deliveryType) {
-        messageBusConfiguration.setDeliveryType(deliveryType);
+        configuration.setDeliveryType(deliveryType);
         return this;
     }
 
@@ -62,7 +63,7 @@ public final class MessageBusBuilder {
     }
 
     public MessageBusBuilder withBrokerType(final BrokerStrategyType brokerStrategyType) {
-        messageBusConfiguration.setBrokerStrategyType(brokerStrategyType);
+        configuration.setBrokerStrategyType(brokerStrategyType);
         return this;
     }
 
@@ -77,13 +78,13 @@ public final class MessageBusBuilder {
         return this;
     }
 
-    public MessageBusBuilder withMessageBusConfiguration(@NonNull final MessageBusConfiguration messageBusConfiguration) {
-        this.messageBusConfiguration = messageBusConfiguration;
+    public MessageBusBuilder withConfiguration(@NonNull final MessageBusConfiguration messageBusConfiguration) {
+        this.configuration = messageBusConfiguration;
         return this;
     }
 
     public MessageBusBuilder withExceptionCatchingCondition(final ExceptionCatchingCondition exceptionCatchingCondition) {
-        this.messageBusConfiguration.setExceptionCatchingCondition(exceptionCatchingCondition);
+        this.configuration.setExceptionCatchingCondition(exceptionCatchingCondition);
         return this;
     }
 
@@ -94,11 +95,12 @@ public final class MessageBusBuilder {
 
     public MessageBus build() {
         final StatisticsCollector statisticsCollector = fieldOrDefault(this.statisticsCollector, aStatisticsCollector());
+        final MessageAcceptingStrategyType messageAcceptingStrategyType = configuration.getMessageAcceptingStrategyType();
         final MessageAcceptingStrategyFactory<Object> msgAccStrFactory = fieldOrDefault(this.messageAcceptingStrategyFactory,
-                aMessageAcceptingStrategyFactory());
-        final BrokerStrategy brokerStrategy = fieldOrDefault(this.brokerStrategy, aBrokerStrategy(messageBusConfiguration));
+                aMessageAcceptingStrategyFactory(messageAcceptingStrategyType));
+        final BrokerStrategy brokerStrategy = fieldOrDefault(this.brokerStrategy, aBrokerStrategy(configuration));
         final DeliveryStrategyFactory<Object> deliveryStrategy = fieldOrDefault(this.deliveryStrategyFactory,
-                deliveryStrategyForType(messageBusConfiguration));
+                deliveryStrategyForType(configuration));
         return new MessageBusImpl(msgAccStrFactory, brokerStrategy, deliveryStrategy, statisticsCollector);
     }
 

@@ -22,11 +22,16 @@
 package com.envimate.messageMate.internal.accepting;
 
 import com.envimate.messageMate.internal.eventloop.AcceptingEventLoop;
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+import static lombok.AccessLevel.PRIVATE;
+
+@RequiredArgsConstructor(access = PRIVATE)
 public final class AtomicAcceptingStrategyFactory<T> implements MessageAcceptingStrategyFactory<T> {
+
+    public static <T> AtomicAcceptingStrategyFactory<T> atomicAcceptingStrategyFactory() {
+        return new AtomicAcceptingStrategyFactory<>();
+    }
 
     @Override
     public MessageAcceptingStrategy<T> createNew(final AcceptingEventLoop<T> eventLoop) {

@@ -14,6 +14,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import static com.envimate.messageMate.internal.accepting.MessageAcceptingStrategyAbstractFactory.aMessageAcceptingStrategyFactory;
+import static com.envimate.messageMate.internal.accepting.MessageAcceptingStrategyType.QUEUED;
 import static com.envimate.messageMate.internal.delivering.AbstractDeliveryStrategyFactory.deliveryStrategyForType;
 import static com.envimate.messageMate.internal.statistics.StatisticsCollectorFactory.aStatisticsCollector;
 
@@ -32,10 +33,9 @@ public final class ChannelTestConfig {
     static ChannelTestConfig aSynchronousChannel() {
         final ChannelConfiguration configuration = ChannelConfiguration.defaultConfiguration();
         configuration.setDeliveryType(DeliveryType.SYNCHRONOUS);
-        ;
         final StatisticsCollector statisticsCollector = aStatisticsCollector();
         final DeliveryStrategyFactory<TestMessage> deliveryStrategyFactory = deliveryStrategyForType(configuration);
-        final MessageAcceptingStrategyFactory<TestMessage> acceptingStrategyFactory = aMessageAcceptingStrategyFactory();
+        final MessageAcceptingStrategyFactory<TestMessage> acceptingStrategyFactory = aMessageAcceptingStrategyFactory(configuration.getMessageAcceptingStrategyType());
         return new ChannelTestConfig("aSynchronousChannel", configuration, deliveryStrategyFactory, acceptingStrategyFactory, statisticsCollector);
     }
 
@@ -49,8 +49,17 @@ public final class ChannelTestConfig {
         configuration.setMaximumPoolSize(ASYNCHRONOUS_DELIVERY_POOL_SIZE);
         final StatisticsCollector statisticsCollector = aStatisticsCollector();
         final DeliveryStrategyFactory<TestMessage> deliveryStrategyFactory = deliveryStrategyForType(configuration);
-        final MessageAcceptingStrategyFactory<TestMessage> acceptingStrategyFactory = aMessageAcceptingStrategyFactory();
+        final MessageAcceptingStrategyFactory<TestMessage> acceptingStrategyFactory = aMessageAcceptingStrategyFactory(configuration.getMessageAcceptingStrategyType());
         return new ChannelTestConfig("aSynchronousChannelWithAsyncDelivery", configuration, deliveryStrategyFactory, acceptingStrategyFactory, statisticsCollector);
+    }
+
+    static ChannelTestConfig aSynchronousChannelWithQueuedAcceptingStrategy() {
+        final ChannelConfiguration configuration = ChannelConfiguration.defaultConfiguration();
+        configuration.setDeliveryType(DeliveryType.SYNCHRONOUS);
+        final StatisticsCollector statisticsCollector = aStatisticsCollector();
+        final DeliveryStrategyFactory<TestMessage> deliveryStrategyFactory = deliveryStrategyForType(configuration);
+        final MessageAcceptingStrategyFactory<TestMessage> acceptingStrategyFactory = aMessageAcceptingStrategyFactory(QUEUED);
+        return new ChannelTestConfig("aSynchronousChannel", configuration, deliveryStrategyFactory, acceptingStrategyFactory, statisticsCollector);
     }
 
     @Override

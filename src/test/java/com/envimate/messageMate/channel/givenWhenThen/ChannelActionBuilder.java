@@ -235,6 +235,14 @@ public final class ChannelActionBuilder implements ActionBuilder<Channel<TestMes
         });
     }
 
+    public static ActionBuilder<Channel<TestMessage>> awaitWithoutACloseIsCalled() {
+        return new ChannelActionBuilder((channel, testEnvironment) -> {
+            final ChannelMessageBusSutActions sutActions = channelTestActions(channel);
+            callAwaitWithoutACloseIsCalled(sutActions, testEnvironment);
+            return null;
+        });
+    }
+
     public static ActionBuilder<Channel<TestMessage>> theListOfFiltersIsQueried() {
         return new ChannelActionBuilder((channel, testEnvironment) -> {
             final ChannelMessageBusSutActions sutActions = channelTestActions(channel);

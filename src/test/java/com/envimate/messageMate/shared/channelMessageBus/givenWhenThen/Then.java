@@ -28,7 +28,7 @@ public class Then<T> {
         final TestEnvironment testEnvironment = setup.testEnvironment;
         final T t = setup.t;
         executeTestAction(actionBuilder, t, testEnvironment);
-        closeSut(t);
+        closeSut(t); //TODO: sehr gefährlich -> definitiv remove oder move nach validation
 
         final TestValidation validation = testValidationBuilder.build();
         validation.validate(testEnvironment);
@@ -60,6 +60,13 @@ public class Then<T> {
         if (testEnvironment.has(EXECUTION_END_SEMAPHORE)) {
             final Semaphore blockingSemaphoreToReleaseAfterExecution = testEnvironment.getPropertyAsType(EXECUTION_END_SEMAPHORE, Semaphore.class);
             blockingSemaphoreToReleaseAfterExecution.release(1000);
+        }
+
+        //Some Tests need a minimal sleep here
+        try {
+            Thread.sleep(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 

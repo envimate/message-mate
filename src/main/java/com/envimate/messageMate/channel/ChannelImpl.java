@@ -108,10 +108,11 @@ public final class ChannelImpl<T> implements Channel<T> {
     }
 
     @Override
-    public void close(final boolean finishRemainingTasks) {
+    public void close(final boolean finishRemainingTasks) { //TODO: close transport + await
         if (!closedAlreadyCalled) {
             closedAlreadyCalled = true;
             messageAcceptingStrategy.close(finishRemainingTasks);
+
             deliveryStrategy.close(finishRemainingTasks);
         }
     }

@@ -16,6 +16,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RESULT;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
 import static com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.AsynchronousSendingTestUtils.*;
 import static com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.ChannelMessageBusTestProperties.*;
@@ -92,6 +93,16 @@ public final class ChannelMessageBusTestActions {
         try {
             final boolean terminatedSuccessful = sutActions.awaitTermination(timeoutInSeconds, SECONDS);
             testEnvironment.setProperty(RESULT, terminatedSuccessful);
+        } catch (final InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void callAwaitWithoutACloseIsCalled(final ChannelMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
+        try {
+            final boolean terminatedSuccessful = sutActions.awaitTermination(0, SECONDS);
+            testEnvironment.setProperty(RESULT, terminatedSuccessful);
+            testEnvironment.setProperty(EXPECTED_RESULT, false);
         } catch (final InterruptedException e) {
             throw new RuntimeException(e);
         }

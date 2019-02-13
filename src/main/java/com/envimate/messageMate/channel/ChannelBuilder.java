@@ -22,17 +22,28 @@
 package com.envimate.messageMate.channel;
 
 import com.envimate.messageMate.configuration.ChannelConfiguration;
+import com.envimate.messageMate.filtering.Filter;
+import com.envimate.messageMate.internal.accepting.MessageAcceptingStrategy;
 import com.envimate.messageMate.internal.accepting.MessageAcceptingStrategyFactory;
+import com.envimate.messageMate.internal.accepting.MessageAcceptingStrategyType;
+import com.envimate.messageMate.internal.delivering.DeliveryStrategy;
 import com.envimate.messageMate.internal.delivering.DeliveryStrategyFactory;
 import com.envimate.messageMate.internal.delivering.DeliveryType;
+import com.envimate.messageMate.internal.eventloop.ChannelEventLoopImpl;
 import com.envimate.messageMate.internal.statistics.StatisticsCollector;
+import com.envimate.messageMate.internal.transport.ChannelTransportProcessFactory;
+import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 import static com.envimate.messageMate.internal.accepting.MessageAcceptingStrategyAbstractFactory.aMessageAcceptingStrategyFactory;
 import static com.envimate.messageMate.internal.delivering.AbstractDeliveryStrategyFactory.deliveryStrategyForType;
 import static com.envimate.messageMate.internal.statistics.StatisticsCollectorFactory.aStatisticsCollector;
+import static com.envimate.messageMate.internal.transport.ChannelTransportProcessFactory.channelTransportProcessFactory;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ChannelBuilder<T> {
@@ -76,11 +87,24 @@ public final class ChannelBuilder<T> {
     }
 
     public Channel<T> build() {
+        final ChannelEventLoopImpl<T> channelEventLoop = new ChannelEventLoopImpl<>();
+
         final StatisticsCollector statisticsCollector = fieldOrDefault(this.statisticsCollector, aStatisticsCollector());
+
+        final MessageAcceptingStrategyType messageAcceptingStrategyType = configuration.getMessageAcceptingStrategyType();
         final MessageAcceptingStrategyFactory<T> msgAccStrategyFactory = fieldOrDefault(this.messageAcceptingStrategyFactory,
-                aMessageAcceptingStrategyFactory());
+                aMessageAcceptingStrategyFactory(messageAcceptingStrategyType));
+
         final DeliveryStrategyFactory<T> deliveryStrategyFactory = fieldOrDefault(this.deliveryStrategyFactory,
                 deliveryStrategyForType(configuration));
+
+        final MessageAcceptingStrategy<T> messageAcceptingStrategy = msgAccStrategyFactory.createNew(channelEventLoop);
+        final DeliveryStrategy<T> deliveryStrategy = deliveryStrategyFactory.createNew(channelEventLoop);
+        final List<Subscriber<T>> subscribers = new CopyOnWriteArrayList<>();
+        final List<Filter<T>> filters = new CopyOnWriteArrayList<>();
+        final ChannelTransportProcessFactory<T> channelTPF = channelTransportProcessFactory(filters, channelEventLoop, subscribers);
+        channelEventLoop.setRequiredObjects(messageAcceptingStrategy, channelTPF, deliveryStrategy, statisticsCollector);
+
         return new ChannelImpl<>(msgAccStrategyFactory, deliveryStrategyFactory, statisticsCollector);
     }
 

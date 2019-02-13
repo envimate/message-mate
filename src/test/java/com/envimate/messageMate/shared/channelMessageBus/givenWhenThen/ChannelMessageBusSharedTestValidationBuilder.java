@@ -53,7 +53,6 @@ public abstract class ChannelMessageBusSharedTestValidationBuilder<T> implements
         });
     }
 
-    @SuppressWarnings("unchecked")
     public ChannelMessageBusSharedTestValidationBuilder<T> thatExpectsXMessagesToBeDelivered(final int expectedNumberOfDeliveredMessages) {
         return asValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
@@ -121,6 +120,13 @@ public abstract class ChannelMessageBusSharedTestValidationBuilder<T> implements
             assertNoExceptionThrown(testEnvironment);
             final ChannelMessageBusSutActions sutActions = sutActions(testEnvironment);
             assertSutHasExpectedFilter(sutActions, testEnvironment);
+        });
+    }
+
+    public ChannelMessageBusSharedTestValidationBuilder<T> thatExpectsTheResultToAlwaysBeFalse() {
+        return asValidation(testEnvironment -> {
+            assertNoExceptionThrown(testEnvironment);
+            assertResultEqualsExpected(testEnvironment, false);
         });
     }
 

@@ -15,7 +15,6 @@ import static lombok.AccessLevel.PRIVATE;
 @RequiredArgsConstructor(access = PRIVATE)
 public final class ChannelValidationBuilder extends ChannelMessageBusSharedTestValidationBuilder<Channel<TestMessage>> {
 
-
     public static TestValidationBuilder<Channel<TestMessage>> expectTheMessageToBeReceived() {
         return new ChannelValidationBuilder()
                 .thatExpectsTheMessageToBeReceived();
@@ -89,6 +88,11 @@ public final class ChannelValidationBuilder extends ChannelMessageBusSharedTestV
     public static TestValidationBuilder<Channel<TestMessage>> expectTheRemainingFilter() {
         return new ChannelValidationBuilder()
                 .thatExpectsTheSutToHaveAllRemainingFilters();
+    }
+
+    public static TestValidationBuilder<Channel<TestMessage>> expectTheResultToAlwaysBeFalse() {
+        return new ChannelValidationBuilder()
+                .thatExpectsTheResultToAlwaysBeFalse();
     }
 
     @Override

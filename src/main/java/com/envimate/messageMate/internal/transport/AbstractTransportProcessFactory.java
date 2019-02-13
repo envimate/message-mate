@@ -28,6 +28,7 @@ import com.envimate.messageMate.internal.filtering.FilterApplierFactory;
 import com.envimate.messageMate.internal.filtering.PostFilterActions;
 import com.envimate.messageMate.subscribing.Subscriber;
 
+import java.util.Date;
 import java.util.List;
 
 public abstract class AbstractTransportProcessFactory<T> implements MessageTransportProcessFactory<T> {
@@ -35,6 +36,7 @@ public abstract class AbstractTransportProcessFactory<T> implements MessageTrans
     private final FilterApplier<T> filterApplier;
     private final List<Filter<T>> filters;
     private final TransportEventLoop<T> eventLoop;
+    private boolean closed;
 
     protected AbstractTransportProcessFactory(final List<Filter<T>> filters, final TransportEventLoop<T> eventLoop) {
         this.filterApplier = FilterApplierFactory.filterApplier(eventLoop);
@@ -71,5 +73,20 @@ public abstract class AbstractTransportProcessFactory<T> implements MessageTrans
                 }
             });
         };
+    }
+
+    @Override
+    public synchronized void close(final boolean finishRemainingTasks) {
+        closed = true;
+    }
+
+    @Override
+    public boolean awaitTermination(final Date deadline) {
+        return closed;
+    }
+
+    @Override
+    public boolean isShutdown() {
+        return closed;
     }
 }

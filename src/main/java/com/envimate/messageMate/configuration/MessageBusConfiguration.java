@@ -21,6 +21,7 @@
 
 package com.envimate.messageMate.configuration;
 
+import com.envimate.messageMate.internal.accepting.MessageAcceptingStrategyType;
 import com.envimate.messageMate.internal.brokering.BrokerStrategyType;
 import com.envimate.messageMate.internal.delivering.DeliveryType;
 import lombok.*;
@@ -30,6 +31,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import static com.envimate.messageMate.configuration.ExceptionCatchingCondition.allCatchingExceptionCondition;
+import static com.envimate.messageMate.internal.accepting.MessageAcceptingStrategyType.ATOMIC;
 
 @ToString
 @EqualsAndHashCode
@@ -41,6 +43,7 @@ public final class MessageBusConfiguration {
     public static final int DEFAULT_MAXIMUM_TIMEOUT = 60;
     public static final TimeUnit DEFAULT_TIMEUNIT = TimeUnit.SECONDS;
     public static final LinkedBlockingQueue<Runnable> DEFAULT_WORKING_QUEUE = new LinkedBlockingQueue<>();
+    public static final MessageAcceptingStrategyType DEFAULT_MESSAGE_ACCEPTING_STRATEGY_TYPE = ATOMIC;
 
     @Getter
     @Setter
@@ -73,6 +76,10 @@ public final class MessageBusConfiguration {
     @Getter
     @Setter
     private ExceptionCatchingCondition exceptionCatchingCondition = allCatchingExceptionCondition();
+
+    @Getter
+    @Setter
+    private MessageAcceptingStrategyType messageAcceptingStrategyType = DEFAULT_MESSAGE_ACCEPTING_STRATEGY_TYPE;
 
     public static MessageBusConfiguration defaultConfiguration() {
         return new MessageBusConfiguration();

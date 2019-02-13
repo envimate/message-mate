@@ -24,10 +24,20 @@ package com.envimate.messageMate.internal.accepting;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
+import static com.envimate.messageMate.internal.accepting.AtomicAcceptingStrategyFactory.atomicAcceptingStrategyFactory;
+import static com.envimate.messageMate.internal.accepting.QueuingMessageAcceptingStrategyFactory.queingMEssageAcceptingStrategyFactory;
+
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class MessageAcceptingStrategyAbstractFactory {
 
-    public static <T> MessageAcceptingStrategyFactory<T> aMessageAcceptingStrategyFactory() {
-        return new AtomicAcceptingStrategyFactory<>();
+    public static <T> MessageAcceptingStrategyFactory<T> aMessageAcceptingStrategyFactory(final MessageAcceptingStrategyType type) {
+        switch (type) {
+            case ATOMIC:
+                return atomicAcceptingStrategyFactory();
+            case QUEUED:
+                return queingMEssageAcceptingStrategyFactory();
+            default:
+                throw new IllegalArgumentException("No MessageAcceptingFactory for type " + type + " known");
+        }
     }
 }
