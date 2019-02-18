@@ -31,7 +31,7 @@ import lombok.NonNull;
 
 import java.util.List;
 
-public class ChannelEventLoopImpl<T> implements EventLoop<T> {
+public class PipeEventLoopImpl<T> implements EventLoop<T> {
     private MessageAcceptingStrategy<T> acceptingStrategy;
     private MessageTransportProcessFactory<T> messageTransportProcessFactory;
     private DeliveryStrategy<T> deliveryStrategy;
@@ -70,8 +70,12 @@ public class ChannelEventLoopImpl<T> implements EventLoop<T> {
     @Override
     public boolean requestTransport(final T message) {
         final MessageTransportProcess<T> transportProcess = messageTransportProcessFactory.getNext(message);
-        transportProcess.start(message);
-        return true;
+        if (transportProcess != null) {
+            transportProcess.start(message);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
@@ -113,6 +117,11 @@ public class ChannelEventLoopImpl<T> implements EventLoop<T> {
     public boolean requestDelivery(final T message, final List<Subscriber<T>> receivers) {
         deliveryStrategy.deliver(message, receivers);
         return true;
+    }
+
+    @Override
+    public void markTransportProcessesAsAvailable(final int numberOfAvailableTransportProcesses) {
+        acceptingStrategy.informTransportAvailable(numberOfAvailableTransportProcesses);
     }
 
     @Override

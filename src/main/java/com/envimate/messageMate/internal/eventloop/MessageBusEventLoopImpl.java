@@ -21,12 +21,12 @@
 
 package com.envimate.messageMate.internal.eventloop;
 
+import com.envimate.messageMate.error.DeliveryFailedMessage;
 import com.envimate.messageMate.internal.accepting.MessageAcceptingStrategy;
 import com.envimate.messageMate.internal.delivering.DeliveryStrategy;
 import com.envimate.messageMate.internal.statistics.StatisticsCollector;
 import com.envimate.messageMate.internal.transport.MessageTransportProcess;
 import com.envimate.messageMate.internal.transport.MessageTransportProcessFactory;
-import com.envimate.messageMate.error.DeliveryFailedMessage;
 import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.NonNull;
 
@@ -116,6 +116,11 @@ public class MessageBusEventLoopImpl implements EventLoop<Object> {
     public boolean requestDelivery(final Object message, final List<Subscriber<Object>> receivers) {
         deliveryStrategy.deliver(message, receivers);
         return true;
+    }
+
+    @Override
+    public void markTransportProcessesAsAvailable(final int numberOfAvailableTransportProcesses) {
+        acceptingStrategy.informTransportAvailable(numberOfAvailableTransportProcesses);
     }
 
     @Override

@@ -40,7 +40,16 @@ final class AtomicMessageAcceptingStrategy<T> implements MessageAcceptingStrateg
             return false;
         } else {
             eventLoop.messageAccepted(message);
-            eventLoop.requestTransport(message);
+            //TODO: corrrect?
+            while (!eventLoop.requestTransport(message)) {
+                try {
+                    System.out.println("Waiting "+Thread.currentThread());
+                    this.wait();
+                    System.out.println("Resumed "+Thread.currentThread());
+                } catch (final InterruptedException e) {
+                    return false;
+                }
+            }
             return true;
         }
     }
@@ -51,16 +60,18 @@ final class AtomicMessageAcceptingStrategy<T> implements MessageAcceptingStrateg
     }
 
     @Override
-    public void markSuccessfulDelivered(final T message) {
+    public synchronized void markSuccessfulDelivered(final T message) {
+        this.notifyAll();
     }
 
     @Override
-    public void markDeliveryAborted(final T message) {
+    public synchronized void markDeliveryAborted(final T message) {
+        this.notifyAll();
     }
 
     @Override
-    public void informTransportAvailable(final int numberOfAvailableTransportProcesses) {
-
+    public synchronized void informTransportAvailable(final int numberOfAvailableTransportProcesses) {
+        this.notifyAll();
     }
 
     @Override

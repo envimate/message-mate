@@ -23,7 +23,6 @@ package com.envimate.messageMate.internal.filtering;
 
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.filtering.FilterActions;
-import com.envimate.messageMate.internal.eventloop.TransportEventLoop;
 import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +31,6 @@ import java.util.List;
 
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 final class FilterApplierImpl<T> implements FilterApplier<T> {
-    private final TransportEventLoop<T> transportEventLoop;
 
     @Override
     public void applyAll(final T message,
@@ -48,7 +46,7 @@ final class FilterApplierImpl<T> implements FilterApplier<T> {
         final Filter<T> firstFilter = filters.get(0);
         firstFilter.apply(message, receivers, filterActions);
         if (filterActions.messageWasForgotten()) {
-            transportEventLoop.messageForgottenByFilter(message);
+            postFilterActions.onForgotten(message);
         }
     }
 

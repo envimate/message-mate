@@ -25,6 +25,7 @@ import java.util.Date;
 
 public interface MessageAcceptingStrategy<T> {
 
+    //TODO: exception statt boolean
     boolean accept(T message);
 
     boolean acceptDirectFollowUpMessage(T message);

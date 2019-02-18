@@ -198,7 +198,7 @@ public final class MessageBusActionBuilder implements ActionBuilder<MessageBus> 
 
     public static ActionBuilder<MessageBus> allSubscribersAreQueriedAsList() {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
-            //TODO: in sutActions -> make usable for channel too
+            //TODO: in sutActions -> make usable for pipe too
             final ChannelMessageBusSutActions sutActions = messageBusTestActions(messageBus);
             final List<Subscriber<Object>> allSubscribers = messageBus.getStatusInformation().getAllSubscribers();
             testEnvironment.setProperty(RESULT, allSubscribers);

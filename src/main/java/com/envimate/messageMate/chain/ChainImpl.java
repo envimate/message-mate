@@ -24,7 +24,7 @@ package com.envimate.messageMate.chain;
 import com.envimate.messageMate.chain.action.Action;
 import com.envimate.messageMate.chain.action.actionHandling.ActionHandler;
 import com.envimate.messageMate.chain.action.actionHandling.ActionHandlerSet;
-import com.envimate.messageMate.channel.Channel;
+import com.envimate.messageMate.pipe.Pipe;
 import com.envimate.messageMate.filtering.Filter;
 
 import java.util.List;
@@ -33,38 +33,38 @@ import java.util.function.Consumer;
 import static com.envimate.messageMate.chain.ChainProcessingFrame.processingFrame;
 
 final class ChainImpl<T> implements Chain<T> {
-    private final Channel<ProcessingContext<T>> preChannel;
-    private final Channel<ProcessingContext<T>> processChannel;
-    private final Channel<ProcessingContext<T>> postChannel;
+    private final Pipe<ProcessingContext<T>> prePipe;
+    private final Pipe<ProcessingContext<T>> processPipe;
+    private final Pipe<ProcessingContext<T>> postPipe;
     private final Action<T> defaultAction;
     private final ActionHandlerSet<T> actionHandlerSet;
 
-    private ChainImpl(final Channel<ProcessingContext<T>> preChannel, final Channel<ProcessingContext<T>> processChannel,
-                      final Channel<ProcessingContext<T>> postChannel, final Action<T> defaultAction,
+    private ChainImpl(final Pipe<ProcessingContext<T>> prePipe, final Pipe<ProcessingContext<T>> processPipe,
+                      final Pipe<ProcessingContext<T>> postPipe, final Action<T> defaultAction,
                       final ActionHandlerSet<T> actionHandlerSet) {
-        this.preChannel = preChannel;
-        this.processChannel = processChannel;
-        this.postChannel = postChannel;
+        this.prePipe = prePipe;
+        this.processPipe = processPipe;
+        this.postPipe = postPipe;
         this.defaultAction = defaultAction;
         this.actionHandlerSet = actionHandlerSet;
 
-        preChannel.subscribe(processChannel::send);
-        processChannel.subscribe(postChannel::send);
-        postChannel.subscribe(new ConsumerExecutingActionSetByFilterOrDefaultAction());
+        prePipe.subscribe(processPipe::send);
+        processPipe.subscribe(postPipe::send);
+        postPipe.subscribe(new ConsumerExecutingActionSetByFilterOrDefaultAction());
     }
 
     static <T> Chain<T> chain(final Action<T> defaultAction,
-                              final Channel<ProcessingContext<T>> preChannel,
-                              final Channel<ProcessingContext<T>> processChannel,
-                              final Channel<ProcessingContext<T>> postChannel,
+                              final Pipe<ProcessingContext<T>> prePipe,
+                              final Pipe<ProcessingContext<T>> processPipe,
+                              final Pipe<ProcessingContext<T>> postPipe,
                               final ActionHandlerSet<T> actionHandlerSet) {
-        return new ChainImpl<>(preChannel, processChannel, postChannel, defaultAction, actionHandlerSet);
+        return new ChainImpl<>(prePipe, processPipe, postPipe, defaultAction, actionHandlerSet);
     }
 
     @Override
     public void accept(final ProcessingContext<T> processingContext) {
         advanceChainProcessingFrameHistory(processingContext);
-        preChannel.send(processingContext);
+        prePipe.send(processingContext);
     }
 
     private void advanceChainProcessingFrameHistory(final ProcessingContext<T> processingContext) {
@@ -85,62 +85,62 @@ final class ChainImpl<T> implements Chain<T> {
 
     @Override
     public void addPreFilter(final Filter<ProcessingContext<T>> filter) {
-        preChannel.add(filter);
+        prePipe.add(filter);
     }
 
     @Override
     public void addPreFilter(final Filter<ProcessingContext<T>> filter, final int position) {
-        preChannel.add(filter, position);
+        prePipe.add(filter, position);
     }
 
     @Override
     public List<Filter<ProcessingContext<T>>> getPreFilter() {
-        return preChannel.getFilter();
+        return prePipe.getFilter();
     }
 
     @Override
     public void removePreFilter(final Filter<ProcessingContext<T>> filter) {
-        preChannel.remove(filter);
+        prePipe.remove(filter);
     }
 
     @Override
     public void addProcessFilter(final Filter<ProcessingContext<T>> filter) {
-        processChannel.add(filter);
+        processPipe.add(filter);
     }
 
     @Override
     public void addProcessFilter(final Filter<ProcessingContext<T>> filter, final int position) {
-        processChannel.add(filter, position);
+        processPipe.add(filter, position);
     }
 
     @Override
     public List<Filter<ProcessingContext<T>>> getProcessFilter() {
-        return processChannel.getFilter();
+        return processPipe.getFilter();
     }
 
     @Override
     public void removeProcessFilter(final Filter<ProcessingContext<T>> filter) {
-        processChannel.remove(filter);
+        processPipe.remove(filter);
     }
 
     @Override
     public void addPostFilter(final Filter<ProcessingContext<T>> filter) {
-        postChannel.add(filter);
+        postPipe.add(filter);
     }
 
     @Override
     public void addPostFilter(final Filter<ProcessingContext<T>> filter, final int position) {
-        postChannel.add(filter, position);
+        postPipe.add(filter, position);
     }
 
     @Override
     public List<Filter<ProcessingContext<T>>> getPostFilter() {
-        return postChannel.getFilter();
+        return postPipe.getFilter();
     }
 
     @Override
     public void removePostFilter(final Filter<ProcessingContext<T>> filter) {
-        postChannel.remove(filter);
+        postPipe.remove(filter);
     }
 
     @Override

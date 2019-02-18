@@ -1,16 +1,16 @@
-package com.envimate.messageMate.channel;
+package com.envimate.messageMate.pipe;
 
-import com.envimate.messageMate.channel.config.ChannelTestConfig;
-import com.envimate.messageMate.channel.givenWhenThen.ChannelActionBuilder;
+import com.envimate.messageMate.pipe.config.ChannelTestConfig;
+import com.envimate.messageMate.pipe.givenWhenThen.ChannelActionBuilder;
 import org.junit.jupiter.api.Test;
 
-import static com.envimate.messageMate.channel.givenWhenThen.ChannelActionBuilder.*;
-import static com.envimate.messageMate.channel.givenWhenThen.ChannelSetupBuilder.aConfiguredChannel;
-import static com.envimate.messageMate.channel.givenWhenThen.ChannelValidationBuilder.*;
+import static com.envimate.messageMate.pipe.givenWhenThen.ChannelActionBuilder.*;
+import static com.envimate.messageMate.pipe.givenWhenThen.ChannelSetupBuilder.aConfiguredChannel;
+import static com.envimate.messageMate.pipe.givenWhenThen.ChannelValidationBuilder.*;
 import static com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.Given.given;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-public interface ChannelSpecs {
+public interface PipeSpecs {
 
     //sending and subscribe
     @Test
@@ -24,13 +24,13 @@ public interface ChannelSpecs {
     @Test
     default void testChannel_canSendSeveralMessagesToSeveralSubscriber(final ChannelTestConfig testConfig) throws Exception {
         given(aConfiguredChannel(testConfig)
-                .withSeveralSubscriber(1))
+                .withSeveralSubscriber(5))
                 .when(severalMessagesAreSend(10))
                 .then(expectAllMessagesToBeReceivedByAllSubscribers());
     }
 
     @Test
-    default void testChannel_canSendAsynchronouslyReceivedMessages(final ChannelTestConfig testConfig) throws Exception {
+    default void testChannel_canSendMessagesAsynchronously(final ChannelTestConfig testConfig) throws Exception {
         given(aConfiguredChannel(testConfig)
                 .withSeveralSubscriber(5))
                 .when(severalMessagesAreSendAsynchronously(5, 10))

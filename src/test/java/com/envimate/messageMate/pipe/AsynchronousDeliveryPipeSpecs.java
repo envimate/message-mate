@@ -1,20 +1,20 @@
-package com.envimate.messageMate.channel;
+package com.envimate.messageMate.pipe;
 
-import com.envimate.messageMate.channel.config.AsynchronousDeliveryChannelConfigurationResolver;
-import com.envimate.messageMate.channel.config.ChannelTestConfig;
+import com.envimate.messageMate.pipe.config.AsynchronousDeliveryChannelConfigurationResolver;
+import com.envimate.messageMate.pipe.config.ChannelTestConfig;
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static com.envimate.messageMate.channel.config.ChannelTestConfig.ASYNCHRONOUS_DELIVERY_POOL_SIZE;
-import static com.envimate.messageMate.channel.givenWhenThen.ChannelActionBuilder.*;
-import static com.envimate.messageMate.channel.givenWhenThen.ChannelSetupBuilder.aConfiguredChannel;
-import static com.envimate.messageMate.channel.givenWhenThen.ChannelValidationBuilder.expectResultToBe;
-import static com.envimate.messageMate.channel.givenWhenThen.ChannelValidationBuilder.expectXMessagesToBeDelivered;
+import static com.envimate.messageMate.pipe.config.ChannelTestConfig.ASYNCHRONOUS_DELIVERY_POOL_SIZE;
+import static com.envimate.messageMate.pipe.givenWhenThen.ChannelActionBuilder.*;
+import static com.envimate.messageMate.pipe.givenWhenThen.ChannelSetupBuilder.aConfiguredChannel;
+import static com.envimate.messageMate.pipe.givenWhenThen.ChannelValidationBuilder.expectResultToBe;
+import static com.envimate.messageMate.pipe.givenWhenThen.ChannelValidationBuilder.expectXMessagesToBeDelivered;
 import static com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.Given.given;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @ExtendWith(AsynchronousDeliveryChannelConfigurationResolver.class)
-public class AsynchronousDeliveryChannelSpecs implements ChannelSpecs {
+public class AsynchronousDeliveryPipeSpecs implements PipeSpecs {
 
     //messageStatistics
     @Test

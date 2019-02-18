@@ -22,9 +22,9 @@
 package com.envimate.messageMate.internal.delivering;
 
 import com.envimate.messageMate.configuration.ExceptionCatchingCondition;
-import com.envimate.messageMate.internal.eventloop.DeliveryEventLoop;
 import com.envimate.messageMate.error.ExceptionInSubscriberException;
 import com.envimate.messageMate.error.NoSuitableSubscriberException;
+import com.envimate.messageMate.internal.eventloop.DeliveryEventLoop;
 import com.envimate.messageMate.subscribing.AcceptingBehavior;
 import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.AccessLevel;
@@ -66,6 +66,7 @@ final class SynchronousDeliveryStrategy<T> implements DeliveryStrategy<T> {
                     }
                 }
             }
+            System.out.println("Delivered");
             eventLoop.messageDeliverySuccess(message);
         }
     }

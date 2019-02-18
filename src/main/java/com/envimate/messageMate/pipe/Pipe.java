@@ -19,17 +19,41 @@
  * under the License.
  */
 
-package com.envimate.messageMate.channel;
+package com.envimate.messageMate.pipe;
 
-import com.envimate.messageMate.internal.statistics.MessageStatistics;
+import com.envimate.messageMate.autoclosable.NoErrorAutoClosable;
+import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.subscribing.Subscriber;
+import com.envimate.messageMate.subscribing.SubscriptionId;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
-public interface ChannelStatusInformation<T> {
+public interface Pipe<T> extends NoErrorAutoClosable {
 
-    MessageStatistics getCurrentMessageStatistics();
+    void send(T message);
 
-    List<Subscriber<T>> getAllSubscribers();
+    SubscriptionId subscribe(Subscriber<T> subscriber);
+
+    SubscriptionId subscribe(Consumer<T> consumer);
+
+    void unsubscribe(SubscriptionId subscriptionId);
+
+    void add(Filter<T> filter);
+
+    void add(Filter<T> filter, int position);
+
+    List<Filter<T>> getFilter();
+
+    void remove(Filter<T> filter);
+
+    PipeStatusInformation<T> getStatusInformation();
+
+    void close(boolean finishRemainingTasks);
+
+    boolean isShutdown();
+
+    boolean awaitTermination(int timeout, TimeUnit timeUnit) throws InterruptedException;
 
 }

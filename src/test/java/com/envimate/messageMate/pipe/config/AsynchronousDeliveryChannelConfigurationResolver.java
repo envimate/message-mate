@@ -1,8 +1,8 @@
-package com.envimate.messageMate.channel.config;
+package com.envimate.messageMate.pipe.config;
 
 import com.envimate.messageMate.shared.config.AbstractTestConfigProvider;
 
-import static com.envimate.messageMate.channel.config.ChannelTestConfig.aSynchronousChannelWithAsyncDelivery;
+import static com.envimate.messageMate.pipe.config.ChannelTestConfig.aSynchronousChannelWithAsyncDelivery;
 
 public class AsynchronousDeliveryChannelConfigurationResolver extends AbstractTestConfigProvider {
 

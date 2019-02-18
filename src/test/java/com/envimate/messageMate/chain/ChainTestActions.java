@@ -86,7 +86,7 @@ final class ChainTestActions {
                 chain.addPostFilter(filter);
                 break;
             default:
-                throw new UnsupportedOperationException("Unknown channel " + channel + ".");
+                throw new UnsupportedOperationException("Unknown pipe " + channel + ".");
         }
     }
 
@@ -103,7 +103,7 @@ final class ChainTestActions {
                 chain.addPostFilter(filter, position);
                 break;
             default:
-                throw new UnsupportedOperationException("Unknown channel " + channel + ".");
+                throw new UnsupportedOperationException("Unknown pipe " + channel + ".");
         }
     }
 
@@ -116,7 +116,7 @@ final class ChainTestActions {
             case POST:
                 return chain.getPostFilter();
             default:
-                throw new UnsupportedOperationException("Unknown channel " + channel + ".");
+                throw new UnsupportedOperationException("Unknown pipe " + channel + ".");
         }
     }
 
@@ -134,7 +134,7 @@ final class ChainTestActions {
                 chain.removePostFilter(filter);
                 break;
             default:
-                throw new UnsupportedOperationException("Unknown channel " + channel + ".");
+                throw new UnsupportedOperationException("Unknown pipe " + channel + ".");
         }
     }
 }

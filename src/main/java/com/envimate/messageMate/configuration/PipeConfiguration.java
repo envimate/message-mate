@@ -23,6 +23,7 @@ package com.envimate.messageMate.configuration;
 
 import com.envimate.messageMate.internal.accepting.MessageAcceptingStrategyType;
 import com.envimate.messageMate.internal.delivering.DeliveryType;
+import com.envimate.messageMate.internal.transport.MessageTransportConfiguration;
 import lombok.*;
 
 import java.util.concurrent.BlockingQueue;
@@ -31,17 +32,19 @@ import java.util.concurrent.TimeUnit;
 
 import static com.envimate.messageMate.configuration.ExceptionCatchingCondition.allCatchingExceptionCondition;
 import static com.envimate.messageMate.internal.accepting.MessageAcceptingStrategyType.ATOMIC;
+import static com.envimate.messageMate.internal.transport.MessageTransportConfiguration.synchronTransportConfiguration;
 
 @ToString
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public final class ChannelConfiguration {
+public final class PipeConfiguration {
     public static final int DEFAULT_CORE_POOL_SIZE = 2;
     public static final int DEFAULT_MAXIMUM_POOL_SIZE = 2;
     public static final int DEFAULT_MAXIMUM_TIMEOUT = 60;
     public static final TimeUnit DEFAULT_TIMEUNIT = TimeUnit.SECONDS;
     public static final LinkedBlockingQueue<Runnable> DEFAULT_WORKING_QUEUE = new LinkedBlockingQueue<>();
     public static final MessageAcceptingStrategyType DEFAULT_MESSAGE_ACCEPTING_STRATEGY_TYPE = ATOMIC;
+    public static final MessageTransportConfiguration DEFAULT_MESSAGE_TRANSPORT_CONFIGURATION = synchronTransportConfiguration();
 
     @Getter
     @Setter
@@ -75,8 +78,12 @@ public final class ChannelConfiguration {
     @Setter
     private MessageAcceptingStrategyType messageAcceptingStrategyType = DEFAULT_MESSAGE_ACCEPTING_STRATEGY_TYPE;
 
-    public static ChannelConfiguration defaultConfiguration() {
-        return new ChannelConfiguration();
+    @Getter
+    @Setter
+    private MessageTransportConfiguration messageTransportConfiguration = DEFAULT_MESSAGE_TRANSPORT_CONFIGURATION;
+
+    public static PipeConfiguration defaultConfiguration() {
+        return new PipeConfiguration();
     }
 
 }

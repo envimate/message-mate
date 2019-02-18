@@ -23,6 +23,7 @@ public final class QueuingMessageAcceptingStrategy<T> implements MessageAcceptin
     @Override
     public boolean accept(final T message) {
         if (closed) {
+            //TODO: dropped
             return false;
         }
         eventLoop.messageAccepted(message);

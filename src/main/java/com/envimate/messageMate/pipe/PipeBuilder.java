@@ -19,9 +19,9 @@
  * under the License.
  */
 
-package com.envimate.messageMate.channel;
+package com.envimate.messageMate.pipe;
 
-import com.envimate.messageMate.configuration.ChannelConfiguration;
+import com.envimate.messageMate.configuration.PipeConfiguration;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.internal.accepting.MessageAcceptingStrategy;
 import com.envimate.messageMate.internal.accepting.MessageAcceptingStrategyFactory;
@@ -29,9 +29,9 @@ import com.envimate.messageMate.internal.accepting.MessageAcceptingStrategyType;
 import com.envimate.messageMate.internal.delivering.DeliveryStrategy;
 import com.envimate.messageMate.internal.delivering.DeliveryStrategyFactory;
 import com.envimate.messageMate.internal.delivering.DeliveryType;
-import com.envimate.messageMate.internal.eventloop.ChannelEventLoopImpl;
+import com.envimate.messageMate.internal.eventloop.PipeEventLoopImpl;
 import com.envimate.messageMate.internal.statistics.StatisticsCollector;
-import com.envimate.messageMate.internal.transport.ChannelTransportProcessFactory;
+import com.envimate.messageMate.internal.transport.MessageTransportProcessFactory;
 import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.AccessLevel;
 import lombok.NonNull;
@@ -43,51 +43,59 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import static com.envimate.messageMate.internal.accepting.MessageAcceptingStrategyAbstractFactory.aMessageAcceptingStrategyFactory;
 import static com.envimate.messageMate.internal.delivering.AbstractDeliveryStrategyFactory.deliveryStrategyForType;
 import static com.envimate.messageMate.internal.statistics.StatisticsCollectorFactory.aStatisticsCollector;
-import static com.envimate.messageMate.internal.transport.ChannelTransportProcessFactory.channelTransportProcessFactory;
+import static com.envimate.messageMate.internal.transport.MessageTransportProcessFactoryFactory.messageTransportProcessFactory;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public final class ChannelBuilder<T> {
-    private ChannelConfiguration configuration = ChannelConfiguration.defaultConfiguration();
-    private DeliveryStrategyFactory<T> deliveryStrategyFactory;
+public final class PipeBuilder<T> {
+    private PipeConfiguration configuration = PipeConfiguration.defaultConfiguration();
     private MessageAcceptingStrategyFactory<T> messageAcceptingStrategyFactory;
+    private MessageTransportProcessFactory<T> messageTransportProcessFactory;
+    private DeliveryStrategyFactory<T> deliveryStrategyFactory;
     private StatisticsCollector statisticsCollector;
 
-    public static <T> ChannelBuilder<T> aChannel() {
-        return new ChannelBuilder<>();
+    public static <T> PipeBuilder<T> aPipe() {
+        return new PipeBuilder<>();
     }
 
-    public static <T> ChannelBuilder<T> aChannelForClass(final Class<T> tClass) {
-        return new ChannelBuilder<>();
+    public static <T> PipeBuilder<T> aPipeForClass(final Class<T> tClass) {
+        return new PipeBuilder<>();
     }
 
-    public ChannelBuilder<T> withDeliveryType(@NonNull final DeliveryType deliveryType) {
+    public PipeBuilder<T> withDeliveryType(@NonNull final DeliveryType deliveryType) {
         configuration.setDeliveryType(deliveryType);
         return this;
     }
 
-    public ChannelBuilder<T> withConfiguration(@NonNull final ChannelConfiguration channelConfiguration) {
-        this.configuration = channelConfiguration;
+    public PipeBuilder<T> withConfiguration(@NonNull final PipeConfiguration pipeConfiguration) {
+        this.configuration = pipeConfiguration;
         return this;
     }
 
-    public ChannelBuilder<T> withACustomDeliveryStrategyFactory(final DeliveryStrategyFactory<T> deliveryStrategyFactory) {
+    public PipeBuilder<T> withACustomDeliveryStrategyFactory(final DeliveryStrategyFactory<T> deliveryStrategyFactory) {
         this.deliveryStrategyFactory = deliveryStrategyFactory;
         return this;
     }
 
-    public ChannelBuilder<T> withACustomMessageAcceptingStrategyFactory(
+    public PipeBuilder<T> withACustomMessageAcceptingStrategyFactory(
             final MessageAcceptingStrategyFactory<T> messageAcceptingStrategyFactory) {
         this.messageAcceptingStrategyFactory = messageAcceptingStrategyFactory;
         return this;
     }
 
-    public ChannelBuilder<T> withStatisticsCollector(final StatisticsCollector statisticsCollector) {
+    public PipeBuilder<T> withACustomMessageTransportFactory(
+            final MessageTransportProcessFactory<T> messageTransportProcessFactory) {
+        this.messageTransportProcessFactory = messageTransportProcessFactory;
+        return this;
+    }
+
+    public PipeBuilder<T> withStatisticsCollector(final StatisticsCollector statisticsCollector) {
         this.statisticsCollector = statisticsCollector;
         return this;
     }
 
-    public Channel<T> build() {
-        final ChannelEventLoopImpl<T> channelEventLoop = new ChannelEventLoopImpl<>();
+    //TODO: try to remove unnecessary factories
+    public Pipe<T> build() {
+        final PipeEventLoopImpl<T> pipeEventLoop = new PipeEventLoopImpl<>();
 
         final StatisticsCollector statisticsCollector = fieldOrDefault(this.statisticsCollector, aStatisticsCollector());
 
@@ -98,14 +106,16 @@ public final class ChannelBuilder<T> {
         final DeliveryStrategyFactory<T> deliveryStrategyFactory = fieldOrDefault(this.deliveryStrategyFactory,
                 deliveryStrategyForType(configuration));
 
-        final MessageAcceptingStrategy<T> messageAcceptingStrategy = msgAccStrategyFactory.createNew(channelEventLoop);
-        final DeliveryStrategy<T> deliveryStrategy = deliveryStrategyFactory.createNew(channelEventLoop);
+        final MessageAcceptingStrategy<T> messageAcceptingStrategy = msgAccStrategyFactory.createNew(pipeEventLoop);
+        final DeliveryStrategy<T> deliveryStrategy = deliveryStrategyFactory.createNew(pipeEventLoop);
         final List<Subscriber<T>> subscribers = new CopyOnWriteArrayList<>();
         final List<Filter<T>> filters = new CopyOnWriteArrayList<>();
-        final ChannelTransportProcessFactory<T> channelTPF = channelTransportProcessFactory(filters, channelEventLoop, subscribers);
-        channelEventLoop.setRequiredObjects(messageAcceptingStrategy, channelTPF, deliveryStrategy, statisticsCollector);
+        final MessageTransportProcessFactory<T> transportProcessFactory = fieldOrDefault(this.messageTransportProcessFactory,
+                messageTransportProcessFactory(this.configuration.getMessageTransportConfiguration(), filters, pipeEventLoop, t -> subscribers));
+        pipeEventLoop.setRequiredObjects(messageAcceptingStrategy, transportProcessFactory, deliveryStrategy, statisticsCollector);
 
-        return new ChannelImpl<>(msgAccStrategyFactory, deliveryStrategyFactory, statisticsCollector);
+        return new PipeImpl<>(messageAcceptingStrategy, deliveryStrategy, subscribers, filters, pipeEventLoop,
+                statisticsCollector, transportProcessFactory);
     }
 
     private <R> R fieldOrDefault(final R field, final R defaultValue) {

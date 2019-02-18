@@ -115,6 +115,7 @@ public final class AsynchronousSendingTestUtils {
                     throw new RuntimeException(e);
                 }
                 for (final TestMessage message : messagesToSend) {
+                    System.out.println("Send in " + Thread.currentThread());
                     sutActions.send(message);
                 }
             });

@@ -48,11 +48,11 @@ public interface MessageBus extends NoErrorAutoClosable {
 
     void remove(Filter<Object> filter);
 
+    MessageBusStatusInformation getStatusInformation();
+
     void close(boolean finishRemainingTasks);
 
     boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException;
 
     boolean isShutdown();
-
-    MessageBusStatusInformation getStatusInformation();
 }

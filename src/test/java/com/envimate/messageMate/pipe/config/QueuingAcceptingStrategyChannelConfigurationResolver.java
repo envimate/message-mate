@@ -1,8 +1,8 @@
-package com.envimate.messageMate.channel.config;
+package com.envimate.messageMate.pipe.config;
 
 import com.envimate.messageMate.shared.config.AbstractTestConfigProvider;
 
-import static com.envimate.messageMate.channel.config.ChannelTestConfig.aSynchronousChannelWithQueuedAcceptingStrategy;
+import static com.envimate.messageMate.pipe.config.ChannelTestConfig.aSynchronousChannelWithQueuedAcceptingStrategy;
 
 public class QueuingAcceptingStrategyChannelConfigurationResolver extends AbstractTestConfigProvider {
 

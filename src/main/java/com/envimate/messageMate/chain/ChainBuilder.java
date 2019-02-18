@@ -23,9 +23,9 @@ package com.envimate.messageMate.chain;
 
 import com.envimate.messageMate.chain.action.Action;
 import com.envimate.messageMate.chain.action.actionHandling.ActionHandlerSet;
-import com.envimate.messageMate.channel.Channel;
-import com.envimate.messageMate.channel.ChannelBuilder;
-import com.envimate.messageMate.configuration.ChannelConfiguration;
+import com.envimate.messageMate.pipe.Pipe;
+import com.envimate.messageMate.pipe.PipeBuilder;
+import com.envimate.messageMate.configuration.PipeConfiguration;
 
 import static com.envimate.messageMate.chain.ChainImpl.chain;
 import static com.envimate.messageMate.chain.action.actionHandling.DefaultActionHandlerSet.defaultActionHandlerSet;
@@ -34,9 +34,9 @@ import static com.envimate.messageMate.qcec.domainBus.enforcing.NotNullEnforcer.
 
 public class ChainBuilder<T> {
     private Action<T> action;
-    private Channel<ProcessingContext<T>> preChannel;
-    private Channel<ProcessingContext<T>> processChannel;
-    private Channel<ProcessingContext<T>> postChannel;
+    private Pipe<ProcessingContext<T>> prePipe;
+    private Pipe<ProcessingContext<T>> processPipe;
+    private Pipe<ProcessingContext<T>> postPipe;
     private ActionHandlerSet<T> actionHandlerSet;
 
     public static <T> Chain<T> aChainWithDefaultAction(final Action<T> defaultAction) {
@@ -54,18 +54,18 @@ public class ChainBuilder<T> {
         return this;
     }
 
-    public ChainBuilder<T> withPreChannel(final Channel<ProcessingContext<T>> preChannel) {
-        this.preChannel = preChannel;
+    public ChainBuilder<T> withPreChannel(final Pipe<ProcessingContext<T>> prePipe) {
+        this.prePipe = prePipe;
         return this;
     }
 
-    public ChainBuilder<T> withProcessChannel(final Channel<ProcessingContext<T>> processChannel) {
-        this.processChannel = processChannel;
+    public ChainBuilder<T> withProcessChannel(final Pipe<ProcessingContext<T>> processPipe) {
+        this.processPipe = processPipe;
         return this;
     }
 
-    public ChainBuilder<T> withPostChannel(final Channel<ProcessingContext<T>> postChannel) {
-        this.postChannel = postChannel;
+    public ChainBuilder<T> withPostChannel(final Pipe<ProcessingContext<T>> postPipe) {
+        this.postPipe = postPipe;
         return this;
     }
 
@@ -76,21 +76,21 @@ public class ChainBuilder<T> {
 
     public Chain<T> build() {
         ensureNotNull(action, "Action must not be null");
-        final Channel<ProcessingContext<T>> preChannel = createSimpleChannelIfAbsent(this.preChannel);
-        final Channel<ProcessingContext<T>> processChannel = createSimpleChannelIfAbsent(this.processChannel);
-        final Channel<ProcessingContext<T>> postChannel = createSimpleChannelIfAbsent(this.postChannel);
+        final Pipe<ProcessingContext<T>> prePipe = createSimpleChannelIfAbsent(this.prePipe);
+        final Pipe<ProcessingContext<T>> processPipe = createSimpleChannelIfAbsent(this.processPipe);
+        final Pipe<ProcessingContext<T>> postPipe = createSimpleChannelIfAbsent(this.postPipe);
         final ActionHandlerSet<T> actionHandlerSet = createDefaultActionHandlerSetIfAbsent();
-        return chain(this.action, preChannel, processChannel, postChannel, actionHandlerSet);
+        return chain(this.action, prePipe, processPipe, postPipe, actionHandlerSet);
     }
 
-    private Channel<ProcessingContext<T>> createSimpleChannelIfAbsent(final Channel<ProcessingContext<T>> optionalChannel) {
-        if (optionalChannel != null) {
-            return optionalChannel;
+    private Pipe<ProcessingContext<T>> createSimpleChannelIfAbsent(final Pipe<ProcessingContext<T>> optionalPipe) {
+        if (optionalPipe != null) {
+            return optionalPipe;
         } else {
-            final ChannelConfiguration channelConfiguration = ChannelConfiguration.defaultConfiguration();
-            channelConfiguration.setExceptionCatchingCondition(allThrowingExceptionCondition());
-            return ChannelBuilder.<ProcessingContext<T>>aChannel()
-                    .withConfiguration(channelConfiguration)
+            final PipeConfiguration pipeConfiguration = PipeConfiguration.defaultConfiguration();
+            pipeConfiguration.setExceptionCatchingCondition(allThrowingExceptionCondition());
+            return PipeBuilder.<ProcessingContext<T>>aPipe()
+                    .withConfiguration(pipeConfiguration)
                     .build();
         }
     }

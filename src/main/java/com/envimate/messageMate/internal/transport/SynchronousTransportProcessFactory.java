@@ -24,52 +24,60 @@ package com.envimate.messageMate.internal.transport;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.internal.eventloop.TransportEventLoop;
 import com.envimate.messageMate.internal.filtering.FilterApplier;
-import com.envimate.messageMate.internal.filtering.FilterApplierFactory;
 import com.envimate.messageMate.internal.filtering.PostFilterActions;
 import com.envimate.messageMate.subscribing.Subscriber;
 
 import java.util.Date;
 import java.util.List;
 
-public abstract class AbstractTransportProcessFactory<T> implements MessageTransportProcessFactory<T> {
+import static com.envimate.messageMate.internal.filtering.FilterApplierFactory.filterApplier;
+
+public class SynchronousTransportProcessFactory<T> implements MessageTransportProcessFactory<T> {
 
     private final FilterApplier<T> filterApplier;
     private final List<Filter<T>> filters;
     private final TransportEventLoop<T> eventLoop;
+    private final SubscriberCalculation<T> subscriberCalculation;
     private boolean closed;
 
-    protected AbstractTransportProcessFactory(final List<Filter<T>> filters, final TransportEventLoop<T> eventLoop) {
-        this.filterApplier = FilterApplierFactory.filterApplier(eventLoop);
+    protected SynchronousTransportProcessFactory(final List<Filter<T>> filters, final TransportEventLoop<T> eventLoop,
+                                                 final SubscriberCalculation<T> subscriberCalculation) {
+        this.filterApplier = filterApplier();
         this.filters = filters;
         this.eventLoop = eventLoop;
+        this.subscriberCalculation = subscriberCalculation;
     }
-
-    public abstract List<Subscriber<T>> calculateReceivingSubscriber(T message);
 
     @Override
     public MessageTransportProcess<T> getNext(final T message) {
         return initialMessage -> {
             eventLoop.messageTransportStarted(initialMessage);
-            final List<Subscriber<T>> receivers = calculateReceivingSubscriber(initialMessage);
+            final List<Subscriber<T>> receivers = subscriberCalculation.apply(initialMessage);
             eventLoop.messageFilteringStarted(initialMessage);
             filterApplier.applyAll(initialMessage, filters, receivers, new PostFilterActions<T>() {
                 @Override
-                public void onAllPassed(final T message1) {
-                    eventLoop.messagePassedAllFilter(message1);
-                    eventLoop.messageTransportFinished(message1);
-                    eventLoop.requestDelivery(message1, receivers);
+                public void onAllPassed(final T message) {
+                    eventLoop.messagePassedAllFilter(message);
+                    eventLoop.messageTransportFinished(message);
+                    eventLoop.requestDelivery(message, receivers);
                 }
 
                 @Override
-                public void onReplaced(final T replacedMessage) {
+                public void onReplaced(final T message) {
                     eventLoop.messageTransportFinished(initialMessage);
-                    eventLoop.messageReplacedByFilter(replacedMessage);
+                    eventLoop.messageReplacedByFilter(message);
                 }
 
                 @Override
-                public void onBlock(final T message1) {
-                    eventLoop.messageTransportFinished(message1);
-                    eventLoop.messageBlockedByFilter(message1);
+                public void onBlock(final T message) {
+                    eventLoop.messageTransportFinished(message);
+                    eventLoop.messageBlockedByFilter(message);
+                }
+
+                @Override
+                public void onForgotten(final T message) {
+                    eventLoop.messageTransportFinished(message);
+                    eventLoop.messageForgottenByFilter(message);
                 }
             });
         };

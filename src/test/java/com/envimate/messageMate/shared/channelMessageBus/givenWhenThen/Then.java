@@ -1,6 +1,6 @@
 package com.envimate.messageMate.shared.channelMessageBus.givenWhenThen;
 
-import com.envimate.messageMate.channel.Channel;
+import com.envimate.messageMate.pipe.Pipe;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.qcec.shared.TestAction;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
@@ -64,7 +64,7 @@ public class Then<T> {
 
         //Some Tests need a minimal sleep here
         try {
-            Thread.sleep(1);
+            Thread.sleep(10);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -72,11 +72,11 @@ public class Then<T> {
 
     private void closeSut(final T t) throws InterruptedException {
         final int timeout = 3;
-        if (t instanceof Channel) {
-            final Channel<?> channel = (Channel) t;
-            channel.close(true);
-            if (!channel.awaitTermination(timeout, SECONDS)) {
-                throw new RuntimeException("Channel did shutdown within timeout interval.");
+        if (t instanceof Pipe) {
+            final Pipe<?> pipe = (Pipe) t;
+            pipe.close(true);
+            if (!pipe.awaitTermination(timeout, SECONDS)) {
+                throw new RuntimeException("Pipe did shutdown within timeout interval.");
             }
         }
         if (t instanceof MessageBus) {

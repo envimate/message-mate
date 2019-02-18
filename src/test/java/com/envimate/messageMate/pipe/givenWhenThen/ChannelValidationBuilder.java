@@ -1,6 +1,6 @@
-package com.envimate.messageMate.channel.givenWhenThen;
+package com.envimate.messageMate.pipe.givenWhenThen;
 
-import com.envimate.messageMate.channel.Channel;
+import com.envimate.messageMate.pipe.Pipe;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.ChannelMessageBusSharedTestValidationBuilder;
 import com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.ChannelMessageBusSutActions;
@@ -8,101 +8,101 @@ import com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.TestValid
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import lombok.RequiredArgsConstructor;
 
-import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestActions.channelTestActions;
+import static com.envimate.messageMate.pipe.givenWhenThen.ChannelTestActions.channelTestActions;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.SUT;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
-public final class ChannelValidationBuilder extends ChannelMessageBusSharedTestValidationBuilder<Channel<TestMessage>> {
+public final class ChannelValidationBuilder extends ChannelMessageBusSharedTestValidationBuilder<Pipe<TestMessage>> {
 
-    public static TestValidationBuilder<Channel<TestMessage>> expectTheMessageToBeReceived() {
+    public static TestValidationBuilder<Pipe<TestMessage>> expectTheMessageToBeReceived() {
         return new ChannelValidationBuilder()
                 .thatExpectsTheMessageToBeReceived();
     }
 
-    public static TestValidationBuilder<Channel<TestMessage>> expectAllMessagesToBeReceivedByAllSubscribers() {
+    public static TestValidationBuilder<Pipe<TestMessage>> expectAllMessagesToBeReceivedByAllSubscribers() {
         return new ChannelValidationBuilder()
                 .thatExpectsAllMessagesToBeReceivedByAllSubscribers();
     }
 
-    public static TestValidationBuilder<Channel<TestMessage>> expectAllRemainingSubscribersToStillBeSubscribed() {
+    public static TestValidationBuilder<Pipe<TestMessage>> expectAllRemainingSubscribersToStillBeSubscribed() {
         return new ChannelValidationBuilder()
                 .thatExpectsAllRemainingSubscribersToStillBeSubscribed();
     }
 
-    public static TestValidationBuilder<Channel<TestMessage>> expectAllMessagesToHaveTheContentChanged() {
+    public static TestValidationBuilder<Pipe<TestMessage>> expectAllMessagesToHaveTheContentChanged() {
         return new ChannelValidationBuilder()
                 .thatExpectsAllMessagesToHaveTheContentChanged();
     }
 
-    public static TestValidationBuilder<Channel<TestMessage>> expectOnlyValidMessageToBeReceived() {
+    public static TestValidationBuilder<Pipe<TestMessage>> expectOnlyValidMessageToBeReceived() {
         return new ChannelValidationBuilder()
                 .thatExpectsOnlyValidMessageToBeReceived();
     }
 
-    public static TestValidationBuilder<Channel<TestMessage>> expectXMessagesToBeDelivered(final int expectedNumberOfDeliveredMessages) {
+    public static TestValidationBuilder<Pipe<TestMessage>> expectXMessagesToBeDelivered(final int expectedNumberOfDeliveredMessages) {
         return new ChannelValidationBuilder()
                 .thatExpectsXMessagesToBeDelivered(expectedNumberOfDeliveredMessages);
     }
 
-    public static TestValidationBuilder<Channel<TestMessage>> expectNoMessagesToBeDelivered() {
+    public static TestValidationBuilder<Pipe<TestMessage>> expectNoMessagesToBeDelivered() {
         return new ChannelValidationBuilder()
                 .thatExpectsXMessagesToBeDelivered(0);
     }
 
-    public static TestValidationBuilder<Channel<TestMessage>> expectResultToBe(final Object expectedResult) {
+    public static TestValidationBuilder<Pipe<TestMessage>> expectResultToBe(final Object expectedResult) {
         return new ChannelValidationBuilder()
                 .thatExpectsResultToBe(expectedResult);
     }
 
-    public static TestValidationBuilder<Channel<TestMessage>> expectTimestampToBeInTheLastXSeconds(final long maximumSecondsDifference) {
+    public static TestValidationBuilder<Pipe<TestMessage>> expectTimestampToBeInTheLastXSeconds(final long maximumSecondsDifference) {
         return new ChannelValidationBuilder()
                 .thatExpectsTimestampToBeInTheLastXSeconds(maximumSecondsDifference);
     }
 
-    public static TestValidationBuilder<Channel<TestMessage>> expectTheChannelToBeShutdownInTime() {
+    public static TestValidationBuilder<Pipe<TestMessage>> expectTheChannelToBeShutdownInTime() {
         return new ChannelValidationBuilder()
                 .thatExpectsTheMessageBusToBeShutdownInTime();
     }
 
-    public static TestValidationBuilder<Channel<TestMessage>> expectTheChannelToBeShutdown() {
+    public static TestValidationBuilder<Pipe<TestMessage>> expectTheChannelToBeShutdown() {
         return new ChannelValidationBuilder()
                 .thatExpectsTheMessageBusToBeShutdown();
     }
 
-    public static TestValidationBuilder<Channel<TestMessage>> expectEachMessagesToBeReceivedByOnlyOneSubscriber() {
+    public static TestValidationBuilder<Pipe<TestMessage>> expectEachMessagesToBeReceivedByOnlyOneSubscriber() {
         return new ChannelValidationBuilder()
                 .thatExpectsEachMessagesToBeReceivedByOnlyOneSubscriber();
     }
 
-    public static TestValidationBuilder<Channel<TestMessage>> expectTheException(final Class<?> expectedExceptionClass) {
+    public static TestValidationBuilder<Pipe<TestMessage>> expectTheException(final Class<?> expectedExceptionClass) {
         return new ChannelValidationBuilder()
                 .thatExpectsTheExceptionClass(expectedExceptionClass);
     }
 
-    public static TestValidationBuilder<Channel<TestMessage>> expectAListWithAllFilters() {
+    public static TestValidationBuilder<Pipe<TestMessage>> expectAListWithAllFilters() {
         return new ChannelValidationBuilder()
                 .thatExpectsAListOfAllFilters();
     }
 
-    public static TestValidationBuilder<Channel<TestMessage>> expectTheRemainingFilter() {
+    public static TestValidationBuilder<Pipe<TestMessage>> expectTheRemainingFilter() {
         return new ChannelValidationBuilder()
                 .thatExpectsTheSutToHaveAllRemainingFilters();
     }
 
-    public static TestValidationBuilder<Channel<TestMessage>> expectTheResultToAlwaysBeFalse() {
+    public static TestValidationBuilder<Pipe<TestMessage>> expectTheResultToAlwaysBeFalse() {
         return new ChannelValidationBuilder()
                 .thatExpectsTheResultToAlwaysBeFalse();
     }
 
     @Override
     protected ChannelMessageBusSutActions sutActions(final TestEnvironment testEnvironment) {
-        final Channel<TestMessage> channel = getChannel(testEnvironment);
-        return channelTestActions(channel);
+        final Pipe<TestMessage> pipe = getChannel(testEnvironment);
+        return channelTestActions(pipe);
     }
 
     @SuppressWarnings("unchecked")
-    private Channel<TestMessage> getChannel(final TestEnvironment testEnvironment) {
-        return (Channel<TestMessage>) testEnvironment.getProperty(SUT);
+    private Pipe<TestMessage> getChannel(final TestEnvironment testEnvironment) {
+        return (Pipe<TestMessage>) testEnvironment.getProperty(SUT);
     }
 }

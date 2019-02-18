@@ -1,7 +1,7 @@
-package com.envimate.messageMate.channel.givenWhenThen;
+package com.envimate.messageMate.pipe.givenWhenThen;
 
-import com.envimate.messageMate.channel.Channel;
-import com.envimate.messageMate.channel.ChannelStatusInformation;
+import com.envimate.messageMate.pipe.Pipe;
+import com.envimate.messageMate.pipe.PipeStatusInformation;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.internal.statistics.MessageStatistics;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
@@ -18,67 +18,67 @@ import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
 public final class ChannelTestActions implements ChannelMessageBusSutActions {
-    private final Channel<TestMessage> channel;
+    private final Pipe<TestMessage> pipe;
 
-    public static ChannelTestActions channelTestActions(final Channel<TestMessage> channel) {
-        return new ChannelTestActions(channel);
+    public static ChannelTestActions channelTestActions(final Pipe<TestMessage> pipe) {
+        return new ChannelTestActions(pipe);
     }
 
     @Override
     public boolean isShutdown(final TestEnvironment testEnvironment) {
-        return channel.isShutdown();
+        return pipe.isShutdown();
     }
 
     @Override
     public List<?> getFilter(final TestEnvironment testEnvironment) {
-        return channel.getFilter();
+        return pipe.getFilter();
     }
 
     @Override
     public <R> void subscribe(final Class<R> messageClass, final Subscriber<R> subscriber) {
         @SuppressWarnings("unchecked")
         final Subscriber<TestMessage> messageSubscriber = (Subscriber<TestMessage>) subscriber;
-        channel.subscribe(messageSubscriber);
+        pipe.subscribe(messageSubscriber);
     }
 
     @Override
     public void close(final boolean finishRemainingTasks) {
-        channel.close(finishRemainingTasks);
+        pipe.close(finishRemainingTasks);
     }
 
     @Override
     public boolean awaitTermination(final int timeout, final TimeUnit timeUnit) throws InterruptedException {
-        return channel.awaitTermination(timeout, timeUnit);
+        return pipe.awaitTermination(timeout, timeUnit);
     }
 
     @Override
     public List<?> getFilter() {
-        final List<?> filters = channel.getFilter();
+        final List<?> filters = pipe.getFilter();
         return filters;
     }
 
     @Override
     public void unsubscribe(final SubscriptionId subscriptionId) {
-        channel.unsubscribe(subscriptionId);
+        pipe.unsubscribe(subscriptionId);
     }
 
     @Override
     public void send(final TestMessage message) {
-        channel.send(message);
+        pipe.send(message);
     }
 
     @Override
     public MessageStatistics getMessageStatistics() {
-        final ChannelStatusInformation<TestMessage> statusInformation = channel.getStatusInformation();
+        final PipeStatusInformation<TestMessage> statusInformation = pipe.getStatusInformation();
         return statusInformation.getCurrentMessageStatistics();
     }
 
     @Override
     public Object removeAFilter() {
-        final List<Filter<TestMessage>> filters = channel.getFilter();
+        final List<Filter<TestMessage>> filters = pipe.getFilter();
         final int indexToRemove = (int) (Math.random() * filters.size());
         final Filter<TestMessage> filter = filters.get(indexToRemove);
-        channel.remove(filter);
+        pipe.remove(filter);
         return filter;
     }
 
@@ -86,20 +86,20 @@ public final class ChannelTestActions implements ChannelMessageBusSutActions {
     @Override
     public void addFilter(final Filter<?> filter) {
         final Filter<TestMessage> testMessageFilter = (Filter<TestMessage>) filter;
-        channel.add(testMessageFilter);
+        pipe.add(testMessageFilter);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public void addFilter(final Filter<?> filter, final int position) {
         final Filter<TestMessage> testMessageFilter = (Filter<TestMessage>) filter;
-        channel.add(testMessageFilter, position);
+        pipe.add(testMessageFilter, position);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public List<Subscriber<?>> getAllSubscribers() {
-        final ChannelStatusInformation<TestMessage> statusInformation = channel.getStatusInformation();
+        final PipeStatusInformation<TestMessage> statusInformation = pipe.getStatusInformation();
         final List<?> allSubscribers = statusInformation.getAllSubscribers();
         return (List<Subscriber<?>>) allSubscribers;
     }

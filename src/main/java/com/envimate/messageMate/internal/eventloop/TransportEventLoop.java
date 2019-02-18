@@ -42,4 +42,6 @@ public interface TransportEventLoop<T> {
     void messageTransportFinished(T message);
 
     boolean requestDelivery(T message, List<Subscriber<T>> receivers);
+
+    void markTransportProcessesAsAvailable(int numberOfAvailableTransportProcesses); //TODO: try to check if without this possible
 }

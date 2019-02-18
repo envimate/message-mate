@@ -21,14 +21,13 @@
 
 package com.envimate.messageMate.internal.filtering;
 
-import com.envimate.messageMate.internal.eventloop.TransportEventLoop;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class FilterApplierFactory {
 
-    public static <T> FilterApplier<T> filterApplier(final TransportEventLoop<T> eventLoop) {
-        return new FilterApplierImpl<>(eventLoop);
+    public static <T> FilterApplier<T> filterApplier() {
+        return new FilterApplierImpl<>();
     }
 }

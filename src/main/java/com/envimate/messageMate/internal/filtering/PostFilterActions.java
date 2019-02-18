@@ -28,4 +28,6 @@ public interface PostFilterActions<T> {
     void onReplaced(T replacedMessage);
 
     void onBlock(T message);
+
+    void onForgotten(T message);
 }

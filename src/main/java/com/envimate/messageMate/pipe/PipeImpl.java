@@ -19,50 +19,51 @@
  * under the License.
  */
 
-package com.envimate.messageMate.channel;
+package com.envimate.messageMate.pipe;
 
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.internal.accepting.MessageAcceptingStrategy;
-import com.envimate.messageMate.internal.accepting.MessageAcceptingStrategyFactory;
 import com.envimate.messageMate.internal.delivering.DeliveryStrategy;
-import com.envimate.messageMate.internal.delivering.DeliveryStrategyFactory;
-import com.envimate.messageMate.internal.eventloop.ChannelEventLoopImpl;
+import com.envimate.messageMate.internal.eventloop.PipeEventLoopImpl;
 import com.envimate.messageMate.internal.statistics.MessageStatistics;
 import com.envimate.messageMate.internal.statistics.StatisticsCollector;
-import com.envimate.messageMate.internal.transport.ChannelTransportProcessFactory;
+import com.envimate.messageMate.internal.transport.MessageTransportProcessFactory;
 import com.envimate.messageMate.subscribing.ConsumerSubscriber;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import static com.envimate.messageMate.internal.transport.ChannelTransportProcessFactory.channelTransportProcessFactory;
-
-public final class ChannelImpl<T> implements Channel<T> {
+public final class PipeImpl<T> implements Pipe<T> {
 
     private final MessageAcceptingStrategy<T> messageAcceptingStrategy;
     private final DeliveryStrategy<T> deliveryStrategy;
     private final List<Subscriber<T>> subscribers;
     private final List<Filter<T>> filters;
-    private final ChannelEventLoopImpl<T> eventLoop;
+    private final PipeEventLoopImpl<T> eventLoop;
     private final StatisticsCollector statisticsCollector;
+    private final MessageTransportProcessFactory<T> pipeTransportProcessFactory;
+    //TODO: use only here and not in low level strategies
     private volatile boolean closedAlreadyCalled;
 
-    ChannelImpl(final MessageAcceptingStrategyFactory<T> messageAcceptingStrategyFactory,
-                final DeliveryStrategyFactory<T> deliveryStrategyFactory,
-                final StatisticsCollector statisticsCollector) {
+    //TODO: necessary? or only because of close? put all in event loop? or specific close object?
+    public PipeImpl(MessageAcceptingStrategy<T> messageAcceptingStrategy,
+                    DeliveryStrategy<T> deliveryStrategy,
+                    List<Subscriber<T>> subscribers,
+                    List<Filter<T>> filters,
+                    PipeEventLoopImpl<T> eventLoop,
+                    StatisticsCollector statisticsCollector,
+                    MessageTransportProcessFactory<T> pipeTransportProcessFactory) {
+        this.messageAcceptingStrategy = messageAcceptingStrategy;
+        this.deliveryStrategy = deliveryStrategy;
+        this.subscribers = subscribers;
+        this.filters = filters;
+        this.eventLoop = eventLoop;
         this.statisticsCollector = statisticsCollector;
-        this.eventLoop = new ChannelEventLoopImpl<>();
-        this.messageAcceptingStrategy = messageAcceptingStrategyFactory.createNew(eventLoop);
-        this.deliveryStrategy = deliveryStrategyFactory.createNew(eventLoop);
-        this.subscribers = new CopyOnWriteArrayList<>();
-        this.filters = new CopyOnWriteArrayList<>();
-        final ChannelTransportProcessFactory<T> channelTPF = channelTransportProcessFactory(filters, eventLoop, subscribers);
-        eventLoop.setRequiredObjects(messageAcceptingStrategy, channelTPF, deliveryStrategy, statisticsCollector);
+        this.pipeTransportProcessFactory = pipeTransportProcessFactory;
     }
 
     @Override
@@ -123,8 +124,8 @@ public final class ChannelImpl<T> implements Channel<T> {
     }
 
     @Override
-    public ChannelStatusInformation<T> getStatusInformation() {
-        return new ChannelStatusInformation<T>() {
+    public PipeStatusInformation<T> getStatusInformation() {
+        return new PipeStatusInformation<T>() {
             @Override
             public MessageStatistics getCurrentMessageStatistics() {
                 return statisticsCollector.getCurrentStatistics();

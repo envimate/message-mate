@@ -39,7 +39,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import static com.envimate.messageMate.internal.transport.MessageBusTransportProcessFactory.messageBusTransportProcessFactory;
+import static com.envimate.messageMate.internal.transport.MessageTransportConfiguration.synchronTransportConfiguration;
+import static com.envimate.messageMate.internal.transport.MessageTransportProcessFactoryFactory.messageTransportProcessFactory;
 import static com.envimate.messageMate.messageBus.internal.MessageBusStatusInformationAdapter.statusInformationAdapter;
 import static com.envimate.messageMate.subscribing.ConsumerSubscriber.consumerSubscriber;
 
@@ -60,7 +61,7 @@ final class MessageBusImpl implements MessageBus {
         this.filters = new CopyOnWriteArrayList<>();
         this.brokerStrategy = brokerStrategy;
         this.eventLoop = new MessageBusEventLoopImpl();
-        this.transportProcessFactory = messageBusTransportProcessFactory(brokerStrategy, filters, eventLoop);
+        this.transportProcessFactory = messageTransportProcessFactory(synchronTransportConfiguration(), filters, eventLoop, brokerStrategy::calculateReceivingSubscriber);//TODO: bad
         this.messageAcceptingStrategy = messageAcceptingStrategyFactory.createNew(eventLoop);
         this.statisticsCollector = statisticsCollector;
         this.deliveryStrategy = deliveryStrategyFactory.createNew(eventLoop);

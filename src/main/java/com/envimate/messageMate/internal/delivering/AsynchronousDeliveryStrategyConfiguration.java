@@ -21,7 +21,7 @@
 
 package com.envimate.messageMate.internal.delivering;
 
-import com.envimate.messageMate.configuration.ChannelConfiguration;
+import com.envimate.messageMate.configuration.PipeConfiguration;
 import com.envimate.messageMate.configuration.ExceptionCatchingCondition;
 import com.envimate.messageMate.configuration.MessageBusConfiguration;
 import lombok.*;
@@ -76,7 +76,7 @@ public final class AsynchronousDeliveryStrategyConfiguration {
     }
 
     public static AsynchronousDeliveryStrategyConfiguration fromChannelConfiguration(
-            final ChannelConfiguration configuration) {
+            final PipeConfiguration configuration) {
         final BlockingQueue<Runnable> threadPoolWorkingQueue = configuration.getThreadPoolWorkingQueue();
         final TimeUnit timeoutTimeUnit = configuration.getTimeoutTimeUnit();
         final int maximumTimeout = configuration.getMaximumTimeout();
