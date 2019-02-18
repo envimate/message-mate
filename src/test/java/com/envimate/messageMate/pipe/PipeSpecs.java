@@ -1,37 +1,37 @@
 package com.envimate.messageMate.pipe;
 
-import com.envimate.messageMate.pipe.config.ChannelTestConfig;
-import com.envimate.messageMate.pipe.givenWhenThen.ChannelActionBuilder;
+import com.envimate.messageMate.pipe.config.PipeTestConfig;
+import com.envimate.messageMate.pipe.givenWhenThen.PipeActionBuilder;
 import org.junit.jupiter.api.Test;
 
-import static com.envimate.messageMate.pipe.givenWhenThen.ChannelActionBuilder.*;
-import static com.envimate.messageMate.pipe.givenWhenThen.ChannelSetupBuilder.aConfiguredChannel;
-import static com.envimate.messageMate.pipe.givenWhenThen.ChannelValidationBuilder.*;
-import static com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.Given.given;
+import static com.envimate.messageMate.pipe.givenWhenThen.PipeActionBuilder.*;
+import static com.envimate.messageMate.pipe.givenWhenThen.PipeSetupBuilder.aConfiguredPipe;
+import static com.envimate.messageMate.pipe.givenWhenThen.PipeValidationBuilder.*;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.Given.given;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public interface PipeSpecs {
 
     //sending and subscribe
     @Test
-    default void testChannel_canSendSingleMessageToOneReceiver(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig)
+    default void testPipe_canSendSingleMessageToOneReceiver(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
                 .withASingleSubscriber())
                 .when(aSingleMessageIsSend())
                 .then(expectTheMessageToBeReceived());
     }
 
     @Test
-    default void testChannel_canSendSeveralMessagesToSeveralSubscriber(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig)
+    default void testPipe_canSendSeveralMessagesToSeveralSubscriber(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
                 .withSeveralSubscriber(5))
                 .when(severalMessagesAreSend(10))
                 .then(expectAllMessagesToBeReceivedByAllSubscribers());
     }
 
     @Test
-    default void testChannel_canSendMessagesAsynchronously(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig)
+    default void testPipe_canSendMessagesAsynchronously(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
                 .withSeveralSubscriber(5))
                 .when(severalMessagesAreSendAsynchronously(5, 10))
                 .then(expectAllMessagesToBeReceivedByAllSubscribers());
@@ -39,16 +39,16 @@ public interface PipeSpecs {
 
     //unsubscribe
     @Test
-    default void testChannel_canUnsubscribe(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig)
+    default void testPipe_canUnsubscribe(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
                 .withSeveralSubscriber(5))
                 .when(oneSubscriberUnsubscribes())
                 .then(expectAllRemainingSubscribersToStillBeSubscribed());
     }
 
     @Test
-    default void testChannel_canUnsubscribeTwoSubscribers(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig)
+    default void testPipe_canUnsubscribeTwoSubscribers(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
                 .withSeveralSubscriber(5))
                 .when(oneSubscriberUnsubscribes()
                         .andThen(oneSubscriberUnsubscribes()))
@@ -56,8 +56,8 @@ public interface PipeSpecs {
     }
 
     @Test
-    default void testChannel_canUnsubscribeTheSameSubscriberSeveralTimes(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig)
+    default void testPipe_canUnsubscribeTheSameSubscriberSeveralTimes(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
                 .withSeveralSubscriber(5))
                 .when(oneSubscriberUnsubscribesSeveralTimes(2))
                 .then(expectAllRemainingSubscribersToStillBeSubscribed());
@@ -65,8 +65,8 @@ public interface PipeSpecs {
 
     //filter
     @Test
-    default void testChannel_allowsFiltersToChangeMessages(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig)
+    default void testPipe_allowsFiltersToChangeMessages(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
                 .withSeveralSubscriber(3)
                 .withAFilterThatChangesTheContentOfEveryMessage())
                 .when(severalMessagesAreSend(10)
@@ -75,8 +75,8 @@ public interface PipeSpecs {
     }
 
     @Test
-    default void testChannel_allowsFiltersToDropMessages(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig)
+    default void testPipe_allowsFiltersToDropMessages(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
                 .withSeveralSubscriber(3)
                 .withAFilterThatDropsWrongMessages())
                 .when(bothValidAndInvalidMessagesAreSendAsynchronously(3, 10))
@@ -85,8 +85,8 @@ public interface PipeSpecs {
 
 
     @Test
-    default void testChannel_allowsFiltersToReplaceMessages(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig)
+    default void testPipe_allowsFiltersToReplaceMessages(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
                 .withSeveralSubscriber(3)
                 .withAFilterThatReplacesWrongMessages())
                 .when(severalInvalidMessagesAreSendAsynchronously(3, 10))
@@ -94,8 +94,8 @@ public interface PipeSpecs {
     }
 
     @Test
-    default void testChannel_whenAFilterDoesNotUseAMethod_messageIsDropped(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig)
+    default void testPipe_whenAFilterDoesNotUseAMethod_messageIsDropped(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
                 .withSeveralSubscriber(3)
                 .withAnInvalidFilterThatDoesNotUseAnyFilterMethods())
                 .when(severalInvalidMessagesAreSendAsynchronously(3, 10))
@@ -103,8 +103,8 @@ public interface PipeSpecs {
     }
 
     @Test
-    default void testChannel_canAddFilterAtASpecificPosition(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig)
+    default void testPipe_canAddFilterAtASpecificPosition(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
                 .withSeveralSubscriber(3)
                 .withTwoFilterOnSpecificPositions())
                 .when(severalMessagesAreSend(3)
@@ -113,32 +113,32 @@ public interface PipeSpecs {
     }
 
     @Test
-    default void testChannel_throwsExceptionForPositionBelowZero(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig)
+    default void testPipe_throwsExceptionForPositionBelowZero(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
                 .withAFilterAtAnInvalidPosition(-1))
                 .when(aSingleMessageIsSend())
                 .then(expectTheException(IndexOutOfBoundsException.class));
     }
 
     @Test
-    default void testChannel_throwsExceptionForPositionGreaterThanAllowed(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig)
+    default void testPipe_throwsExceptionForPositionGreaterThanAllowed(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
                 .withAFilterAtAnInvalidPosition(100))
                 .when(aSingleMessageIsSend())
                 .then(expectTheException(IndexOutOfBoundsException.class));
     }
 
     @Test
-    default void testChannel_canQueryListOfFilter(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig)
+    default void testPipe_canQueryListOfFilter(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
                 .withTwoFilterOnSpecificPositions())
                 .when(theListOfFiltersIsQueried())
                 .then(expectAListWithAllFilters());
     }
 
     @Test
-    default void testChannel_canRemoveFilter(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig)
+    default void testPipe_canRemoveFilter(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
                 .withTwoFilterOnSpecificPositions())
                 .when(aFilterIsRemoved())
                 .then(expectTheRemainingFilter());
@@ -146,8 +146,8 @@ public interface PipeSpecs {
 
     //messageStatistics
     @Test
-    default void testChannel_returnsCorrectNumberOfAcceptedMessages(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig)
+    default void testPipe_returnsCorrectNumberOfAcceptedMessages(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
                 .withASingleSubscriber())
                 .when(severalMessagesAreSendAsynchronously(3, 5)
                         .andThen(theNumberOfAcceptedMessagesIsQueried()))
@@ -155,8 +155,8 @@ public interface PipeSpecs {
     }
 
     @Test
-    default void testChannel_returnsCorrectNumberOfSuccessfulMessages(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig)
+    default void testPipe_returnsCorrectNumberOfSuccessfulMessages(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
                 .withASingleSubscriber())
                 .when(severalMessagesAreSendAsynchronously(3, 5)
                         .andThen(aShortWaitIsDone(10, MILLISECONDS))
@@ -165,8 +165,8 @@ public interface PipeSpecs {
     }
 
     @Test
-    default void testChannel_returnsCorrectNumberOfDeliveryFailedMessages(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig)
+    default void testPipe_returnsCorrectNumberOfDeliveryFailedMessages(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
                 .withoutASubscriber())
                 .when(severalMessagesAreSendAsynchronously(3, 5)
                         .andThen(theNumberOfFailedMessagesIsQueried()))
@@ -174,8 +174,8 @@ public interface PipeSpecs {
     }
 
     @Test
-    default void testChannel_returnsCorrectNumberOfDroppedMessages(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig)
+    default void testPipe_returnsCorrectNumberOfDroppedMessages(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
                 .withASingleSubscriber()
                 .withAFilterThatDropsWrongMessages())
                 .when(severalInvalidMessagesAreSendAsynchronously(3, 5)
@@ -184,8 +184,8 @@ public interface PipeSpecs {
     }
 
     @Test
-    default void testChannel_returnsCorrectNumberOfReplacedMessages(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig)
+    default void testPipe_returnsCorrectNumberOfReplacedMessages(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
                 .withASingleSubscriber()
                 .withAFilterThatReplacesWrongMessages())
                 .when(severalInvalidMessagesAreSendAsynchronously(3, 5)
@@ -194,8 +194,8 @@ public interface PipeSpecs {
     }
 
     @Test
-    default void testChannel_whenAFilterDoesNotUseAMethod_theMessageIsMarkedAsForgotten(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig)
+    default void testPipe_whenAFilterDoesNotUseAMethod_theMessageIsMarkedAsForgotten(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
                 .withSeveralSubscriber(3)
                 .withAnInvalidFilterThatDoesNotUseAnyFilterMethods())
                 .when(aSingleMessageIsSend()
@@ -204,8 +204,8 @@ public interface PipeSpecs {
     }
 
     @Test
-    default void testChannel_returnsAValidTimestampForStatistics(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig)
+    default void testPipe_returnsAValidTimestampForStatistics(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
                 .withoutASubscriber())
                 .when(theTimestampOfTheStatisticsIsQueried())
                 .then(expectTimestampToBeInTheLastXSeconds(3));
@@ -213,27 +213,27 @@ public interface PipeSpecs {
 
     //shutdown
     @Test
-    default void testChannel_canShutdown_evenIfIsBlocked(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig)
+    default void testPipe_canShutdown_evenIfIsBlocked(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
                 .withASubscriberThatBlocksWhenAccepting())
-                .when(severalMessagesAreSendAsynchronouslyBeforeTheChannelIsShutdown(3, 5)
-                        .andThen(theChannelShutdownIsExpectedForTimeoutInSeconds(1)))
-                .then(expectTheChannelToBeShutdownInTime());
+                .when(severalMessagesAreSendAsynchronouslyBeforeThePipeIsShutdown(3, 5)
+                        .andThen(thePipeShutdownIsExpectedForTimeoutInSeconds(1)))
+                .then(expectThePipeToBeShutdownInTime());
     }
 
     @Test
-    default void testChannel_shutdownCallIsIdempotent(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig)
+    default void testPipe_shutdownCallIsIdempotent(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
                 .withASubscriberThatBlocksWhenAccepting())
-                .when(theChannelIsShutdownAsynchronouslyXTimes(6)
-                        .andThen(theChannelIsShutdown()))
-                .then(expectTheChannelToBeShutdown());
+                .when(thePipeIsShutdownAsynchronouslyXTimes(6)
+                        .andThen(thePipeIsShutdown()))
+                .then(expectThePipeToBeShutdown());
     }
 
     @Test
-    default void testChannel_awaitReturnsAlwaysFalse_withoutACloseCall(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig))
-                .when(ChannelActionBuilder.awaitWithoutACloseIsCalled())
+    default void testPipe_awaitReturnsAlwaysFalse_withoutACloseCall(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig))
+                .when(PipeActionBuilder.awaitWithoutACloseIsCalled())
                 .then(expectTheResultToAlwaysBeFalse());
     }
 

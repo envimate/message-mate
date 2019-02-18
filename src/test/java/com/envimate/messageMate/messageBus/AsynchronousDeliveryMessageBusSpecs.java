@@ -10,7 +10,7 @@ import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusAction
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusSetupBuilder.aConfiguredMessageBus;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusValidationBuilder.expectResultToBe;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusValidationBuilder.expectXMessagesToBeDelivered;
-import static com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.Given.given;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.Given.given;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @ExtendWith(AsynchronousDeliveryMessageBusConfigurationResolver.class)

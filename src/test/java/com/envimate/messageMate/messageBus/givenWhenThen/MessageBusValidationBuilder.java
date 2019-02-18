@@ -4,9 +4,9 @@ package com.envimate.messageMate.messageBus.givenWhenThen;
 import com.envimate.messageMate.error.DeliveryFailedMessage;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
-import com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.ChannelMessageBusSharedTestValidationBuilder;
-import com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.ChannelMessageBusSutActions;
-import com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.TestValidationBuilder;
+import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSharedTestValidationBuilder;
+import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
+import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.TestValidationBuilder;
 import com.envimate.messageMate.shared.subscriber.TestSubscriber;
 import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.RequiredArgsConstructor;
@@ -17,13 +17,13 @@ import java.util.Map;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActions.messageBusTestActions;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.SUT;
-import static com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.ChannelMessageBusTestProperties.ERROR_SUBSCRIBER;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestProperties.ERROR_SUBSCRIBER;
 import static lombok.AccessLevel.PRIVATE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
 @RequiredArgsConstructor(access = PRIVATE)
-public final class MessageBusValidationBuilder extends ChannelMessageBusSharedTestValidationBuilder<MessageBus> {
+public final class MessageBusValidationBuilder extends PipeMessageBusSharedTestValidationBuilder<MessageBus> {
 
     public static TestValidationBuilder<MessageBus> expectTheMessageToBeReceived() {
         return new MessageBusValidationBuilder()
@@ -131,7 +131,7 @@ public final class MessageBusValidationBuilder extends ChannelMessageBusSharedTe
     }
 
     @Override
-    protected ChannelMessageBusSutActions sutActions(final TestEnvironment testEnvironment) {
+    protected PipeMessageBusSutActions sutActions(final TestEnvironment testEnvironment) {
         final MessageBus messageBus = getMessageBus(testEnvironment);
         return messageBusTestActions(messageBus);
     }

@@ -1,25 +1,25 @@
 package com.envimate.messageMate.pipe;
 
-import com.envimate.messageMate.pipe.config.AsynchronousDeliveryChannelConfigurationResolver;
-import com.envimate.messageMate.pipe.config.ChannelTestConfig;
+import com.envimate.messageMate.pipe.config.AsynchronousDeliveryPipeConfigurationResolver;
+import com.envimate.messageMate.pipe.config.PipeTestConfig;
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static com.envimate.messageMate.pipe.config.ChannelTestConfig.ASYNCHRONOUS_DELIVERY_POOL_SIZE;
-import static com.envimate.messageMate.pipe.givenWhenThen.ChannelActionBuilder.*;
-import static com.envimate.messageMate.pipe.givenWhenThen.ChannelSetupBuilder.aConfiguredChannel;
-import static com.envimate.messageMate.pipe.givenWhenThen.ChannelValidationBuilder.expectResultToBe;
-import static com.envimate.messageMate.pipe.givenWhenThen.ChannelValidationBuilder.expectXMessagesToBeDelivered;
-import static com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.Given.given;
+import static com.envimate.messageMate.pipe.config.PipeTestConfig.ASYNCHRONOUS_DELIVERY_POOL_SIZE;
+import static com.envimate.messageMate.pipe.givenWhenThen.PipeActionBuilder.*;
+import static com.envimate.messageMate.pipe.givenWhenThen.PipeSetupBuilder.aConfiguredPipe;
+import static com.envimate.messageMate.pipe.givenWhenThen.PipeValidationBuilder.expectResultToBe;
+import static com.envimate.messageMate.pipe.givenWhenThen.PipeValidationBuilder.expectXMessagesToBeDelivered;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.Given.given;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-@ExtendWith(AsynchronousDeliveryChannelConfigurationResolver.class)
+@ExtendWith(AsynchronousDeliveryPipeConfigurationResolver.class)
 public class AsynchronousDeliveryPipeSpecs implements PipeSpecs {
 
     //messageStatistics
     @Test
-    public void testChannel_withBlockingSubscriber_whenNumberOfSuccessfulDeliveredMessagesIsQueried_returnsZero(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig)
+    public void testPipe_withBlockingSubscriber_whenNumberOfSuccessfulDeliveredMessagesIsQueried_returnsZero(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
                 .withASubscriberThatBlocksWhenAccepting())
                 .when(severalMessagesAreSendAsynchronously(3, 5)
                         .andThen(theNumberOfSuccessfulMessagesIsQueried()))
@@ -27,8 +27,8 @@ public class AsynchronousDeliveryPipeSpecs implements PipeSpecs {
     }
 
     @Test
-    public void testChannel_withBlockingSubscriber_whenNumberOfWaitingMessagesIsQueried_returnsZero(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig)
+    public void testPipe_withBlockingSubscriber_whenNumberOfWaitingMessagesIsQueried_returnsZero(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
                 .withASubscriberThatBlocksWhenAccepting())
                 .when(severalMessagesAreSendAsynchronously(3, 5)
                         .andThen(theNumberOfWaitingMessagesIsQueried()))
@@ -36,8 +36,8 @@ public class AsynchronousDeliveryPipeSpecs implements PipeSpecs {
     }
 
     @Test
-    public void testChannel_withBlockingSubscriber_whenNumberOfAcceptedMessagesIsQueried_returnsOnlyOne(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig)
+    public void testPipe_withBlockingSubscriber_whenNumberOfAcceptedMessagesIsQueried_returnsOnlyOne(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
                 .withASubscriberThatBlocksWhenAccepting())
                 .when(severalMessagesAreSendAsynchronously(3, 5)
                         .andThen(theNumberOfAcceptedMessagesIsQueried()))
@@ -45,8 +45,8 @@ public class AsynchronousDeliveryPipeSpecs implements PipeSpecs {
     }
 
     @Test
-    public void testChannel_withBlockingSubscriber_whenNumberOfCurrentlyTransportedMessagesIsQueried_returnsZero(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig)
+    public void testPipe_withBlockingSubscriber_whenNumberOfCurrentlyTransportedMessagesIsQueried_returnsZero(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
                 .withASubscriberThatBlocksWhenAccepting())
                 .when(severalMessagesAreSendAsynchronously(3, 5)
                         .andThen(theNumberOfCurrentlyTransportedMessagesIsQueried()))
@@ -54,8 +54,8 @@ public class AsynchronousDeliveryPipeSpecs implements PipeSpecs {
     }
 
     @Test
-    public void testChannel_withBlockingSubscriber_whenNumberOfCurrentlyDeliveredMessagesIsQueried_deliversTooMuchForUnboundedQueue(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig)
+    public void testPipe_withBlockingSubscriber_whenNumberOfCurrentlyDeliveredMessagesIsQueried_deliversTooMuchForUnboundedQueue(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
                 .withASubscriberThatBlocksWhenAccepting())
                 .when(severalMessagesAreSendAsynchronouslyButWillBeBlocked(3, 5)
                         .andThen(aShortWaitIsDone(100, MILLISECONDS))
@@ -65,17 +65,17 @@ public class AsynchronousDeliveryPipeSpecs implements PipeSpecs {
 
     //shutdown
     @Test
-    public void testChannel_whenShutdown_deliversRemainingMessagesButNoNewAdded(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig))
-                .when(theChannelIsShutdownAfterHalfOfTheMessagesWereDelivered(10)
+    public void testPipe_whenShutdown_deliversRemainingMessagesButNoNewAdded(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig))
+                .when(thePipeIsShutdownAfterHalfOfTheMessagesWereDelivered(10)
                         .andThen(aShortWaitIsDone(10, MILLISECONDS)))
                 .then(expectXMessagesToBeDelivered(5));
     }
 
     @Test
-    public void testChannel_whenShutdownWithoutFinishingRemainingTasksIsCalled_noNewTasksAreFinished(final ChannelTestConfig testConfig) throws Exception {
-        given(aConfiguredChannel(testConfig))
-                .when(theChannelIsShutdownAfterHalfOfTheMessagesWereDelivered_withoutFinishingRemainingTasks(10)
+    public void testPipe_whenShutdownWithoutFinishingRemainingTasksIsCalled_noNewTasksAreFinished(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig))
+                .when(thePipeIsShutdownAfterHalfOfTheMessagesWereDelivered_withoutFinishingRemainingTasks(10)
                         .andThen(aShortWaitIsDone(10, MILLISECONDS)))
                 .then(expectXMessagesToBeDelivered(ASYNCHRONOUS_DELIVERY_POOL_SIZE));
     }

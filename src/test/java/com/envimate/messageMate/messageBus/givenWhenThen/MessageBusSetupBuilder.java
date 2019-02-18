@@ -3,9 +3,9 @@ package com.envimate.messageMate.messageBus.givenWhenThen;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusBuilder;
 import com.envimate.messageMate.messageBus.config.MessageBusTestConfig;
-import com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.ChannelMessageBusSharedSetupBuilder;
-import com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.ChannelMessageBusSutActions;
-import com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.Setup;
+import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSharedSetupBuilder;
+import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
+import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.Setup;
 import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
 import lombok.RequiredArgsConstructor;
 
@@ -14,7 +14,7 @@ import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPEC
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
-public final class MessageBusSetupBuilder extends ChannelMessageBusSharedSetupBuilder<MessageBus> {
+public final class MessageBusSetupBuilder extends PipeMessageBusSharedSetupBuilder<MessageBus> {
 
     private final MessageBusBuilder messageBusBuilder = MessageBusBuilder.aMessageBus();
 
@@ -49,7 +49,7 @@ public final class MessageBusSetupBuilder extends ChannelMessageBusSharedSetupBu
     }
 
     @Override
-    protected ChannelMessageBusSutActions sutActions(final MessageBus messageBus) {
+    protected PipeMessageBusSutActions sutActions(final MessageBus messageBus) {
         return messageBusTestActions(messageBus);
     }
 }

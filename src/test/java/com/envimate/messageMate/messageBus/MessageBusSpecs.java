@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusActionBuilder.*;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusSetupBuilder.aConfiguredMessageBus;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusValidationBuilder.*;
-import static com.envimate.messageMate.shared.channelMessageBus.givenWhenThen.Given.given;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.Given.given;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /*

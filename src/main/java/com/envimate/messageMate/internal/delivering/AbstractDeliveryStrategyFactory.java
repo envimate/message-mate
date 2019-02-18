@@ -26,7 +26,7 @@ import com.envimate.messageMate.configuration.MessageBusConfiguration;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
-import static com.envimate.messageMate.internal.delivering.AsynchronousDeliveryStrategyConfiguration.fromChannelConfiguration;
+import static com.envimate.messageMate.internal.delivering.AsynchronousDeliveryStrategyConfiguration.fromPipeConfiguration;
 import static com.envimate.messageMate.internal.delivering.AsynchronousDeliveryStrategyConfiguration.fromMessageBusConfiguration;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
@@ -40,7 +40,7 @@ public final class AbstractDeliveryStrategyFactory {
 
     public static <T> DeliveryStrategyFactory<T> deliveryStrategyForType(final PipeConfiguration configuration) {
         final DeliveryType deliveryType = configuration.getDeliveryType();
-        final AsynchronousDeliveryStrategyConfiguration deliveryStrategyConfiguration = fromChannelConfiguration(configuration);
+        final AsynchronousDeliveryStrategyConfiguration deliveryStrategyConfiguration = fromPipeConfiguration(configuration);
         return new DeliveryStrategyFactoryImpl<>(deliveryType, deliveryStrategyConfiguration);
     }
 }

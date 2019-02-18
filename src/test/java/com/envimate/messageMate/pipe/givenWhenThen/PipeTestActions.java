@@ -1,9 +1,9 @@
-package com.envimate.messageMate.messageBus.givenWhenThen;
+package com.envimate.messageMate.pipe.givenWhenThen;
 
+import com.envimate.messageMate.pipe.Pipe;
+import com.envimate.messageMate.pipe.PipeStatusInformation;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.internal.statistics.MessageStatistics;
-import com.envimate.messageMate.messageBus.MessageBus;
-import com.envimate.messageMate.messageBus.MessageBusStatusInformation;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
@@ -17,86 +17,89 @@ import java.util.concurrent.TimeUnit;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
-public final class MessageBusTestActions implements PipeMessageBusSutActions {
-    private final MessageBus messageBus;
+public final class PipeTestActions implements PipeMessageBusSutActions {
+    private final Pipe<TestMessage> pipe;
 
-    public static MessageBusTestActions messageBusTestActions(final MessageBus messageBus) {
-        return new MessageBusTestActions(messageBus);
+    public static PipeTestActions pipeTestActions(final Pipe<TestMessage> pipe) {
+        return new PipeTestActions(pipe);
     }
 
     @Override
     public boolean isShutdown(final TestEnvironment testEnvironment) {
-        return messageBus.isShutdown();
+        return pipe.isShutdown();
     }
 
     @Override
     public List<?> getFilter(final TestEnvironment testEnvironment) {
-        return messageBus.getFilter();
+        return pipe.getFilter();
     }
 
     @Override
     public <R> void subscribe(final Class<R> messageClass, final Subscriber<R> subscriber) {
-        messageBus.subscribe(messageClass, subscriber);
+        @SuppressWarnings("unchecked")
+        final Subscriber<TestMessage> messageSubscriber = (Subscriber<TestMessage>) subscriber;
+        pipe.subscribe(messageSubscriber);
     }
 
     @Override
     public void close(final boolean finishRemainingTasks) {
-        messageBus.close(finishRemainingTasks);
+        pipe.close(finishRemainingTasks);
     }
 
     @Override
     public boolean awaitTermination(final int timeout, final TimeUnit timeUnit) throws InterruptedException {
-        return messageBus.awaitTermination(timeout, timeUnit);
+        return pipe.awaitTermination(timeout, timeUnit);
     }
 
     @Override
     public List<?> getFilter() {
-        return messageBus.getFilter();
+        final List<?> filters = pipe.getFilter();
+        return filters;
     }
 
     @Override
     public void unsubscribe(final SubscriptionId subscriptionId) {
-        messageBus.unsubcribe(subscriptionId);
+        pipe.unsubscribe(subscriptionId);
     }
 
     @Override
     public void send(final TestMessage message) {
-        messageBus.send(message);
+        pipe.send(message);
     }
 
     @Override
     public MessageStatistics getMessageStatistics() {
-        final MessageBusStatusInformation statusInformation = messageBus.getStatusInformation();
+        final PipeStatusInformation<TestMessage> statusInformation = pipe.getStatusInformation();
         return statusInformation.getCurrentMessageStatistics();
     }
 
     @Override
     public Object removeAFilter() {
-        final List<Filter<Object>> filters = messageBus.getFilter();
+        final List<Filter<TestMessage>> filters = pipe.getFilter();
         final int indexToRemove = (int) (Math.random() * filters.size());
-        final Filter<Object> filter = filters.get(indexToRemove);
-        messageBus.remove(filter);
+        final Filter<TestMessage> filter = filters.get(indexToRemove);
+        pipe.remove(filter);
         return filter;
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public void addFilter(final Filter<?> filter) {
-        final Filter<Object> objectFilter = (Filter<Object>) filter;
-        messageBus.add(objectFilter);
+        final Filter<TestMessage> testMessageFilter = (Filter<TestMessage>) filter;
+        pipe.add(testMessageFilter);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public void addFilter(final Filter<?> filter, final int position) {
-        final Filter<Object> objectFilter = (Filter<Object>) filter;
-        messageBus.add(objectFilter, position);
+        final Filter<TestMessage> testMessageFilter = (Filter<TestMessage>) filter;
+        pipe.add(testMessageFilter, position);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public List<Subscriber<?>> getAllSubscribers() {
-        final MessageBusStatusInformation statusInformation = messageBus.getStatusInformation();
+        final PipeStatusInformation<TestMessage> statusInformation = pipe.getStatusInformation();
         final List<?> allSubscribers = statusInformation.getAllSubscribers();
         return (List<Subscriber<?>>) allSubscribers;
     }

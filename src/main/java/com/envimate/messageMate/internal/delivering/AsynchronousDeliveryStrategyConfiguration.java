@@ -75,7 +75,7 @@ public final class AsynchronousDeliveryStrategyConfiguration {
                 maximumPoolSize, corePoolSize, exceptionCatchingCondition);
     }
 
-    public static AsynchronousDeliveryStrategyConfiguration fromChannelConfiguration(
+    public static AsynchronousDeliveryStrategyConfiguration fromPipeConfiguration(
             final PipeConfiguration configuration) {
         final BlockingQueue<Runnable> threadPoolWorkingQueue = configuration.getThreadPoolWorkingQueue();
         final TimeUnit timeoutTimeUnit = configuration.getTimeoutTimeUnit();
