@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
-import static com.envimate.messageMate.channel.ChannelPipe.*;
+import static com.envimate.messageMate.channel.FilterPosition.*;
 import static com.envimate.messageMate.channel.ChannelTestActions.*;
 import static com.envimate.messageMate.channel.ChannelTestProperties.CALL_TARGET_CHANNEL;
 import static com.envimate.messageMate.channel.ChannelTestProperties.PIPE;
@@ -44,22 +44,22 @@ public final class ChannelActionBuilder {
         });
     }
 
-    static ChannelActionBuilder severalFilterOnDifferentPositionAreAddedInPrePipe() {
+    static ChannelActionBuilder severalPreFilterOnDifferentPositionAreAdded() {
         final int[] positions = new int[]{0, 1, 0, 0, 3, 2};
         return anAction(actionForAddingSeveralFilter(positions, PRE));
     }
 
-    static ChannelActionBuilder severalFilterOnDifferentPositionAreAddedInProcessPipe() {
+    static ChannelActionBuilder severalProcessFilterOnDifferentPositionAreAdded() {
         final int[] positions = new int[]{0, 0, 1, 0, 2, 4, 4};
         return anAction(actionForAddingSeveralFilter(positions, PROCESS));
     }
 
-    static ChannelActionBuilder severalFilterOnDifferentPositionAreAddedInPostPipe() {
+    static ChannelActionBuilder severalPostFilterOnDifferentPositionAreAdded() {
         final int[] positions = new int[]{0, 1, 2, 3, 4, 5, 6};
         return anAction(actionForAddingSeveralFilter(positions, POST));
     }
 
-    private static TestAction<Channel<TestMessage>> actionForAddingSeveralFilter(final int[] positions, final ChannelPipe pipe) {
+    private static TestAction<Channel<TestMessage>> actionForAddingSeveralFilter(final int[] positions, final FilterPosition pipe) {
         return (channel, testEnvironment) -> {
             final List<Filter<ProcessingContext<TestMessage>>> expectedFilter = addSeveralNoopFilter(channel, positions, pipe);
             testEnvironment.setProperty(EXPECTED_RESULT, expectedFilter);
@@ -68,9 +68,9 @@ public final class ChannelActionBuilder {
         };
     }
 
-    static ChannelActionBuilder whenTheFilterAreQueried() {
+    static ChannelActionBuilder theFilterAreQueried() {
         return anAction((channel, testEnvironment) -> {
-            final ChannelPipe pipe = testEnvironment.getPropertyAsType(PIPE, ChannelPipe.class);
+            final FilterPosition pipe = testEnvironment.getPropertyAsType(PIPE, FilterPosition.class);
             final List<Filter<ProcessingContext<TestMessage>>> filter = getFilterOf(channel, pipe);
             testEnvironment.setProperty(RESULT, filter);
             return null;
@@ -78,9 +78,9 @@ public final class ChannelActionBuilder {
     }
 
     @SuppressWarnings("unchecked")
-    static ChannelActionBuilder whenOneFilterIsRemoved() {
+    static ChannelActionBuilder oneFilterIsRemoved() {
         return anAction((channel, testEnvironment) -> {
-            final ChannelPipe pipe = testEnvironment.getPropertyAsType(PIPE, ChannelPipe.class);
+            final FilterPosition pipe = testEnvironment.getPropertyAsType(PIPE, FilterPosition.class);
             final List<Filter<ProcessingContext<TestMessage>>> allFilter = (List<Filter<ProcessingContext<TestMessage>>>) testEnvironment.getProperty(EXPECTED_RESULT);
             final Filter<ProcessingContext<TestMessage>> filterToRemove = allFilter.remove(1);
             removeFilter(channel, pipe, filterToRemove);

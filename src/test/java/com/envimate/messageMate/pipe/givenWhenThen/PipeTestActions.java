@@ -1,9 +1,9 @@
 package com.envimate.messageMate.pipe.givenWhenThen;
 
-import com.envimate.messageMate.pipe.Pipe;
-import com.envimate.messageMate.pipe.PipeStatusInformation;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.internal.statistics.MessageStatistics;
+import com.envimate.messageMate.pipe.Pipe;
+import com.envimate.messageMate.pipe.PipeStatusInformation;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
@@ -31,7 +31,7 @@ public final class PipeTestActions implements PipeMessageBusSutActions {
 
     @Override
     public List<?> getFilter(final TestEnvironment testEnvironment) {
-        return pipe.getFilter();
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -53,8 +53,7 @@ public final class PipeTestActions implements PipeMessageBusSutActions {
 
     @Override
     public List<?> getFilter() {
-        final List<?> filters = pipe.getFilter();
-        return filters;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -75,25 +74,19 @@ public final class PipeTestActions implements PipeMessageBusSutActions {
 
     @Override
     public Object removeAFilter() {
-        final List<Filter<TestMessage>> filters = pipe.getFilter();
-        final int indexToRemove = (int) (Math.random() * filters.size());
-        final Filter<TestMessage> filter = filters.get(indexToRemove);
-        pipe.remove(filter);
-        return filter;
+        throw new UnsupportedOperationException();
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public void addFilter(final Filter<?> filter) {
-        final Filter<TestMessage> testMessageFilter = (Filter<TestMessage>) filter;
-        pipe.add(testMessageFilter);
+        throw new UnsupportedOperationException();
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public void addFilter(final Filter<?> filter, final int position) {
-        final Filter<TestMessage> testMessageFilter = (Filter<TestMessage>) filter;
-        pipe.add(testMessageFilter, position);
+        throw new UnsupportedOperationException();
     }
 
     @SuppressWarnings("unchecked")

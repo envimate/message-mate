@@ -55,4 +55,6 @@ public interface Channel<T> {
     void removePostFilter(Filter<ProcessingContext<T>> filter);
 
     Action<T> getDefaultAction();
+
+    void close(boolean finishRemainingTasks); //TODO: test + need await?
 }

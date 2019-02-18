@@ -128,30 +128,6 @@ public final class PipeActionBuilder implements ActionBuilder<Pipe<TestMessage>>
         });
     }
 
-    public static ActionBuilder<Pipe<TestMessage>> theNumberOfDroppedMessagesIsQueried() {
-        return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeMessageBusSutActions sutActions = pipeTestActions(pipe);
-            queryTheNumberOfDroppedMessages(sutActions, testEnvironment);
-            return null;
-        });
-    }
-
-    public static ActionBuilder<Pipe<TestMessage>> theNumberOfReplacedMessagesIsQueried() {
-        return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeMessageBusSutActions sutActions = pipeTestActions(pipe);
-            queryTheNumberOfReplacedMessages(sutActions, testEnvironment);
-            return null;
-        });
-    }
-
-    public static ActionBuilder<Pipe<TestMessage>> theNumberOfForgottenMessagesIsQueried() {
-        return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeMessageBusSutActions sutActions = pipeTestActions(pipe);
-            queryTheNumberOfForgottenMessages(sutActions, testEnvironment);
-            return null;
-        });
-    }
-
     public static ActionBuilder<Pipe<TestMessage>> theNumberOfCurrentlyDeliveredMessagesIsQueried() {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
             final PipeMessageBusSutActions sutActions = pipeTestActions(pipe);

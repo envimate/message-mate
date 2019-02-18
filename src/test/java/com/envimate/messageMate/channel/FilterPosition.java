@@ -1,6 +1,6 @@
 package com.envimate.messageMate.channel;
 
-public enum ChannelPipe {
+public enum FilterPosition {
     PRE,
     PROCESS,
     POST,

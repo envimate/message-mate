@@ -6,4 +6,5 @@ final class ChannelTestProperties {
     static final String RETURNING_CHANNEL = "RETURNING_CHANNEL";
     static final String PIPE = "PIPE";
     static final String MODIFIED_META_DATUM = "MODIFIED_META_DATUM";
+    static final String REPLACED_MESSAGE = "REPLACED_MESSAGE";
 }

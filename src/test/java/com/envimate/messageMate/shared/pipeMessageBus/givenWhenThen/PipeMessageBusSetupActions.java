@@ -38,18 +38,18 @@ public final class PipeMessageBusSetupActions {
 
     public static void addAFilterThatChangesTheContentOfEveryMessage(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
         testEnvironment.setProperty(EXPECTED_CHANGED_CONTENT, TestFilter.CHANGED_CONTENT);
-        final Filter<TestMessage> filter = aContentChangingFilter();
+        final Filter<TestMessage> filter = aContentChangingFilter_old();
         sutActions.addFilter(filter);
     }
 
     public static void addAFilterThatDropsWrongMessages(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
-        final Filter<Object> filter = aMessageDroppingFilter();
+        final Filter<Object> filter = aMessageDroppingFilter_old();
         sutActions.addFilter(filter);
     }
 
     public static void addAFilterThatReplacesWrongMessages(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
         testEnvironment.setProperty(EXECUTE_MESSAGE_BUS_IN_OWN_THREAD, true);
-        final Filter<Object> filter = aMessageReplacingFilter();
+        final Filter<Object> filter = aMessageReplacingFilter_old();
         sutActions.addFilter(filter);
     }
 
@@ -62,10 +62,10 @@ public final class PipeMessageBusSetupActions {
         final String firstAppend = "1nd";
         final String secondAppend = "2nd";
         testEnvironment.setProperty(EXPECTED_CHANGED_CONTENT, TestMessageOfInterest.CONTENT + firstAppend + secondAppend);
-        final Filter<Object> filter1 = aContentAppendingFilter(secondAppend);
+        final Filter<Object> filter1 = aContentAppendingFilter_old(secondAppend);
         sutActions.addFilter(filter1, 0);
         testEnvironment.addToListProperty(EXPECTED_FILTER, filter1);
-        final Filter<Object> filter2 = aContentAppendingFilter(firstAppend);
+        final Filter<Object> filter2 = aContentAppendingFilter_old(firstAppend);
         sutActions.addFilter(filter2, 0);
         testEnvironment.addToListProperty(EXPECTED_FILTER, filter2);
     }

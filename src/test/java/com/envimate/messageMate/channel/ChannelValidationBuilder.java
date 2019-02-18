@@ -83,6 +83,21 @@ public final class ChannelValidationBuilder {
         });
     }
 
+    static ChannelValidationBuilder expectTheMessageToBeReplaced() {
+        return aValidation(testEnvironment -> {
+            assertNoExceptionThrown(testEnvironment);
+            final Object expectedResult = testEnvironment.getProperty(REPLACED_MESSAGE);
+            assertResultEqualsExpected(testEnvironment, expectedResult);
+        });
+    }
+
+    static ChannelValidationBuilder expectNoMessageToBeDelivered() {
+        return aValidation(testEnvironment -> {
+            assertNoExceptionThrown(testEnvironment);
+            assertNoResultSet(testEnvironment);
+        });
+    }
+
     static ChannelValidationBuilder expectAExceptionOfType(final Class<?> expectedExceptionClass) {
         return aValidation(testEnvironment -> assertExceptionThrownOfType(testEnvironment, expectedExceptionClass));
     }
@@ -122,6 +137,10 @@ public final class ChannelValidationBuilder {
             assertNoExceptionThrown(testEnvironment);
             assertMetaDatumOfResultSetAsExpected(testEnvironment);
         });
+    }
+
+    static ChannelValidationBuilder expectTheException(final Class<?> expectedExceptionClass) {
+        return aValidation(testEnvironment -> assertExceptionThrownOfType(testEnvironment, expectedExceptionClass));
     }
 
     private static Channel<TestMessage> getTestPropertyAsChannel(final TestEnvironment testEnvironment, final TestEnvironmentProperty property) {

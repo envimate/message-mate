@@ -19,19 +19,17 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 public class PooledMessageTransportProcessFactory<T> implements MessageTransportProcessFactory<T> {
     private final TransportEventLoop<T> eventLoop;
     private final FilterApplier<T> filterApplier;
-    private final List<Filter<T>> filters;
     private final SubscriberCalculation<T> subscriberCalculation;
     private final ThreadPoolExecutor threadPoolExecutor;
     private final AtomicInteger availableProcesses;
     private final PoolControlThread<T> controlThread;
     private volatile boolean closed; //TODO: atomic boolean maybe better?
 
-    public PooledMessageTransportProcessFactory(final TransportEventLoop<T> eventLoop, final List<Filter<T>> filters,
+    public PooledMessageTransportProcessFactory(final TransportEventLoop<T> eventLoop,
                                                 final SubscriberCalculation<T> subscriberCalculation, int numberOfThreads) {
         numberOfThreads = 1;
         this.eventLoop = eventLoop;
         this.filterApplier = filterApplier();
-        this.filters = filters;
         this.subscriberCalculation = subscriberCalculation;
         this.controlThread = poolControlThread(process -> {
             markProcessAsFinished();
@@ -54,6 +52,7 @@ public class PooledMessageTransportProcessFactory<T> implements MessageTransport
         if (availProcesses > 0) {
             System.out.println("getNext|proc| avail=" + availProcesses + ", completed=" + completedTaskCount + ", active=" + threadPoolExecutor.getActiveCount());
             availableProcesses.decrementAndGet();
+            final List<Filter<T>> filters = null;
             return new PooledMessageTransportProcess<>(eventLoop, filterApplier, filters, threadPoolExecutor, subscriberCalculation, controlThread);
         } else {
             System.out.println("getNext|null| avail=" + availProcesses + ", completed=" + completedTaskCount + ", active=" + threadPoolExecutor.getActiveCount());

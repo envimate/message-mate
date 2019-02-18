@@ -10,8 +10,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import static com.envimate.messageMate.channel.ChannelPipe.PROCESS;
 import static com.envimate.messageMate.channel.ChannelTestProperties.MODIFIED_META_DATUM;
+import static com.envimate.messageMate.channel.FilterPosition.PROCESS;
 import static com.envimate.messageMate.channel.ProcessingContext.processingContext;
 import static com.envimate.messageMate.channel.action.Call.callTo;
 import static com.envimate.messageMate.shared.testMessages.TestMessageOfInterest.messageOfInterest;
@@ -35,14 +35,14 @@ final class ChannelTestActions {
         });
     }
 
-    static void addChangingActionFilterToPipe(final Channel<TestMessage> channel, final ChannelPipe pipe,
+    static void addChangingActionFilterToPipe(final Channel<TestMessage> channel, final FilterPosition filterPosition,
                                               final Action<TestMessage> action) {
         final Filter<ProcessingContext<TestMessage>> filter = (processingContext, receivers, filterActions) -> {
             final ChannelProcessingFrame<TestMessage> currentProcessingFrame = processingContext.getCurrentProcessingFrame();
             currentProcessingFrame.setAction(action);
             filterActions.pass(processingContext);
         };
-        addFilterToChannel(channel, pipe, filter);
+        addFilterToChannel(channel, filterPosition, filter);
     }
 
     static void addAFilterChangingMetaData(final Channel<TestMessage> channel, final Object metaDatum) {
@@ -56,26 +56,26 @@ final class ChannelTestActions {
 
     static List<Filter<ProcessingContext<TestMessage>>> addSeveralNoopFilter(final Channel<TestMessage> channel,
                                                                              final int[] positions,
-                                                                             final ChannelPipe pipe) {
+                                                                             final FilterPosition filterPosition) {
         final List<Filter<ProcessingContext<TestMessage>>> expectedFilter = new LinkedList<>();
         for (final int position : positions) {
-            final Filter<ProcessingContext<TestMessage>> filter = addANoopFilterToChannelAtPosition(channel, pipe, position);
+            final Filter<ProcessingContext<TestMessage>> filter = addANoopFilterToChannelAtPosition(channel, filterPosition, position);
             expectedFilter.add(position, filter);
         }
         return expectedFilter;
     }
 
-    private static Filter<ProcessingContext<TestMessage>> addANoopFilterToChannelAtPosition(final Channel<TestMessage> channel,
-                                                                                            final ChannelPipe pipe,
-                                                                                            final int position) {
+    static Filter<ProcessingContext<TestMessage>> addANoopFilterToChannelAtPosition(final Channel<TestMessage> channel,
+                                                                                    final FilterPosition filterPosition,
+                                                                                    final int position) {
         final Filter<ProcessingContext<TestMessage>> filter = (processingContext, receivers, filterActions) -> filterActions.pass(processingContext);
-        addFilterToChannelAtPosition(channel, pipe, filter, position);
+        addFilterToChannelAtPosition(channel, filterPosition, filter, position);
         return filter;
     }
 
-    private static void addFilterToChannel(final Channel<TestMessage> channel, final ChannelPipe channelPipe,
+    private static void addFilterToChannel(final Channel<TestMessage> channel, final FilterPosition filterPosition,
                                            final Filter<ProcessingContext<TestMessage>> filter) {
-        switch (channelPipe) {
+        switch (filterPosition) {
             case PRE:
                 channel.addPreFilter(filter);
                 break;
@@ -86,13 +86,13 @@ final class ChannelTestActions {
                 channel.addPostFilter(filter);
                 break;
             default:
-                throw new UnsupportedOperationException("Unknown pipe " + channelPipe + ".");
+                throw new UnsupportedOperationException("Unknown filterPosition " + filterPosition + ".");
         }
     }
 
-    private static void addFilterToChannelAtPosition(final Channel<TestMessage> channel, final ChannelPipe pipe,
+    private static void addFilterToChannelAtPosition(final Channel<TestMessage> channel, final FilterPosition filterPosition,
                                                      final Filter<ProcessingContext<TestMessage>> filter, final int position) {
-        switch (pipe) {
+        switch (filterPosition) {
             case PRE:
                 channel.addPreFilter(filter, position);
                 break;
@@ -103,12 +103,12 @@ final class ChannelTestActions {
                 channel.addPostFilter(filter, position);
                 break;
             default:
-                throw new UnsupportedOperationException("Unknown pipe " + pipe + ".");
+                throw new UnsupportedOperationException("Unknown filterPosition " + filterPosition + ".");
         }
     }
 
-    static List<Filter<ProcessingContext<TestMessage>>> getFilterOf(final Channel<TestMessage> channel, final ChannelPipe pipe) {
-        switch (pipe) {
+    static List<Filter<ProcessingContext<TestMessage>>> getFilterOf(final Channel<TestMessage> channel, final FilterPosition filterPosition) {
+        switch (filterPosition) {
             case PRE:
                 return channel.getPreFilter();
             case PROCESS:
@@ -116,14 +116,14 @@ final class ChannelTestActions {
             case POST:
                 return channel.getPostFilter();
             default:
-                throw new UnsupportedOperationException("Unknown pipe " + pipe + ".");
+                throw new UnsupportedOperationException("Unknown filterPosition " + filterPosition + ".");
         }
     }
 
     static void removeFilter(final Channel<TestMessage> channel,
-                             final ChannelPipe pipe,
+                             final FilterPosition filterPosition,
                              final Filter<ProcessingContext<TestMessage>> filter) {
-        switch (pipe) {
+        switch (filterPosition) {
             case PRE:
                 channel.removePreFilter(filter);
                 break;
@@ -134,7 +134,7 @@ final class ChannelTestActions {
                 channel.removePostFilter(filter);
                 break;
             default:
-                throw new UnsupportedOperationException("Unknown pipe " + pipe + ".");
+                throw new UnsupportedOperationException("Unknown filterPosition " + filterPosition + ".");
         }
     }
 }

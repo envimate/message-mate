@@ -63,87 +63,6 @@ public interface PipeSpecs {
                 .then(expectAllRemainingSubscribersToStillBeSubscribed());
     }
 
-    //filter
-    @Test
-    default void testPipe_allowsFiltersToChangeMessages(final PipeTestConfig testConfig) throws Exception {
-        given(aConfiguredPipe(testConfig)
-                .withSeveralSubscriber(3)
-                .withAFilterThatChangesTheContentOfEveryMessage())
-                .when(severalMessagesAreSend(10)
-                        .andThen(aShortWaitIsDone(5, MILLISECONDS)))
-                .then(expectAllMessagesToHaveTheContentChanged());
-    }
-
-    @Test
-    default void testPipe_allowsFiltersToDropMessages(final PipeTestConfig testConfig) throws Exception {
-        given(aConfiguredPipe(testConfig)
-                .withSeveralSubscriber(3)
-                .withAFilterThatDropsWrongMessages())
-                .when(bothValidAndInvalidMessagesAreSendAsynchronously(3, 10))
-                .then(expectAllMessagesToBeReceivedByAllSubscribers());
-    }
-
-
-    @Test
-    default void testPipe_allowsFiltersToReplaceMessages(final PipeTestConfig testConfig) throws Exception {
-        given(aConfiguredPipe(testConfig)
-                .withSeveralSubscriber(3)
-                .withAFilterThatReplacesWrongMessages())
-                .when(severalInvalidMessagesAreSendAsynchronously(3, 10))
-                .then(expectOnlyValidMessageToBeReceived());
-    }
-
-    @Test
-    default void testPipe_whenAFilterDoesNotUseAMethod_messageIsDropped(final PipeTestConfig testConfig) throws Exception {
-        given(aConfiguredPipe(testConfig)
-                .withSeveralSubscriber(3)
-                .withAnInvalidFilterThatDoesNotUseAnyFilterMethods())
-                .when(severalInvalidMessagesAreSendAsynchronously(3, 10))
-                .then(expectNoMessagesToBeDelivered());
-    }
-
-    @Test
-    default void testPipe_canAddFilterAtASpecificPosition(final PipeTestConfig testConfig) throws Exception {
-        given(aConfiguredPipe(testConfig)
-                .withSeveralSubscriber(3)
-                .withTwoFilterOnSpecificPositions())
-                .when(severalMessagesAreSend(3)
-                        .andThen(aShortWaitIsDone(5, MILLISECONDS)))
-                .then(expectAllMessagesToHaveTheContentChanged());
-    }
-
-    @Test
-    default void testPipe_throwsExceptionForPositionBelowZero(final PipeTestConfig testConfig) throws Exception {
-        given(aConfiguredPipe(testConfig)
-                .withAFilterAtAnInvalidPosition(-1))
-                .when(aSingleMessageIsSend())
-                .then(expectTheException(IndexOutOfBoundsException.class));
-    }
-
-    @Test
-    default void testPipe_throwsExceptionForPositionGreaterThanAllowed(final PipeTestConfig testConfig) throws Exception {
-        given(aConfiguredPipe(testConfig)
-                .withAFilterAtAnInvalidPosition(100))
-                .when(aSingleMessageIsSend())
-                .then(expectTheException(IndexOutOfBoundsException.class));
-    }
-
-    @Test
-    default void testPipe_canQueryListOfFilter(final PipeTestConfig testConfig) throws Exception {
-        given(aConfiguredPipe(testConfig)
-                .withTwoFilterOnSpecificPositions())
-                .when(theListOfFiltersIsQueried())
-                .then(expectAListWithAllFilters());
-    }
-
-    @Test
-    default void testPipe_canRemoveFilter(final PipeTestConfig testConfig) throws Exception {
-        given(aConfiguredPipe(testConfig)
-                .withTwoFilterOnSpecificPositions())
-                .when(aFilterIsRemoved())
-                .then(expectTheRemainingFilter());
-    }
-
     //messageStatistics
     @Test
     default void testPipe_returnsCorrectNumberOfAcceptedMessages(final PipeTestConfig testConfig) throws Exception {
@@ -171,36 +90,6 @@ public interface PipeSpecs {
                 .when(severalMessagesAreSendAsynchronously(3, 5)
                         .andThen(theNumberOfFailedMessagesIsQueried()))
                 .then(expectResultToBe(15));
-    }
-
-    @Test
-    default void testPipe_returnsCorrectNumberOfDroppedMessages(final PipeTestConfig testConfig) throws Exception {
-        given(aConfiguredPipe(testConfig)
-                .withASingleSubscriber()
-                .withAFilterThatDropsWrongMessages())
-                .when(severalInvalidMessagesAreSendAsynchronously(3, 5)
-                        .andThen(theNumberOfDroppedMessagesIsQueried()))
-                .then(expectResultToBe(15));
-    }
-
-    @Test
-    default void testPipe_returnsCorrectNumberOfReplacedMessages(final PipeTestConfig testConfig) throws Exception {
-        given(aConfiguredPipe(testConfig)
-                .withASingleSubscriber()
-                .withAFilterThatReplacesWrongMessages())
-                .when(severalInvalidMessagesAreSendAsynchronously(3, 5)
-                        .andThen(theNumberOfReplacedMessagesIsQueried()))
-                .then(expectResultToBe(15));
-    }
-
-    @Test
-    default void testPipe_whenAFilterDoesNotUseAMethod_theMessageIsMarkedAsForgotten(final PipeTestConfig testConfig) throws Exception {
-        given(aConfiguredPipe(testConfig)
-                .withSeveralSubscriber(3)
-                .withAnInvalidFilterThatDoesNotUseAnyFilterMethods())
-                .when(aSingleMessageIsSend()
-                        .andThen(theNumberOfForgottenMessagesIsQueried()))
-                .then(expectResultToBe(1));
     }
 
     @Test

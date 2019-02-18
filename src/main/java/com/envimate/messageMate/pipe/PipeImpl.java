@@ -21,7 +21,6 @@
 
 package com.envimate.messageMate.pipe;
 
-import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.internal.accepting.MessageAcceptingStrategy;
 import com.envimate.messageMate.internal.delivering.DeliveryStrategy;
 import com.envimate.messageMate.internal.eventloop.PipeEventLoopImpl;
@@ -42,7 +41,6 @@ public final class PipeImpl<T> implements Pipe<T> {
     private final MessageAcceptingStrategy<T> messageAcceptingStrategy;
     private final DeliveryStrategy<T> deliveryStrategy;
     private final List<Subscriber<T>> subscribers;
-    private final List<Filter<T>> filters;
     private final PipeEventLoopImpl<T> eventLoop;
     private final StatisticsCollector statisticsCollector;
     private final MessageTransportProcessFactory<T> pipeTransportProcessFactory;
@@ -53,14 +51,12 @@ public final class PipeImpl<T> implements Pipe<T> {
     public PipeImpl(MessageAcceptingStrategy<T> messageAcceptingStrategy,
                     DeliveryStrategy<T> deliveryStrategy,
                     List<Subscriber<T>> subscribers,
-                    List<Filter<T>> filters,
                     PipeEventLoopImpl<T> eventLoop,
                     StatisticsCollector statisticsCollector,
                     MessageTransportProcessFactory<T> pipeTransportProcessFactory) {
         this.messageAcceptingStrategy = messageAcceptingStrategy;
         this.deliveryStrategy = deliveryStrategy;
         this.subscribers = subscribers;
-        this.filters = filters;
         this.eventLoop = eventLoop;
         this.statisticsCollector = statisticsCollector;
         this.pipeTransportProcessFactory = pipeTransportProcessFactory;
@@ -86,26 +82,6 @@ public final class PipeImpl<T> implements Pipe<T> {
     @Override
     public void unsubscribe(final SubscriptionId subscriptionId) {
         subscribers.removeIf(subscriber -> subscriber.getSubscriptionId().equals(subscriptionId));
-    }
-
-    @Override
-    public void add(final Filter<T> filter) {
-        filters.add(filter);
-    }
-
-    @Override
-    public void add(final Filter<T> filter, final int position) {
-        filters.add(position, filter);
-    }
-
-    @Override
-    public List<Filter<T>> getFilter() {
-        return filters;
-    }
-
-    @Override
-    public void remove(final Filter<T> filter) {
-        filters.remove(filter);
     }
 
     @Override

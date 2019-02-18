@@ -23,9 +23,9 @@ package com.envimate.messageMate.channel;
 
 import com.envimate.messageMate.channel.action.Action;
 import com.envimate.messageMate.channel.action.actionHandling.ActionHandlerSet;
+import com.envimate.messageMate.configuration.PipeConfiguration;
 import com.envimate.messageMate.pipe.Pipe;
 import com.envimate.messageMate.pipe.PipeBuilder;
-import com.envimate.messageMate.configuration.PipeConfiguration;
 
 import static com.envimate.messageMate.channel.ChannelImpl.channel;
 import static com.envimate.messageMate.channel.action.actionHandling.DefaultActionHandlerSet.defaultActionHandlerSet;
@@ -76,11 +76,12 @@ public class ChannelBuilder<T> {
 
     public Channel<T> build() {
         ensureNotNull(action, "Action must not be null");
+        final Pipe<ProcessingContext<T>> configurationPipe = createSimplePipeIfAbsent(null);
         final Pipe<ProcessingContext<T>> prePipe = createSimplePipeIfAbsent(this.prePipe);
         final Pipe<ProcessingContext<T>> processPipe = createSimplePipeIfAbsent(this.processPipe);
         final Pipe<ProcessingContext<T>> postPipe = createSimplePipeIfAbsent(this.postPipe);
         final ActionHandlerSet<T> actionHandlerSet = createDefaultActionHandlerSetIfAbsent();
-        return channel(this.action, prePipe, processPipe, postPipe, actionHandlerSet);
+        return channel(this.action, configurationPipe, prePipe, processPipe, postPipe, actionHandlerSet);
     }
 
     private Pipe<ProcessingContext<T>> createSimplePipeIfAbsent(final Pipe<ProcessingContext<T>> optionalPipe) {

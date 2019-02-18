@@ -32,6 +32,13 @@ public final class SharedTestValidations {
         }
     }
 
+    public static void assertNoResultSet(final TestEnvironment testEnvironment) {
+        if (testEnvironment.has(RESULT)) {
+            final Object result = testEnvironment.getProperty(RESULT);
+            fail("Unexpected result: " + result);
+        }
+    }
+
     public static void assertNoExceptionThrown(final TestEnvironment testEnvironment) {
         if (testEnvironment.has(EXCEPTION)) {
             final Exception exception = testEnvironment.getPropertyAsType(EXCEPTION, Exception.class);

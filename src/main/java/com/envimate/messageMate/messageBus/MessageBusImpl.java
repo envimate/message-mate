@@ -61,7 +61,7 @@ final class MessageBusImpl implements MessageBus {
         this.filters = new CopyOnWriteArrayList<>();
         this.brokerStrategy = brokerStrategy;
         this.eventLoop = new MessageBusEventLoopImpl();
-        this.transportProcessFactory = messageTransportProcessFactory(synchronTransportConfiguration(), filters, eventLoop, brokerStrategy::calculateReceivingSubscriber);//TODO: bad
+        this.transportProcessFactory = messageTransportProcessFactory(synchronTransportConfiguration(), eventLoop, brokerStrategy::calculateReceivingSubscriber);//TODO: bad
         this.messageAcceptingStrategy = messageAcceptingStrategyFactory.createNew(eventLoop);
         this.statisticsCollector = statisticsCollector;
         this.deliveryStrategy = deliveryStrategyFactory.createNew(eventLoop);

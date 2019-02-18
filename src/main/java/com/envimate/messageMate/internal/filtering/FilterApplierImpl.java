@@ -29,8 +29,9 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
-@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-final class FilterApplierImpl<T> implements FilterApplier<T> {
+//TODO: move
+@RequiredArgsConstructor(access = AccessLevel.PUBLIC)
+public final class FilterApplierImpl<T> implements FilterApplier<T> {
 
     @Override
     public void applyAll(final T message,

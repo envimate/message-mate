@@ -109,12 +109,11 @@ public final class PipeBuilder<T> {
         final MessageAcceptingStrategy<T> messageAcceptingStrategy = msgAccStrategyFactory.createNew(pipeEventLoop);
         final DeliveryStrategy<T> deliveryStrategy = deliveryStrategyFactory.createNew(pipeEventLoop);
         final List<Subscriber<T>> subscribers = new CopyOnWriteArrayList<>();
-        final List<Filter<T>> filters = new CopyOnWriteArrayList<>();
         final MessageTransportProcessFactory<T> transportProcessFactory = fieldOrDefault(this.messageTransportProcessFactory,
-                messageTransportProcessFactory(this.configuration.getMessageTransportConfiguration(), filters, pipeEventLoop, t -> subscribers));
+                messageTransportProcessFactory(this.configuration.getMessageTransportConfiguration(), pipeEventLoop, t -> subscribers));
         pipeEventLoop.setRequiredObjects(messageAcceptingStrategy, transportProcessFactory, deliveryStrategy, statisticsCollector);
 
-        return new PipeImpl<>(messageAcceptingStrategy, deliveryStrategy, subscribers, filters, pipeEventLoop,
+        return new PipeImpl<>(messageAcceptingStrategy, deliveryStrategy, subscribers, pipeEventLoop,
                 statisticsCollector, transportProcessFactory);
     }
 

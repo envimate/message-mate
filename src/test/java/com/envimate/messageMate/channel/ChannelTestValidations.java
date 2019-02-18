@@ -36,9 +36,9 @@ final class ChannelTestValidations {
 
 
     static void assertFilterAsExpected(final TestEnvironment testEnvironment, final List<Filter<ProcessingContext<TestMessage>>> expectedFilter) {
-        final ChannelPipe channelPipe = testEnvironment.getPropertyAsType(ChannelTestProperties.PIPE, ChannelPipe.class);
+        final FilterPosition filterPosition = testEnvironment.getPropertyAsType(ChannelTestProperties.PIPE, FilterPosition.class);
         final Channel<TestMessage> channel = getTestPropertyAsChannel(testEnvironment, SUT);
-        final List<Filter<ProcessingContext<TestMessage>>> actualFilter = getFilterOf(channel, channelPipe);
+        final List<Filter<ProcessingContext<TestMessage>>> actualFilter = getFilterOf(channel, filterPosition);
         assertThat(actualFilter, equalTo(expectedFilter));
     }
 

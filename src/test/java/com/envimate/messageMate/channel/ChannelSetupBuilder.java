@@ -6,20 +6,25 @@ import com.envimate.messageMate.channel.action.Jump;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
+import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 
 import java.util.List;
 
 import static com.envimate.messageMate.channel.ChannelBuilder.aChannel;
 import static com.envimate.messageMate.channel.ChannelBuilder.aChannelWithDefaultAction;
-import static com.envimate.messageMate.channel.ChannelPipe.*;
 import static com.envimate.messageMate.channel.ChannelTestActions.*;
 import static com.envimate.messageMate.channel.ChannelTestProperties.*;
+import static com.envimate.messageMate.channel.FilterPosition.*;
+import static com.envimate.messageMate.channel.ProcessingContext.processingContext;
 import static com.envimate.messageMate.channel.action.Call.prepareACall;
 import static com.envimate.messageMate.channel.action.Consume.consume;
 import static com.envimate.messageMate.channel.action.Jump.jumpTo;
 import static com.envimate.messageMate.channel.action.Return.aReturn;
 import static com.envimate.messageMate.qcec.shared.TestEnvironment.emptyTestEnvironment;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.TestFilter.aMessageDroppingFilter;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.TestFilter.aMessageFilterThatDoesNotCallAnyMethod;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.TestFilter.aMessageReplacingFilter;
 
 public final class ChannelSetupBuilder {
     private final TestEnvironment testEnvironment;
@@ -125,6 +130,91 @@ public final class ChannelSetupBuilder {
         return this;
     }
 
+    ChannelSetupBuilder withAPreFilterThatReplacesTheMessage() {
+        addAFilterThatReplacesTheMessage(PRE);
+        return this;
+    }
+
+    ChannelSetupBuilder withAProcessFilterThatReplacesTheMessage() {
+        addAFilterThatReplacesTheMessage(PROCESS);
+        return this;
+    }
+
+    ChannelSetupBuilder withAPostFilterThatReplacesTheMessage() {
+        addAFilterThatReplacesTheMessage(POST);
+        return this;
+    }
+
+    ChannelSetupBuilder withAPreFilterThatBlocksMessages() {
+        addFilterThatBlocksMessages(PRE);
+        return this;
+    }
+
+    ChannelSetupBuilder withAProcessFilterThatBlocksMessages() {
+        addFilterThatBlocksMessages(PROCESS);
+        return this;
+    }
+
+    ChannelSetupBuilder withAPostFilterThatBlocksMessages() {
+        addFilterThatBlocksMessages(POST);
+        return this;
+    }
+
+    private void addAFilterThatReplacesTheMessage(final FilterPosition filterPosition) {
+        alreadyBuiltChannel = channelBuilder.withDefaultAction(consumeAsFinalResult(testEnvironment))
+                .build();
+        final TestMessageOfInterest replacedMessage = TestMessageOfInterest.messageOfInterest();
+        final ProcessingContext<TestMessage> replacement = processingContext(replacedMessage);
+        testEnvironment.setProperty(REPLACED_MESSAGE, replacement);
+        final Filter<ProcessingContext<TestMessage>> filter = aMessageReplacingFilter(replacement);
+        addAFilterToPipe(alreadyBuiltChannel, filterPosition, filter);
+    }
+
+    private void addFilterThatBlocksMessages(final FilterPosition filterPosition) {
+        alreadyBuiltChannel = channelBuilder.withDefaultAction(consumeAsFinalResult(testEnvironment))
+                .build();
+        final Filter<ProcessingContext<TestMessage>> filter = aMessageDroppingFilter();
+        addAFilterToPipe(alreadyBuiltChannel, filterPosition, filter);
+    }
+
+    ChannelSetupBuilder withAPreFilterThatForgetsMessages() {
+        addFilterThatForgetsMessages(PRE);
+        return this;
+    }
+
+    ChannelSetupBuilder withAProcessFilterThatForgetsMessages() {
+        addFilterThatForgetsMessages(PROCESS);
+        return this;
+    }
+
+    ChannelSetupBuilder withAPostFilterThatForgetsMessages() {
+        addFilterThatForgetsMessages(POST);
+        return this;
+    }
+
+    private void addFilterThatForgetsMessages(final FilterPosition filterPosition) {
+        alreadyBuiltChannel = channelBuilder.withDefaultAction(consumeAsFinalResult(testEnvironment))
+                .build();
+        final Filter<ProcessingContext<TestMessage>> filter = aMessageFilterThatDoesNotCallAnyMethod();
+        addAFilterToPipe(alreadyBuiltChannel, filterPosition, filter);
+    }
+
+    private void addAFilterToPipe(final Channel<TestMessage> channel, final FilterPosition filterPosition, final Filter<ProcessingContext<TestMessage>> filter) {
+        switch (filterPosition) {
+            case PRE:
+                channel.addPreFilter(filter);
+                break;
+            case PROCESS:
+                channel.addPostFilter(filter);
+                break;
+            case POST:
+                channel.addPostFilter(filter);
+                break;
+            default:
+                throw new IllegalArgumentException();
+        }
+    }
+
     ChannelSetupBuilder withAProcessFilterThatChangesTheAction() {
         final Action<TestMessage> unknownAction = UnknownAction.unknownAction();
         alreadyBuiltChannel = channelBuilder.withDefaultAction(unknownAction)
@@ -141,25 +231,50 @@ public final class ChannelSetupBuilder {
         return this;
     }
 
-    ChannelSetupBuilder withSeveralFilterInThePrePipe() {
+    ChannelSetupBuilder withSeveralPreFilter() {
         final int[] positions = new int[]{0, 0, 2, 1, 2, 4};
         severalFilterInPipe(positions, PRE);
         return this;
     }
 
-    ChannelSetupBuilder withSeveralFilterInTheProcessPipe() {
+    ChannelSetupBuilder withSeveralProcessFilter() {
         final int[] positions = new int[]{0, 1, 1, 3, 0, 5};
         severalFilterInPipe(positions, PROCESS);
         return this;
     }
 
-    ChannelSetupBuilder withSeveralFilterInThePostPipe() {
+    ChannelSetupBuilder withSeveralPostFilter() {
         final int[] positions = new int[]{0, 0, 2, 2, 1, 3};
         severalFilterInPipe(positions, POST);
         return this;
     }
 
-    private void severalFilterInPipe(final int[] positions, final ChannelPipe pipe) {
+    ChannelSetupBuilder withAPreFilterAtAnInvalidPosition(final int position) {
+        addAFilterAtPosition(position, PRE);
+        return this;
+    }
+
+    ChannelSetupBuilder withAProcessFilterAtAnInvalidPosition(final int position) {
+        addAFilterAtPosition(position, PROCESS);
+        return this;
+    }
+
+    ChannelSetupBuilder withAPostFilterAtAnInvalidPosition(final int position) {
+        addAFilterAtPosition(position, POST);
+        return this;
+    }
+
+    private void addAFilterAtPosition(final int position, final FilterPosition filterPosition) {
+        try {
+            alreadyBuiltChannel = channelBuilder.withDefaultAction(consumeAsFinalResult(testEnvironment))
+                    .build();
+            addANoopFilterToChannelAtPosition(alreadyBuiltChannel, filterPosition, position);
+        } catch (final Exception e) {
+            testEnvironment.setProperty(EXCEPTION, e);
+        }
+    }
+
+    private void severalFilterInPipe(final int[] positions, final FilterPosition pipe) {
         final Action<TestMessage> unknownAction = UnknownAction.unknownAction();
         alreadyBuiltChannel = channelBuilder.withDefaultAction(unknownAction)
                 .build();

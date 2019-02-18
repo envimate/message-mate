@@ -22,11 +22,9 @@
 package com.envimate.messageMate.pipe;
 
 import com.envimate.messageMate.autoclosable.NoErrorAutoClosable;
-import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -39,14 +37,6 @@ public interface Pipe<T> extends NoErrorAutoClosable {
     SubscriptionId subscribe(Consumer<T> consumer);
 
     void unsubscribe(SubscriptionId subscriptionId);
-
-    void add(Filter<T> filter);
-
-    void add(Filter<T> filter, int position);
-
-    List<Filter<T>> getFilter();
-
-    void remove(Filter<T> filter);
 
     PipeStatusInformation<T> getStatusInformation();
 

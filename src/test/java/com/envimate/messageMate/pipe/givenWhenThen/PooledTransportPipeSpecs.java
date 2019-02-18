@@ -5,7 +5,7 @@ import com.envimate.messageMate.pipe.config.PooledTransportingPipeConfigurationR
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(PooledTransportingPipeConfigurationResolver.class)
-public class PooledTransportPipeSpecs implements PipeSpecs {
+public class PooledTransportPipeSpecs /*implements PipeSpecs*/ {
 
     /*@Test
     public void testPipe_withBlockingSubscriber_whenNumberOfSuccessfulDeliveredMessagesIsQueried_returnsZero(final PipeTestConfig testConfig) throws Exception {
