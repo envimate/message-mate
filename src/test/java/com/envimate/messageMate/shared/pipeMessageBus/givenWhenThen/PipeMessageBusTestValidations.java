@@ -13,11 +13,14 @@ import java.util.stream.Collectors;
 
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RECEIVERS;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestProperties.INITIAL_SUBSCRIBER;
+import static com.envimate.messageMate.shared.validations.SharedTestValidations.assertEquals;
 import static lombok.AccessLevel.PRIVATE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 @RequiredArgsConstructor(access = PRIVATE)
 public final class PipeMessageBusTestValidations {
@@ -44,10 +47,21 @@ public final class PipeMessageBusTestValidations {
         }
     }
 
-    public static void assertExpectedReceiverReceivedAllMessages(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
+    public static void assertSutStillHasExpectedSubscriber(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
         final List<Subscriber<?>> expectedSubscriber = getExpectedSubscriber(testEnvironment);
+        assertSutStillHasExpectedSubscriber(sutActions, expectedSubscriber);
+    }
+
+    public static void assertSutStillHasExpectedSubscriber(final PipeMessageBusSutActions sutActions,
+                                                           final List<Subscriber<?>> expectedSubscriber) {
         final List<Subscriber<?>> allSubscribers = sutActions.getAllSubscribers();
         assertThat(allSubscribers, containsInAnyOrder(expectedSubscriber.toArray()));
+    }
+
+    public static void assertResultEqualsCurrentSubscriber(final TestEnvironment testEnvironment) {
+        final Object subscriber = testEnvironment.getProperty(RESULT);
+        final Object expectedSubscriber = testEnvironment.getProperty(INITIAL_SUBSCRIBER);
+        assertEquals(subscriber, expectedSubscriber);
     }
 
     public static void assertAllMessagesHaveContentChanged(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {

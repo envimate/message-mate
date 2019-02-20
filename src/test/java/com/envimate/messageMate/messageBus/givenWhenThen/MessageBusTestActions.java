@@ -1,9 +1,9 @@
 package com.envimate.messageMate.messageBus.givenWhenThen;
 
 import com.envimate.messageMate.filtering.Filter;
-import com.envimate.messageMate.internal.statistics.MessageStatistics;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusStatusInformation;
+import com.envimate.messageMate.pipe.statistics.PipeStatistics;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
@@ -65,9 +65,8 @@ public final class MessageBusTestActions implements PipeMessageBusSutActions {
     }
 
     @Override
-    public MessageStatistics getMessageStatistics() {
-        final MessageBusStatusInformation statusInformation = messageBus.getStatusInformation();
-        return statusInformation.getCurrentMessageStatistics();
+    public PipeStatistics getMessageStatistics() {
+        throw new UnsupportedOperationException();
     }
 
     @Override

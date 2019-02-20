@@ -31,5 +31,5 @@ public interface ExceptionCatchingCondition {
         return e -> false;
     }
 
-    boolean shouldBeCaught(Exception e);
+    boolean shouldExceptionBeHandled(Exception e);
 }

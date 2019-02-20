@@ -109,7 +109,7 @@ public final class MessageBusActionBuilder implements ActionBuilder<MessageBus> 
     public static ActionBuilder<MessageBus> theNumberOfWaitingMessagesIsQueried() {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
             final PipeMessageBusSutActions sutActions = messageBusTestActions(messageBus);
-            queryTheNumberOfWaitingMessages(sutActions, testEnvironment);
+            queryTheNumberOfQueuedMessages(sutActions, testEnvironment);
             return null;
         });
     }

@@ -21,89 +21,71 @@
 
 package com.envimate.messageMate.pipe;
 
-import com.envimate.messageMate.internal.accepting.MessageAcceptingStrategy;
-import com.envimate.messageMate.internal.delivering.DeliveryStrategy;
-import com.envimate.messageMate.internal.eventloop.PipeEventLoopImpl;
-import com.envimate.messageMate.internal.statistics.MessageStatistics;
-import com.envimate.messageMate.internal.statistics.StatisticsCollector;
-import com.envimate.messageMate.internal.transport.MessageTransportProcessFactory;
+import com.envimate.messageMate.pipe.statistics.PipeStatistics;
+import com.envimate.messageMate.pipe.statistics.PipeStatisticsCollector;
+import com.envimate.messageMate.pipe.transport.TransportMechanism;
 import com.envimate.messageMate.subscribing.ConsumerSubscriber;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-public final class PipeImpl<T> implements Pipe<T> {
+import static com.envimate.messageMate.subscribing.ConsumerSubscriber.consumerSubscriber;
 
-    private final MessageAcceptingStrategy<T> messageAcceptingStrategy;
-    private final DeliveryStrategy<T> deliveryStrategy;
+public final class PipeImpl<T> implements Pipe<T> {
+    private final TransportMechanism<T> transportMechanism;
+    private final PipeStatisticsCollector statisticsCollector;
     private final List<Subscriber<T>> subscribers;
-    private final PipeEventLoopImpl<T> eventLoop;
-    private final StatisticsCollector statisticsCollector;
-    private final MessageTransportProcessFactory<T> pipeTransportProcessFactory;
-    //TODO: use only here and not in low level strategies
     private volatile boolean closedAlreadyCalled;
 
-    //TODO: necessary? or only because of close? put all in event loop? or specific close object?
-    public PipeImpl(MessageAcceptingStrategy<T> messageAcceptingStrategy,
-                    DeliveryStrategy<T> deliveryStrategy,
-                    List<Subscriber<T>> subscribers,
-                    PipeEventLoopImpl<T> eventLoop,
-                    StatisticsCollector statisticsCollector,
-                    MessageTransportProcessFactory<T> pipeTransportProcessFactory) {
-        this.messageAcceptingStrategy = messageAcceptingStrategy;
-        this.deliveryStrategy = deliveryStrategy;
-        this.subscribers = subscribers;
-        this.eventLoop = eventLoop;
+    public PipeImpl(final TransportMechanism<T> transportMechanism, final PipeStatisticsCollector statisticsCollector,
+                    final List<Subscriber<T>> subscribers) {
+        this.transportMechanism = transportMechanism;
         this.statisticsCollector = statisticsCollector;
-        this.pipeTransportProcessFactory = pipeTransportProcessFactory;
+        this.subscribers = subscribers;
     }
 
     @Override
     public void send(final T message) {
-        messageAcceptingStrategy.accept(message);
+        if (!closedAlreadyCalled) {
+            transportMechanism.transport(message);
+        } else {
+            throw new PipeAlreadyClosedException();
+        }
     }
 
     @Override
     public SubscriptionId subscribe(final Subscriber<T> subscriber) {
-        subscribers.add(subscriber);
-        return subscriber.getSubscriptionId();
+        if (!closedAlreadyCalled) {
+            subscribers.add(subscriber);
+            return subscriber.getSubscriptionId();
+        } else {
+            throw new PipeAlreadyClosedException();
+        }
     }
 
     @Override
     public SubscriptionId subscribe(final Consumer<T> consumer) {
-        final ConsumerSubscriber<T> subscriber = ConsumerSubscriber.consumerSubscriber(consumer);
+        final ConsumerSubscriber<T> subscriber = consumerSubscriber(consumer);
         return subscribe(subscriber);
     }
 
     @Override
     public void unsubscribe(final SubscriptionId subscriptionId) {
-        subscribers.removeIf(subscriber -> subscriber.getSubscriptionId().equals(subscriptionId));
-    }
-
-    @Override
-    public void close(final boolean finishRemainingTasks) { //TODO: close transport + await
         if (!closedAlreadyCalled) {
-            closedAlreadyCalled = true;
-            messageAcceptingStrategy.close(finishRemainingTasks);
-
-            deliveryStrategy.close(finishRemainingTasks);
+            subscribers.removeIf(subscriber -> subscriber.getSubscriptionId().equals(subscriptionId));
+        } else {
+            throw new PipeAlreadyClosedException();
         }
-    }
-
-    @Override
-    public void close() {
-        close(true);
     }
 
     @Override
     public PipeStatusInformation<T> getStatusInformation() {
         return new PipeStatusInformation<T>() {
             @Override
-            public MessageStatistics getCurrentMessageStatistics() {
+            public PipeStatistics getCurrentMessageStatistics() {
                 return statisticsCollector.getCurrentStatistics();
             }
 
@@ -115,20 +97,33 @@ public final class PipeImpl<T> implements Pipe<T> {
     }
 
     @Override
+    public void close(final boolean finishRemainingTasks) {
+        if (!closedAlreadyCalled) {
+            closedAlreadyCalled = true;
+            transportMechanism.close(finishRemainingTasks);
+        }
+    }
+
+    @Override
+    public void close() {
+        close(true);
+    }
+
+    @Override
     public boolean isShutdown() {
-        return messageAcceptingStrategy.isShutdown() && deliveryStrategy.isShutdown();
+        if (!closedAlreadyCalled) {
+            return false;
+        } else {
+            return transportMechanism.isShutdown();
+        }
     }
 
     @Override
     public boolean awaitTermination(final int timeout, final TimeUnit timeUnit) throws InterruptedException {
-        if (timeout <= 0) {
+        if (!closedAlreadyCalled) {
             return false;
+        } else {
+            return transportMechanism.awaitTermination(timeout, timeUnit);
         }
-        final long currentTimeMillis = System.currentTimeMillis();
-        final long addedMillis = timeUnit.toMillis(timeout);
-        final Date deadline = new Date(currentTimeMillis + addedMillis);
-        boolean result = messageAcceptingStrategy.awaitTermination(deadline);
-        result = result && deliveryStrategy.awaitTermination(deadline);
-        return result;
     }
 }

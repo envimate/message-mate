@@ -4,10 +4,10 @@ import com.envimate.messageMate.pipe.config.PipeTestConfig;
 import com.envimate.messageMate.pipe.givenWhenThen.PipeActionBuilder;
 import org.junit.jupiter.api.Test;
 
+import static com.envimate.messageMate.pipe.givenWhenThen.Given.given;
 import static com.envimate.messageMate.pipe.givenWhenThen.PipeActionBuilder.*;
 import static com.envimate.messageMate.pipe.givenWhenThen.PipeSetupBuilder.aConfiguredPipe;
 import static com.envimate.messageMate.pipe.givenWhenThen.PipeValidationBuilder.*;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.Given.given;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public interface PipeSpecs {
@@ -32,9 +32,17 @@ public interface PipeSpecs {
     @Test
     default void testPipe_canSendMessagesAsynchronously(final PipeTestConfig testConfig) throws Exception {
         given(aConfiguredPipe(testConfig)
-                .withSeveralSubscriber(5))
-                .when(severalMessagesAreSendAsynchronously(5, 10))
+                .withSeveralSubscriber(8))
+                .when(severalMessagesAreSendAsynchronously(10, 10))
                 .then(expectAllMessagesToBeReceivedByAllSubscribers());
+    }
+
+    @Test
+    default void testPipe_canQueryAllSubscriber(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
+                .withSeveralSubscriber(8))
+                .when(theListOfSubscriberIsQueried())
+                .then(expectTheListOfAllSubscriber());
     }
 
     //unsubscribe
@@ -86,11 +94,16 @@ public interface PipeSpecs {
     @Test
     default void testPipe_returnsCorrectNumberOfDeliveryFailedMessages(final PipeTestConfig testConfig) throws Exception {
         given(aConfiguredPipe(testConfig)
-                .withoutASubscriber())
+                .causingErrorsWhenDelivering())
                 .when(severalMessagesAreSendAsynchronously(3, 5)
+                        .andThen(aShortWaitIsDone(10, MILLISECONDS))
                         .andThen(theNumberOfFailedMessagesIsQueried()))
                 .then(expectResultToBe(15));
     }
+
+    // statistic of waiting message config dependent
+
+    // message statistics with blocking subscribers also config dependent
 
     @Test
     default void testPipe_returnsAValidTimestampForStatistics(final PipeTestConfig testConfig) throws Exception {
@@ -98,6 +111,23 @@ public interface PipeSpecs {
                 .withoutASubscriber())
                 .when(theTimestampOfTheStatisticsIsQueried())
                 .then(expectTimestampToBeInTheLastXSeconds(3));
+    }
+
+    //error handling
+    @Test
+    default void testPipe_canUseCustomErrorHandler(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
+                .withACustomErrorHandler())
+                .when(aMessageResultingInAnErrorIsSend())
+                .then(expectTheExceptionToBeHandled());
+    }
+
+    @Test
+    default void testPipe_customErrorHandlerCanSuppressExceptionSoThatDeliveryCountsAsSuccessful(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
+                .withACustomErrorHandlerThatSuppressException())
+                .when(aMessageResultingInAnErrorIsSend())
+                .then(expectTheDeliveryToBeStillSuccessful());
     }
 
     //shutdown
@@ -126,6 +156,26 @@ public interface PipeSpecs {
                 .then(expectTheResultToAlwaysBeFalse());
     }
 
-    //TODO: await explizit testen für alle
+    @Test
+    default void testPipe_throwsExceptionWhenSendIsCalledOnAClosedPipe(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig))
+                .when(messagesAreSendAfterTheShutdown())
+                .then(expectTheException(PipeAlreadyClosedException.class));
+    }
+
+    // behaviour of clean up of messages is config dependent
+
+    //await
+    @Test
+    default void testPipe_awaitsSucceedsWhenAllTasksCouldBeDone(final PipeTestConfig testConfig) throws Exception {
+        final int numberOfMessagesSend = PipeTestConfig.ASYNCHRONOUS_POOL_SIZE + 3;
+        given(aConfiguredPipe(testConfig))
+                .when(awaitIsCalledBeforeAllTasksAreFinished(numberOfMessagesSend))
+                .then(expectTheAwaitToBeTerminatedSuccessful(numberOfMessagesSend));
+    }
+
+    //await with unfinished tasks config dependent
+
+    //TODO: test different errorHandler
 
 }

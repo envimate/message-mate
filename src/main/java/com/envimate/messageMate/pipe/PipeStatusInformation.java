@@ -21,14 +21,14 @@
 
 package com.envimate.messageMate.pipe;
 
-import com.envimate.messageMate.internal.statistics.MessageStatistics;
+import com.envimate.messageMate.pipe.statistics.PipeStatistics;
 import com.envimate.messageMate.subscribing.Subscriber;
 
 import java.util.List;
 
 public interface PipeStatusInformation<T> {
 
-    MessageStatistics getCurrentMessageStatistics();
+    PipeStatistics getCurrentMessageStatistics();
 
     List<Subscriber<T>> getAllSubscribers();
 

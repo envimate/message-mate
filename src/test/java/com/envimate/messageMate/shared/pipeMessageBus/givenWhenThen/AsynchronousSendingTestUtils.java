@@ -93,11 +93,15 @@ public final class AsynchronousSendingTestUtils {
             throw new RuntimeException(e);
         }
         sutActions.close(false);
+        semaphore.release(1337);
     }
 
     private static void sendXMessagesAsynchronously(final int numberOfSender, final MessageFactory messageFactory,
                                                     final PipeMessageBusSutActions sutActions,
                                                     final TestEnvironment testEnvironment, final boolean expectCleanShutdown) {
+        if (numberOfSender <= 0) {
+            return;
+        }
         final CyclicBarrier sendingStartBarrier = new CyclicBarrier(numberOfSender);
         final ExecutorService executorService = Executors.newFixedThreadPool(numberOfSender);
         for (int i = 0; i < numberOfSender; i++) {
@@ -115,7 +119,6 @@ public final class AsynchronousSendingTestUtils {
                     throw new RuntimeException(e);
                 }
                 for (final TestMessage message : messagesToSend) {
-                    System.out.println("Send in " + Thread.currentThread());
                     sutActions.send(message);
                 }
             });

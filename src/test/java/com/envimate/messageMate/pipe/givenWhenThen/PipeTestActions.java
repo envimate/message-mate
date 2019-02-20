@@ -1,9 +1,9 @@
 package com.envimate.messageMate.pipe.givenWhenThen;
 
 import com.envimate.messageMate.filtering.Filter;
-import com.envimate.messageMate.internal.statistics.MessageStatistics;
 import com.envimate.messageMate.pipe.Pipe;
 import com.envimate.messageMate.pipe.PipeStatusInformation;
+import com.envimate.messageMate.pipe.statistics.PipeStatistics;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
@@ -67,7 +67,7 @@ public final class PipeTestActions implements PipeMessageBusSutActions {
     }
 
     @Override
-    public MessageStatistics getMessageStatistics() {
+    public PipeStatistics getMessageStatistics() {
         final PipeStatusInformation<TestMessage> statusInformation = pipe.getStatusInformation();
         return statusInformation.getCurrentMessageStatistics();
     }

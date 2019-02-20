@@ -2,9 +2,9 @@ package com.envimate.messageMate.pipe.config;
 
 import com.envimate.messageMate.shared.config.AbstractTestConfigProvider;
 
-import static com.envimate.messageMate.pipe.config.PipeTestConfig.aSynchronousPipeWithAsyncDelivery;
+import static com.envimate.messageMate.pipe.config.PipeTestConfig.anAsynchronousPipe;
 
-public class AsynchronousDeliveryPipeConfigurationResolver extends AbstractTestConfigProvider {
+public class AsynchronousPipeConfigurationProvider extends AbstractTestConfigProvider {
 
     @Override
     protected Class<?> forConfigClass() {
@@ -13,6 +13,6 @@ public class AsynchronousDeliveryPipeConfigurationResolver extends AbstractTestC
 
     @Override
     protected Object testConfig() {
-        return aSynchronousPipeWithAsyncDelivery();
+        return anAsynchronousPipe();
     }
 }

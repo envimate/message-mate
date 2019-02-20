@@ -19,17 +19,17 @@
  * under the License.
  */
 
-package com.envimate.messageMate.pipe.transport;
+package com.envimate.messageMate.pipe.events;
 
-import java.util.concurrent.TimeUnit;
+public interface PipeEventListener<T> {
 
-public interface TransportMechanism<T> {
+    void messageAccepted(T message);
 
-    void transport(T message);
+    void messageQueued(T message);
 
-    void close(boolean finishRemainingTasks);
+    void messageDequeued(T message);
 
-    boolean isShutdown();
+    void messageDeliverySucceeded(T message);
 
-    boolean awaitTermination(int timeout, TimeUnit timeUnit) throws InterruptedException;
+    void messageDeliveryFailed(T message, Exception cause);
 }

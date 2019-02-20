@@ -2,6 +2,7 @@ package com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen;
 
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.internal.statistics.MessageStatistics;
+import com.envimate.messageMate.pipe.statistics.PipeStatistics;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.subscribing.Subscriber;
@@ -14,7 +15,7 @@ public interface PipeMessageBusSutActions {
 
     boolean isShutdown(final TestEnvironment testEnvironment);
 
-    <R> void subscribe(Class<R> messageClass, Subscriber<R> subscriber);
+    <R> void subscribe(Class<R> messageClass, Subscriber<R> subscriber); //TODO: message Class unnecessary for pipe: still using?
 
     void close(boolean finishRemainingTasks);
 
@@ -26,7 +27,7 @@ public interface PipeMessageBusSutActions {
 
     void send(TestMessage message);
 
-    MessageStatistics getMessageStatistics();
+    PipeStatistics getMessageStatistics();
 
     void addFilter(Filter<?> filter);
 

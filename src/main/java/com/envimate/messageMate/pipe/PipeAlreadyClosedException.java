@@ -19,17 +19,9 @@
  * under the License.
  */
 
-package com.envimate.messageMate.pipe.transport;
+package com.envimate.messageMate.pipe;
 
-import java.util.concurrent.TimeUnit;
-
-public interface TransportMechanism<T> {
-
-    void transport(T message);
-
-    void close(boolean finishRemainingTasks);
-
-    boolean isShutdown();
-
-    boolean awaitTermination(int timeout, TimeUnit timeUnit) throws InterruptedException;
+public class PipeAlreadyClosedException extends RuntimeException {
+    public PipeAlreadyClosedException() {
+    }
 }

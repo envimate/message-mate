@@ -18,7 +18,7 @@ public final class ErrorThrowingTestSubscriber<T> implements TestSubscriber<T> {
 
     @Override
     public AcceptingBehavior accept(final T message) {
-        throw new RuntimeException("Simulated error in receiver");
+        throw new TestException();
     }
 
     @Override

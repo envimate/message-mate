@@ -23,6 +23,10 @@ public final class SharedTestValidations {
 
     public static void assertResultEqualsExpected(final TestEnvironment testEnvironment, final Object expectedResult) {
         final Object result = testEnvironment.getProperty(RESULT);
+        assertEquals(result, expectedResult);
+    }
+
+    public static void assertEquals(final Object result, final Object expectedResult) {
         if (expectedResult instanceof Number && result instanceof Number) {
             final double resultAsDouble = ((Number) result).doubleValue();
             final double expectedAsDouble = ((Number) expectedResult).doubleValue();
@@ -30,6 +34,12 @@ public final class SharedTestValidations {
         } else {
             assertThat(result, equalTo(expectedResult));
         }
+    }
+
+
+    public static void assertResultOfClass(final TestEnvironment testEnvironment, final Class<?> expectedResultClass) {
+        final Object result = testEnvironment.getProperty(RESULT);
+        assertThat(result.getClass(), equalTo(expectedResultClass));
     }
 
     public static void assertNoResultSet(final TestEnvironment testEnvironment) {

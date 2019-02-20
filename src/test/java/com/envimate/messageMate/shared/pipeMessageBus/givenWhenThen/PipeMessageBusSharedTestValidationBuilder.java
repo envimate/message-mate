@@ -33,7 +33,7 @@ public abstract class PipeMessageBusSharedTestValidationBuilder<T> implements Te
         return asValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
             final PipeMessageBusSutActions sutActions = sutActions(testEnvironment);
-            PipeMessageBusTestValidations.assertExpectedReceiverReceivedAllMessages(sutActions, testEnvironment);
+            PipeMessageBusTestValidations.assertSutStillHasExpectedSubscriber(sutActions, testEnvironment);
         });
     }
 

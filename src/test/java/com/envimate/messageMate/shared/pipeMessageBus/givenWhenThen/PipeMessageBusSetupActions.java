@@ -5,6 +5,7 @@ import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.subscriber.ErrorThrowingTestSubscriber;
 import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
+import com.envimate.messageMate.shared.subscriber.TestSubscriber;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 import lombok.RequiredArgsConstructor;
@@ -87,9 +88,10 @@ public final class PipeMessageBusSetupActions {
         testEnvironment.setProperty(ERROR_SUBSCRIBER, errorSubscriber);
     }
 
-    public static void addAnErrorThrowingSubscriber(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
+    public static TestSubscriber<TestMessageOfInterest> addAnErrorThrowingSubscriber(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
         final ErrorThrowingTestSubscriber<TestMessageOfInterest> subscriber = errorThrowingTestSubscriber();
         sutActions.subscribe(TestMessageOfInterest.class, subscriber);
+        return subscriber;
     }
 
     public static void addSeveralDeliveryInterruptingSubscriber(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment, final int numberOfReceivers) {

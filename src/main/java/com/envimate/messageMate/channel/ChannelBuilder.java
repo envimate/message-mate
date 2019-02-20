@@ -25,7 +25,7 @@ import com.envimate.messageMate.channel.action.Action;
 import com.envimate.messageMate.channel.action.actionHandling.ActionHandlerSet;
 import com.envimate.messageMate.configuration.PipeConfiguration;
 import com.envimate.messageMate.pipe.Pipe;
-import com.envimate.messageMate.pipe.PipeBuilder;
+import com.envimate.messageMate.pipe.PipeBuilder_old;
 
 import static com.envimate.messageMate.channel.ChannelImpl.channel;
 import static com.envimate.messageMate.channel.action.actionHandling.DefaultActionHandlerSet.defaultActionHandlerSet;
@@ -90,7 +90,7 @@ public class ChannelBuilder<T> {
         } else {
             final PipeConfiguration pipeConfiguration = PipeConfiguration.defaultConfiguration();
             pipeConfiguration.setExceptionCatchingCondition(allThrowingExceptionCondition());
-            return PipeBuilder.<ProcessingContext<T>>aPipe()
+            return PipeBuilder_old.<ProcessingContext<T>>aPipe()
                     .withConfiguration(pipeConfiguration)
                     .build();
         }

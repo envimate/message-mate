@@ -1,7 +1,9 @@
 package com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen;
 
-import com.envimate.messageMate.internal.statistics.MessageStatistics;
+import com.envimate.messageMate.pipe.statistics.PipeStatistics;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
+import com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber;
+import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
@@ -20,6 +22,7 @@ import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPEC
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.AsynchronousSendingTestUtils.*;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestProperties.*;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static lombok.AccessLevel.PRIVATE;
 
@@ -108,6 +111,53 @@ public final class PipeMessageBusTestActions {
         }
     }
 
+    public static void callCloseThenAwaitWithBlockedSubscriberButReleaseLockAfterAwait(final PipeMessageBusSutActions sutActions,
+                                                                                       final TestEnvironment testEnvironment,
+                                                                                       final int numberOfMessagesSend) {
+        try {
+            final Semaphore semaphore = new Semaphore(0);
+            final BlockingTestSubscriber<TestMessage> testSubscriber = BlockingTestSubscriber.blockingTestSubscriber(semaphore);
+            sutActions.subscribe(TestMessage.class, testSubscriber);
+            sendSeveralMessagesInTheirOwnThread(sutActions, testEnvironment, numberOfMessagesSend, 1, false);
+            MILLISECONDS.sleep(10);
+            new Thread(() -> {
+                try {
+                    MILLISECONDS.sleep(10);
+                    semaphore.release(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+            sutActions.close(true);
+            final boolean terminatedSuccessful = sutActions.awaitTermination(15, MILLISECONDS);
+            MILLISECONDS.sleep(10); //Second sleep necessary for synchronous config
+            testEnvironment.setProperty(RESULT, terminatedSuccessful);
+            testEnvironment.setProperty(SINGLE_RECEIVER, testSubscriber);
+        } catch (final InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void callCloseThenAwaitWithBlockedSubscriberWithoutReleasingLock(final PipeMessageBusSutActions sutActions,
+                                                                                       final TestEnvironment testEnvironment,
+                                                                                       final int numberOfMessagesSend) {
+        try {
+            final Semaphore semaphore = new Semaphore(0);
+            final BlockingTestSubscriber<TestMessage> testSubscriber = BlockingTestSubscriber.blockingTestSubscriber(semaphore);
+            sutActions.subscribe(TestMessage.class, testSubscriber);
+            sendSeveralMessagesInTheirOwnThread(sutActions, testEnvironment, numberOfMessagesSend, 1, false);
+            MILLISECONDS.sleep(10);
+            sutActions.close(true);
+            final boolean terminatedSuccessful = sutActions.awaitTermination(15, MILLISECONDS);
+            MILLISECONDS.sleep(10); //Second sleep necessary for synchronous config
+            testEnvironment.setProperty(RESULT, terminatedSuccessful);
+            testEnvironment.setProperty(SINGLE_RECEIVER, testSubscriber);
+            testEnvironment.setProperty(EXECUTION_END_SEMAPHORE, semaphore);
+        } catch (final InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     public static void unsubscribeASubscriberXTimes(final PipeMessageBusSutActions sutActions,
                                                     final TestEnvironment testEnvironment,
@@ -137,14 +187,14 @@ public final class PipeMessageBusTestActions {
 
     public static void queryTheNumberOfAcceptedMessages(final PipeMessageBusSutActions sutActions,
                                                         final TestEnvironment testEnvironment) {
-        queryMessageStatistics(sutActions, testEnvironment, MessageStatistics::getAcceptedMessages);
+        queryMessageStatistics(sutActions, testEnvironment, PipeStatistics::getAcceptedMessages);
     }
 
     public static void queryTheNumberOfAcceptedMessagesAsynchronously(final PipeMessageBusSutActions sutActions,
                                                                       final TestEnvironment testEnvironment) {
         final Semaphore semaphore = new Semaphore(0);
         new Thread(() -> {
-            queryMessageStatistics(sutActions, testEnvironment, MessageStatistics::getAcceptedMessages);
+            queryMessageStatistics(sutActions, testEnvironment, PipeStatistics::getAcceptedMessages);
             semaphore.release();
         }).start();
         try {
@@ -154,58 +204,58 @@ public final class PipeMessageBusTestActions {
         }
     }
 
-    public static void queryTheNumberOfWaitingMessages(final PipeMessageBusSutActions sutActions,
-                                                       final TestEnvironment testEnvironment) {
-        queryMessageStatistics(sutActions, testEnvironment, MessageStatistics::getWaitingMessages);
+    public static void queryTheNumberOfQueuedMessages(final PipeMessageBusSutActions sutActions,
+                                                      final TestEnvironment testEnvironment) {
+        queryMessageStatistics(sutActions, testEnvironment, PipeStatistics::getQueuedMessages);
     }
 
     public static void queryTheNumberOfSuccessfulDeliveredMessages(final PipeMessageBusSutActions sutActions,
                                                                    final TestEnvironment testEnvironment) {
-        queryMessageStatistics(sutActions, testEnvironment, MessageStatistics::getSuccessfulMessages);
+        queryMessageStatistics(sutActions, testEnvironment, PipeStatistics::getSuccessfulMessages);
     }
 
     public static void queryTheNumberOfFailedDeliveredMessages(final PipeMessageBusSutActions sutActions,
                                                                final TestEnvironment testEnvironment) {
-        queryMessageStatistics(sutActions, testEnvironment, MessageStatistics::getFailedMessages);
+        queryMessageStatistics(sutActions, testEnvironment, PipeStatistics::getFailedMessages);
     }
 
     public static void queryTheNumberOfDroppedMessages(final PipeMessageBusSutActions sutActions,
                                                        final TestEnvironment testEnvironment) {
-        queryMessageStatistics(sutActions, testEnvironment, MessageStatistics::getDroppedMessages);
+        throw new UnsupportedOperationException();
     }
 
     public static void queryTheNumberOfReplacedMessages(final PipeMessageBusSutActions sutActions,
                                                         final TestEnvironment testEnvironment) {
-        queryMessageStatistics(sutActions, testEnvironment, MessageStatistics::getReplacedMessages);
+        throw new UnsupportedOperationException();
     }
 
     public static void queryTheNumberOfForgottenMessages(final PipeMessageBusSutActions sutActions,
                                                          final TestEnvironment testEnvironment) {
-        queryMessageStatistics(sutActions, testEnvironment, MessageStatistics::getForgottenMessages);
+        throw new UnsupportedOperationException();
     }
 
     public static void queryTheNumberOfCurrentlyDeliveredMessages(final PipeMessageBusSutActions sutActions,
                                                                   final TestEnvironment testEnvironment) {
-        queryMessageStatistics(sutActions, testEnvironment, MessageStatistics::getCurrentlyDeliveredMessages);
+        throw new UnsupportedOperationException();
     }
 
     public static void queryTheNumberOfCurrentlyTransportedMessages(final PipeMessageBusSutActions sutActions,
                                                                     final TestEnvironment testEnvironment) {
-        queryMessageStatistics(sutActions, testEnvironment, MessageStatistics::getCurrentlyTransportedMessages);
+        throw new UnsupportedOperationException();
     }
 
     public static void queryTheTimestampOfTheMessageStatistics(final PipeMessageBusSutActions sutActions,
                                                                final TestEnvironment testEnvironment) {
-        final MessageStatistics messageStatistics = sutActions.getMessageStatistics();
-        final Date timestamp = messageStatistics.getTimestamp();
+        final PipeStatistics pipeStatistics = sutActions.getMessageStatistics();
+        final Date timestamp = pipeStatistics.getTimestamp();
         testEnvironment.setProperty(RESULT, timestamp);
     }
 
     private static void queryMessageStatistics(final PipeMessageBusSutActions sutActions,
                                                final TestEnvironment testEnvironment,
                                                final MessageStatisticsQuery query) {
-        final MessageStatistics messageStatistics = sutActions.getMessageStatistics();
-        final BigInteger statistic = query.query(messageStatistics);
+        final PipeStatistics pipeStatistics = sutActions.getMessageStatistics();
+        final BigInteger statistic = query.query(pipeStatistics);
         final long longValueExact = statistic.longValueExact();
         testEnvironment.setProperty(RESULT, longValueExact);
     }
@@ -224,6 +274,6 @@ public final class PipeMessageBusTestActions {
     }
 
     private interface MessageStatisticsQuery {
-        BigInteger query(MessageStatistics messageStatistics);
+        BigInteger query(PipeStatistics pipeStatistics);
     }
 }

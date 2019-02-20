@@ -56,7 +56,7 @@ final class SynchronousDeliveryStrategy<T> implements DeliveryStrategy<T> {
                         return;
                     }
                 } catch (final Exception e) {
-                    if (exceptionCatchingCondition.shouldBeCaught(e)) {
+                    if (exceptionCatchingCondition.shouldExceptionBeHandled(e)) {
                         final ExceptionInSubscriberException cause = new ExceptionInSubscriberException(e);
                         eventLoop.messageDeliveryFailure(message, cause);
                         return;

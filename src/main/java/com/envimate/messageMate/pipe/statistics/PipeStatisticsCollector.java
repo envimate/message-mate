@@ -19,17 +19,18 @@
  * under the License.
  */
 
-package com.envimate.messageMate.pipe.transport;
+package com.envimate.messageMate.pipe.statistics;
 
-import java.util.concurrent.TimeUnit;
+public interface PipeStatisticsCollector {
+    PipeStatistics getCurrentStatistics();
 
-public interface TransportMechanism<T> {
+    void informMessageAccepted();
 
-    void transport(T message);
+    void informMessageQueued();
 
-    void close(boolean finishRemainingTasks);
+    void informMessageDequeued();
 
-    boolean isShutdown();
+    void informMessageDeliveredSucceeded();
 
-    boolean awaitTermination(int timeout, TimeUnit timeUnit) throws InterruptedException;
+    void informMessageDeliveryFailed();
 }

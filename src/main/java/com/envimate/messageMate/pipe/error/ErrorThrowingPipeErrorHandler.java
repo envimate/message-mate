@@ -19,17 +19,25 @@
  * under the License.
  */
 
-package com.envimate.messageMate.pipe.transport;
+package com.envimate.messageMate.pipe.error;
 
-import java.util.concurrent.TimeUnit;
+import lombok.RequiredArgsConstructor;
 
-public interface TransportMechanism<T> {
+import static lombok.AccessLevel.PUBLIC;
 
-    void transport(T message);
+@RequiredArgsConstructor(access = PUBLIC)
+public class ErrorThrowingPipeErrorHandler<T> implements PipeErrorHandler<T> {
+    @Override
+    public boolean shouldErrorBeHandledAndDeliveryAborted(final T message, final Exception e) {
+        return true;
+    }
 
-    void close(boolean finishRemainingTasks);
-
-    boolean isShutdown();
-
-    boolean awaitTermination(int timeout, TimeUnit timeUnit) throws InterruptedException;
+    @Override
+    public void handleException(final T message, final Exception e) {
+        if (e instanceof RuntimeException) {
+            throw (RuntimeException) e;
+        } else {
+            throw new RuntimeException(e);
+        }
+    }
 }
