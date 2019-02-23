@@ -21,7 +21,8 @@
 
 package com.envimate.messageMate.messageBus;
 
-import com.envimate.messageMate.internal.statistics.MessageStatistics;
+import com.envimate.messageMate.channel.Channel;
+import com.envimate.messageMate.messageBus.statistics.MessageBusStatistics;
 import com.envimate.messageMate.subscribing.Subscriber;
 
 import java.util.List;
@@ -29,9 +30,11 @@ import java.util.Map;
 
 public interface MessageBusStatusInformation {
 
-    MessageStatistics getCurrentMessageStatistics();
+    MessageBusStatistics getCurrentMessageStatistics();
 
-    List<Subscriber<Object>> getAllSubscribers();
+    List<Subscriber<?>> getAllSubscribers();
 
-    Map<Object, List<Subscriber<Object>>> getSubscribersPerType();
+    Map<Class<?>, List<Subscriber<?>>> getSubscribersPerType();
+
+    <T> Channel<T> getChannelFor(Class<T> messageClass);
 }

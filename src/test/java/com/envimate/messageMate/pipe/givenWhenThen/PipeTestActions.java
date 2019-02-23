@@ -11,9 +11,13 @@ import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.RequiredArgsConstructor;
 
+import java.math.BigInteger;
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
@@ -72,6 +76,49 @@ public final class PipeTestActions implements PipeMessageBusSutActions {
         return statusInformation.getCurrentMessageStatistics();
     }
 
+    public void queryTheNumberOfAcceptedMessages(final TestEnvironment testEnvironment) {
+        queryMessageStatistics(testEnvironment, PipeStatistics::getAcceptedMessages);
+    }
+
+    public void queryTheNumberOfAcceptedMessagesAsynchronously(final TestEnvironment testEnvironment) {
+        final Semaphore semaphore = new Semaphore(0);
+        new Thread(() -> {
+            queryMessageStatistics(testEnvironment, PipeStatistics::getAcceptedMessages);
+            semaphore.release();
+        }).start();
+        try {
+            semaphore.acquire();
+        } catch (final InterruptedException e) {
+            //not necessary to do anything here
+        }
+    }
+
+    public void queryTheNumberOfQueuedMessages(final TestEnvironment testEnvironment) {
+        queryMessageStatistics(testEnvironment, PipeStatistics::getQueuedMessages);
+    }
+
+    public void queryTheNumberOfSuccessfulDeliveredMessages(final TestEnvironment testEnvironment) {
+        queryMessageStatistics(testEnvironment, PipeStatistics::getSuccessfulMessages);
+    }
+
+    public void queryTheNumberOfFailedDeliveredMessages(final TestEnvironment testEnvironment) {
+        queryMessageStatistics(testEnvironment, PipeStatistics::getFailedMessages);
+    }
+
+    public void queryTheTimestampOfTheMessageStatistics(final TestEnvironment testEnvironment) {
+        final PipeStatistics pipeStatistics = getMessageStatistics();
+        final Date timestamp = pipeStatistics.getTimestamp();
+        testEnvironment.setProperty(RESULT, timestamp);
+    }
+
+    private void queryMessageStatistics(final TestEnvironment testEnvironment,
+                                        final PipeStatisticsQuery query) {
+        final PipeStatistics pipeStatistics = getMessageStatistics();
+        final BigInteger statistic = query.query(pipeStatistics);
+        final long longValueExact = statistic.longValueExact();
+        testEnvironment.setProperty(RESULT, longValueExact);
+    }
+
     @Override
     public Object removeAFilter() {
         throw new UnsupportedOperationException();
@@ -95,5 +142,9 @@ public final class PipeTestActions implements PipeMessageBusSutActions {
         final PipeStatusInformation<TestMessage> statusInformation = pipe.getStatusInformation();
         final List<?> allSubscribers = statusInformation.getAllSubscribers();
         return (List<Subscriber<?>>) allSubscribers;
+    }
+
+    private interface PipeStatisticsQuery {
+        BigInteger query(PipeStatistics pipeStatistics);
     }
 }

@@ -6,11 +6,11 @@ import lombok.ToString;
 
 @ToString
 @EqualsAndHashCode
-public final class TestMessageOfInterest implements TestMessage {
+public class TestMessageOfInterest implements TestMessage {
     public static final String CONTENT = "TestContent";
     public String content;
 
-    private TestMessageOfInterest(final String content) {
+    protected TestMessageOfInterest(final String content) {
         this.content = content;
     }
 

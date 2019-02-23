@@ -35,6 +35,12 @@ public final class PipeMessageBusTestActions {
         sutActions.send(message);
     }
 
+    public static void sendTheMessage(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment,
+                                      final TestMessage message) {
+        testEnvironment.setProperty(SINGLE_SEND_MESSAGE, message);
+        sutActions.send(message);
+    }
+
     public static void sendSeveralMessages(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment, final int numberOfMessages) {
         final List<TestMessageOfInterest> messages = new LinkedList<>();
         for (int i = 0; i < numberOfMessages; i++) {
@@ -139,8 +145,8 @@ public final class PipeMessageBusTestActions {
     }
 
     public static void callCloseThenAwaitWithBlockedSubscriberWithoutReleasingLock(final PipeMessageBusSutActions sutActions,
-                                                                                       final TestEnvironment testEnvironment,
-                                                                                       final int numberOfMessagesSend) {
+                                                                                   final TestEnvironment testEnvironment,
+                                                                                   final int numberOfMessagesSend) {
         try {
             final Semaphore semaphore = new Semaphore(0);
             final BlockingTestSubscriber<TestMessage> testSubscriber = BlockingTestSubscriber.blockingTestSubscriber(semaphore);

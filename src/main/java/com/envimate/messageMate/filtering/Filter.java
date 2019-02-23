@@ -21,11 +21,7 @@
 
 package com.envimate.messageMate.filtering;
 
-import com.envimate.messageMate.subscribing.Subscriber;
-
-import java.util.List;
-
 public interface Filter<T> {
 
-    void apply(T message, List<Subscriber<T>> receivers, FilterActions<T> filterActions);
+    void apply(T message, FilterActions<T> filterActions);
 }

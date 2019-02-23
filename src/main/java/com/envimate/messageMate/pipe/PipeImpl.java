@@ -21,6 +21,7 @@
 
 package com.envimate.messageMate.pipe;
 
+import com.envimate.messageMate.error.AlreadyClosedException;
 import com.envimate.messageMate.pipe.statistics.PipeStatistics;
 import com.envimate.messageMate.pipe.statistics.PipeStatisticsCollector;
 import com.envimate.messageMate.pipe.transport.TransportMechanism;
@@ -52,7 +53,7 @@ public final class PipeImpl<T> implements Pipe<T> {
         if (!closedAlreadyCalled) {
             transportMechanism.transport(message);
         } else {
-            throw new PipeAlreadyClosedException();
+            throw new AlreadyClosedException();
         }
     }
 
@@ -62,7 +63,7 @@ public final class PipeImpl<T> implements Pipe<T> {
             subscribers.add(subscriber);
             return subscriber.getSubscriptionId();
         } else {
-            throw new PipeAlreadyClosedException();
+            throw new AlreadyClosedException();
         }
     }
 
@@ -77,7 +78,7 @@ public final class PipeImpl<T> implements Pipe<T> {
         if (!closedAlreadyCalled) {
             subscribers.removeIf(subscriber -> subscriber.getSubscriptionId().equals(subscriptionId));
         } else {
-            throw new PipeAlreadyClosedException();
+            throw new AlreadyClosedException();
         }
     }
 

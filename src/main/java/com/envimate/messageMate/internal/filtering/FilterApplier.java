@@ -22,11 +22,10 @@
 package com.envimate.messageMate.internal.filtering;
 
 import com.envimate.messageMate.filtering.Filter;
-import com.envimate.messageMate.subscribing.Subscriber;
 
 import java.util.List;
 
 public interface FilterApplier<T> {
 
-    void applyAll(T message, List<Filter<T>> filters, List<Subscriber<T>> receivers, PostFilterActions<T> postFilterActions);
+    void applyAll(T message, List<Filter<T>> filters, PostFilterActions<T> postFilterActions);
 }

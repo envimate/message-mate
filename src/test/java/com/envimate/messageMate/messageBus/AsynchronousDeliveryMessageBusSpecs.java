@@ -6,15 +6,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static com.envimate.messageMate.messageBus.config.MessageBusTestConfig.ASYNCHRONOUS_DELIVERY_POOL_SIZE;
+import static com.envimate.messageMate.messageBus.givenWhenThen.Given.given;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusActionBuilder.*;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusSetupBuilder.aConfiguredMessageBus;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusValidationBuilder.expectResultToBe;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusValidationBuilder.expectXMessagesToBeDelivered;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.Given.given;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @ExtendWith(AsynchronousDeliveryMessageBusConfigurationResolver.class)
-public class AsynchronousDeliveryMessageBusSpecs implements MessageBusSpecs {
+public class AsynchronousDeliveryMessageBusSpecs /*implements MessageBusSpecs*/ {
 
     //messageStatistics
     @Test
@@ -31,7 +31,7 @@ public class AsynchronousDeliveryMessageBusSpecs implements MessageBusSpecs {
         given(aConfiguredMessageBus(messageBusTestConfig)
                 .withASubscriberThatBlocksWhenAccepting())
                 .when(severalMessagesAreSendAsynchronously(3, 5)
-                        .andThen(theNumberOfWaitingMessagesIsQueried()))
+                        .andThen(theNumberOfQueuedMessagesIsQueried()))
                 .then(expectResultToBe(0));
     }
 
@@ -42,25 +42,6 @@ public class AsynchronousDeliveryMessageBusSpecs implements MessageBusSpecs {
                 .when(severalMessagesAreSendAsynchronously(3, 5)
                         .andThen(theNumberOfAcceptedMessagesIsQueried()))
                 .then(expectResultToBe(15));
-    }
-
-    @Test
-    public void testMessageBus_withBlockingSubscriber_whenNumberOfCurrentlyTransportedMessagesIsQueried_returnsZero(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aConfiguredMessageBus(messageBusTestConfig)
-                .withASubscriberThatBlocksWhenAccepting())
-                .when(severalMessagesAreSendAsynchronously(3, 5)
-                        .andThen(theNumberOfCurrentlyTransportedMessagesIsQueried()))
-                .then(expectResultToBe(0));
-    }
-
-    @Test
-    public void testMessageBus_withBlockingSubscriber_whenNumberOfCurrentlyDeliveredMessagesIsQueried_deliversTooMuchForUnboundedQueue(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aConfiguredMessageBus(messageBusTestConfig)
-                .withASubscriberThatBlocksWhenAccepting())
-                .when(severalMessagesAreSendAsynchronouslyButWillBeBlocked(3, 5)
-                        .andThen(aShortWaitIsDone(100, MILLISECONDS))
-                        .andThen(theNumberOfCurrentlyDeliveredMessagesIsQueried()))
-                .then(expectResultToBe(3 * 5));
     }
 
     //shutdown

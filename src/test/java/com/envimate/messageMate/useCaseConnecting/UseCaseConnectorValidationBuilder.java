@@ -47,8 +47,8 @@ public final class UseCaseConnectorValidationBuilder {
             ensureNoExceptionWasThrown(testEnvironment);
             final MessageBus messageBus = testEnvironment.getPropertyAsType(CONTROLLABLE_ENV_OBJECT, MessageBus.class);
             final MessageBusStatusInformation statusInformation = messageBus.getStatusInformation();
-            final Map<Object, List<Subscriber<Object>>> subscribersPerType = statusInformation.getSubscribersPerType();
-            final List<Subscriber<Object>> subscribers = subscribersPerType.get(UseCaseRequest.class);
+            final Map<Class<?>, List<Subscriber<?>>> subscribersPerType = statusInformation.getSubscribersPerType();
+            final List<Subscriber<?>> subscribers = subscribersPerType.get(UseCaseRequest.class);
             assertThat(subscribers.size(), equalTo(0));
         });
     }

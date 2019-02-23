@@ -89,48 +89,48 @@ public final class PipeActionBuilder {
 
     public static PipeActionBuilder theNumberOfAcceptedMessagesIsQueried() {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeMessageBusSutActions sutActions = pipeTestActions(pipe);
-            queryTheNumberOfAcceptedMessages(sutActions, testEnvironment);
+            pipeTestActions(pipe)
+                    .queryTheNumberOfAcceptedMessages(testEnvironment);
             return null;
         });
     }
 
     public static PipeActionBuilder theNumberOfAcceptedMessagesIsQueriedAsynchronously() {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeMessageBusSutActions sutActions = pipeTestActions(pipe);
-            queryTheNumberOfAcceptedMessagesAsynchronously(sutActions, testEnvironment);
+            pipeTestActions(pipe)
+                    .queryTheNumberOfAcceptedMessagesAsynchronously(testEnvironment);
             return null;
         });
     }
 
     public static PipeActionBuilder theNumberOfQueuedMessagesIsQueried() {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeMessageBusSutActions sutActions = pipeTestActions(pipe);
-            queryTheNumberOfQueuedMessages(sutActions, testEnvironment);
+            pipeTestActions(pipe)
+                    .queryTheNumberOfQueuedMessages(testEnvironment);
             return null;
         });
     }
 
     public static PipeActionBuilder theNumberOfSuccessfulMessagesIsQueried() {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeMessageBusSutActions sutActions = pipeTestActions(pipe);
-            queryTheNumberOfSuccessfulDeliveredMessages(sutActions, testEnvironment);
+            pipeTestActions(pipe)
+                    .queryTheNumberOfSuccessfulDeliveredMessages(testEnvironment);
             return null;
         });
     }
 
     public static PipeActionBuilder theNumberOfFailedMessagesIsQueried() {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeMessageBusSutActions sutActions = pipeTestActions(pipe);
-            queryTheNumberOfFailedDeliveredMessages(sutActions, testEnvironment);
+            pipeTestActions(pipe)
+                    .queryTheNumberOfFailedDeliveredMessages(testEnvironment);
             return null;
         });
     }
 
     public static PipeActionBuilder theTimestampOfTheStatisticsIsQueried() {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeMessageBusSutActions sutActions = pipeTestActions(pipe);
-            queryTheTimestampOfTheMessageStatistics(sutActions, testEnvironment);
+            pipeTestActions(pipe)
+                    .queryTheTimestampOfTheMessageStatistics(testEnvironment);
             return null;
         });
     }

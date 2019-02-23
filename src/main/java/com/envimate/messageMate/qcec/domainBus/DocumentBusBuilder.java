@@ -46,12 +46,12 @@ public final class DocumentBusBuilder {
     }
 
     public static DocumentBus aDefaultDocumentBus() {
-        final MessageBus queryMessageBus = aMessageBus()
+        final MessageBus queryMessageBus = null; /* TODO aMessageBus()
                 .withBrokerType(BrokerStrategyType.QUERY_RESOLVING_STRATEGY)
-                .build();
-        final MessageBus constraintMessageBus = aMessageBus()
+                .build();*/
+        final MessageBus constraintMessageBus = null;/* aMessageBus()
                 .withExceptionCatchingCondition(e -> false)
-                .build();
+                .build();*/
         final MessageBus eventMessageBus = aMessageBus().build();
         final QueryResolver queryResolver = aQueryResolver(queryMessageBus);
         final ConstraintEnforcer constraintEnforcer = aConstraintEnforcer(constraintMessageBus);

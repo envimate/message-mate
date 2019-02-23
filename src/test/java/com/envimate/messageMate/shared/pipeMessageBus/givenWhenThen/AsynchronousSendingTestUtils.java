@@ -6,11 +6,14 @@ import com.envimate.messageMate.shared.subscriber.TestSubscriber;
 import com.envimate.messageMate.shared.testMessages.InvalidTestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
+import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.RequiredArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestProperties.*;
@@ -22,24 +25,32 @@ import static lombok.AccessLevel.PRIVATE;
 @RequiredArgsConstructor(access = PRIVATE)
 public final class AsynchronousSendingTestUtils {
 
+    //TODO: replace sutActions with consumer
+
     public static void sendValidMessagesAsynchronously(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment,
                                                        final int numberOfSender, final int numberOfMessagesPerSender, final boolean expectCleanShutdown) {
         sendXMessagesAsynchronously(numberOfSender, TestMessageFactory.testMessageFactoryForValidMessages(numberOfMessagesPerSender, testEnvironment),
-                sutActions, testEnvironment, expectCleanShutdown);
+                sutActions::send, testEnvironment, expectCleanShutdown);
+    }
+
+    public static void sendValidMessagesAsynchronously(final Consumer<TestMessage> sutSend, final TestEnvironment testEnvironment,
+                                                       final int numberOfSender, final int numberOfMessagesPerSender, final boolean expectCleanShutdown) {
+        sendXMessagesAsynchronously(numberOfSender, TestMessageFactory.testMessageFactoryForValidMessages(numberOfMessagesPerSender, testEnvironment),
+                sutSend, testEnvironment, expectCleanShutdown);
     }
 
     public static void sendInvalidMessagesAsynchronously(final PipeMessageBusSutActions sutActions,
                                                          final TestEnvironment testEnvironment,
                                                          final int numberOfSender, final int numberOfMessagesPerSender) {
         sendXMessagesAsynchronously(numberOfSender, TestMessageFactory.testMessageFactoryForInvalidMessages(numberOfMessagesPerSender),
-                sutActions, testEnvironment, true);
+                sutActions::send, testEnvironment, true);
     }
 
     public static void sendMixtureOfValidAndInvalidMessagesAsynchronously(final PipeMessageBusSutActions sutActions,
                                                                           final TestEnvironment testEnvironment,
                                                                           final int numberOfSender, final int numberOfMessagesPerSender) {
         sendXMessagesAsynchronously(numberOfSender, TestMessageFactory.testMessageFactoryForRandomValidOrInvalidTestMessages(numberOfMessagesPerSender, testEnvironment),
-                sutActions, testEnvironment, true);
+                sutActions::send, testEnvironment, true);
     }
 
     public static void sendMessagesBeforeAndAfterShutdownAsynchronously(final PipeMessageBusSutActions sutActions,
@@ -53,7 +64,7 @@ public final class AsynchronousSendingTestUtils {
         testEnvironment.setProperty(SINGLE_RECEIVER, subscriber);
 
         final TestMessageFactory messageFactory = TestMessageFactory.testMessageFactoryForValidMessages(1, testEnvironment);
-        sendXMessagesAsynchronously(numberOfMessagesBeforeShutdown, messageFactory, sutActions, testEnvironment, false);
+        sendXMessagesAsynchronously(numberOfMessagesBeforeShutdown, messageFactory, sutActions::send, testEnvironment, false);
         try {
             MILLISECONDS.sleep(100);
         } catch (final InterruptedException e) {
@@ -71,10 +82,18 @@ public final class AsynchronousSendingTestUtils {
     public static void sendMessagesBeforeShutdownAsynchronously(final PipeMessageBusSutActions sutActions,
                                                                 final TestEnvironment testEnvironment,
                                                                 final int numberOfSenders, final int numberOfMessages) {
+        sendMessagesBeforeShutdownAsynchronously(sutActions::subscribe, sutActions::send, sutActions::close, testEnvironment, numberOfSenders, numberOfMessages);
+    }
+
+    public static void sendMessagesBeforeShutdownAsynchronously(final BiConsumer<Class<TestMessageOfInterest>, Subscriber<TestMessageOfInterest>> subscriberConsumer,
+                                                                final Consumer<TestMessage> sendConsumer,
+                                                                final Consumer<Boolean> closeConsumer,
+                                                                final TestEnvironment testEnvironment,
+                                                                final int numberOfSenders, final int numberOfMessages) {
         final Semaphore semaphore = new Semaphore(0);
         testEnvironment.setProperty(EXECUTION_END_SEMAPHORE, semaphore);
         final BlockingTestSubscriber<TestMessageOfInterest> subscriber = blockingTestSubscriber(semaphore);
-        sutActions.subscribe(TestMessageOfInterest.class, subscriber);
+        subscriberConsumer.accept(TestMessageOfInterest.class, subscriber);
         testEnvironment.setProperty(SINGLE_RECEIVER, subscriber);
 
         final ExecutorService executorService = Executors.newFixedThreadPool(numberOfSenders);
@@ -83,7 +102,7 @@ public final class AsynchronousSendingTestUtils {
                 for (int j = 0; j < numberOfMessages; j++) {
                     final TestMessageOfInterest message = TestMessageOfInterest.messageOfInterest();
                     testEnvironment.addToListProperty(MESSAGES_SEND, message);
-                    sutActions.send(message);
+                    sendConsumer.accept(message);
                 }
             });
         }
@@ -92,12 +111,12 @@ public final class AsynchronousSendingTestUtils {
         } catch (final InterruptedException e) {
             throw new RuntimeException(e);
         }
-        sutActions.close(false);
+        closeConsumer.accept(false);
         semaphore.release(1337);
     }
 
     private static void sendXMessagesAsynchronously(final int numberOfSender, final MessageFactory messageFactory,
-                                                    final PipeMessageBusSutActions sutActions,
+                                                    final Consumer<TestMessage> sutSend,
                                                     final TestEnvironment testEnvironment, final boolean expectCleanShutdown) {
         if (numberOfSender <= 0) {
             return;
@@ -119,7 +138,7 @@ public final class AsynchronousSendingTestUtils {
                     throw new RuntimeException(e);
                 }
                 for (final TestMessage message : messagesToSend) {
-                    sutActions.send(message);
+                    sutSend.accept(message);
                 }
             });
         }

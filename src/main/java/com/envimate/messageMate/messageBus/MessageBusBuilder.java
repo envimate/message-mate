@@ -21,94 +21,51 @@
 
 package com.envimate.messageMate.messageBus;
 
-import com.envimate.messageMate.configuration.ExceptionCatchingCondition;
-import com.envimate.messageMate.configuration.MessageBusConfiguration;
-import com.envimate.messageMate.internal.accepting.MessageAcceptingStrategyFactory;
-import com.envimate.messageMate.internal.accepting.MessageAcceptingStrategyType;
-import com.envimate.messageMate.internal.brokering.BrokerStrategy;
-import com.envimate.messageMate.internal.brokering.BrokerStrategyType;
-import com.envimate.messageMate.internal.delivering.DeliveryStrategyFactory;
-import com.envimate.messageMate.internal.delivering.DeliveryType;
-import com.envimate.messageMate.internal.statistics.StatisticsCollector;
+import com.envimate.messageMate.channel.ChannelBuilder;
+import com.envimate.messageMate.channel.ChannelType;
+import com.envimate.messageMate.messageBus.brokering.MessageBusBrokerStrategyImpl;
+import com.envimate.messageMate.messageBus.channelCreating.MessageBusChannelFactory;
 import lombok.AccessLevel;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import static com.envimate.messageMate.internal.accepting.MessageAcceptingStrategyAbstractFactory.aMessageAcceptingStrategyFactory;
-import static com.envimate.messageMate.internal.brokering.BrokerStrategyFactory.aBrokerStrategy;
-import static com.envimate.messageMate.internal.delivering.AbstractDeliveryStrategyFactory.deliveryStrategyForType;
-import static com.envimate.messageMate.internal.statistics.StatisticsCollectorFactory.aStatisticsCollector;
+import static com.envimate.messageMate.channel.ChannelBuilder.aChannel;
+import static com.envimate.messageMate.messageBus.MessageBusType.SYNCHRONOUS;
+import static com.envimate.messageMate.messageBus.channelCreating.SynchronousMessageBusChannelFactory.synchronousMessageBusChannelFactory;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class MessageBusBuilder {
-
-    private MessageBusConfiguration configuration = MessageBusConfiguration.defaultConfiguration();
-    private DeliveryStrategyFactory<Object> deliveryStrategyFactory;
-    private BrokerStrategy brokerStrategy;
-    private MessageAcceptingStrategyFactory<Object> messageAcceptingStrategyFactory;
-    private StatisticsCollector statisticsCollector;
+    private MessageBusChannelFactory channelFactory = synchronousMessageBusChannelFactory();
+    private MessageBusType type = SYNCHRONOUS;
 
     public static MessageBusBuilder aMessageBus() {
         return new MessageBusBuilder();
     }
 
-    public MessageBusBuilder withDeliveryType(final DeliveryType deliveryType) {
-        configuration.setDeliveryType(deliveryType);
+    public MessageBusBuilder forType(final MessageBusType type) {
+        this.type = type;
         return this;
     }
 
-    public MessageBusBuilder withACustomDeliveryStrategyFactory(final DeliveryStrategyFactory<Object> deliveryStrategyFactory) {
-        this.deliveryStrategyFactory = deliveryStrategyFactory;
-        return this;
-    }
-
-    public MessageBusBuilder withBrokerType(final BrokerStrategyType brokerStrategyType) {
-        configuration.setBrokerStrategyType(brokerStrategyType);
-        return this;
-    }
-
-    public MessageBusBuilder withACustomBrokerStrategy(final BrokerStrategy brokerStrategy) {
-        this.brokerStrategy = brokerStrategy;
-        return this;
-    }
-
-    public MessageBusBuilder withACustomMessageAcceptingStrategyFactory(
-            final MessageAcceptingStrategyFactory<Object> messageAcceptingStrategyFactory) {
-        this.messageAcceptingStrategyFactory = messageAcceptingStrategyFactory;
-        return this;
-    }
-
-    public MessageBusBuilder withConfiguration(@NonNull final MessageBusConfiguration messageBusConfiguration) {
-        this.configuration = messageBusConfiguration;
-        return this;
-    }
-
-    public MessageBusBuilder withExceptionCatchingCondition(final ExceptionCatchingCondition exceptionCatchingCondition) {
-        this.configuration.setExceptionCatchingCondition(exceptionCatchingCondition);
-        return this;
-    }
-
-    public MessageBusBuilder withStatisticsCollector(final StatisticsCollector statisticsCollector) {
-        this.statisticsCollector = statisticsCollector;
+    public MessageBusBuilder withAChannelFactory(final MessageBusChannelFactory channelFactory) {
+        this.channelFactory = channelFactory;
         return this;
     }
 
     public MessageBus build() {
-        final StatisticsCollector statisticsCollector = fieldOrDefault(this.statisticsCollector, aStatisticsCollector());
-        final MessageAcceptingStrategyType messageAcceptingStrategyType = configuration.getMessageAcceptingStrategyType();
-        final MessageAcceptingStrategyFactory<Object> msgAccStrFactory = fieldOrDefault(this.messageAcceptingStrategyFactory,
-                aMessageAcceptingStrategyFactory(messageAcceptingStrategyType));
-        final BrokerStrategy brokerStrategy = fieldOrDefault(this.brokerStrategy, aBrokerStrategy(configuration));
-        final DeliveryStrategyFactory<Object> deliveryStrategy = fieldOrDefault(this.deliveryStrategyFactory,
-                deliveryStrategyForType(configuration));
-        return new MessageBusImpl(msgAccStrFactory, brokerStrategy, deliveryStrategy, statisticsCollector);
+        final ChannelType channelType = map(type);
+        final ChannelBuilder<Object> channelBuilder = aChannel(Object.class)
+                .forType(channelType);
+        return new MessageBusImpl(channelBuilder, MessageBusBrokerStrategyImpl.messageBusBrokerStrategy(channelFactory));
     }
 
-    private <T> T fieldOrDefault(final T field, final T defaultValue) {
-        if (field != null) {
-            return field;
-        } else {
-            return defaultValue;
+    private ChannelType map(final MessageBusType messageBusType) {
+        switch (messageBusType) {
+            case SYNCHRONOUS:
+                return ChannelType.SYNCHRONOUS;
+            case ASYNCHRONOUS:
+                return ChannelType.ASYNCHRONOUS;
+            default:
+                throw new IllegalArgumentException("Unknown type for message bus: " + messageBusType);
         }
     }
 }

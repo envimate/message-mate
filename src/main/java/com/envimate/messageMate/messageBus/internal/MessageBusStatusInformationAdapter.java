@@ -21,10 +21,11 @@
 
 package com.envimate.messageMate.messageBus.internal;
 
-import com.envimate.messageMate.internal.brokering.BrokerStrategy;
-import com.envimate.messageMate.internal.statistics.MessageStatistics;
-import com.envimate.messageMate.internal.statistics.StatisticsCollector;
+import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.messageBus.MessageBusStatusInformation;
+import com.envimate.messageMate.messageBus.brokering.MessageBusBrokerStrategy;
+import com.envimate.messageMate.messageBus.statistics.MessageBusStatistics;
+import com.envimate.messageMate.messageBus.statistics.MessageBusStatisticsCollector;
 import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -37,27 +38,34 @@ import static lombok.AccessLevel.PRIVATE;
 @RequiredArgsConstructor(access = PRIVATE)
 public final class MessageBusStatusInformationAdapter implements MessageBusStatusInformation {
 
-    private final StatisticsCollector statisticsCollector;
-    private final BrokerStrategy brokerStrategy;
+    private final MessageBusStatisticsCollector statisticsCollector;
+    private final MessageBusBrokerStrategy brokerStrategy;
 
     public static MessageBusStatusInformationAdapter statusInformationAdapter(
-            @NonNull final StatisticsCollector statisticsCollector,
-            @NonNull final BrokerStrategy brokerStrategy) {
+            @NonNull final MessageBusStatisticsCollector statisticsCollector,
+            @NonNull final MessageBusBrokerStrategy brokerStrategy) {
         return new MessageBusStatusInformationAdapter(statisticsCollector, brokerStrategy);
     }
 
     @Override
-    public MessageStatistics getCurrentMessageStatistics() {
-        return statisticsCollector.getCurrentStatistics();
+    public MessageBusStatistics getCurrentMessageStatistics() {
+        return statisticsCollector.getStatistics();
     }
 
     @Override
-    public List<Subscriber<Object>> getAllSubscribers() {
+    public List<Subscriber<?>> getAllSubscribers() {
         return brokerStrategy.getAllSubscribers();
     }
 
     @Override
-    public Map<Object, List<Subscriber<Object>>> getSubscribersPerType() {
+    public Map<Class<?>, List<Subscriber<?>>> getSubscribersPerType() {
         return brokerStrategy.getSubscribersPerType();
+    }
+
+    @Override
+    public <T> Channel<T> getChannelFor(final Class<T> messageClass) {
+        @SuppressWarnings("unchecked")
+        final Channel<T> channel = (Channel<T>) brokerStrategy.getClassSpecificChannel(messageClass);
+        return channel;
     }
 }

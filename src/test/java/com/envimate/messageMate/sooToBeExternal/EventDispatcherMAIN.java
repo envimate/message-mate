@@ -7,6 +7,7 @@ import com.envimate.messageMate.soonToBeExternal.*;
 import java.util.ArrayList;
 import java.util.List;
 
+//TODO: cleanup
 public class EventDispatcherMAIN {
 
     public static void main(String[] args) {
@@ -17,7 +18,7 @@ public class EventDispatcherMAIN {
                 .usingMessageBus(messageBus)
                 .build();
 
-        messageBus.add((message, receivers, filterActions) -> {
+        messageBus.add((message, filterActions) -> {
             if (message instanceof UseCaseCallRequest) {
                 final List<Object> parameter = ((UseCaseCallRequest) message).getParameter();
                 parameter.add("hello");

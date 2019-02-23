@@ -55,7 +55,7 @@ public final class ActionHandlerSet<T> {
         if (actionHandler != null) {
             return (ActionHandler<Action<T>, T>) actionHandler;
         } else {
-            throw new NotHandlerForUnknownActionException(action);
+            throw new NoHandlerForUnknownActionException(action);
         }
     }
 

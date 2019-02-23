@@ -6,7 +6,6 @@ import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.subscriber.ErrorThrowingTestSubscriber;
 import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
 import com.envimate.messageMate.shared.subscriber.TestSubscriber;
-import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 import lombok.RequiredArgsConstructor;
 
@@ -25,8 +24,13 @@ import static lombok.AccessLevel.PRIVATE;
 public final class PipeMessageBusSetupActions {
 
     public static void addASingleSubscriber(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
-        final SimpleTestSubscriber<TestMessageOfInterest> subscriber = testSubscriber();
-        sutActions.subscribe(TestMessageOfInterest.class, subscriber);
+        addASingleSubscriber(sutActions, testEnvironment, TestMessageOfInterest.class);
+    }
+
+    public static <T> void addASingleSubscriber(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment,
+                                                final Class<T> clazz) {
+        final SimpleTestSubscriber<T> subscriber = testSubscriber();
+        sutActions.subscribe(clazz, subscriber);
         testEnvironment.addToListProperty(EXPECTED_RECEIVERS, subscriber);
         testEnvironment.addToListProperty(INITIAL_SUBSCRIBER, subscriber);
     }
@@ -39,12 +43,12 @@ public final class PipeMessageBusSetupActions {
 
     public static void addAFilterThatChangesTheContentOfEveryMessage(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
         testEnvironment.setProperty(EXPECTED_CHANGED_CONTENT, TestFilter.CHANGED_CONTENT);
-        final Filter<TestMessage> filter = aContentChangingFilter_old();
+        final Filter<TestMessageOfInterest> filter = aContentChangingFilter();
         sutActions.addFilter(filter);
     }
 
-    public static void addAFilterThatDropsWrongMessages(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
-        final Filter<Object> filter = aMessageDroppingFilter_old();
+    public static void addAFilterThatDropsMessages(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
+        final Filter<Object> filter = aMessageDroppingFilter();
         sutActions.addFilter(filter);
     }
 

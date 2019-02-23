@@ -1,7 +1,6 @@
 package com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen;
 
 import com.envimate.messageMate.filtering.Filter;
-import com.envimate.messageMate.internal.statistics.MessageStatistics;
 import com.envimate.messageMate.pipe.statistics.PipeStatistics;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
@@ -25,7 +24,7 @@ public interface PipeMessageBusSutActions {
 
     void unsubscribe(SubscriptionId subscriptionId);
 
-    void send(TestMessage message);
+    <T extends TestMessage> void send(T message);
 
     PipeStatistics getMessageStatistics();
 

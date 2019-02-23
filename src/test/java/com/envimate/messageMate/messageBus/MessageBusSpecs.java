@@ -1,23 +1,21 @@
 package com.envimate.messageMate.messageBus;
 
 
-import com.envimate.messageMate.error.ExceptionInSubscriberException;
-import com.envimate.messageMate.error.NoSuitableSubscriberException;
+import com.envimate.messageMate.error.AlreadyClosedException;
 import com.envimate.messageMate.messageBus.config.MessageBusTestConfig;
 import com.envimate.messageMate.shared.testMessages.InvalidTestMessage;
+import com.envimate.messageMate.shared.testMessages.SubClassingTestMessageOfInterest;
+import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 import org.junit.jupiter.api.Test;
 
+import static com.envimate.messageMate.messageBus.givenWhenThen.Given.given;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusActionBuilder.*;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusSetupBuilder.aConfiguredMessageBus;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusValidationBuilder.*;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.Given.given;
+import static com.envimate.messageMate.shared.testMessages.SubClassingTestMessageOfInterest.subClassingTestMessageOfInterest;
+import static com.envimate.messageMate.shared.testMessages.TestMessageOfInterest.messageOfInterest;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-
-/*
-TODO:
-- instead of waits: TestExecutionContext contains information, if there are asynchronous parts and adapt the then validations
- */
 
 public interface MessageBusSpecs {
 
@@ -37,6 +35,81 @@ public interface MessageBusSpecs {
                 .when(severalMessagesAreSend(10)
                         .andThen(aShortWaitIsDone(5, MILLISECONDS)))
                 .then(expectAllMessagesToBeReceivedByAllSubscribers());
+    }
+
+    @Test
+    default void testMessageBus_canSendMessageTwice(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        final TestMessageOfInterest message = messageOfInterest();
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withASingleSubscriber(TestMessage.class))
+                .when(theMessageIsSend(message)
+                        .andThen(theMessageIsSend(message)))
+                .then(expectTheMessagesToBeReceivedByAllSubscriber(message, message));
+    }
+
+    @Test
+    default void testMessageBus_subClassesAreReceived_forInterfaces(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        final TestMessageOfInterest subClassingMessage = messageOfInterest();
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withASingleSubscriber(TestMessage.class))
+                .when(theMessageIsSend(subClassingMessage))
+                .then(expectTheMessagesToBeReceivedByAllSubscriber(subClassingMessage));
+    }
+
+    @Test
+    default void testMessageBus_subClassesAreReceived_forExtendedClasses(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        final SubClassingTestMessageOfInterest subClassingMessage = subClassingTestMessageOfInterest();
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withASingleSubscriber(TestMessageOfInterest.class))
+                .when(theMessageIsSend(subClassingMessage))
+                .then(expectTheMessagesToBeReceivedByAllSubscriber(subClassingMessage));
+    }
+
+    @Test
+    default void testMessageBus_subClassesAreReceived_evenIfSubscriberIsAddedLater(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        final TestMessageOfInterest subClassingMessage1 = messageOfInterest();
+        final TestMessageOfInterest subClassingMessage2 = messageOfInterest();
+        given(aConfiguredMessageBus(messageBusTestConfig))
+                .when(theMessageIsSend(subClassingMessage1)
+                        .andThen(aSubscriberIsAdded(TestMessage.class)
+                                .andThen(theMessageIsSend(subClassingMessage2))))
+                .then(expectTheMessagesToBeReceivedByAllSubscriber(subClassingMessage2));
+    }
+
+    @Test
+    default void testMessageBus_subClassesAreReceivedByAllSubscriber(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        final TestMessageOfInterest subClassingMessage = messageOfInterest();
+        given(aConfiguredMessageBus(messageBusTestConfig))
+                .when(aSubscriberIsAdded(TestMessage.class)
+                        .andThen(aSubscriberIsAdded(TestMessage.class)
+                                .andThen(theMessageIsSend(subClassingMessage))))
+                .then(expectTheMessagesToBeReceivedByAllSubscriber(subClassingMessage));
+    }
+
+    @Test
+    default void testMessageBus_objectChannelReceivesAll(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        final TestMessageOfInterest message1 = messageOfInterest();
+        final SubClassingTestMessageOfInterest message2 = subClassingTestMessageOfInterest();
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withASubscriberForTyp(Object.class))
+                .when(theMessageIsSend(message1)
+                        .andThen(theMessageIsSend(message2)))
+                .then(expectTheMessagesToBeReceivedByAllSubscriber(message1, message2));
+    }
+
+    @Test
+    default void testMessageBus_objectChannelReceivesAll_evenIfAddedLater(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        final TestMessageOfInterest ignoredMessage1 = messageOfInterest();
+        final SubClassingTestMessageOfInterest ignoredMessage2 = subClassingTestMessageOfInterest();
+        final TestMessageOfInterest receivedMessage1 = messageOfInterest();
+        final SubClassingTestMessageOfInterest receivedMessage2 = subClassingTestMessageOfInterest();
+        given(aConfiguredMessageBus(messageBusTestConfig))
+                .when(theMessageIsSend(ignoredMessage1)
+                        .andThen(theMessageIsSend(ignoredMessage2)
+                                .andThen(aSubscriberIsAdded(Object.class)
+                                        .andThen(theMessageIsSend(receivedMessage1)
+                                                .andThen(theMessageIsSend(receivedMessage2))))))
+                .then(expectTheMessagesToBeReceivedByAllSubscriber(receivedMessage1, receivedMessage2));
     }
 
     @Test
@@ -78,22 +151,20 @@ public interface MessageBusSpecs {
     @Test
     default void testMessageBus_allowsFiltersToChangeMessages(final MessageBusTestConfig messageBusTestConfig) throws Exception {
         given(aConfiguredMessageBus(messageBusTestConfig)
-                .withSeveralSubscriber(3)
+                .withSeveralSubscriber(1)
                 .withAFilterThatChangesTheContentOfEveryMessage())
-                .when(severalMessagesAreSend(10))
+                .when(severalMessagesAreSend(1))
                 .then(expectAllMessagesToHaveTheContentChanged());
     }
-
 
     @Test
     default void testMessageBus_allowsFiltersToDropMessages(final MessageBusTestConfig messageBusTestConfig) throws Exception {
         given(aConfiguredMessageBus(messageBusTestConfig)
                 .withSeveralSubscriber(3)
-                .withAFilterThatDropsWrongMessages())
+                .withAFilterThatDropsMessages())
                 .when(halfValidAndInvalidMessagesAreSendAsynchronously(3, 10))
-                .then(expectAllMessagesToBeReceivedByAllSubscribers());
+                .then(expectNoMessagesToBeDelivered());
     }
-
 
     @Test
     default void testMessageBus_allowsFiltersToReplaceMessages(final MessageBusTestConfig messageBusTestConfig) throws Exception {
@@ -179,9 +250,9 @@ public interface MessageBusSpecs {
     default void testMessageBus_returnsCorrectNumberOfDroppedMessages(final MessageBusTestConfig messageBusTestConfig) throws Exception {
         given(aConfiguredMessageBus(messageBusTestConfig)
                 .withASingleSubscriber()
-                .withAFilterThatDropsWrongMessages())
+                .withAFilterThatDropsMessages())
                 .when(severalInvalidMessagesAreSendAsynchronously(3, 5)
-                        .andThen(theNumberOfDroppedMessagesIsQueried()))
+                        .andThen(theNumberOfBlockedMessagesIsQueried()))
                 .then(expectResultToBe(15));
     }
 
@@ -201,7 +272,7 @@ public interface MessageBusSpecs {
                 .withoutASubscriber())
                 .when(severalMessagesAreSendAsynchronously(3, 5)
                         .andThen(theNumberOfFailedMessagesIsQueried()))
-                .then(expectResultToBe(15));
+                .then(expectResultToBe(0));
     }
 
     @Test
@@ -234,6 +305,17 @@ public interface MessageBusSpecs {
                 .then(expectAListOfSize(2));
     }
 
+
+    //channel
+    @Test
+    default void testMessageBus_returnsCorrectChannel(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withACustomChannelFactory()
+                .withASubscriberForTyp(TestMessageOfInterest.class))
+                .when(theChannelForTheClassIsQueried(TestMessageOfInterest.class))
+                .then(expectTheCorrectChannel());
+    }
+
     //shutdown
     @Test
     default void testMessageBus_canShutdown_evenIfIsBlocked(final MessageBusTestConfig messageBusTestConfig) throws Exception {
@@ -253,22 +335,16 @@ public interface MessageBusSpecs {
                 .then(expectTheMessageBusToBeShutdown());
     }
 
+    //TODO: await in sub configs -> sync and async configs
+    //TODO: error in acceptingPipe filter, error class specific channel filter, error in subscription.subscriber
+
     //error cases
     @Test
-    default void testMessageBus_errorMessageIsSend_whenNoSubscriberExists(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+    default void testMessageBus_throwsErrorWhenSendOnAClosedMessageBusIsCalled(final MessageBusTestConfig messageBusTestConfig) throws Exception {
         given(aConfiguredMessageBus(messageBusTestConfig)
                 .withAnErrorAcceptingSubscriber())
-                .when(aSingleMessageIsSend())
-                .then(expectErrorMessageWithCause(NoSuitableSubscriberException.class));
-    }
-
-    @Test
-    default void testMessageBus_errorMessageIsSend_whenNoSubscriberThrowsError(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aConfiguredMessageBus(messageBusTestConfig)
-                .withAnErrorThrowingSubscriber()
-                .withAnErrorAcceptingSubscriber())
-                .when(aSingleMessageIsSend()
-                        .andThen(aShortWaitIsDone(10, MILLISECONDS)))
-                .then(expectErrorMessageWithCause(ExceptionInSubscriberException.class));
+                .when(theMessageBusIsShutdown()
+                        .andThen(aSingleMessageIsSend()))
+                .then(expectTheException(AlreadyClosedException.class));
     }
 }

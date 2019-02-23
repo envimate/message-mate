@@ -1,21 +1,32 @@
 package com.envimate.messageMate.messageBus.givenWhenThen;
 
+import com.envimate.messageMate.channel.Channel;
+import com.envimate.messageMate.channel.ChannelBuilder;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusBuilder;
+import com.envimate.messageMate.messageBus.channelCreating.MessageBusChannelFactory;
 import com.envimate.messageMate.messageBus.config.MessageBusTestConfig;
-import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSharedSetupBuilder;
+import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
-import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.Setup;
+import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.SetupAction;
 import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
+import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.RequiredArgsConstructor;
 
+import java.util.LinkedList;
+import java.util.List;
+
+import static com.envimate.messageMate.channel.action.Subscription.subscription;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActions.messageBusTestActions;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RECEIVERS;
+import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RESULT;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSetupActions.*;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
-public final class MessageBusSetupBuilder extends PipeMessageBusSharedSetupBuilder<MessageBus> {
-
+public final class MessageBusSetupBuilder {
+    private final TestEnvironment testEnvironment = TestEnvironment.emptyTestEnvironment();
+    private final List<SetupAction<MessageBus>> setupActions = new LinkedList<>();
     private final MessageBusBuilder messageBusBuilder = MessageBusBuilder.aMessageBus();
 
 
@@ -25,11 +36,11 @@ public final class MessageBusSetupBuilder extends PipeMessageBusSharedSetupBuild
     }
 
     private MessageBusSetupBuilder configuredWith(final MessageBusTestConfig testConfig) {
-        messageBusBuilder.withConfiguration(testConfig.messageBusConfiguration)
+        /*messageBusBuilder.withConfiguration(testConfig.messageBusConfiguration)
                 .withACustomBrokerStrategy(testConfig.brokerStrategy)
                 .withACustomDeliveryStrategyFactory(testConfig.deliveryStrategyFactory)
                 .withACustomMessageAcceptingStrategyFactory(testConfig.messageAcceptingStrategyFactory)
-                .withStatisticsCollector(testConfig.statisticsCollector);
+                .withStatisticsCollector(testConfig.statisticsCollector);*/
         return this;
     }
 
@@ -42,14 +53,99 @@ public final class MessageBusSetupBuilder extends PipeMessageBusSharedSetupBuild
         return this;
     }
 
-    @Override
-    public Setup<MessageBus> build() {
-        final MessageBus messageBus = messageBusBuilder.build();
-        return Setup.setup(messageBus, testEnvironment, setupActions);
+    public MessageBusSetupBuilder withACustomChannelFactory() {
+        messageBusBuilder.withAChannelFactory(new MessageBusChannelFactory() {
+            @Override
+            public <T> Channel<?> createChannel(final Class<T> tClass, final Subscriber<T> subscriber) {
+                final Channel<T> channel = ChannelBuilder.aChannel(tClass)
+                        .withDefaultAction(subscription())
+                        .build();
+                if (testEnvironment.has(EXPECTED_RESULT)) {
+                    throw new IllegalStateException();
+                } else {
+                    testEnvironment.setProperty(EXPECTED_RESULT, channel);
+                }
+                return channel;
+            }
+        });
+        return this;
     }
 
-    @Override
-    protected PipeMessageBusSutActions sutActions(final MessageBus messageBus) {
+    public MessageBusSetupBuilder withoutASubscriber() {
+        return this;
+    }
+
+    public MessageBusSetupBuilder withASingleSubscriber() {
+        setupActions.add((t, testEnvironment) -> addASingleSubscriber(sutActions(t), testEnvironment));
+        return this;
+    }
+
+    public MessageBusSetupBuilder withASingleSubscriber(final Class<?> clazz) {
+        setupActions.add((t, testEnvironment) -> addASingleSubscriber(sutActions(t), testEnvironment, clazz));
+        return this;
+    }
+
+    public MessageBusSetupBuilder withSeveralSubscriber(final int numberOfReceivers) {
+        setupActions.add((t, testEnvironment) -> addSeveralSubscriber(sutActions(t), testEnvironment, numberOfReceivers));
+        return this;
+    }
+
+    public MessageBusSetupBuilder withAFilterThatChangesTheContentOfEveryMessage() {
+        setupActions.add((t, testEnvironment) -> addAFilterThatChangesTheContentOfEveryMessage(sutActions(t), testEnvironment));
+        return this;
+    }
+
+    public MessageBusSetupBuilder withAFilterThatDropsMessages() {
+        setupActions.add((t, testEnvironment) -> addAFilterThatDropsMessages(sutActions(t), testEnvironment));
+        return this;
+    }
+
+    public MessageBusSetupBuilder withAFilterThatReplacesWrongMessages() {
+        setupActions.add((t, testEnvironment) -> addAFilterThatReplacesWrongMessages(sutActions(t), testEnvironment));
+        return this;
+    }
+
+    public MessageBusSetupBuilder withAnInvalidFilterThatDoesNotUseAnyFilterMethods() {
+        setupActions.add((t, testEnvironment) -> addAnInvalidFilterThatDoesNotUseAnyFilterMethods(sutActions(t), testEnvironment));
+        return this;
+    }
+
+    public MessageBusSetupBuilder withTwoFilterOnSpecificPositions() {
+        setupActions.add((t, testEnvironment) -> addTwoFilterOnSpecificPositions(sutActions(t), testEnvironment));
+        return this;
+    }
+
+    public MessageBusSetupBuilder withAFilterAtAnInvalidPosition(final int position) {
+        setupActions.add((t, testEnvironment) -> addAFilterAtAnInvalidPosition(sutActions(t), testEnvironment, position));
+        return this;
+    }
+
+    public MessageBusSetupBuilder withASubscriberThatBlocksWhenAccepting() {
+        setupActions.add((t, testEnvironment) -> addASubscriberThatBlocksWhenAccepting(sutActions(t), testEnvironment));
+        return this;
+    }
+
+    public MessageBusSetupBuilder withAnErrorAcceptingSubscriber() {
+        setupActions.add((t, testEnvironment) -> addAnErrorAcceptingSubscriber(sutActions(t), testEnvironment));
+        return this;
+    }
+
+    public MessageBusSetupBuilder withAnErrorThrowingSubscriber() {
+        setupActions.add((t, testEnvironment) -> addAnErrorThrowingSubscriber(sutActions(t), testEnvironment));
+        return this;
+    }
+
+    public MessageBusSetupBuilder withSeveralDeliveryInterruptingSubscriber(final int numberOfReceivers) {
+        setupActions.add((t, testEnvironment) -> addSeveralDeliveryInterruptingSubscriber(sutActions(t), testEnvironment, numberOfReceivers));
+        return this;
+    }
+
+    public MessageBusSetup build() {
+        final MessageBus messageBus = messageBusBuilder.build();
+        return MessageBusSetup.setup(messageBus, testEnvironment, setupActions);
+    }
+
+    private PipeMessageBusSutActions sutActions(final MessageBus messageBus) {
         return messageBusTestActions(messageBus);
     }
 }

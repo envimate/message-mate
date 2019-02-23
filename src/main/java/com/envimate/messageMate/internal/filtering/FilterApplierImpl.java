@@ -36,16 +36,15 @@ public final class FilterApplierImpl<T> implements FilterApplier<T> {
     @Override
     public void applyAll(final T message,
                          final List<Filter<T>> filters,
-                         final List<Subscriber<T>> receivers,
                          final PostFilterActions<T> postFilterActions) {
         if (filters.isEmpty()) {
             postFilterActions.onAllPassed(message);
             return;
         }
 
-        final CurrentFilterActions filterActions = new CurrentFilterActions(filters, receivers, postFilterActions);
+        final CurrentFilterActions filterActions = new CurrentFilterActions(filters, postFilterActions);
         final Filter<T> firstFilter = filters.get(0);
-        firstFilter.apply(message, receivers, filterActions);
+        firstFilter.apply(message, filterActions);
         if (filterActions.messageWasForgotten()) {
             postFilterActions.onForgotten(message);
         }
@@ -54,7 +53,6 @@ public final class FilterApplierImpl<T> implements FilterApplier<T> {
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     private final class CurrentFilterActions implements FilterActions<T> {
         private final List<Filter<T>> filters;
-        private final List<Subscriber<T>> receivers;
         private final PostFilterActions<T> postFilterActions;
         private int currentFilterIndex;
         private boolean messageNotForgotten;
@@ -75,7 +73,7 @@ public final class FilterApplierImpl<T> implements FilterApplier<T> {
         public void pass(final T message) {
             if (++currentFilterIndex < filters.size()) {
                 final Filter<T> nextFilter = filters.get(currentFilterIndex);
-                nextFilter.apply(message, receivers, this);
+                nextFilter.apply(message, this);
             } else {
                 messageNotForgotten = true;
                 postFilterActions.onAllPassed(message);

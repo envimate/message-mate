@@ -22,13 +22,14 @@
 package com.envimate.messageMate.messageFunction.correlationIdExtracting;
 
 import com.envimate.messageMate.correlation.CorrelationId;
+import com.envimate.messageMate.internal.reflections.ReflectionUtils;
 import lombok.RequiredArgsConstructor;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static com.envimate.messageMate.internal.reflections.ReflectionUtils.getAllSuperClassesAndInterfaces;
+import static com.envimate.messageMate.internal.reflections.ReflectionUtils.getAllSuperClassesAndInterfacesIncludingClassItself;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
@@ -48,7 +49,7 @@ public final class CorrelationIdExtractor<T> {
     }
 
     public CorrelationIdExtraction<T> extractionFor(final Class<T> tClass) {
-        final Set<Class<?>> allClasses = getAllSuperClassesAndInterfaces(tClass);
+        final Set<Class<?>> allClasses = ReflectionUtils.getAllSuperClassesAndInterfacesIncludingClassItself(tClass);
         for (final Class<?> aClass : allClasses) {
             if (extractionMap.containsKey(aClass)) {
                 return extractionMap.get(aClass);

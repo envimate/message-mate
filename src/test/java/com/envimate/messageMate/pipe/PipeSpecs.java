@@ -1,5 +1,6 @@
 package com.envimate.messageMate.pipe;
 
+import com.envimate.messageMate.error.AlreadyClosedException;
 import com.envimate.messageMate.pipe.config.PipeTestConfig;
 import com.envimate.messageMate.pipe.givenWhenThen.PipeActionBuilder;
 import org.junit.jupiter.api.Test;
@@ -71,7 +72,7 @@ public interface PipeSpecs {
                 .then(expectAllRemainingSubscribersToStillBeSubscribed());
     }
 
-    //messageStatistics
+    //pipeStatistics
     @Test
     default void testPipe_returnsCorrectNumberOfAcceptedMessages(final PipeTestConfig testConfig) throws Exception {
         given(aConfiguredPipe(testConfig)
@@ -160,7 +161,7 @@ public interface PipeSpecs {
     default void testPipe_throwsExceptionWhenSendIsCalledOnAClosedPipe(final PipeTestConfig testConfig) throws Exception {
         given(aConfiguredPipe(testConfig))
                 .when(messagesAreSendAfterTheShutdown())
-                .then(expectTheException(PipeAlreadyClosedException.class));
+                .then(expectTheException(AlreadyClosedException.class));
     }
 
     // behaviour of clean up of messages is config dependent
@@ -175,7 +176,5 @@ public interface PipeSpecs {
     }
 
     //await with unfinished tasks config dependent
-
-    //TODO: test different errorHandler
 
 }

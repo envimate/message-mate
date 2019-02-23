@@ -24,6 +24,9 @@ package com.envimate.messageMate.channel;
 import com.envimate.messageMate.channel.action.Action;
 import com.envimate.messageMate.channel.action.actionHandling.ActionHandler;
 import com.envimate.messageMate.channel.action.actionHandling.ActionHandlerSet;
+import com.envimate.messageMate.channel.error.ChannelExceptionHandler;
+import com.envimate.messageMate.channel.events.ChannelEventListener;
+import com.envimate.messageMate.channel.statistics.ChannelStatisticsCollector;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.internal.filtering.FilterApplier;
 import com.envimate.messageMate.internal.filtering.FilterApplierImpl;
@@ -33,13 +36,14 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static com.envimate.messageMate.channel.ChannelProcessingFrame.processingFrame;
 import static lombok.AccessLevel.PRIVATE;
 
 final class ChannelImpl<T> implements Channel<T> {
-    private final Pipe<ProcessingContext<T>> configurationPipe;
+    private final Pipe<ProcessingContext<T>> acceptingPipe;
     private final Pipe<ProcessingContext<T>> preToProcessPipe;
     private final Pipe<ProcessingContext<T>> processToPostPipe;
     private final Pipe<ProcessingContext<T>> afterPostPipe;
@@ -48,39 +52,47 @@ final class ChannelImpl<T> implements Channel<T> {
     private final List<Filter<ProcessingContext<T>>> postFilter;
     private final Action<T> defaultAction;
     private final ActionHandlerSet<T> actionHandlerSet;
+    private final ChannelStatisticsCollector statisticsCollector;
 
-    private ChannelImpl(final Pipe<ProcessingContext<T>> configurationPipe, final Pipe<ProcessingContext<T>> preToProcessPipe,
+    private ChannelImpl(final Pipe<ProcessingContext<T>> acceptingPipe, final Pipe<ProcessingContext<T>> preToProcessPipe,
                         final Pipe<ProcessingContext<T>> processToPostPipe, final Pipe<ProcessingContext<T>> afterPostPipe,
-                        final Action<T> defaultAction,
-                        final ActionHandlerSet<T> actionHandlerSet) {
-        this.configurationPipe = configurationPipe;
+                        final Action<T> defaultAction, final ChannelEventListener<ProcessingContext<T>> eventListener,
+                        final ChannelStatisticsCollector statisticsCollector,
+                        final ActionHandlerSet<T> actionHandlerSet,
+                        final ChannelExceptionHandler<T> exceptionHandler) {
+        this.acceptingPipe = acceptingPipe;
         this.preToProcessPipe = preToProcessPipe;
         this.processToPostPipe = processToPostPipe;
         this.afterPostPipe = afterPostPipe;
         this.defaultAction = defaultAction;
         this.actionHandlerSet = actionHandlerSet;
+        this.statisticsCollector = statisticsCollector;
         this.preFilter = new CopyOnWriteArrayList<>();
         this.processFilter = new CopyOnWriteArrayList<>();
         this.postFilter = new CopyOnWriteArrayList<>();
-        configurationPipe.subscribe(new AdvanceMessageUsingFilter(preFilter, preToProcessPipe));
-        preToProcessPipe.subscribe(new AdvanceMessageUsingFilter(processFilter, processToPostPipe));
-        processToPostPipe.subscribe(new AdvanceMessageUsingFilter(postFilter, afterPostPipe));
+        acceptingPipe.subscribe(new AdvanceMessageUsingFilter(preFilter, preToProcessPipe, eventListener, exceptionHandler));
+        preToProcessPipe.subscribe(new AdvanceMessageUsingFilter(processFilter, processToPostPipe, eventListener, exceptionHandler));
+        processToPostPipe.subscribe(new AdvanceMessageUsingFilter(postFilter, afterPostPipe, eventListener, exceptionHandler));
         afterPostPipe.subscribe(new ConsumerExecutingActionSetByFilterOrDefaultAction());
     }
 
     static <T> Channel<T> channel(final Action<T> defaultAction,
-                                  final Pipe<ProcessingContext<T>> configurationPipe,
+                                  final Pipe<ProcessingContext<T>> acceptingPipe,
                                   final Pipe<ProcessingContext<T>> prePipe,
                                   final Pipe<ProcessingContext<T>> processPipe,
                                   final Pipe<ProcessingContext<T>> postPipe,
-                                  final ActionHandlerSet<T> actionHandlerSet) {
-        return new ChannelImpl<>(configurationPipe, prePipe, processPipe, postPipe, defaultAction, actionHandlerSet);
+                                  final ChannelEventListener<ProcessingContext<T>> eventListener,
+                                  final ChannelStatisticsCollector statisticsCollector,
+                                  final ActionHandlerSet<T> actionHandlerSet,
+                                  final ChannelExceptionHandler<T> exceptionHandler) {
+        return new ChannelImpl<>(acceptingPipe, prePipe, processPipe, postPipe, defaultAction, eventListener,
+                statisticsCollector, actionHandlerSet, exceptionHandler);
     }
 
     @Override
     public void accept(final ProcessingContext<T> processingContext) {
         advanceChannelProcessingFrameHistory(processingContext);
-        configurationPipe.send(processingContext);
+        acceptingPipe.send(processingContext);
     }
 
     private void advanceChannelProcessingFrameHistory(final ProcessingContext<T> processingContext) {
@@ -165,11 +177,27 @@ final class ChannelImpl<T> implements Channel<T> {
     }
 
     @Override
+    public ChannelStatusInformation getStatusInformation() {
+        final ChannelStatistics statistics = statisticsCollector.getStatistics();
+        return ChannelStatusInformation.channelStatusInformation(statistics);
+    }
+
+    @Override
     public void close(final boolean finishRemainingTasks) {
-        configurationPipe.close(finishRemainingTasks);
+        acceptingPipe.close(finishRemainingTasks);
         preToProcessPipe.close(finishRemainingTasks);
         processToPostPipe.close(finishRemainingTasks);
         afterPostPipe.close(finishRemainingTasks);
+    }
+
+    @Override
+    public boolean isShutdown() {
+        return acceptingPipe.isShutdown();
+    }
+
+    @Override
+    public boolean awaitTermination(final int timeout, final TimeUnit timeUnit) throws InterruptedException {
+        return acceptingPipe.awaitTermination(timeout, timeUnit);
     }
 
     private final class ConsumerExecutingActionSetByFilterOrDefaultAction implements Consumer<ProcessingContext<T>> {
@@ -194,32 +222,40 @@ final class ChannelImpl<T> implements Channel<T> {
     private final class AdvanceMessageUsingFilter implements Consumer<ProcessingContext<T>> {
         private final List<Filter<ProcessingContext<T>>> filter;
         private final Pipe<ProcessingContext<T>> nextPipe;
+        private final ChannelEventListener<ProcessingContext<T>> eventListener;
+        private final ChannelExceptionHandler<T> exceptionHandler;
 
         @Override
-        public void accept(ProcessingContext<T> preFilterprocessingContext) {
+        public void accept(final ProcessingContext<T> preFilterprocessingContext) {
             final FilterApplier<ProcessingContext<T>> filterApplier = new FilterApplierImpl<>();
-            //TODO: what about subsbcriber parameter? remove?
-            filterApplier.applyAll(preFilterprocessingContext, filter, null, new PostFilterActions<ProcessingContext<T>>() {
-                @Override
-                public void onAllPassed(ProcessingContext<T> processingContext) {
-                    nextPipe.send(processingContext);
-                }
+            try {
+                filterApplier.applyAll(preFilterprocessingContext, filter, new PostFilterActions<>() {
+                    @Override
+                    public void onAllPassed(final ProcessingContext<T> processingContext) {
+                        nextPipe.send(processingContext);
+                    }
 
-                @Override
-                public void onReplaced(ProcessingContext<T> processingContext) {
-                    nextPipe.send(processingContext);
-                }
+                    @Override
+                    public void onReplaced(final ProcessingContext<T> processingContext) {
+                        eventListener.messageReplaced(processingContext);
+                        nextPipe.send(processingContext);
+                    }
 
-                @Override
-                public void onBlock(ProcessingContext<T> processingContext) {
+                    @Override
+                    public void onBlock(final ProcessingContext<T> processingContext) {
+                        eventListener.messageBlocked(processingContext);
 
-                }
+                    }
 
-                @Override
-                public void onForgotten(ProcessingContext<T> processingContext) {
-
-                }
-            });
+                    @Override
+                    public void onForgotten(final ProcessingContext<T> processingContext) {
+                        eventListener.messageForgotten(processingContext);
+                    }
+                });
+            } catch (final Exception e) {
+                eventListener.exceptionInFilter(preFilterprocessingContext, e);
+                exceptionHandler.handleFilterException(preFilterprocessingContext, e);
+            }
         }
     }
 }

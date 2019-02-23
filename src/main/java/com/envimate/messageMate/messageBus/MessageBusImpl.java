@@ -21,103 +21,131 @@
 
 package com.envimate.messageMate.messageBus;
 
+import com.envimate.messageMate.channel.Channel;
+import com.envimate.messageMate.channel.ChannelBuilder;
+import com.envimate.messageMate.channel.ProcessingContext;
+import com.envimate.messageMate.channel.action.Consume;
 import com.envimate.messageMate.filtering.Filter;
-import com.envimate.messageMate.internal.accepting.MessageAcceptingStrategy;
-import com.envimate.messageMate.internal.accepting.MessageAcceptingStrategyFactory;
-import com.envimate.messageMate.internal.brokering.BrokerStrategy;
-import com.envimate.messageMate.internal.delivering.DeliveryStrategy;
-import com.envimate.messageMate.internal.delivering.DeliveryStrategyFactory;
-import com.envimate.messageMate.internal.eventloop.MessageBusEventLoopImpl;
-import com.envimate.messageMate.internal.statistics.StatisticsCollector;
-import com.envimate.messageMate.internal.transport.MessageTransportProcessFactory;
+import com.envimate.messageMate.filtering.FilterActions;
+import com.envimate.messageMate.messageBus.brokering.MessageBusBrokerStrategy;
+import com.envimate.messageMate.messageBus.internal.MessageBusStatusInformationAdapter;
+import com.envimate.messageMate.messageBus.statistics.MessageBusStatisticsCollector;
+import com.envimate.messageMate.subscribing.ConsumerSubscriber;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
+import lombok.RequiredArgsConstructor;
 
-import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import static com.envimate.messageMate.internal.transport.MessageTransportConfiguration.synchronTransportConfiguration;
-import static com.envimate.messageMate.internal.transport.MessageTransportProcessFactoryFactory.messageTransportProcessFactory;
 import static com.envimate.messageMate.messageBus.internal.MessageBusStatusInformationAdapter.statusInformationAdapter;
+import static com.envimate.messageMate.messageBus.statistics.ChannelBasedMessageBusStatisticsCollector.channelBasedMessageBusStatisticsCollector;
 import static com.envimate.messageMate.subscribing.ConsumerSubscriber.consumerSubscriber;
+import static lombok.AccessLevel.PRIVATE;
 
 final class MessageBusImpl implements MessageBus {
-    private final MessageAcceptingStrategy<Object> messageAcceptingStrategy;
-    private final BrokerStrategy brokerStrategy;
-    private final StatisticsCollector statisticsCollector;
-    private final List<Filter<Object>> filters;
-    private final DeliveryStrategy<Object> deliveryStrategy;
-    private final MessageTransportProcessFactory<Object> transportProcessFactory;
-    private final MessageBusEventLoopImpl eventLoop;
-    private volatile boolean closedAlreadyCalled;
+    private final Channel<Object> acceptingChannel;
+    private final MessageBusBrokerStrategy brokerStrategy;
+    private MessageBusStatusInformationAdapter statusInformationAdapter;
 
-    MessageBusImpl(final MessageAcceptingStrategyFactory<Object> messageAcceptingStrategyFactory,
-                   final BrokerStrategy brokerStrategy,
-                   final DeliveryStrategyFactory<Object> deliveryStrategyFactory,
-                   final StatisticsCollector statisticsCollector) {
-        this.filters = new CopyOnWriteArrayList<>();
+    public MessageBusImpl(final ChannelBuilder<Object> acceptingChannelBuilder, final MessageBusBrokerStrategy brokerStrategy) {
+        this.acceptingChannel = acceptingChannelBuilder.withDefaultAction(Consume.consume(objectProcessingContext -> {
+            final Object message = objectProcessingContext.getPayload();
+            final Class<?> messageClass = message.getClass();
+            System.out.println("Querying BS: " + messageClass);
+            final Set<Channel<?>> channels = brokerStrategy.getDeliveringChannelsFor(messageClass);
+            for (Channel<?> channel : channels) {
+                final ProcessingContext tProcessingContext = ProcessingContext.processingContext(message);
+                channel.accept(tProcessingContext);
+            }
+        })).build();
         this.brokerStrategy = brokerStrategy;
-        this.eventLoop = new MessageBusEventLoopImpl();
-        this.transportProcessFactory = messageTransportProcessFactory(synchronTransportConfiguration(), eventLoop, brokerStrategy::calculateReceivingSubscriber);//TODO: bad
-        this.messageAcceptingStrategy = messageAcceptingStrategyFactory.createNew(eventLoop);
-        this.statisticsCollector = statisticsCollector;
-        this.deliveryStrategy = deliveryStrategyFactory.createNew(eventLoop);
-        eventLoop.setRequiredObjects(messageAcceptingStrategy, transportProcessFactory, deliveryStrategy, statisticsCollector);
+        final MessageBusStatisticsCollector statisticsCollector = channelBasedMessageBusStatisticsCollector(acceptingChannel);
+        statusInformationAdapter = statusInformationAdapter(statisticsCollector, brokerStrategy);
     }
+
 
     @Override
     public void send(final Object message) {
-        messageAcceptingStrategy.accept(message);
+        final ProcessingContext<Object> processingContext = ProcessingContext.processingContext(message); //TODO: geil, wenn das intern geregelt werden würde.e.g overloaded function
+        acceptingChannel.accept(processingContext);
     }
 
     @Override
     public <T> SubscriptionId subscribe(final Class<T> messageClass, final Consumer<T> consumer) {
-        final Subscriber<T> subscriber = consumerSubscriber(consumer);
+        final ConsumerSubscriber<T> subscriber = consumerSubscriber(consumer);
         return subscribe(messageClass, subscriber);
     }
 
     @Override
     public <T> SubscriptionId subscribe(final Class<T> messageClass, final Subscriber<T> subscriber) {
-        @SuppressWarnings("unchecked")
-        final Subscriber<Object> objectSubscriber = (Subscriber<Object>) subscriber;
-        return brokerStrategy.add(messageClass, objectSubscriber);
+        brokerStrategy.addSubscriber(messageClass, subscriber);
+        return subscriber.getSubscriptionId();
     }
 
     @Override
     public void unsubcribe(final SubscriptionId subscriptionId) {
-        brokerStrategy.remove(subscriptionId);
+        brokerStrategy.removeSubscriber(subscriptionId);
     }
 
     @Override
     public void add(final Filter<Object> filter) {
-        filters.add(filter);
+        acceptingChannel.addProcessFilter(new FilterAdapter(filter));
     }
 
     @Override
     public void add(final Filter<Object> filter, final int position) {
-        filters.add(position, filter);
+        acceptingChannel.addProcessFilter(new FilterAdapter(filter), position);
     }
 
     @Override
     public List<Filter<Object>> getFilter() {
+        final List<Filter<Object>> filters = new LinkedList<>();
+        final List<Filter<ProcessingContext<Object>>> processFilter = acceptingChannel.getProcessFilter();
+        for (final Filter<ProcessingContext<Object>> filter : processFilter) {
+            if (filter instanceof FilterAdapter) {
+                final Filter<Object> originalFilter = ((FilterAdapter) filter).delegate;
+                filters.add(originalFilter);
+            } else {
+                throw new IllegalStateException("Unexpected type of filter. Was the list of filter tampered with?");
+            }
+        }
         return filters;
     }
 
     @Override
     public void remove(final Filter<Object> filter) {
-        filters.remove(filter);
+        final List<Filter<ProcessingContext<Object>>> processFilter = acceptingChannel.getProcessFilter();
+        for (final Filter<ProcessingContext<Object>> processingContextFilter : processFilter) {
+            if (processingContextFilter instanceof FilterAdapter) {
+                if (((FilterAdapter) processingContextFilter).delegate.equals(filter)) {
+                    acceptingChannel.removeProcessFilter(processingContextFilter);
+                }
+            }
+        }
+    }
+
+    @Override
+    public MessageBusStatusInformation getStatusInformation() {
+        return statusInformationAdapter;
     }
 
     @Override
     public void close(final boolean finishRemainingTasks) {
-        if (!closedAlreadyCalled) {
-            closedAlreadyCalled = true;
-            messageAcceptingStrategy.close(finishRemainingTasks);
-            deliveryStrategy.close(finishRemainingTasks);
-        }
+        acceptingChannel.close(finishRemainingTasks);
+    }
+
+    @Override
+    public boolean awaitTermination(final long timeout, final TimeUnit unit) throws InterruptedException {
+        return true;
+    }
+
+    @Override
+    public boolean isShutdown() {
+        return true;
     }
 
     @Override
@@ -125,27 +153,39 @@ final class MessageBusImpl implements MessageBus {
         close(true);
     }
 
-    @Override
-    public boolean awaitTermination(final long timeout, final TimeUnit unit) throws InterruptedException {
-        if (timeout <= 0) {
-            return false;
+    @RequiredArgsConstructor(access = PRIVATE)
+    private final class FilterAdapter implements Filter<ProcessingContext<Object>> {
+        private final Filter<Object> delegate;
+
+        @Override
+        public void apply(final ProcessingContext<Object> processingContext, final FilterActions<ProcessingContext<Object>> filterActions) {
+            final Object originalPayload = processingContext.getPayload();
+            delegate.apply(originalPayload, new FilterActions<>() {
+                @Override
+                public void block(final Object message) {
+                    if (originalPayload != message) {
+                        processingContext.setPayload(message);
+                    }
+                    filterActions.block(processingContext);
+                }
+
+                @Override
+                public void replace(final Object message) {
+                    if (originalPayload != message) {
+                        processingContext.setPayload(message);
+                    }
+                    filterActions.replace(processingContext);
+                }
+
+                @Override
+                public void pass(final Object message) {
+                    if (originalPayload != message) {
+                        processingContext.setPayload(message);
+                    }
+                    System.out.println("Passed");
+                    filterActions.pass(processingContext);
+                }
+            });
         }
-        final long currentTimeMillis = System.currentTimeMillis();
-        final long addedMillis = unit.toMillis(timeout);
-        final Date deadline = new Date(currentTimeMillis + addedMillis);
-        boolean result = messageAcceptingStrategy.awaitTermination(deadline);
-        result = result && deliveryStrategy.awaitTermination(deadline);
-        return result;
     }
-
-    @Override
-    public boolean isShutdown() {
-        return messageAcceptingStrategy.isShutdown() && deliveryStrategy.isShutdown();
-    }
-
-    @Override
-    public MessageBusStatusInformation getStatusInformation() {
-        return statusInformationAdapter(statisticsCollector, brokerStrategy);
-    }
-
 }

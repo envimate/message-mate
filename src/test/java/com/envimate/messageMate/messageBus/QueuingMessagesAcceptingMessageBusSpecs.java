@@ -9,11 +9,11 @@ import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusAction
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusSetupBuilder.aConfiguredMessageBus;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusValidationBuilder.expectResultToBe;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusValidationBuilder.expectXMessagesToBeDelivered;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.Given.given;
+import static com.envimate.messageMate.messageBus.givenWhenThen.Given.given;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @ExtendWith(QueuedAcceptingStrategyMessageBusConfigurationResolver.class)
-public class QueuingMessagesAcceptingMessageBusSpecs implements MessageBusSpecs {
+public class QueuingMessagesAcceptingMessageBusSpecs /*implements MessageBusSpecs*/ {
 
     //TODO: check if correct or move again
     /*@Test
@@ -22,7 +22,7 @@ public class QueuingMessagesAcceptingMessageBusSpecs implements MessageBusSpecs 
                 .configuredWith(messageBusTestConfig)
                 .withASubscriberThatBlocksWhenAccepting())
                 .when(severalMessagesAreSendAsynchronously(3, 5)
-                        .andThen(MessageBusActionBuilder.theNumberOfWaitingMessagesIsQueried()))
+                        .andThen(MessageBusActionBuilder.theNumberOfQueuedMessagesIsQueried()))
                 .then(MessageBusValidationBuilder.expectResultToBe(14));
     }
 */
@@ -56,29 +56,8 @@ public class QueuingMessagesAcceptingMessageBusSpecs implements MessageBusSpecs 
                 .withASubscriberThatBlocksWhenAccepting())
                 .when(severalMessagesAreSendAsynchronouslyButWillBeBlocked(3, 5)
                         .andThen(aShortWaitIsDone(10, MILLISECONDS))
-                        .andThen(theNumberOfWaitingMessagesIsQueried()))
+                        .andThen(theNumberOfQueuedMessagesIsQueried()))
                 .then(expectResultToBe(0));
-    }
-
-    @Test
-    public void testMessageBus_withBlockingSubscriber_whenNumberOfCurrentlyTransportedMessagesIsQueried(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aConfiguredMessageBus(messageBusTestConfig)
-                .withASubscriberThatBlocksWhenAccepting())
-                .when(severalMessagesAreSendAsynchronouslyButWillBeBlocked(3, 5)
-                        .andThen(aShortWaitIsDone(10, MILLISECONDS))
-                        .andThen(theNumberOfCurrentlyTransportedMessagesIsQueried()))
-                .then(expectResultToBe(0));
-    }
-
-    @Test
-    public void testMessageBus_withBlockingSubscriber_whenNumberOfCurrentlyDeliveredMessagesIsQueried(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        final int numberOfParallelSender = 3;
-        given(aConfiguredMessageBus(messageBusTestConfig)
-                .withASubscriberThatBlocksWhenAccepting())
-                .when(severalMessagesAreSendAsynchronouslyButWillBeBlocked(3, 5)
-                        .andThen(aShortWaitIsDone(10, MILLISECONDS))
-                        .andThen(theNumberOfCurrentlyDeliveredMessagesIsQueried()))
-                .then(expectResultToBe(numberOfParallelSender));
     }
 
     //shutdown

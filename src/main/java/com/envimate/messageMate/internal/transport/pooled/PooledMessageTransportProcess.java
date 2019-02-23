@@ -40,7 +40,7 @@ public class PooledMessageTransportProcess<T> implements MessageTransportProcess
         eventLoop.messageTransportStarted(message);
         final List<Subscriber<T>> receivers = subscriberCalculation.apply(message);
         eventLoop.messageFilteringStarted(message);
-        filterApplier.applyAll(message, filters, receivers, new PostFilterActions<T>() {
+        filterApplier.applyAll(message, filters, new PostFilterActions<T>() {
             @Override
             public void onAllPassed(final T message) {
                 controlThread.messagePassedAllFilter(message);

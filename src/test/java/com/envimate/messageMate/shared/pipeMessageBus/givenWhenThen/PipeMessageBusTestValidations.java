@@ -38,11 +38,15 @@ public final class PipeMessageBusTestValidations {
 
     public static void assertExpectedReceiverReceivedAllMessages(final TestEnvironment testEnvironment) {
         final List<?> expectedReceivedMessages = testEnvironment.getPropertyAsType(PipeMessageBusTestProperties.MESSAGES_SEND_OF_INTEREST, List.class);
+        assertExpectedReceiverReceivedAllMessages(testEnvironment, expectedReceivedMessages);
+    }
+
+    public static void assertExpectedReceiverReceivedAllMessages(final TestEnvironment testEnvironment, final List<?> expectedMessages) {
         final List<SimpleTestSubscriber<?>> receivers = getExpectedReceiversAsSubscriber(testEnvironment);
         for (final SimpleTestSubscriber<?> receiver : receivers) {
             final List<?> receivedMessages = receiver.getReceivedMessages();
-            assertEquals(receivedMessages.size(), expectedReceivedMessages.size());
-            final Object[] ar = expectedReceivedMessages.toArray();
+            assertEquals(receivedMessages.size(), expectedMessages.size());
+            final Object[] ar = expectedMessages.toArray();
             assertThat(receivedMessages, containsInAnyOrder(ar));
         }
     }

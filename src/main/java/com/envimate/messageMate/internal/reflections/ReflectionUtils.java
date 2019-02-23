@@ -36,16 +36,21 @@ import static lombok.AccessLevel.PRIVATE;
 @RequiredArgsConstructor(access = PRIVATE)
 public final class ReflectionUtils {
 
-    public static Set<Class<?>> getAllSuperClassesAndInterfaces(final Object object) {
+    public static Set<Class<?>> getAllSuperClassesAndInterfacesIncludingClassItself(final Object object) {
         final Class<?> objectClass = object.getClass();
         final Set<Class<?>> classes = new HashSet<>();
         collectInheritedClasses(objectClass, classes);
         return classes;
     }
 
+    public static Set<Class<?>> getAllSuperClassesAndInterfacesIncludingClassItself(final Class<?> aClass) {
+        final Set<Class<?>> classes = getAllSuperClassesAndInterfaces(aClass);
+        classes.add(aClass);
+        return classes;
+    }
+
     public static Set<Class<?>> getAllSuperClassesAndInterfaces(final Class<?> aClass) {
         final Set<Class<?>> classes = new HashSet<>();
-        classes.add(aClass);
         collectInheritedClasses(aClass, classes);
         return classes;
     }

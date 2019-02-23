@@ -21,10 +21,7 @@
 
 package com.envimate.messageMate.channel.action.actionHandling;
 
-import com.envimate.messageMate.channel.action.Call;
-import com.envimate.messageMate.channel.action.Consume;
-import com.envimate.messageMate.channel.action.Jump;
-import com.envimate.messageMate.channel.action.Return;
+import com.envimate.messageMate.channel.action.*;
 import lombok.RequiredArgsConstructor;
 
 import static com.envimate.messageMate.channel.action.actionHandling.ActionHandlerSet.emptyActionHandlerSet;
@@ -32,6 +29,7 @@ import static com.envimate.messageMate.channel.action.actionHandling.CallActionH
 import static com.envimate.messageMate.channel.action.actionHandling.ConsumerActionHandler.consumerActionHandler;
 import static com.envimate.messageMate.channel.action.actionHandling.JumpActionHandler.jumpActionHandler;
 import static com.envimate.messageMate.channel.action.actionHandling.ReturnActionHandler.returnActionHandler;
+import static com.envimate.messageMate.channel.action.actionHandling.SubscriptionActionHandler.subscriptionActionHandler;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
@@ -43,6 +41,8 @@ public final class DefaultActionHandlerSet {
         actionHandlerSet.registerActionHandler(Jump.class, jumpActionHandler());
         actionHandlerSet.registerActionHandler(Return.class, returnActionHandler());
         actionHandlerSet.registerActionHandler(Call.class, callActionHandler());
+        actionHandlerSet.registerActionHandler(Call.class, callActionHandler());
+        actionHandlerSet.registerActionHandler(Subscription.class, subscriptionActionHandler());
         return actionHandlerSet;
     }
 }

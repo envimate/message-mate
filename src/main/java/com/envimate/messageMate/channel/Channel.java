@@ -25,6 +25,7 @@ import com.envimate.messageMate.channel.action.Action;
 import com.envimate.messageMate.filtering.Filter;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public interface Channel<T> {
 
@@ -56,5 +57,11 @@ public interface Channel<T> {
 
     Action<T> getDefaultAction();
 
-    void close(boolean finishRemainingTasks); //TODO: test + need await?
+    ChannelStatusInformation getStatusInformation();
+
+    void close(boolean finishRemainingTasks);
+
+    boolean isShutdown();
+
+    boolean awaitTermination(int timeout, TimeUnit timeUnit) throws InterruptedException;
 }

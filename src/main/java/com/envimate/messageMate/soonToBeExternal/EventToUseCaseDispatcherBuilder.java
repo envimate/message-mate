@@ -153,12 +153,12 @@ public class EventToUseCaseDispatcherBuilder implements EventToUseCaseDispatcher
 
     private boolean notAlreadyOnUseCaseRequestSubscriberIncluded(final MessageBus messageBus) {
         final MessageBusStatusInformation statusInformation = messageBus.getStatusInformation();
-        final Map<Object, List<Subscriber<Object>>> subscribersPerType = statusInformation.getSubscribersPerType();
+        final Map<Class<?>, List<Subscriber<?>>> subscribersPerType = statusInformation.getSubscribersPerType();
         if (!subscribersPerType.containsKey(UseCaseCallRequest.class)) {
             return true;
         } else {
-            final List<Subscriber<Object>> subscribers = subscribersPerType.get(UseCaseCallRequest.class);
-            for (final Subscriber<Object> subscriber : subscribers) {
+            final List<Subscriber<?>> subscribers = subscribersPerType.get(UseCaseCallRequest.class);
+            for (final Subscriber<?> subscriber : subscribers) {
                 if (subscriber.getClass().equals(UseCaseRequestExecutingSubscriber.class)) {
                     return false;
                 }
