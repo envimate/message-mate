@@ -1,11 +1,9 @@
 package com.envimate.messageMate.shared.testMessages;
 
 
-import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 @ToString
-@EqualsAndHashCode
 public final class SubClassingTestMessageOfInterest extends TestMessageOfInterest {
 
     private SubClassingTestMessageOfInterest(final String content) {

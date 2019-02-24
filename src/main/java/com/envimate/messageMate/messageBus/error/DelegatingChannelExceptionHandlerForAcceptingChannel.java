@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package com.envimate.messageMate.messageBus.error;
 
 import com.envimate.messageMate.channel.Channel;
@@ -18,7 +39,7 @@ public final class DelegatingChannelExceptionHandlerForAcceptingChannel<T> imple
     @Setter
     private Channel<?> channel;
 
-    public static <T> DelegatingChannelExceptionHandlerForAcceptingChannel<T> delegatingChannelExceptionHandlerForAcceptingChannel(
+    public static <T> DelegatingChannelExceptionHandlerForAcceptingChannel<T> channelExceptionHandlerForAcceptingChannel(
             final MessageBusExceptionHandler messageBusExceptionHandler, final ErrorListenerHandler errorListenerHandler) {
         return new DelegatingChannelExceptionHandlerForAcceptingChannel<>(messageBusExceptionHandler, errorListenerHandler);
     }
@@ -31,12 +52,9 @@ public final class DelegatingChannelExceptionHandlerForAcceptingChannel<T> imple
     @Override
     public void handleSubscriberException(final ProcessingContext<T> message, final Exception e) {
         try {
-            System.out.println("here");
             messageBusExceptionHandler.handleDeliveryChannelException(message, e, channel);
         } finally {
-            System.out.println("here2");
             final List<BiConsumer<T, Exception>> listener = getListener(message);
-            System.out.println(listener.size());
             messageBusExceptionHandler.callTemporaryExceptionListener(message, e, listener);
         }
     }
@@ -53,8 +71,9 @@ public final class DelegatingChannelExceptionHandlerForAcceptingChannel<T> imple
 
     private List<BiConsumer<T, Exception>> getListener(final ProcessingContext<T> message) {
         final Class<?> aClass = message.getPayload().getClass();
-        System.out.println("aClass = " + aClass);
         final List<?> uncheckedListener = errorListenerHandler.listenerFor(aClass);
-        return (List<BiConsumer<T, Exception>>) uncheckedListener;
+        @SuppressWarnings("unchecked")
+        final List<BiConsumer<T, Exception>> castedListener = (List<BiConsumer<T, Exception>>) uncheckedListener;
+        return castedListener;
     }
 }

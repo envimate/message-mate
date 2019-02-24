@@ -15,14 +15,12 @@ import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber;
 import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
-import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
 import static com.envimate.messageMate.channel.ChannelBuilder.aChannel;
 import static com.envimate.messageMate.channel.ChannelBuilder.aChannelWithDefaultAction;
-import static com.envimate.messageMate.channel.ProcessingContext.processingContext;
 import static com.envimate.messageMate.channel.action.Call.prepareACall;
 import static com.envimate.messageMate.channel.action.Consume.consume;
 import static com.envimate.messageMate.channel.action.Jump.jumpTo;
@@ -34,7 +32,8 @@ import static com.envimate.messageMate.channel.givenWhenThen.FilterPosition.*;
 import static com.envimate.messageMate.channel.givenWhenThen.TestChannelErrorHandler.*;
 import static com.envimate.messageMate.qcec.shared.TestEnvironment.emptyTestEnvironment;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.TestFilter.*;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.TestFilter.aMessageDroppingFilter;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.TestFilter.aMessageFilterThatDoesNotCallAnyMethod;
 import static com.envimate.messageMate.shared.subscriber.ErrorThrowingTestSubscriber.errorThrowingTestSubscriber;
 import static com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber.deliveryPreemptingSubscriber;
 
@@ -197,21 +196,6 @@ public final class ChannelSetupBuilder {
         return this;
     }
 
-    public ChannelSetupBuilder withAPreFilterThatReplacesTheMessage() {
-        addAFilterThatReplacesTheMessage(PRE);
-        return this;
-    }
-
-    public ChannelSetupBuilder withAProcessFilterThatReplacesTheMessage() {
-        addAFilterThatReplacesTheMessage(PROCESS);
-        return this;
-    }
-
-    public ChannelSetupBuilder withAPostFilterThatReplacesTheMessage() {
-        addAFilterThatReplacesTheMessage(POST);
-        return this;
-    }
-
     public ChannelSetupBuilder withAPreFilterThatBlocksMessages() {
         addFilterThatBlocksMessages(PRE);
         return this;
@@ -227,17 +211,6 @@ public final class ChannelSetupBuilder {
         return this;
     }
 
-    private void addAFilterThatReplacesTheMessage(final FilterPosition filterPosition) {
-        if (alreadyBuiltChannel == null) {
-            alreadyBuiltChannel = channelBuilder.withDefaultAction(consumeAsFinalResult(testEnvironment))
-                    .build();
-        }
-        final TestMessageOfInterest replacedMessage = TestMessageOfInterest.messageOfInterest();
-        final ProcessingContext<TestMessage> replacement = processingContext(replacedMessage);
-        testEnvironment.setProperty(REPLACED_MESSAGE, replacement);
-        final Filter<ProcessingContext<TestMessage>> filter = aMessageReplacingFilter(replacement);
-        addAFilterToPipe(alreadyBuiltChannel, filterPosition, filter);
-    }
 
     private void addFilterThatBlocksMessages(final FilterPosition filterPosition) {
         alreadyBuiltChannel = channelBuilder.withDefaultAction(consumeAsFinalResult(testEnvironment))

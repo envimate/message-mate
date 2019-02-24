@@ -37,7 +37,7 @@ import static com.envimate.messageMate.messageBus.MessageBusConsumeAction.messag
 import static com.envimate.messageMate.messageBus.MessageBusType.SYNCHRONOUS;
 import static com.envimate.messageMate.messageBus.brokering.MessageBusBrokerStrategyImpl.messageBusBrokerStrategy;
 import static com.envimate.messageMate.messageBus.channelCreating.SynchronousMessageBusChannelFactory.synchronousMessageBusChannelFactory;
-import static com.envimate.messageMate.messageBus.error.DelegatingChannelExceptionHandlerForAcceptingChannel.delegatingChannelExceptionHandlerForAcceptingChannel;
+import static com.envimate.messageMate.messageBus.error.DelegatingChannelExceptionHandlerForAcceptingChannel.channelExceptionHandlerForAcceptingChannel;
 import static com.envimate.messageMate.messageBus.error.ErrorListenerHandlerImpl.errorListenerHandler;
 import static com.envimate.messageMate.messageBus.error.ErrorThrowingMessageBusExceptionHandler.errorThrowingMessageBusExceptionHandler;
 
@@ -75,7 +75,8 @@ public final class MessageBusBuilder {
     public MessageBus build() {
         final ChannelType channelType = map(type);
         final ErrorListenerHandlerImpl errorListenerHandler = errorListenerHandler();
-        final DelegatingChannelExceptionHandlerForAcceptingChannel<Object> acceptingPipeExceptionHandler = delegatingChannelExceptionHandlerForAcceptingChannel(exceptionHandler, errorListenerHandler);
+        final DelegatingChannelExceptionHandlerForAcceptingChannel<Object> acceptingPipeExceptionHandler =
+                channelExceptionHandlerForAcceptingChannel(exceptionHandler, errorListenerHandler);
         final MessageBusChannelFactory channelFactory = createChannelFactory(errorListenerHandler);
         final MessageBusBrokerStrategyImpl brokerStrategy = messageBusBrokerStrategy(channelFactory);
         final Channel<Object> acceptingChannel = aChannel(Object.class)

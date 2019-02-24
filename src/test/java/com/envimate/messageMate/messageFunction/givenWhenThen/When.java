@@ -6,9 +6,9 @@ import static lombok.AccessLevel.PACKAGE;
 
 @RequiredArgsConstructor(access = PACKAGE)
 public class When {
-    private final TestMessageFunctionBuilder testMessageFunctionBuilder;
+    private final TestMessageFunctionSetupBuilder testMessageFunctionSetupBuilder;
 
     public Then when(TestMessageFunctionActionBuilder testMessageFunctionActionBuilder) {
-        return new Then(testMessageFunctionBuilder, testMessageFunctionActionBuilder);
+        return new Then(testMessageFunctionSetupBuilder, testMessageFunctionActionBuilder);
     }
 }

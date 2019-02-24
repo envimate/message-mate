@@ -66,12 +66,14 @@ public class ResponseHandlingSubscriberImpl<S> implements ResponseHandlingSubscr
     }
 
     @Override
-    public boolean shouldDeliveryChannelErrorBeHandledAndDeliveryAborted(final ProcessingContext<?> message, final Exception e, final Channel<?> channel) {
+    public boolean shouldDeliveryChannelErrorBeHandledAndDeliveryAborted(final ProcessingContext<?> message, final Exception e,
+                                                                         final Channel<?> channel) {
         return true;
     }
 
     @Override
-    public void handleDeliveryChannelException(final ProcessingContext<?> processingContext, final Exception exception, final Channel<?> channel) {
+    public void handleDeliveryChannelException(final ProcessingContext<?> processingContext, final Exception exception,
+                                               final Channel<?> channel) {
         final Object request = processingContext.getPayload();
         for (final ExpectedResponse<S> expectedResponse : expectedResponses) {
             if (expectedResponse.matchesRequest(request)) {
@@ -82,7 +84,8 @@ public class ResponseHandlingSubscriberImpl<S> implements ResponseHandlingSubscr
     }
 
     @Override
-    public void handleFilterException(final ProcessingContext<?> processingContext, final Exception exception, final Channel<?> channel) {
+    public void handleFilterException(final ProcessingContext<?> processingContext, final Exception exception,
+                                      final Channel<?> channel) {
         final Object request = processingContext.getPayload();
         for (final ExpectedResponse<S> expectedResponse : expectedResponses) {
             if (expectedResponse.matchesRequest(request)) {

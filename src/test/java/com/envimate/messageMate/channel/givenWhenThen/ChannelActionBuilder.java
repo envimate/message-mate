@@ -1,7 +1,7 @@
 package com.envimate.messageMate.channel.givenWhenThen;
 
 import com.envimate.messageMate.channel.Channel;
-import com.envimate.messageMate.channel.ChannelStatistics;
+import com.envimate.messageMate.channel.statistics.ChannelStatistics;
 import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.channel.action.Subscription;
 import com.envimate.messageMate.filtering.Filter;
@@ -60,7 +60,7 @@ public final class ChannelActionBuilder {
 
     public static ChannelActionBuilder severalMessagesAreSendAsynchronously(final int numberOfMessages) {
         return anAction((channel, testEnvironment) -> {
-            sendValidMessagesAsynchronously(testMessage -> channel.accept(ProcessingContext.processingContext(testMessage)), testEnvironment,
+            sendValidMessagesAsynchronously(channel::accept, testEnvironment,
                     numberOfMessages, 1, false);
             final long millisecondsToLetThreadsFInishAfterReleasingSemaphoreBeforeCloseIsCalled = 5;
             testEnvironment.setProperty(SLEEP_BEFORE_CLOSE, millisecondsToLetThreadsFInishAfterReleasingSemaphoreBeforeCloseIsCalled);
@@ -70,14 +70,15 @@ public final class ChannelActionBuilder {
 
     public static ChannelActionBuilder severalMessagesAreSendAsynchronouslyBeforeTheChannelIsClosedWithoutFinishingRemainingTasks(final int numberOfMessages) {
         return anAction((channel, testEnvironment) -> {
-            sendMessagesBeforeShutdownAsynchronously(addSubscriber(channel), testMessage -> channel.accept(ProcessingContext.processingContext(testMessage)),
+            sendMessagesBeforeShutdownAsynchronously(addSubscriber(channel), channel::accept,
                     channel::close, testEnvironment, numberOfMessages, 1);
             return null;
         });
     }
+
     public static ChannelActionBuilder sendMessagesBeforeTheShutdownIsAwaitedWithoutFinishingTasks(final int numberOfMessages) {
         return anAction((channel, testEnvironment) -> {
-            sendMessagesBeforeShutdownAsynchronously(addSubscriber(channel), testMessage -> channel.accept(ProcessingContext.processingContext(testMessage)),
+            sendMessagesBeforeShutdownAsynchronously(addSubscriber(channel), channel::accept,
                     ignored -> {
                         try {
                             channel.close(false);
@@ -93,6 +94,7 @@ public final class ChannelActionBuilder {
 
     private static BiConsumer<Class<TestMessageOfInterest>, Subscriber<TestMessageOfInterest>> addSubscriber(final Channel<TestMessage> channel) {
         return (testMessageOfInterestClass, subscriber) -> {
+            @SuppressWarnings("unchecked")
             final Subscription<TestMessageOfInterest> subscription = (Subscription) channel.getDefaultAction();
             subscription.addSubscriber(subscriber);
         };
@@ -174,13 +176,6 @@ public final class ChannelActionBuilder {
     public static ChannelActionBuilder theNumberOfQueuedMessagesIsQueried() {
         return anAction((channel, testEnvironment) -> {
             testEnvironment.setProperty(RESULT, queryChannelStatistics(channel, ChannelStatistics::getQueuedMessages));
-            return null;
-        });
-    }
-
-    public static ChannelActionBuilder theNumberOfReplacedMessagesIsQueried() {
-        return anAction((channel, testEnvironment) -> {
-            testEnvironment.setProperty(RESULT, queryChannelStatistics(channel, ChannelStatistics::getReplacedMessages));
             return null;
         });
     }

@@ -25,4 +25,47 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="https://github.com/spotbugs/filter/3.0.0 https://raw.githubusercontent.com/spotbugs/spotbugs/3.1.0/spotbugs/etc/findbugsfilter.xsd">
 
+    <Match>
+        <Class name="com.envimate.messageMate.pipe.statistics.PipeStatistics"/>
+        <Method name="equals"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+    <Match>
+        <Class name="com.envimate.messageMate.pipe.statistics.PipeStatistics"/>
+        <Method name="hashCode"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+
+    <Match>
+        <Class name="com.envimate.messageMate.channel.statistics.ChannelStatistics"/>
+        <Method name="equals"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+    <Match>
+        <Class name="com.envimate.messageMate.channel.statistics.ChannelStatistics"/>
+        <Method name="hashCode"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+    <Match>
+        <Class name="com.envimate.messageMate.channel.ChannelStatistics"/>
+        <Method name="equals"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+    <Match>
+        <Class name="com.envimate.messageMate.channel.ChannelStatistics"/>
+        <Method name="hashCode"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+
+    <Match>
+        <Class name="com.envimate.messageMate.messageBus.statistics.MessageBusStatistics"/>
+        <Method name="equals"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+    <Match>
+        <Class name="com.envimate.messageMate.messageBus.statistics.MessageBusStatistics"/>
+        <Method name="hashCode"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+
 </FindBugsFilter>

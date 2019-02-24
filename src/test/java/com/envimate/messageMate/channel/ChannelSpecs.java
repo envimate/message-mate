@@ -121,14 +121,6 @@ public interface ChannelSpecs {
     }
 
     @Test
-    default void testChannel_allowsFilterToReplaceMessage_forPreFilter(final ChannelTestConfig channelTestConfig) {
-        given(aConfiguredChannel(channelTestConfig)
-                .withAPreFilterThatReplacesTheMessage())
-                .when(aMessageIsSend())
-                .then(expectTheMessageToBeReplaced());
-    }
-
-    @Test
     default void testChannel_allowsFilterToBlockMessage_forPreFilter(final ChannelTestConfig channelTestConfig) {
         given(aConfiguredChannel(channelTestConfig)
                 .withAPreFilterThatBlocksMessages())
@@ -189,15 +181,6 @@ public interface ChannelSpecs {
                 .withAProcessFilterThatChangesTheAction())
                 .when(aMessageIsSend())
                 .then(expectTheChangedActionToBeExecuted());
-    }
-
-
-    @Test
-    default void testChannel_allowsFilterToReplaceMessage_forProcessFilter(final ChannelTestConfig channelTestConfig) {
-        given(aConfiguredChannel(channelTestConfig)
-                .withAProcessFilterThatReplacesTheMessage())
-                .when(aMessageIsSend())
-                .then(expectTheMessageToBeReplaced());
     }
 
     @Test
@@ -261,14 +244,6 @@ public interface ChannelSpecs {
                 .withAPostFilterThatChangesTheAction())
                 .when(aMessageIsSend())
                 .then(expectTheChangedActionToBeExecuted());
-    }
-
-    @Test
-    default void testChannel_allowsFilterToReplaceMessage_forPostFilter(final ChannelTestConfig channelTestConfig) {
-        given(aConfiguredChannel(channelTestConfig)
-                .withAPostFilterThatReplacesTheMessage())
-                .when(aMessageIsSend())
-                .then(expectTheMessageToBeReplaced());
     }
 
     @Test
@@ -348,20 +323,6 @@ public interface ChannelSpecs {
     }
 
     // queued statistics config dependent
-
-    @Test
-    default void testChannel_canQueryReplacedMessages(final ChannelTestConfig channelTestConfig) {
-        final int numberOfSendMessages = 5;
-        final int numberOfReplacementsPerMessage = 3;
-        final int numberOfOverallReplacedMessages = numberOfSendMessages * numberOfReplacementsPerMessage;
-        given(aConfiguredChannel(channelTestConfig)
-                .withAPreFilterThatReplacesTheMessage()
-                .withAProcessFilterThatReplacesTheMessage()
-                .withAPostFilterThatReplacesTheMessage())
-                .when(severalMessagesAreSend(numberOfSendMessages)
-                        .andThen(theNumberOfReplacedMessagesIsQueried()))
-                .then(expectTheResult(numberOfOverallReplacedMessages));
-    }
 
     @Test
     default void testChannel_canQueryBlockedMessages_whenDroppedInPreFilter(final ChannelTestConfig channelTestConfig) {
@@ -454,8 +415,6 @@ public interface ChannelSpecs {
                         .andThen(theNumberOfFailedDeliveredMessagesIsQueried()))
                 .then(expectTheResult(numberOfSendMessages));
     }
-    //TODO: replace really necessary? or rename? or delete?
-    //TODO: several filter in one position: e.g. replace jumps over remaining
 
     //errors
     @Test

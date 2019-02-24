@@ -118,11 +118,6 @@ public final class MessageBusSetupBuilder {
         return this;
     }
 
-    public MessageBusSetupBuilder withAFilterThatReplacesWrongMessages() {
-        setupActions.add((t, testEnvironment) -> addAFilterThatReplacesWrongMessages(sutActions(t), testEnvironment));
-        return this;
-    }
-
     public MessageBusSetupBuilder withAnInvalidFilterThatDoesNotUseAnyFilterMethods() {
         setupActions.add((t, testEnvironment) -> addAnInvalidFilterThatDoesNotUseAnyFilterMethods(sutActions(t), testEnvironment));
         return this;

@@ -32,7 +32,7 @@ public class Then {
 
         final TestValidation validation = testValidationBuilder.build();
         validation.validate(testEnvironment);
-        closeSut(messageBus); //TODO: sehr gefährlich -> definitiv remove oder move nach validation
+        closeSut(messageBus);
     }
 
     private MessageBusSetup buildSetup(final MessageBusSetupBuilder setupBuilder) {

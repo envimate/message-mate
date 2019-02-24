@@ -15,12 +15,12 @@ import static lombok.AccessLevel.PACKAGE;
 
 @RequiredArgsConstructor(access = PACKAGE)
 public class Then {
-    private final TestMessageFunctionBuilder testMessageFunctionBuilder;
+    private final TestMessageFunctionSetupBuilder testMessageFunctionSetupBuilder;
     private final TestMessageFunctionActionBuilder testMessageFunctionActionBuilder;
 
     public void then(final TestMessageFunctionValidationBuilder testMessageFunctionValidationBuilder) {
-        final MessageFunction<TestRequest, TestResponse> messageFunction = testMessageFunctionBuilder.build();
-        final TestEnvironment testEnvironment = testMessageFunctionBuilder.getTestEnvironment();
+        final MessageFunction<TestRequest, TestResponse> messageFunction = testMessageFunctionSetupBuilder.build();
+        final TestEnvironment testEnvironment = testMessageFunctionSetupBuilder.getTestEnvironment();
         final TestAction<MessageFunction<TestRequest, TestResponse>> testAction = testMessageFunctionActionBuilder.build();
         try {
             final Object result = testAction.execute(messageFunction, testEnvironment);

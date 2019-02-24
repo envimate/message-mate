@@ -8,7 +8,7 @@ import java.util.concurrent.ExecutionException;
 
 import static com.envimate.messageMate.messageFunction.givenWhenThen.Given.given;
 import static com.envimate.messageMate.messageFunction.givenWhenThen.TestMessageFunctionActionBuilder.*;
-import static com.envimate.messageMate.messageFunction.givenWhenThen.TestMessageFunctionBuilder.aMessageFunction;
+import static com.envimate.messageMate.messageFunction.givenWhenThen.TestMessageFunctionSetupBuilder.aMessageFunction;
 import static com.envimate.messageMate.messageFunction.givenWhenThen.TestMessageFunctionValidationBuilder.*;
 
 public class MessageFunctionSpecs {

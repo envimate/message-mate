@@ -2,6 +2,7 @@ package com.envimate.messageMate.channel.givenWhenThen;
 
 import com.envimate.messageMate.channel.*;
 import com.envimate.messageMate.channel.action.Action;
+import com.envimate.messageMate.channel.statistics.ChannelStatistics;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;

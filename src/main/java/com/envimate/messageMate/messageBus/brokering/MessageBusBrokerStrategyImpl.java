@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package com.envimate.messageMate.messageBus.brokering;
 
 import com.envimate.messageMate.channel.Channel;
@@ -32,7 +53,6 @@ public final class MessageBusBrokerStrategyImpl implements MessageBusBrokerStrat
     @Override
     public Set<Channel<?>> getDeliveringChannelsFor(final Class<?> messageClass) {
         if (cachedChannelMap.containsKey(messageClass)) {
-            System.out.println("getDeliveringChannelsFor: cached entry for " + messageClass);
             return cachedChannelMap.get(messageClass);
         } else {
             final Set<Channel<?>> channels = storeNewlySeenMessageClass(messageClass);
@@ -41,7 +61,6 @@ public final class MessageBusBrokerStrategyImpl implements MessageBusBrokerStrat
     }
 
     private synchronized Set<Channel<?>> storeNewlySeenMessageClass(final Class<?> messageClass) {
-        System.out.println("getDeliveringChannelsFor: creating entry for " + messageClass);
         final ClassInformation classInformation = createClassInformation(messageClass);
         final Set<Channel<?>> channels = collectAllChannelsFromSuperClassHierarchy(classInformation);
         cachedChannelMap.put(messageClass, channels);
@@ -53,16 +72,13 @@ public final class MessageBusBrokerStrategyImpl implements MessageBusBrokerStrat
         if (classInformationMap.containsKey(tClass)) {
             final ClassInformation classInformation = classInformationMap.get(tClass);
             if (classInformation.hasChannel()) {
-                System.out.println("addSubscriber: only adding subscriber to existing channel for " + tClass);
                 final Channel<?> channel = classInformation.getChannel();
                 addSubscriberTo(channel, subscriber);
             } else {
-                System.out.println("addSubscriber: creating channel for existing entry for" + tClass);
                 final Channel<?> newlyCreatedChannel = createNewChannel(tClass, subscriber, classInformation);
                 publishNewChannelToAllChildren(classInformation, newlyCreatedChannel);
             }
         } else {
-            System.out.println("addSubscriber: creating new entry for " + tClass);
             final ClassInformation classInformation = createClassInformation(tClass);
             createNewChannel(tClass, subscriber, classInformation);
             final Set<Channel<?>> channels = collectAllChannelsFromSuperClassHierarchy(classInformation);
@@ -70,7 +86,8 @@ public final class MessageBusBrokerStrategyImpl implements MessageBusBrokerStrat
         }
     }
 
-    private <T> Channel<?> createNewChannel(final Class<T> tClass, final Subscriber<T> subscriber, final ClassInformation classInformation) {
+    private <T> Channel<?> createNewChannel(final Class<T> tClass, final Subscriber<T> subscriber,
+                                            final ClassInformation classInformation) {
         final Channel<?> newlyCreatedChannel = channelFactory.createChannel(tClass, subscriber);
         addSubscriberTo(newlyCreatedChannel, subscriber);
         classInformation.setChannel(newlyCreatedChannel);
@@ -102,6 +119,7 @@ public final class MessageBusBrokerStrategyImpl implements MessageBusBrokerStrat
     private <T> Subscription<T> getSubscriptionOf(final Channel<?> channel) {
         final Action<?> defaultAction = channel.getDefaultAction();
         if (defaultAction instanceof Subscription) {
+            @SuppressWarnings("unchecked")
             final Subscription<T> subscription = (Subscription<T>) defaultAction;
             return subscription;
         } else {
@@ -127,9 +145,7 @@ public final class MessageBusBrokerStrategyImpl implements MessageBusBrokerStrat
 
     private ClassInformation createClassInformation(final Class<?> clazz) {
         final Set<Class<?>> directSuperClasses = allSuperClassesAndInterfaces(clazz);
-        System.out.println("messageClass = " + clazz);
-        System.out.println("directSuperClasses = " + directSuperClasses);
-        final Set<ClassInformation> superClassInformation = classInformationOfSuperClasses(directSuperClasses);//recursive
+        final Set<ClassInformation> superClassInformation = classInformationOfSuperClasses(directSuperClasses);
         final ClassInformation classInformation = new ClassInformation(clazz, superClassInformation);
         for (final ClassInformation currentSuperClassInformation : superClassInformation) {
             currentSuperClassInformation.addExtendingClass(classInformation);
@@ -166,7 +182,7 @@ public final class MessageBusBrokerStrategyImpl implements MessageBusBrokerStrat
             final Set<Subscription<?>> subscriptions = subscriptionIdToSubscriptionMap.get(subscriptionId);
             for (final Subscription<?> subscription : subscriptions) {
                 subscription.removeSubscriber(subscriptionId);
-                //TODO: think about cleaning up orphaned channels
+                //don't clean up old channels
             }
         }
     }
@@ -207,7 +223,7 @@ public final class MessageBusBrokerStrategyImpl implements MessageBusBrokerStrat
         return new LinkedList<>(subscription.getSubscribers());
     }
 
-    private class ClassInformation {
+    private static final class ClassInformation {
         private final Class<?> clazz;
         private final Set<ClassInformation> extendingClassInformationSet;
         private final Set<ClassInformation> superClassInformationSet;
@@ -215,17 +231,17 @@ public final class MessageBusBrokerStrategyImpl implements MessageBusBrokerStrat
         @Setter
         private Channel<?> channel;
 
-        public ClassInformation(final Class<?> clazz, final Set<ClassInformation> superClassInformationSet) {
+        ClassInformation(final Class<?> clazz, final Set<ClassInformation> superClassInformationSet) {
             this.clazz = clazz;
             this.superClassInformationSet = superClassInformationSet;
             extendingClassInformationSet = new HashSet<>();
         }
 
-        public boolean hasChannel() {
+        boolean hasChannel() {
             return channel != null;
         }
 
-        public void addExtendingClass(final ClassInformation extendingClassInformation) {
+        void addExtendingClass(final ClassInformation extendingClassInformation) {
             extendingClassInformationSet.add(extendingClassInformation);
         }
     }

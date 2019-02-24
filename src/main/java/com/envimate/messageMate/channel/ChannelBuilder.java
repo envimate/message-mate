@@ -80,9 +80,9 @@ public class ChannelBuilder<T> {
         return this;
     }
 
-    public ChannelBuilder<T> withEventListenerAndStatisticsCollector(final ChannelEventListener<ProcessingContext<T>> eventListener,
+    public ChannelBuilder<T> withEventListenerAndStatisticsCollector(final ChannelEventListener<ProcessingContext<T>> listener,
                                                                      final ChannelStatisticsCollector statisticsCollector) {
-        this.eventListener = eventListener;
+        this.eventListener = listener;
         this.statisticsCollector = statisticsCollector;
         return this;
     }
@@ -100,7 +100,8 @@ public class ChannelBuilder<T> {
         final Pipe<ProcessingContext<T>> postPipe = createDeliveringPipe();
         createStatisticsCollectorAndEventListenerSetup(acceptingPipe, postPipe);
         final ActionHandlerSet<T> actionHandlerSet = createDefaultActionHandlerSetIfAbsent();
-        return channel(this.action, acceptingPipe, prePipe, processPipe, postPipe, eventListener, statisticsCollector, actionHandlerSet, channelExceptionHandler);
+        return channel(this.action, acceptingPipe, prePipe, processPipe, postPipe, eventListener, statisticsCollector,
+                actionHandlerSet, channelExceptionHandler);
     }
 
     private Pipe<ProcessingContext<T>> createAcceptingPipe() {
@@ -125,7 +126,7 @@ public class ChannelBuilder<T> {
     private Pipe<ProcessingContext<T>> createDeliveringPipe() {
         return PipeBuilder.<ProcessingContext<T>>aPipe()
                 .ofType(PipeType.SYNCHRONOUS)
-                .withErrorHandler(new PipeErrorHandler<>() {
+                .withErrorHandler(new PipeErrorHandler<ProcessingContext<T>>() {
                     @Override
                     public boolean shouldErrorBeHandledAndDeliveryAborted(final ProcessingContext<T> message, final Exception e) {
                         return channelExceptionHandler.shouldSubscriberErrorBeHandledAndDeliveryAborted(message, e);
@@ -138,11 +139,13 @@ public class ChannelBuilder<T> {
                 }).build();
     }
 
-    private void createStatisticsCollectorAndEventListenerSetup(final Pipe<ProcessingContext<T>> acceptingPipe, final Pipe<ProcessingContext<T>> postPipe) {
+    private void createStatisticsCollectorAndEventListenerSetup(final Pipe<ProcessingContext<T>> acceptingPipe,
+                                                                final Pipe<ProcessingContext<T>> postPipe) {
         if (eventListener == null && statisticsCollector == null) {
-            final PipeStatisticsBasedChannelStatisticsCollector sc = pipeStatisticsBasedChannelStatisticsCollector(acceptingPipe, postPipe);
-            this.statisticsCollector = sc;
-            this.eventListener = simpleChannelEventListener(sc);
+            final PipeStatisticsBasedChannelStatisticsCollector statisticsCollector =
+                    pipeStatisticsBasedChannelStatisticsCollector(acceptingPipe, postPipe);
+            this.statisticsCollector = statisticsCollector;
+            this.eventListener = simpleChannelEventListener(statisticsCollector);
         }
     }
 

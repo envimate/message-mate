@@ -24,12 +24,7 @@
         "-//Puppy Crawl//DTD Suppressions 1.1//EN"
         "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
 <suppressions>
-    <suppress checks="HideUtilityClassConstructor" files="BrokerStrategyFactory.java" />
-    <suppress checks="HideUtilityClassConstructor" files="MessageStatistics.java" />
-    <suppress checks="HideUtilityClassConstructor" files="StatisticsCollectorFactory.java" />
     <suppress checks="HideUtilityClassConstructor" files="FilterApplierFactory.java" />
-    <suppress checks="HideUtilityClassConstructor" files="MessageAcceptingStrategyAbstractFactory.java" />
-    <suppress checks="HideUtilityClassConstructor" files="AbstractDeliveryStrategyFactory.java" />
     <suppress checks="HideUtilityClassConstructor" files="StringValidator.java" />
     <suppress checks="HideUtilityClassConstructor" files="QueryResolverFactory.java" />
     <suppress checks="HideUtilityClassConstructor" files="ConstraintEnforcerFactory.java" />
@@ -40,9 +35,13 @@
     <suppress checks="HideUtilityClassConstructor" files="RequestResponseRelationMapFactory.java" />
     <suppress checks="HideUtilityClassConstructor" files="DefaultActionHandlerSet.java"/>
     <suppress checks="HideUtilityClassConstructor" files="ForbiddenUseCaseMethods.java"/>
+    <suppress checks="HideUtilityClassConstructor" files="TransportMechanismFactory.java"/>
+    <suppress checks="HideUtilityClassConstructor" files="MessageBusConsumeAction.java"/>
     <suppress checks="ParameterNumber" files="MessageStatistics.java" />
-    <suppress checks="IllegalCatch" files="SynchronousDeliveryStrategy.java" />
-    <suppress checks="IllegalCatch" files="AsynchronousDeliveryStrategy.java" />
+    <suppress checks="IllegalCatch" files="SynchronousDelivery.java" />
     <suppress checks="IllegalCatch" files="EventToUseCaseDispatcherBuilder.java"/>
+    <suppress checks="IllegalCatch" files="ChannelImpl.java"/>
+    <suppress checks="IllegalCatch" files="QueryResolverImpl.java"/>
     <suppress checks="VisibilityModifierCheck" files="AbstractSharedAnswerImpl.java" />
+    <suppress checks="ParameterNumber" files="ChannelImpl.java" />
 </suppressions>

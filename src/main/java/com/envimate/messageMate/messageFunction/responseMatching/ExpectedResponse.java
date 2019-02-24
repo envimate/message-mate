@@ -29,7 +29,6 @@ import lombok.RequiredArgsConstructor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 import static com.envimate.messageMate.messageFunction.responseMatching.ExpectedResponseFuture.expectedResponseFuture;
 

@@ -29,7 +29,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static com.envimate.messageMate.internal.reflections.ReflectionUtils.getAllSuperClassesAndInterfacesIncludingClassItself;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)

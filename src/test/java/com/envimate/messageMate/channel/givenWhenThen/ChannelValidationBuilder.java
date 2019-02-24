@@ -165,7 +165,7 @@ public final class ChannelValidationBuilder {
 
     public static ChannelValidationBuilder expectTheMessageToBeReceivedByAllSubscriber() {
         return aValidation(testEnvironment -> {
-            final ProcessingContext processingContext = testEnvironment.getPropertyAsType(EXPECTED_RESULT, ProcessingContext.class);
+            final ProcessingContext<?> processingContext = testEnvironment.getPropertyAsType(EXPECTED_RESULT, ProcessingContext.class);
             final Object expectedMessage = processingContext.getPayload();
             final List<?> expectedTestMessages = Collections.singletonList(expectedMessage);
             assertExpectedReceiverReceivedAllMessages(testEnvironment, expectedTestMessages);

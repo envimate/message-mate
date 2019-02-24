@@ -51,12 +51,6 @@ public final class PipeMessageBusSetupActions {
         sutActions.addFilter(filter);
     }
 
-    public static void addAFilterThatReplacesWrongMessages(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
-        testEnvironment.setProperty(EXECUTE_MESSAGE_BUS_IN_OWN_THREAD, true);
-        final Filter<Object> filter = aMessageReplacingFilter_old();
-        sutActions.addFilter(filter);
-    }
-
     public static void addAnInvalidFilterThatDoesNotUseAnyFilterMethods(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
         final Filter<Object> filter = aMessageFilterThatDoesNotCallAnyMethod();
         sutActions.addFilter(filter);
@@ -66,10 +60,10 @@ public final class PipeMessageBusSetupActions {
         final String firstAppend = "1nd";
         final String secondAppend = "2nd";
         testEnvironment.setProperty(EXPECTED_CHANGED_CONTENT, TestMessageOfInterest.CONTENT + firstAppend + secondAppend);
-        final Filter<Object> filter1 = aContentAppendingFilter_old(secondAppend);
+        final Filter<Object> filter1 = aContentAppendingFilter(secondAppend);
         sutActions.addFilter(filter1, 0);
         testEnvironment.addToListProperty(EXPECTED_FILTER, filter1);
-        final Filter<Object> filter2 = aContentAppendingFilter_old(firstAppend);
+        final Filter<Object> filter2 = aContentAppendingFilter(firstAppend);
         sutActions.addFilter(filter2, 0);
         testEnvironment.addToListProperty(EXPECTED_FILTER, filter2);
     }

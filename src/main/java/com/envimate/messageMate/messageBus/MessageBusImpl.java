@@ -51,8 +51,8 @@ final class MessageBusImpl implements MessageBus {
     private final ErrorListenerHandler errorListenerHandler;
     private MessageBusStatusInformationAdapter statusInformationAdapter;
 
-    public MessageBusImpl(final Channel<Object> acceptingChannel, final MessageBusBrokerStrategy brokerStrategy,
-                          final ErrorListenerHandler errorListenerHandler) {
+    MessageBusImpl(final Channel<Object> acceptingChannel, final MessageBusBrokerStrategy brokerStrategy,
+                   final ErrorListenerHandler errorListenerHandler) {
         this.acceptingChannel = acceptingChannel;
         this.brokerStrategy = brokerStrategy;
         this.errorListenerHandler = errorListenerHandler;
@@ -60,11 +60,9 @@ final class MessageBusImpl implements MessageBus {
         statusInformationAdapter = statusInformationAdapter(statisticsCollector, brokerStrategy);
     }
 
-
     @Override
     public void send(final Object message) {
-        final ProcessingContext<Object> processingContext = ProcessingContext.processingContext(message); //TODO: geil, wenn das intern geregelt werden würde.e.g overloaded function
-        acceptingChannel.accept(processingContext);
+        acceptingChannel.accept(message);
     }
 
     @Override
@@ -127,7 +125,8 @@ final class MessageBusImpl implements MessageBus {
     }
 
     @Override
-    public <T> SubscriptionId onError(List<Class<? extends T>> errorClasses, BiConsumer<? extends T, Exception> exceptionListener) {
+    public <T> SubscriptionId onError(final List<Class<? extends T>> errorClasses,
+                                      final BiConsumer<? extends T, Exception> exceptionListener) {
         return errorListenerHandler.register(errorClasses, exceptionListener);
     }
 
@@ -147,7 +146,12 @@ final class MessageBusImpl implements MessageBus {
     }
 
     @Override
-    public boolean awaitTermination(final long timeout, final TimeUnit unit) throws InterruptedException {
+    public void close() {
+        close(true);
+    }
+
+    @Override
+    public boolean awaitTermination(final long timeout, final TimeUnit unit) {
         return true;
     }
 
@@ -156,19 +160,15 @@ final class MessageBusImpl implements MessageBus {
         return true;
     }
 
-    @Override
-    public void close() {
-        close(true);
-    }
-
     @RequiredArgsConstructor(access = PRIVATE)
-    private final class FilterAdapter implements Filter<ProcessingContext<Object>> {
+    private static final class FilterAdapter implements Filter<ProcessingContext<Object>> {
         private final Filter<Object> delegate;
 
         @Override
-        public void apply(final ProcessingContext<Object> processingContext, final FilterActions<ProcessingContext<Object>> filterActions) {
+        public void apply(final ProcessingContext<Object> processingContext,
+                          final FilterActions<ProcessingContext<Object>> filterActions) {
             final Object originalPayload = processingContext.getPayload();
-            delegate.apply(originalPayload, new FilterActions<>() {
+            delegate.apply(originalPayload, new FilterActions<Object>() {
                 @Override
                 public void block(final Object message) {
                     if (originalPayload != message) {
@@ -178,19 +178,10 @@ final class MessageBusImpl implements MessageBus {
                 }
 
                 @Override
-                public void replace(final Object message) {
-                    if (originalPayload != message) {
-                        processingContext.setPayload(message);
-                    }
-                    filterActions.replace(processingContext);
-                }
-
-                @Override
                 public void pass(final Object message) {
                     if (originalPayload != message) {
                         processingContext.setPayload(message);
                     }
-                    System.out.println("Passed");
                     filterActions.pass(processingContext);
                 }
             });

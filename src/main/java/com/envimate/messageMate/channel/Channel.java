@@ -31,6 +31,8 @@ public interface Channel<T> {
 
     void accept(ProcessingContext<T> processingContext);
 
+    void accept(T message);
+
     void addPreFilter(Filter<ProcessingContext<T>> filter);
 
     void addPreFilter(Filter<ProcessingContext<T>> filter, int position);

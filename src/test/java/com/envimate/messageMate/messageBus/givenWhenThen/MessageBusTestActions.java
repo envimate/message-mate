@@ -112,10 +112,6 @@ public final class MessageBusTestActions implements PipeMessageBusSutActions {
         queryMessageStatistics(testEnvironment, MessageBusStatistics::getBlockedMessages);
     }
 
-    public void queryTheNumberOfReplacedMessages(final TestEnvironment testEnvironment) {
-        queryMessageStatistics(testEnvironment, MessageBusStatistics::getReplacedMessages);
-    }
-
     public void queryTheNumberOfForgottenMessages(final TestEnvironment testEnvironment) {
         queryMessageStatistics(testEnvironment, MessageBusStatistics::getForgottenMessages);
     }

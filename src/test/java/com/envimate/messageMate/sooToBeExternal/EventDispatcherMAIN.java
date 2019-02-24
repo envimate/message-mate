@@ -7,7 +7,6 @@ import com.envimate.messageMate.soonToBeExternal.*;
 import java.util.ArrayList;
 import java.util.List;
 
-//TODO: cleanup
 public class EventDispatcherMAIN {
 
     public static void main(String[] args) {

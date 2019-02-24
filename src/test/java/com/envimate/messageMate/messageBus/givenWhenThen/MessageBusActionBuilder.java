@@ -30,7 +30,6 @@ import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.TestF
 import static com.envimate.messageMate.shared.subscriber.ErrorThrowingTestSubscriber.errorThrowingTestSubscriber;
 
 
-//TODO: a lot of unnessary nulls
 public final class MessageBusActionBuilder {
     private List<TestAction<MessageBus>> actions = new ArrayList<>();
 
@@ -50,7 +49,6 @@ public final class MessageBusActionBuilder {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
             final PipeMessageBusSutActions sutActions = messageBusTestActions(messageBus);
             sendTheMessage(sutActions, testEnvironment, message);
-            System.out.println("send");
             return null;
         });
     }
@@ -91,7 +89,6 @@ public final class MessageBusActionBuilder {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
             final PipeMessageBusSutActions sutActions = messageBusTestActions(messageBus);
             addASingleSubscriber(sutActions, testEnvironment, clazz);
-            System.out.println("aSubscriberIsAdded");
             return null;
         });
     }
@@ -176,14 +173,6 @@ public final class MessageBusActionBuilder {
         });
     }
 
-    public static MessageBusActionBuilder theNumberOfReplacedMessagesIsQueried() {
-        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
-            messageBusTestActions(messageBus)
-                    .queryTheNumberOfReplacedMessages(testEnvironment);
-            return null;
-        });
-    }
-
     public static MessageBusActionBuilder theNumberOfForgottenMessagesIsQueried() {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
             messageBusTestActions(messageBus)
@@ -210,8 +199,6 @@ public final class MessageBusActionBuilder {
 
     public static MessageBusActionBuilder theSubscriberAreQueriedPerType() {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
-            //TODO: ev noch falsch hier
-            final PipeMessageBusSutActions sutActions = messageBusTestActions(messageBus);
             final MessageBusStatusInformation statusInformation = messageBus.getStatusInformation();
             final Map<Class<?>, List<Subscriber<?>>> subscribersPerType = statusInformation.getSubscribersPerType();
             testEnvironment.setProperty(RESULT, subscribersPerType);
@@ -221,8 +208,6 @@ public final class MessageBusActionBuilder {
 
     public static MessageBusActionBuilder allSubscribersAreQueriedAsList() {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
-            //TODO: in sutActions -> make usable for pipe too
-            final PipeMessageBusSutActions sutActions = messageBusTestActions(messageBus);
             final List<Subscriber<?>> allSubscribers = messageBus.getStatusInformation().getAllSubscribers();
             testEnvironment.setProperty(RESULT, allSubscribers);
             return null;
@@ -231,7 +216,6 @@ public final class MessageBusActionBuilder {
 
     public static MessageBusActionBuilder theChannelForTheClassIsQueried(final Class<?> clazz) {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
-            //TODO: in sutActions -> make usable for pipe too
             final Channel<?> channel = messageBus.getStatusInformation()
                     .getChannelFor(clazz);
             testEnvironment.setProperty(RESULT, channel);
@@ -243,26 +227,6 @@ public final class MessageBusActionBuilder {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
             final PipeMessageBusSutActions sutActions = messageBusTestActions(messageBus);
             sendSeveralMessagesAsynchronouslyBeforeTheObjectIsShutdown(sutActions, testEnvironment, numberOfSenders, numberOfMessages);
-            return null;
-        });
-    }
-
-    public static MessageBusActionBuilder theBusIsShutdownAfterHalfOfTheMessagesWereDelivered(final int numberOfMessages) {
-        final int numberOfMessagesBeforeShutdown = numberOfMessages / 2;
-        final int remainingMessages = numberOfMessages - numberOfMessagesBeforeShutdown;
-        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
-            final PipeMessageBusSutActions sutActions = messageBusTestActions(messageBus);
-            sendXMessagesAShutdownsIsCalledThenSendsYMessage(sutActions, testEnvironment, numberOfMessagesBeforeShutdown, remainingMessages, true);
-            return null;
-        });
-    }
-
-    public static MessageBusActionBuilder theBusIsShutdownAfterHalfOfTheMessagesWereDelivered_withoutFinishingRemainingTasks(final int numberOfMessages) {
-        final int numberOfMessagesBeforeShutdown = numberOfMessages / 2;
-        final int remainingMessages = numberOfMessages - numberOfMessagesBeforeShutdown;
-        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
-            final PipeMessageBusSutActions sutActions = messageBusTestActions(messageBus);
-            sendXMessagesAShutdownsIsCalledThenSendsYMessage(sutActions, testEnvironment, numberOfMessagesBeforeShutdown, remainingMessages, false);
             return null;
         });
     }

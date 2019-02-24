@@ -168,15 +168,6 @@ public interface MessageBusSpecs {
     }
 
     @Test
-    default void testMessageBus_allowsFiltersToReplaceMessages(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aConfiguredMessageBus(messageBusTestConfig)
-                .withSeveralSubscriber(3)
-                .withAFilterThatReplacesWrongMessages())
-                .when(severalInvalidMessagesAreSendAsynchronously(3, 10))
-                .then(expectOnlyValidMessageToBeReceived());
-    }
-
-    @Test
     default void testMessageBus_whenAFilterDoesNotUseAMethod_messageIsDropped(final MessageBusTestConfig messageBusTestConfig) throws Exception {
         given(aConfiguredMessageBus(messageBusTestConfig)
                 .withSeveralSubscriber(3)
@@ -249,15 +240,6 @@ public interface MessageBusSpecs {
                 .then(expectResultToBe(15));
     }
 
-    @Test
-    default void testMessageBus_returnsCorrectNumberOfReplacedMessages(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aConfiguredMessageBus(messageBusTestConfig)
-                .withASingleSubscriber()
-                .withAFilterThatReplacesWrongMessages())
-                .when(severalInvalidMessagesAreSendAsynchronously(3, 5)
-                        .andThen(theNumberOfReplacedMessagesIsQueried()))
-                .then(expectResultToBe(15));
-    }
 
     @Test
     default void testMessageBus_returnsCorrectNumberOfSuccessfulMessages(final MessageBusTestConfig messageBusTestConfig) throws Exception {

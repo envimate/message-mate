@@ -21,9 +21,6 @@
 
 package com.envimate.messageMate.qcec.queryresolving;
 
-import com.envimate.messageMate.error.DeliveryFailedMessage;
-import com.envimate.messageMate.error.ExceptionInSubscriberException;
-import com.envimate.messageMate.error.NoSuitableSubscriberException;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.subscribing.PreemptiveSubscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;

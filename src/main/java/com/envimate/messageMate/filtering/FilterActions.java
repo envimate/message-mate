@@ -25,7 +25,5 @@ public interface FilterActions<T> {
 
     void block(T message);
 
-    void replace(T message);
-
     void pass(T message);
 }

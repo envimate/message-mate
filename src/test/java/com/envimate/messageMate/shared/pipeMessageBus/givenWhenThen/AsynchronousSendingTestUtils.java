@@ -25,8 +25,6 @@ import static lombok.AccessLevel.PRIVATE;
 @RequiredArgsConstructor(access = PRIVATE)
 public final class AsynchronousSendingTestUtils {
 
-    //TODO: replace sutActions with consumer
-
     public static void sendValidMessagesAsynchronously(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment,
                                                        final int numberOfSender, final int numberOfMessagesPerSender, final boolean expectCleanShutdown) {
         sendXMessagesAsynchronously(numberOfSender, TestMessageFactory.testMessageFactoryForValidMessages(numberOfMessagesPerSender, testEnvironment),
@@ -139,7 +137,6 @@ public final class AsynchronousSendingTestUtils {
                 }
                 for (final TestMessage message : messagesToSend) {
                     sutSend.accept(message);
-                    System.out.println("SEND");
                 }
             });
         }

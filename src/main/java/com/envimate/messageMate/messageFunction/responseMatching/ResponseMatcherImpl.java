@@ -44,6 +44,7 @@ public final class ResponseMatcherImpl<S> implements ResponseMatcher<S> {
     @Override
     public boolean matches(final Object response) {
         if (response.getClass().equals(expectedResponseClass)) {
+            @SuppressWarnings("unchecked")
             final S s = (S) response;
             final CorrelationId correlationId = correlationIdExtraction.extractCorrelationId(s);
             return correlationId.equals(expectedCorrelationId);

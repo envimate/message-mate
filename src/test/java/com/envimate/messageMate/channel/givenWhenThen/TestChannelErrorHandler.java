@@ -15,7 +15,7 @@ import static lombok.AccessLevel.PRIVATE;
 public final class TestChannelErrorHandler {
 
     public static ChannelExceptionHandler<TestMessage> ignoringChannelExceptionHandler() {
-        return new ChannelExceptionHandler<>() {
+        return new ChannelExceptionHandler<TestMessage>() {
             @Override
             public boolean shouldSubscriberErrorBeHandledAndDeliveryAborted(final ProcessingContext<TestMessage> message, final Exception e) {
                 return true;
@@ -34,7 +34,7 @@ public final class TestChannelErrorHandler {
     }
 
     public static ChannelExceptionHandler<TestMessage> exceptionInResultStoringChannelExceptionHandler(final TestEnvironment testEnvironment) {
-        return new ChannelExceptionHandler<>() {
+        return new ChannelExceptionHandler<TestMessage>() {
             @Override
             public boolean shouldSubscriberErrorBeHandledAndDeliveryAborted(final ProcessingContext<TestMessage> message, final Exception e) {
                 return true;
@@ -53,7 +53,7 @@ public final class TestChannelErrorHandler {
     }
 
     public static ChannelExceptionHandler<TestMessage> catchingChannelExceptionHandler(final TestEnvironment testEnvironment) {
-        return new ChannelExceptionHandler<>() {
+        return new ChannelExceptionHandler<TestMessage>() {
             @Override
             public boolean shouldSubscriberErrorBeHandledAndDeliveryAborted(final ProcessingContext<TestMessage> message, final Exception e) {
                 return true;
@@ -72,7 +72,7 @@ public final class TestChannelErrorHandler {
     }
 
     public static ChannelExceptionHandler<TestMessage> testExceptionIgnoringChannelExceptionHandler(final TestEnvironment testEnvironment) {
-        return new ChannelExceptionHandler<>() {
+        return new ChannelExceptionHandler<TestMessage>() {
             @Override
             public boolean shouldSubscriberErrorBeHandledAndDeliveryAborted(final ProcessingContext<TestMessage> message, final Exception e) {
                 return !(e instanceof TestException);

@@ -21,7 +21,10 @@
 
 package com.envimate.messageMate.pipe.statistics;
 
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 import java.math.BigInteger;
 import java.util.Date;
@@ -32,7 +35,6 @@ import static lombok.AccessLevel.PRIVATE;
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = PRIVATE)
 public final class PipeStatistics {
-    @Getter
     private final Date timestamp;
     @Getter
     private final BigInteger acceptedMessages;
@@ -43,12 +45,17 @@ public final class PipeStatistics {
     @Getter
     private final BigInteger failedMessages;
 
-    public static PipeStatistics pipeStatistics(@NonNull final Date timestamp,
-                                                @NonNull final BigInteger acceptedMessages,
-                                                @NonNull final BigInteger queuedMessages,
-                                                @NonNull final BigInteger successfulMessages,
-                                                @NonNull final BigInteger failedMessages) {
+    public static PipeStatistics pipeStatistics(final Date timestamp,
+                                                final BigInteger acceptedMessages,
+                                                final BigInteger queuedMessages,
+                                                final BigInteger successfulMessages,
+                                                final BigInteger failedMessages) {
         return new PipeStatistics(timestamp, acceptedMessages, queuedMessages, successfulMessages, failedMessages);
+    }
+
+    public Date getTimestamp() {
+        final long copyForSafeSharing = timestamp.getTime();
+        return new Date(copyForSafeSharing);
     }
 
 }

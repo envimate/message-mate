@@ -25,8 +25,6 @@ public interface PostFilterActions<T> {
 
     void onAllPassed(T message);
 
-    void onReplaced(T replacedMessage);
-
     void onBlock(T message);
 
     void onForgotten(T message);

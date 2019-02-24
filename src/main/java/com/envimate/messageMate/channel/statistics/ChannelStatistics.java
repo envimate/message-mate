@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageBus.statistics;
+package com.envimate.messageMate.channel.statistics;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -34,35 +34,34 @@ import static lombok.AccessLevel.PRIVATE;
 @ToString
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = PRIVATE)
-public final class MessageBusStatistics {
+public final class ChannelStatistics {
     private final Date timestamp;
     @Getter
     private final BigInteger acceptedMessages;
     @Getter
-    private final BigInteger successfulMessages;
-    @Getter
-    private final BigInteger failedMessages;
+    private final BigInteger queuedMessages;
     @Getter
     private final BigInteger blockedMessages;
     @Getter
     private final BigInteger forgottenMessages;
     @Getter
-    private final BigInteger queuedMessages;
+    private final BigInteger successfulMessages;
+    @Getter
+    private final BigInteger failedMessages;
 
-    public static MessageBusStatistics messageBusStatistics(final Date timestamp,
-                                                            final BigInteger acceptedMessages,
-                                                            final BigInteger successfulMessages,
-                                                            final BigInteger failedMessages,
-                                                            final BigInteger blockedMessages,
-                                                            final BigInteger forgottenMessages,
-                                                            final BigInteger queuedMessages) {
-        return new MessageBusStatistics(timestamp, acceptedMessages, successfulMessages, failedMessages, blockedMessages,
-                forgottenMessages, queuedMessages);
+    public static ChannelStatistics channelStatistics(final Date timestamp,
+                                                      final BigInteger acceptedMessages,
+                                                      final BigInteger queuedMessages,
+                                                      final BigInteger blockedMessages,
+                                                      final BigInteger forgottenMessages,
+                                                      final BigInteger successfulMessages,
+                                                      final BigInteger failedMessages) {
+        return new ChannelStatistics(timestamp, acceptedMessages, queuedMessages, blockedMessages, forgottenMessages,
+                successfulMessages, failedMessages);
     }
 
     public Date getTimestamp() {
         final long copyForSafeSharing = timestamp.getTime();
         return new Date(copyForSafeSharing);
     }
-
 }

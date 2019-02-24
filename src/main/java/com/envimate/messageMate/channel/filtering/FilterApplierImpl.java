@@ -62,12 +62,6 @@ public final class FilterApplierImpl<T> implements FilterApplier<T> {
         }
 
         @Override
-        public void replace(final T message) {
-            messageNotForgotten = true;
-            postFilterActions.onReplaced(message);
-        }
-
-        @Override
         public void pass(final T message) {
             if (++currentFilterIndex < filters.size()) {
                 final Filter<T> nextFilter = filters.get(currentFilterIndex);

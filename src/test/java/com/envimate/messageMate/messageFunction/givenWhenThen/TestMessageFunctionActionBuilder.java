@@ -103,7 +103,6 @@ public final class TestMessageFunctionActionBuilder {
             final ResponseFuture<TestResponse> responseFuture = messageFunction.request(testRequest);
             responseFuture.then((testResponse, wasSuccessful, exception) -> {
                 testEnvironment.setProperty(EXCEPTION, exception);
-                System.out.println("Follow up called"+testResponse+"|"+wasSuccessful+"|"+exception);
             });
             return null;
         });

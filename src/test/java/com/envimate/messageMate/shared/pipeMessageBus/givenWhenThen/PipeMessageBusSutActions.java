@@ -14,7 +14,7 @@ public interface PipeMessageBusSutActions {
 
     boolean isShutdown(final TestEnvironment testEnvironment);
 
-    <R> void subscribe(Class<R> messageClass, Subscriber<R> subscriber); //TODO: message Class unnecessary for pipe: still using?
+    <R> void subscribe(Class<R> messageClass, Subscriber<R> subscriber);
 
     void close(boolean finishRemainingTasks);
 

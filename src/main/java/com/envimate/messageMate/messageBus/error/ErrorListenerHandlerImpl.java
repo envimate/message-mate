@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package com.envimate.messageMate.messageBus.error;
 
 import com.envimate.messageMate.subscribing.SubscriptionId;
@@ -29,7 +50,8 @@ public class ErrorListenerHandlerImpl implements ErrorListenerHandler {
     }
 
     @Override
-    public synchronized <T> SubscriptionId register(final List<Class<? extends T>> errorClasses, final BiConsumer<? extends T, Exception> exceptionListener) {
+    public synchronized <T> SubscriptionId register(final List<Class<? extends T>> errorClasses,
+                                                    final BiConsumer<? extends T, Exception> exceptionListener) {
         final SubscriptionId subscriptionId = SubscriptionId.newUniqueId();
         final ListenerInformation listenerInformation = new ListenerInformation(errorClasses, exceptionListener);
         for (final Class<?> errorClass : errorClasses) {
@@ -69,19 +91,22 @@ public class ErrorListenerHandlerImpl implements ErrorListenerHandler {
         if (listenerLookupMap.containsKey(clazz)) {
             final List<ListenerInformation> listenerInformationList = listenerLookupMap.get(clazz);
             final List<?> listener = listenerInformationList.stream()
-                    .map(listenerInformation -> listenerInformation.listener)
+                    .map(ListenerInformation::getListener)
                     .collect(Collectors.toList());
-            return (List<BiConsumer<T, Exception>>) listener;
+            @SuppressWarnings("unchecked")
+            final List<BiConsumer<T, Exception>> castedListener = (List<BiConsumer<T, Exception>>) listener;
+            return castedListener;
         } else {
             return Collections.emptyList();
         }
     }
 
-    private final class ListenerInformation {
+    @SuppressWarnings("unchecked")
+    private static final class ListenerInformation {
         @Getter
-        final List<Class<?>> registeredClasses;
+        private final List<Class<?>> registeredClasses;
         @Getter
-        final BiConsumer<?, Exception> listener;
+        private final BiConsumer<?, Exception> listener;
 
         private <T> ListenerInformation(final List<?> registeredClasses, final BiConsumer<T, Exception> listener) {
             this.registeredClasses = (List<Class<?>>) registeredClasses;
