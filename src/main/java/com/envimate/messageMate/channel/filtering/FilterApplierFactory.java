@@ -19,23 +19,15 @@
  * under the License.
  */
 
-package com.envimate.messageMate.internal.accepting;
+package com.envimate.messageMate.channel.filtering;
 
-import com.envimate.messageMate.internal.eventloop.AcceptingEventLoop;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
-import static lombok.AccessLevel.PRIVATE;
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public final class FilterApplierFactory {
 
-@RequiredArgsConstructor(access = PRIVATE)
-public final class AtomicAcceptingStrategyFactory<T> implements MessageAcceptingStrategyFactory<T> {
-
-    public static <T> AtomicAcceptingStrategyFactory<T> atomicAcceptingStrategyFactory() {
-        return new AtomicAcceptingStrategyFactory<>();
+    public static <T> FilterApplier<T> filterApplier() {
+        return new FilterApplierImpl<>();
     }
-
-    @Override
-    public MessageAcceptingStrategy<T> createNew(final AcceptingEventLoop<T> eventLoop) {
-        return new AtomicMessageAcceptingStrategy<>(eventLoop);
-    }
-
 }

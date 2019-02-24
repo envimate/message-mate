@@ -3,6 +3,7 @@ package com.envimate.messageMate.messageBus;
 
 import com.envimate.messageMate.error.AlreadyClosedException;
 import com.envimate.messageMate.messageBus.config.MessageBusTestConfig;
+import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.shared.testMessages.InvalidTestMessage;
 import com.envimate.messageMate.shared.testMessages.SubClassingTestMessageOfInterest;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
@@ -218,16 +219,6 @@ public interface MessageBusSpecs {
 
     //messageStatistics
     @Test
-    default void testMessageBus_whenAFilterDoesNotUseAMethod_theMessageIsMarkedAsForgotten(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aConfiguredMessageBus(messageBusTestConfig)
-                .withSeveralSubscriber(3)
-                .withAnInvalidFilterThatDoesNotUseAnyFilterMethods())
-                .when(aSingleMessageIsSend()
-                        .andThen(theNumberOfForgottenMessagesIsQueried()))
-                .then(expectResultToBe(1));
-    }
-
-    @Test
     default void testMessageBus_returnsCorrectNumberOfAcceptedMessages(final MessageBusTestConfig messageBusTestConfig) throws Exception {
         given(aConfiguredMessageBus(messageBusTestConfig)
                 .withASingleSubscriber())
@@ -236,14 +227,16 @@ public interface MessageBusSpecs {
                 .then(expectResultToBe(15));
     }
 
+    // queued statistics config dependent
+
     @Test
-    default void testMessageBus_returnsCorrectNumberOfSuccessfulMessages(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+    default void testMessageBus_whenAFilterDoesNotUseAMethod_theMessageIsMarkedAsForgotten(final MessageBusTestConfig messageBusTestConfig) throws Exception {
         given(aConfiguredMessageBus(messageBusTestConfig)
-                .withASingleSubscriber())
-                .when(severalMessagesAreSendAsynchronously(3, 5)
-                        .andThen(aShortWaitIsDone(10, MILLISECONDS))
-                        .andThen(theNumberOfSuccessfulMessagesIsQueried()))
-                .then(expectResultToBe(15));
+                .withSeveralSubscriber(3)
+                .withAnInvalidFilterThatDoesNotUseAnyFilterMethods())
+                .when(aSingleMessageIsSend()
+                        .andThen(theNumberOfForgottenMessagesIsQueried()))
+                .then(expectResultToBe(1));
     }
 
     @Test
@@ -263,6 +256,16 @@ public interface MessageBusSpecs {
                 .withAFilterThatReplacesWrongMessages())
                 .when(severalInvalidMessagesAreSendAsynchronously(3, 5)
                         .andThen(theNumberOfReplacedMessagesIsQueried()))
+                .then(expectResultToBe(15));
+    }
+
+    @Test
+    default void testMessageBus_returnsCorrectNumberOfSuccessfulMessages(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withASingleSubscriber())
+                .when(severalMessagesAreSendAsynchronously(3, 5)
+                        .andThen(aShortWaitIsDone(10, MILLISECONDS))
+                        .andThen(theNumberOfSuccessfulMessagesIsQueried()))
                 .then(expectResultToBe(15));
     }
 
@@ -305,7 +308,6 @@ public interface MessageBusSpecs {
                 .then(expectAListOfSize(2));
     }
 
-
     //channel
     @Test
     default void testMessageBus_returnsCorrectChannel(final MessageBusTestConfig messageBusTestConfig) throws Exception {
@@ -335,9 +337,6 @@ public interface MessageBusSpecs {
                 .then(expectTheMessageBusToBeShutdown());
     }
 
-    //TODO: await in sub configs -> sync and async configs
-    //TODO: error in acceptingPipe filter, error class specific channel filter, error in subscription.subscriber
-
     //error cases
     @Test
     default void testMessageBus_throwsErrorWhenSendOnAClosedMessageBusIsCalled(final MessageBusTestConfig messageBusTestConfig) throws Exception {
@@ -346,5 +345,52 @@ public interface MessageBusSpecs {
                 .when(theMessageBusIsShutdown()
                         .andThen(aSingleMessageIsSend()))
                 .then(expectTheException(AlreadyClosedException.class));
+    }
+
+    @Test
+    default void testMessageBus_customErrorHandlerCanAccessErrorsInsideFilterOfAcceptingPipe(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withAnErrorThrowingFilter()
+                .withACustomExceptionHandler())
+                .when(aSingleMessageIsSend())
+                .then(expectTheExceptionHandled(TestException.class));
+    }
+
+    @Test
+    default void testMessageBus_customErrorHandlerCanAccessErrorsInsideFilterOfDeliveringPipes(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withACustomExceptionHandler())
+                .when(aSubscriberIsAdded(TestMessageOfInterest.class)
+                        .andThen(anErrorThrowingFilterIsAddedInChannelOf(TestMessageOfInterest.class))
+                        .andThen(aSingleMessageIsSend()))
+                .then(expectTheExceptionHandled(TestException.class));
+    }
+
+    @Test
+    default void testMessageBus_customErrorHandlerCanAccessErrorsDuringDelivery(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withACustomExceptionHandler())
+                .when(anErrorThrowingSubscriberIsAdded()
+                        .andThen(aSingleMessageIsSend()))
+                .then(expectTheExceptionHandled(TestException.class));
+    }
+
+    @Test
+    default void testMessageBus_customErrorHandlerCanMarkExceptionAsNotDeliveryAborting(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withACustomExceptionHandler())
+                .when(anErrorThrowingSubscriberIsAdded()
+                        .andThen(aSingleMessageIsSend()
+                                .andThen(theNumberOfSuccessfulMessagesIsQueried())))
+                .then(expectResultToBe(1));
+    }
+
+    //await
+    @Test
+    default void testMessageBus_awaitWithoutCloseReturnsAlwaysTrue(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withAnErrorAcceptingSubscriber())
+                .when(theMessageBusShutdownIsExpectedForTimeoutInSeconds(1))
+                .then(expectResultToBe(true));
     }
 }

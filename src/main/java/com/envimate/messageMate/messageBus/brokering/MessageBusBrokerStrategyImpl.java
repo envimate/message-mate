@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static com.envimate.messageMate.internal.reflections.ReflectionUtils.getAllSuperClassesAndInterfaces;
@@ -18,9 +19,9 @@ import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
 public final class MessageBusBrokerStrategyImpl implements MessageBusBrokerStrategy {
-    private final Map<Class<?>, Set<Channel<?>>> cachedChannelMap = new HashMap<>();
-    private final Map<Class<?>, ClassInformation> classInformationMap = new HashMap<>();
-    private final Map<SubscriptionId, Set<Subscription<?>>> subscriptionIdToSubscriptionMap = new HashMap<>();
+    private final Map<Class<?>, Set<Channel<?>>> cachedChannelMap = new ConcurrentHashMap<>();
+    private final Map<Class<?>, ClassInformation> classInformationMap = new ConcurrentHashMap<>();
+    private final Map<SubscriptionId, Set<Subscription<?>>> subscriptionIdToSubscriptionMap = new ConcurrentHashMap<>();
     private final MessageBusChannelFactory channelFactory;
 
     public static MessageBusBrokerStrategyImpl messageBusBrokerStrategy(
@@ -34,16 +35,21 @@ public final class MessageBusBrokerStrategyImpl implements MessageBusBrokerStrat
             System.out.println("getDeliveringChannelsFor: cached entry for " + messageClass);
             return cachedChannelMap.get(messageClass);
         } else {
-            System.out.println("getDeliveringChannelsFor: creating entry for " + messageClass);
-            final ClassInformation classInformation = createClassInformation(messageClass);
-            final Set<Channel<?>> channels = collectAllChannelsFromSuperClassHierarchy(classInformation);
-            cachedChannelMap.put(messageClass, channels);
+            final Set<Channel<?>> channels = storeNewlySeenMessageClass(messageClass);
             return channels;
         }
     }
 
+    private synchronized Set<Channel<?>> storeNewlySeenMessageClass(final Class<?> messageClass) {
+        System.out.println("getDeliveringChannelsFor: creating entry for " + messageClass);
+        final ClassInformation classInformation = createClassInformation(messageClass);
+        final Set<Channel<?>> channels = collectAllChannelsFromSuperClassHierarchy(classInformation);
+        cachedChannelMap.put(messageClass, channels);
+        return channels;
+    }
+
     @Override
-    public <T> void addSubscriber(final Class<T> tClass, final Subscriber<T> subscriber) {
+    public synchronized <T> void addSubscriber(final Class<T> tClass, final Subscriber<T> subscriber) {
         if (classInformationMap.containsKey(tClass)) {
             final ClassInformation classInformation = classInformationMap.get(tClass);
             if (classInformation.hasChannel()) {
@@ -52,28 +58,35 @@ public final class MessageBusBrokerStrategyImpl implements MessageBusBrokerStrat
                 addSubscriberTo(channel, subscriber);
             } else {
                 System.out.println("addSubscriber: creating channel for existing entry for" + tClass);
-                final Channel<?> newlyCreatedChannel = channelFactory.createChannel(tClass, subscriber);
-                addSubscriberTo(newlyCreatedChannel, subscriber);
-                classInformation.setChannel(newlyCreatedChannel);
-                final LinkedList<ClassInformation> pendingClassInformation = new LinkedList<>();
-                pendingClassInformation.add(classInformation);
-                while (!pendingClassInformation.isEmpty()) {
-                    final ClassInformation currentClassInformation = pendingClassInformation.removeFirst();
-                    final Class<?> clazz = currentClassInformation.clazz;
-                    cachedChannelMap.putIfAbsent(clazz, new HashSet<>());
-                    final Set<Channel<?>> channels = cachedChannelMap.get(clazz);
-                    channels.add(newlyCreatedChannel);
-                    pendingClassInformation.addAll(currentClassInformation.extendingClassInformationSet);
-                }
+                final Channel<?> newlyCreatedChannel = createNewChannel(tClass, subscriber, classInformation);
+                publishNewChannelToAllChildren(classInformation, newlyCreatedChannel);
             }
         } else {
             System.out.println("addSubscriber: creating new entry for " + tClass);
             final ClassInformation classInformation = createClassInformation(tClass);
-            final Channel<?> newlyCreatedChannel = channelFactory.createChannel(tClass, subscriber);
-            addSubscriberTo(newlyCreatedChannel, subscriber);
-            classInformation.setChannel(newlyCreatedChannel);
+            createNewChannel(tClass, subscriber, classInformation);
             final Set<Channel<?>> channels = collectAllChannelsFromSuperClassHierarchy(classInformation);
             cachedChannelMap.put(tClass, channels);
+        }
+    }
+
+    private <T> Channel<?> createNewChannel(final Class<T> tClass, final Subscriber<T> subscriber, final ClassInformation classInformation) {
+        final Channel<?> newlyCreatedChannel = channelFactory.createChannel(tClass, subscriber);
+        addSubscriberTo(newlyCreatedChannel, subscriber);
+        classInformation.setChannel(newlyCreatedChannel);
+        return newlyCreatedChannel;
+    }
+
+    private void publishNewChannelToAllChildren(final ClassInformation classInformation, final Channel<?> newlyCreatedChannel) {
+        final LinkedList<ClassInformation> pendingClassInformation = new LinkedList<>();
+        pendingClassInformation.add(classInformation);
+        while (!pendingClassInformation.isEmpty()) {
+            final ClassInformation currentClassInformation = pendingClassInformation.removeFirst();
+            final Class<?> clazz = currentClassInformation.clazz;
+            cachedChannelMap.putIfAbsent(clazz, new HashSet<>());
+            final Set<Channel<?>> channels = cachedChannelMap.get(clazz);
+            channels.add(newlyCreatedChannel);
+            pendingClassInformation.addAll(currentClassInformation.extendingClassInformationSet);
         }
     }
 
@@ -148,7 +161,7 @@ public final class MessageBusBrokerStrategyImpl implements MessageBusBrokerStrat
     }
 
     @Override
-    public void removeSubscriber(final SubscriptionId subscriptionId) {
+    public synchronized void removeSubscriber(final SubscriptionId subscriptionId) {
         if (subscriptionIdToSubscriptionMap.containsKey(subscriptionId)) {
             final Set<Subscription<?>> subscriptions = subscriptionIdToSubscriptionMap.get(subscriptionId);
             for (final Subscription<?> subscription : subscriptions) {
@@ -178,7 +191,7 @@ public final class MessageBusBrokerStrategyImpl implements MessageBusBrokerStrat
     }
 
     @Override
-    public Channel<?> getClassSpecificChannel(final Class<?> messageClass) {
+    public synchronized Channel<?> getClassSpecificChannel(final Class<?> messageClass) {
         if (classInformationMap.containsKey(messageClass)) {
             final ClassInformation classInformation = classInformationMap.get(messageClass);
             return classInformation.getChannel();

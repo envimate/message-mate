@@ -21,21 +21,32 @@
 
 package com.envimate.messageMate.messageBus;
 
-import com.envimate.messageMate.channel.ChannelBuilder;
+import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.channel.ChannelType;
 import com.envimate.messageMate.messageBus.brokering.MessageBusBrokerStrategyImpl;
 import com.envimate.messageMate.messageBus.channelCreating.MessageBusChannelFactory;
+import com.envimate.messageMate.messageBus.error.DelegatingChannelExceptionHandlerForAcceptingChannel;
+import com.envimate.messageMate.messageBus.error.DelegatingChannelExceptionHandlerForDelieveryChannel;
+import com.envimate.messageMate.messageBus.error.MessageBusExceptionHandler;
+import com.envimate.messageMate.pipe.configuration.AsynchronousConfiguration;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
 import static com.envimate.messageMate.channel.ChannelBuilder.aChannel;
+import static com.envimate.messageMate.messageBus.MessageBusConsumeAction.messageBusConsumeAction;
 import static com.envimate.messageMate.messageBus.MessageBusType.SYNCHRONOUS;
+import static com.envimate.messageMate.messageBus.brokering.MessageBusBrokerStrategyImpl.messageBusBrokerStrategy;
 import static com.envimate.messageMate.messageBus.channelCreating.SynchronousMessageBusChannelFactory.synchronousMessageBusChannelFactory;
+import static com.envimate.messageMate.messageBus.error.DelegatingChannelExceptionHandlerForAcceptingChannel.delegatingChannelExceptionHandlerForAcceptingChannel;
+import static com.envimate.messageMate.messageBus.error.DelegatingChannelExceptionHandlerForDelieveryChannel.delegatingChannelExceptionHandlerForDeliveryChannel;
+import static com.envimate.messageMate.messageBus.error.ErrorThrowingMessageBusExceptionHandler.errorThrowingMessageBusExceptionHandler;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class MessageBusBuilder {
-    private MessageBusChannelFactory channelFactory = synchronousMessageBusChannelFactory();
+    private MessageBusChannelFactory channelFactory;
     private MessageBusType type = SYNCHRONOUS;
+    private AsynchronousConfiguration asynchronousConfiguration;
+    private MessageBusExceptionHandler exceptionHandler = errorThrowingMessageBusExceptionHandler();
 
     public static MessageBusBuilder aMessageBus() {
         return new MessageBusBuilder();
@@ -51,11 +62,37 @@ public final class MessageBusBuilder {
         return this;
     }
 
+    public MessageBusBuilder withAsynchronousConfiguration(final AsynchronousConfiguration asynchronousConfiguration) {
+        this.asynchronousConfiguration = asynchronousConfiguration;
+        return this;
+    }
+
+    public MessageBusBuilder withExceptionHandler(final MessageBusExceptionHandler exceptionHandler) {
+        this.exceptionHandler = exceptionHandler;
+        return this;
+    }
+
     public MessageBus build() {
         final ChannelType channelType = map(type);
-        final ChannelBuilder<Object> channelBuilder = aChannel(Object.class)
-                .forType(channelType);
-        return new MessageBusImpl(channelBuilder, MessageBusBrokerStrategyImpl.messageBusBrokerStrategy(channelFactory));
+        final DelegatingChannelExceptionHandlerForAcceptingChannel<Object> acceptingPipeExceptionHandler = delegatingChannelExceptionHandlerForAcceptingChannel(exceptionHandler);
+        final MessageBusChannelFactory channelFactory = createChannelFactory();
+        final MessageBusBrokerStrategyImpl brokerStrategy = messageBusBrokerStrategy(channelFactory);
+        final Channel<Object> acceptingChannel = aChannel(Object.class)
+                .forType(channelType)
+                .withAsynchronousConfiguration(asynchronousConfiguration)
+                .withChannelExceptionHandler(acceptingPipeExceptionHandler)
+                .withDefaultAction(messageBusConsumeAction(brokerStrategy))
+                .build();
+        acceptingPipeExceptionHandler.setChannel(acceptingChannel);
+        return new MessageBusImpl(acceptingChannel, brokerStrategy);
+    }
+
+    private MessageBusChannelFactory createChannelFactory() {
+        if (this.channelFactory == null) {
+            return synchronousMessageBusChannelFactory(exceptionHandler);
+        } else {
+            return this.channelFactory;
+        }
     }
 
     private ChannelType map(final MessageBusType messageBusType) {
@@ -68,4 +105,5 @@ public final class MessageBusBuilder {
                 throw new IllegalArgumentException("Unknown type for message bus: " + messageBusType);
         }
     }
+
 }

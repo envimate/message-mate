@@ -75,6 +75,21 @@ public final class ChannelActionBuilder {
             return null;
         });
     }
+    public static ChannelActionBuilder sendMessagesBeforeTheShutdownIsAwaitedWithoutFinishingTasks(final int numberOfMessages) {
+        return anAction((channel, testEnvironment) -> {
+            sendMessagesBeforeShutdownAsynchronously(addSubscriber(channel), testMessage -> channel.accept(ProcessingContext.processingContext(testMessage)),
+                    ignored -> {
+                        try {
+                            channel.close(false);
+                            final boolean awaitSucceeded = channel.awaitTermination(2, MILLISECONDS);
+                            testEnvironment.setProperty(RESULT, awaitSucceeded);
+                        } catch (final InterruptedException e) {
+                            testEnvironment.setProperty(EXCEPTION, e);
+                        }
+                    }, testEnvironment, numberOfMessages, 1);
+            return null;
+        });
+    }
 
     private static BiConsumer<Class<TestMessageOfInterest>, Subscriber<TestMessageOfInterest>> addSubscriber(final Channel<TestMessage> channel) {
         return (testMessageOfInterestClass, subscriber) -> {

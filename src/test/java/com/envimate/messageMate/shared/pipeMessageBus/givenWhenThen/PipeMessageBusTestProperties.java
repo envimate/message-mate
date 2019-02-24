@@ -19,4 +19,6 @@ public final class PipeMessageBusTestProperties {
     public static final String EXECUTE_MESSAGE_BUS_IN_OWN_THREAD = "EXECUTE_MESSAGE_BUS_IN_OWN_THREAD";
     public static final String ERROR_SUBSCRIBER = "ERROR_SUBSCRIBER";
     public static final String EXPECTED_FILTER = "EXPECTED_FILTER";
+    public static final String SLEEP_BETWEEN_EXECUTION_STEPS = "SLEEP_BETWEEN_EXECUTION_STEPS";
+    public static final String SLEEP_AFTER_EXECUTION = "SLEEP_AFTER_EXECUTION";
 }

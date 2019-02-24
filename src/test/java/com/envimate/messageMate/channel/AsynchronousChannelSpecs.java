@@ -46,8 +46,7 @@ public class AsynchronousChannelSpecs implements ChannelSpecs {
         final int numberOfMessages = ASYNCHRONOUS_CHANNEL_CONFIG_POOL_SIZE + 5;
         given(aConfiguredChannel(channelTestConfig)
                 .withABlockingSubscriber())
-                .when(severalMessagesAreSendAsynchronouslyBeforeTheChannelIsClosedWithoutFinishingRemainingTasks(numberOfMessages)
-                        .andThen(theShutdownIsAwaited()))
+                .when(sendMessagesBeforeTheShutdownIsAwaitedWithoutFinishingTasks(numberOfMessages))
                 .then(expectTheShutdownToBeFailed());
     }
 }

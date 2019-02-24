@@ -60,10 +60,8 @@ public final class QueryValidationBuilder {
     public static QueryValidationBuilder aExceptionForNoResultButOneWasRequired() {
         return new QueryValidationBuilder(testEnvironment -> {
             final Exception exception = testEnvironment.getPropertyAsType(EXCEPTION, Exception.class);
-            assertThat(exception.getClass(), equalTo(InvalidQueryDueToExceptionOccurredInReceiverException.class));
-            final Exception originalException = (Exception) exception.getCause();
             final String expectedExceptionMessage = testEnvironment.getPropertyAsType(EXPECTED_EXCEPTION_MESSAGE, String.class);
-            assertThat(originalException.getMessage(), equalTo(expectedExceptionMessage));
+            assertThat(exception.getMessage(), equalTo(expectedExceptionMessage));
         });
     }
 

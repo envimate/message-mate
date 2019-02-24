@@ -57,13 +57,11 @@ public class QueryResolverImpl implements QueryResolver {
 
     @Override
     public <R> Optional<R> query(final Query<R> query) {
-        messageBus.send(query);
-        if (exceptionsDuringQueryProgress.containsKey(query)) {
-            final Optional<R> emptyOptionalForErrorCase = Optional.empty();
-            exceptionsDuringQueryProgress.remove(query);
-            return emptyOptionalForErrorCase;
-        } else {
+        try {
+            messageBus.send(query);
             return Optional.ofNullable(query.result());
+        }catch (final Exception e){
+            return Optional.empty();
         }
     }
 

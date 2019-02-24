@@ -19,20 +19,15 @@
  * under the License.
  */
 
-package com.envimate.messageMate.internal.delivering;
+package com.envimate.messageMate.channel.filtering;
 
-import com.envimate.messageMate.subscribing.Subscriber;
+public interface PostFilterActions<T> {
 
-import java.util.Date;
-import java.util.List;
+    void onAllPassed(T message);
 
-public interface DeliveryStrategy<T> {
+    void onReplaced(T replacedMessage);
 
-    void deliver(T message, List<Subscriber<T>> subscriberList);
+    void onBlock(T message);
 
-    void close(boolean finishRemainingTasks);
-
-    boolean awaitTermination(Date deadline) throws InterruptedException;
-
-    boolean isShutdown();
+    void onForgotten(T message);
 }

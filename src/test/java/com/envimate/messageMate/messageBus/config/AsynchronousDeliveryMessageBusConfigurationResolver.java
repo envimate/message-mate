@@ -2,7 +2,7 @@ package com.envimate.messageMate.messageBus.config;
 
 import com.envimate.messageMate.shared.config.AbstractTestConfigProvider;
 
-import static com.envimate.messageMate.messageBus.config.MessageBusTestConfig.aSynchronousMessageBusWithAsyncDelivery;
+import static com.envimate.messageMate.messageBus.config.MessageBusTestConfig.anAsynchronousMessageBus;
 
 public class AsynchronousDeliveryMessageBusConfigurationResolver extends AbstractTestConfigProvider {
 
@@ -13,6 +13,6 @@ public class AsynchronousDeliveryMessageBusConfigurationResolver extends Abstrac
 
     @Override
     protected Object testConfig() {
-        return aSynchronousMessageBusWithAsyncDelivery();
+        return anAsynchronousMessageBus();
     }
 }

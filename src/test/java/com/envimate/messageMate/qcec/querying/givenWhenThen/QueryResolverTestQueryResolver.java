@@ -1,6 +1,5 @@
 package com.envimate.messageMate.qcec.querying.givenWhenThen;
 
-import com.envimate.messageMate.internal.brokering.BrokerStrategyType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.qcec.queryresolving.Query;
 import com.envimate.messageMate.qcec.queryresolving.QueryResolver;
@@ -17,9 +16,8 @@ public final class QueryResolverTestQueryResolver extends TestQueryResolver {
     private final QueryResolver queryResolver;
 
     private QueryResolverTestQueryResolver() {
-        final MessageBus messageBus = null; /* TODO aMessageBus()
-                .withBrokerType(BrokerStrategyType.QUERY_RESOLVING_STRATEGY)
-                .build();*/
+        final MessageBus messageBus = aMessageBus()
+                .build();
         queryResolver = QueryResolverFactory.aQueryResolver(messageBus);
     }
 

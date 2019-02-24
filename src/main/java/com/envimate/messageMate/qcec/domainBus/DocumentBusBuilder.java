@@ -21,7 +21,6 @@
 
 package com.envimate.messageMate.qcec.domainBus;
 
-import com.envimate.messageMate.internal.brokering.BrokerStrategyType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.qcec.constraintEnforcing.ConstraintEnforcer;
 import com.envimate.messageMate.qcec.eventBus.EventBus;
@@ -46,12 +45,10 @@ public final class DocumentBusBuilder {
     }
 
     public static DocumentBus aDefaultDocumentBus() {
-        final MessageBus queryMessageBus = null; /* TODO aMessageBus()
-                .withBrokerType(BrokerStrategyType.QUERY_RESOLVING_STRATEGY)
-                .build();*/
-        final MessageBus constraintMessageBus = null;/* aMessageBus()
-                .withExceptionCatchingCondition(e -> false)
-                .build();*/
+        final MessageBus queryMessageBus = aMessageBus()
+                .build();
+        final MessageBus constraintMessageBus = aMessageBus()
+                .build();
         final MessageBus eventMessageBus = aMessageBus().build();
         final QueryResolver queryResolver = aQueryResolver(queryMessageBus);
         final ConstraintEnforcer constraintEnforcer = aConstraintEnforcer(constraintMessageBus);

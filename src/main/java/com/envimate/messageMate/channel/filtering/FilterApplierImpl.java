@@ -19,17 +19,15 @@
  * under the License.
  */
 
-package com.envimate.messageMate.internal.filtering;
+package com.envimate.messageMate.channel.filtering;
 
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.filtering.FilterActions;
-import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
-//TODO: move
 @RequiredArgsConstructor(access = AccessLevel.PUBLIC)
 public final class FilterApplierImpl<T> implements FilterApplier<T> {
 

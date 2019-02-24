@@ -4,8 +4,10 @@ import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.channel.ChannelBuilder;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusBuilder;
+import com.envimate.messageMate.messageBus.MessageBusType;
 import com.envimate.messageMate.messageBus.channelCreating.MessageBusChannelFactory;
 import com.envimate.messageMate.messageBus.config.MessageBusTestConfig;
+import com.envimate.messageMate.pipe.configuration.AsynchronousConfiguration;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.SetupAction;
@@ -18,9 +20,13 @@ import java.util.List;
 
 import static com.envimate.messageMate.channel.action.Subscription.subscription;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActions.messageBusTestActions;
+import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler.allExceptionHandlingTestExceptionHandler;
+import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler.testExceptionIgnoringExceptionHandler;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RECEIVERS;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RESULT;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSetupActions.*;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestProperties.SLEEP_AFTER_EXECUTION;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestProperties.SLEEP_BETWEEN_EXECUTION_STEPS;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
@@ -36,12 +42,23 @@ public final class MessageBusSetupBuilder {
     }
 
     private MessageBusSetupBuilder configuredWith(final MessageBusTestConfig testConfig) {
-        /*messageBusBuilder.withConfiguration(testConfig.messageBusConfiguration)
-                .withACustomBrokerStrategy(testConfig.brokerStrategy)
-                .withACustomDeliveryStrategyFactory(testConfig.deliveryStrategyFactory)
-                .withACustomMessageAcceptingStrategyFactory(testConfig.messageAcceptingStrategyFactory)
-                .withStatisticsCollector(testConfig.statisticsCollector);*/
+        final MessageBusType type = testConfig.getType();
+        final AsynchronousConfiguration asynchronousConfiguration = testConfig.getAsynchronousConfiguration();
+        messageBusBuilder.forType(type)
+                .withAsynchronousConfiguration(asynchronousConfiguration);
+        storeSleepTimesInTestEnvironment(testConfig, testEnvironment);
         return this;
+    }
+
+    private void storeSleepTimesInTestEnvironment(final MessageBusTestConfig messageBusTestConfig, final TestEnvironment testEnvironment) {
+        final long millisecondsSleepAfterExecution = messageBusTestConfig.getMillisecondsSleepAfterExecution();
+        if (millisecondsSleepAfterExecution > 0) {
+            testEnvironment.setProperty(SLEEP_AFTER_EXECUTION, millisecondsSleepAfterExecution);
+        }
+        final long millisecondsSleepBetweenExecutionActionSteps = messageBusTestConfig.getMillisecondsSleepBetweenExecutionActionSteps();
+        if (millisecondsSleepBetweenExecutionActionSteps > 0) {
+            testEnvironment.setProperty(SLEEP_BETWEEN_EXECUTION_STEPS, millisecondsSleepAfterExecution);
+        }
     }
 
     public <T> MessageBusSetupBuilder withASubscriberForTyp(final Class<T> messageClass) {
@@ -120,6 +137,11 @@ public final class MessageBusSetupBuilder {
         return this;
     }
 
+    public MessageBusSetupBuilder withAnErrorThrowingFilter() {
+        setupActions.add((t, testEnvironment) -> addAFilterThatThrowsExceptions(sutActions(t), testEnvironment));
+        return this;
+    }
+
     public MessageBusSetupBuilder withASubscriberThatBlocksWhenAccepting() {
         setupActions.add((t, testEnvironment) -> addASubscriberThatBlocksWhenAccepting(sutActions(t), testEnvironment));
         return this;
@@ -137,6 +159,17 @@ public final class MessageBusSetupBuilder {
 
     public MessageBusSetupBuilder withSeveralDeliveryInterruptingSubscriber(final int numberOfReceivers) {
         setupActions.add((t, testEnvironment) -> addSeveralDeliveryInterruptingSubscriber(sutActions(t), testEnvironment, numberOfReceivers));
+        return this;
+    }
+
+    public MessageBusSetupBuilder withACustomExceptionHandler() {
+        messageBusBuilder.withExceptionHandler(allExceptionHandlingTestExceptionHandler(testEnvironment));
+        return this;
+    }
+
+
+    public MessageBusSetupBuilder withACustomExceptionHandlerIgnoringExceptions() {
+        messageBusBuilder.withExceptionHandler(testExceptionIgnoringExceptionHandler(testEnvironment));
         return this;
     }
 

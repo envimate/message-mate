@@ -13,7 +13,8 @@ import java.util.concurrent.Semaphore;
 
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXCEPTION;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.SUT;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestProperties.EXECUTION_END_SEMAPHORE;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestProperties.*;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
@@ -28,10 +29,10 @@ public class Then {
         final TestEnvironment testEnvironment = setup.testEnvironment;
         final MessageBus messageBus = setup.messageBus;
         executeTestAction(actionBuilder, messageBus, testEnvironment);
-        closeSut(messageBus); //TODO: sehr gefährlich -> definitiv remove oder move nach validation
 
         final TestValidation validation = testValidationBuilder.build();
         validation.validate(testEnvironment);
+        closeSut(messageBus); //TODO: sehr gefährlich -> definitiv remove oder move nach validation
     }
 
     private MessageBusSetup buildSetup(final MessageBusSetupBuilder setupBuilder) {
@@ -40,7 +41,9 @@ public class Then {
         final MessageBus messageBus = setup.messageBus;
         final List<SetupAction<MessageBus>> setupActions = setup.setupActions;
         try {
-            setupActions.forEach(setupAction -> setupAction.execute(messageBus, testEnvironment));
+            for (final SetupAction<MessageBus> setupAction : setupActions) {
+                setupAction.execute(messageBus, testEnvironment);
+            }
         } catch (final Exception e) {
             testEnvironment.setProperty(EXCEPTION, e);
         }
@@ -53,6 +56,14 @@ public class Then {
         try {
             for (final TestAction<MessageBus> testAction : actions) {
                 testAction.execute(messageBus, testEnvironment);
+                if (testEnvironment.has(SLEEP_BETWEEN_EXECUTION_STEPS)) {
+                    final Long sleepDuration = testEnvironment.getPropertyAsType(SLEEP_BETWEEN_EXECUTION_STEPS, Long.class);
+                    MILLISECONDS.sleep(sleepDuration);
+                }
+            }
+            if (testEnvironment.has(SLEEP_AFTER_EXECUTION)) {
+                final Long sleepDuration = testEnvironment.getPropertyAsType(SLEEP_AFTER_EXECUTION, Long.class);
+                MILLISECONDS.sleep(sleepDuration);
             }
         } catch (final Exception e) {
             testEnvironment.setProperty(EXCEPTION, e);

@@ -14,10 +14,9 @@ public final class ConstraintEnforcingTestConstraintEnforcer extends TestConstra
     private final ConstraintEnforcer constraintEnforcer;
 
     private ConstraintEnforcingTestConstraintEnforcer() {
-        /*final MessageBus messageBus =  TODO: aMessageBus()
-                .withExceptionCatchingCondition(e -> false)
-                .build();*/
-        this.constraintEnforcer = null; //aConstraintEnforcer(messageBus);
+        final MessageBus messageBus =  aMessageBus()
+                .build();
+        this.constraintEnforcer = aConstraintEnforcer(messageBus);
     }
 
     public static ConstraintEnforcingTestConstraintEnforcer constraintEnforcingTestConstraintEnforcer() {

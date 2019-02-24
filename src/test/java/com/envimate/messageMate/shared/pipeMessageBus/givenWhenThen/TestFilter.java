@@ -8,7 +8,6 @@ import com.envimate.messageMate.shared.testMessages.InvalidTestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 
-//TODO: cleanup
 public final class TestFilter {
     public static final String CHANGED_CONTENT = "CHANGED";
 
@@ -24,16 +23,6 @@ public final class TestFilter {
             final TestMessageOfInterest testMessageOfInterest = (TestMessageOfInterest) message;
             testMessageOfInterest.content += contentToAppend;
             filterActions.pass(message);
-        };
-    }
-
-    public static <T> Filter<T> aMessageDroppingFilter_old() {
-        return (message, filterActions) -> {
-            if (message instanceof TestMessageOfInterest) {
-                filterActions.pass(message);
-            } else {
-                filterActions.block(message);
-            }
         };
     }
 
@@ -67,6 +56,12 @@ public final class TestFilter {
     public static <T> Filter<T> aMessageFilterThatDoesNotCallAnyMethod() {
         return (message, filterActions) -> {
 
+        };
+    }
+
+    public static <T> Filter<T> anErrorThrowingFilter(final RuntimeException exception) {
+        return (message, filterActions) -> {
+            throw exception;
         };
     }
 

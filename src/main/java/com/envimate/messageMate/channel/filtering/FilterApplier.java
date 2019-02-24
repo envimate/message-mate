@@ -19,11 +19,13 @@
  * under the License.
  */
 
-package com.envimate.messageMate.internal.delivering;
+package com.envimate.messageMate.channel.filtering;
 
-public final class UnknownDeliveryTypeException extends RuntimeException {
+import com.envimate.messageMate.filtering.Filter;
 
-    UnknownDeliveryTypeException(final String message) {
-        super(message);
-    }
+import java.util.List;
+
+public interface FilterApplier<T> {
+
+    void applyAll(T message, List<Filter<T>> filters, PostFilterActions<T> postFilterActions);
 }

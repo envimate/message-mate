@@ -139,6 +139,7 @@ public final class AsynchronousSendingTestUtils {
                 }
                 for (final TestMessage message : messagesToSend) {
                     sutSend.accept(message);
+                    System.out.println("SEND");
                 }
             });
         }

@@ -51,17 +51,8 @@ final class MessageBusImpl implements MessageBus {
     private final MessageBusBrokerStrategy brokerStrategy;
     private MessageBusStatusInformationAdapter statusInformationAdapter;
 
-    public MessageBusImpl(final ChannelBuilder<Object> acceptingChannelBuilder, final MessageBusBrokerStrategy brokerStrategy) {
-        this.acceptingChannel = acceptingChannelBuilder.withDefaultAction(Consume.consume(objectProcessingContext -> {
-            final Object message = objectProcessingContext.getPayload();
-            final Class<?> messageClass = message.getClass();
-            System.out.println("Querying BS: " + messageClass);
-            final Set<Channel<?>> channels = brokerStrategy.getDeliveringChannelsFor(messageClass);
-            for (Channel<?> channel : channels) {
-                final ProcessingContext tProcessingContext = ProcessingContext.processingContext(message);
-                channel.accept(tProcessingContext);
-            }
-        })).build();
+    public MessageBusImpl(final Channel<Object> acceptingChannel, final MessageBusBrokerStrategy brokerStrategy) {
+        this.acceptingChannel = acceptingChannel;
         this.brokerStrategy = brokerStrategy;
         final MessageBusStatisticsCollector statisticsCollector = channelBasedMessageBusStatisticsCollector(acceptingChannel);
         statusInformationAdapter = statusInformationAdapter(statisticsCollector, brokerStrategy);

@@ -3,15 +3,14 @@ package com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen;
 import com.envimate.messageMate.error.DeliveryFailedMessage;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
-import com.envimate.messageMate.shared.subscriber.ErrorThrowingTestSubscriber;
-import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
-import com.envimate.messageMate.shared.subscriber.TestSubscriber;
+import com.envimate.messageMate.shared.subscriber.*;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 import lombok.RequiredArgsConstructor;
 
 import java.util.concurrent.Semaphore;
 
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RECEIVERS;
+import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RESULT;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestProperties.*;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.TestFilter.*;
 import static com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber.blockingTestSubscriber;
@@ -79,9 +78,18 @@ public final class PipeMessageBusSetupActions {
         sutActions.addFilter(null, position);
     }
 
+    public static void addAFilterThatThrowsExceptions(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
+        final TestException exception = new TestException();
+        final Filter<Object> filter = anErrorThrowingFilter(exception);
+        sutActions.addFilter(filter);
+        testEnvironment.setProperty(EXPECTED_RESULT, exception);
+    }
+
     public static void addASubscriberThatBlocksWhenAccepting(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
         final Semaphore semaphore = new Semaphore(0);
-        sutActions.subscribe(TestMessageOfInterest.class, blockingTestSubscriber(semaphore));
+        final BlockingTestSubscriber<TestMessageOfInterest> subscriber = blockingTestSubscriber(semaphore);
+        sutActions.subscribe(TestMessageOfInterest.class, subscriber);
+        testEnvironment.addToListProperty(EXPECTED_RECEIVERS, subscriber);
         testEnvironment.setProperty(EXECUTION_END_SEMAPHORE, semaphore);
     }
 

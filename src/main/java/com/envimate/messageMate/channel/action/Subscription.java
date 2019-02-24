@@ -5,8 +5,8 @@ import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static lombok.AccessLevel.PRIVATE;
 
@@ -16,7 +16,7 @@ public final class Subscription<T> implements Action<T> {
     private final Set<Subscriber<T>> subscribers;
 
     public static <T> Subscription<T> subscription() {
-        final Set<Subscriber<T>> linkedList = new HashSet<>();
+        final Set<Subscriber<T>> linkedList = ConcurrentHashMap.newKeySet();
         return new Subscription<>(linkedList);
     }
 

@@ -14,51 +14,36 @@ import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusValida
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @ExtendWith(AsynchronousDeliveryMessageBusConfigurationResolver.class)
-public class AsynchronousDeliveryMessageBusSpecs /*implements MessageBusSpecs*/ {
+public class AsynchronousDeliveryMessageBusSpecs implements MessageBusSpecs {
 
-    //messageStatistics
-    @Test
-    public void testMessageBus_withBlockingSubscriber_whenNumberOfSuccessfulDeliveredMessagesIsQueried_returnsZero(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aConfiguredMessageBus(messageBusTestConfig)
-                .withASubscriberThatBlocksWhenAccepting())
-                .when(severalMessagesAreSendAsynchronously(3, 5)
-                        .andThen(theNumberOfSuccessfulMessagesIsQueried()))
-                .then(expectResultToBe(0));
-    }
 
     @Test
-    public void testMessageBus_withBlockingSubscriber_whenNumberOfWaitingMessagesIsQueried_returnsZero(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+    public void testMessageBus_queryingNumberOfQueuedMessages_alwaysReturnsZero(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        final int expectedQueuedMessages = 5;
+        final int messagesSendParallel = MessageBusTestConfig.ASYNCHRONOUS_DELIVERY_POOL_SIZE + expectedQueuedMessages;
         given(aConfiguredMessageBus(messageBusTestConfig)
                 .withASubscriberThatBlocksWhenAccepting())
-                .when(severalMessagesAreSendAsynchronously(3, 5)
+                .when(severalMessagesAreSendAsynchronouslyButWillBeBlocked(messagesSendParallel, 1)
                         .andThen(theNumberOfQueuedMessagesIsQueried()))
-                .then(expectResultToBe(0));
-    }
-
-    @Test
-    public void testMessageBus_withBlockingSubscriber_whenNumberOfAcceptedMessagesIsQueried_returnsOnlyOne(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aConfiguredMessageBus(messageBusTestConfig)
-                .withASubscriberThatBlocksWhenAccepting())
-                .when(severalMessagesAreSendAsynchronously(3, 5)
-                        .andThen(theNumberOfAcceptedMessagesIsQueried()))
-                .then(expectResultToBe(15));
+                .then(expectResultToBe(expectedQueuedMessages));
     }
 
     //shutdown
     @Test
-    public void testMessageBus_whenShutdown_deliversRemainingMessagesButNoNewAdded(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+    public void testMessageBus_whenShutdownAllRemainingTasksAreFinished(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        final int numberOfParallelSendMessages = 10;
+        final boolean finishRemainingTasks = true;
         given(aConfiguredMessageBus(messageBusTestConfig))
-                .when(theBusIsShutdownAfterHalfOfTheMessagesWereDelivered(10)
-                        .andThen(aShortWaitIsDone(10, MILLISECONDS)))
-                .then(expectXMessagesToBeDelivered(5));
+                .when(sendSeveralMessagesBeforeTheBusIsShutdown(numberOfParallelSendMessages, finishRemainingTasks))
+                .then(expectXMessagesToBeDelivered(10));
     }
 
     @Test
-    public void testMessageBus_whenShutdownWithoutFinishingRemainingTasksIsCalled_noNewTasksAreFinished(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+    public void testMessageBus_whenShutdownWithoutFinishingRemainingTasks_allTasksAreStillFinished(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        final int numberOfParallelSendMessages = ASYNCHRONOUS_DELIVERY_POOL_SIZE + 3;
+        final boolean finishRemainingTasks = false;
         given(aConfiguredMessageBus(messageBusTestConfig))
-                .when(theBusIsShutdownAfterHalfOfTheMessagesWereDelivered_withoutFinishingRemainingTasks(10)
-                        .andThen(aShortWaitIsDone(10, MILLISECONDS)))
+                .when(sendSeveralMessagesBeforeTheBusIsShutdown(numberOfParallelSendMessages, finishRemainingTasks))
                 .then(expectXMessagesToBeDelivered(ASYNCHRONOUS_DELIVERY_POOL_SIZE));
     }
-
 }

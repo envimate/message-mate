@@ -28,9 +28,9 @@ import com.envimate.messageMate.channel.error.ChannelExceptionHandler;
 import com.envimate.messageMate.channel.events.ChannelEventListener;
 import com.envimate.messageMate.channel.statistics.ChannelStatisticsCollector;
 import com.envimate.messageMate.filtering.Filter;
-import com.envimate.messageMate.internal.filtering.FilterApplier;
-import com.envimate.messageMate.internal.filtering.FilterApplierImpl;
-import com.envimate.messageMate.internal.filtering.PostFilterActions;
+import com.envimate.messageMate.channel.filtering.FilterApplier;
+import com.envimate.messageMate.channel.filtering.FilterApplierImpl;
+import com.envimate.messageMate.channel.filtering.PostFilterActions;
 import com.envimate.messageMate.pipe.Pipe;
 import lombok.RequiredArgsConstructor;
 
@@ -184,10 +184,9 @@ final class ChannelImpl<T> implements Channel<T> {
 
     @Override
     public void close(final boolean finishRemainingTasks) {
+        //accepting Pipe is the only stateful pipe.
+        //Also if closing other pipe, messages still being filtered might be causing ClosedPipeExceptions
         acceptingPipe.close(finishRemainingTasks);
-        preToProcessPipe.close(finishRemainingTasks);
-        processToPostPipe.close(finishRemainingTasks);
-        afterPostPipe.close(finishRemainingTasks);
     }
 
     @Override

@@ -85,6 +85,7 @@ public final class MessageBusValidationBuilder {
         });
     }
 
+
     public static MessageBusValidationBuilder expectNoMessagesToBeDelivered() {
         return asValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
@@ -168,6 +169,13 @@ public final class MessageBusValidationBuilder {
 
     public static MessageBusValidationBuilder expectTheException(final Class<?> expectedExceptionClass) {
         return asValidation(testEnvironment -> assertExceptionThrownOfType(testEnvironment, expectedExceptionClass));
+    }
+
+    public static MessageBusValidationBuilder expectTheExceptionHandled(final Class<?> expectedExceptionClass) {
+        return asValidation(testEnvironment -> {
+            assertNoExceptionThrown(testEnvironment);
+            assertResultOfClass(testEnvironment, expectedExceptionClass);
+        });
     }
 
     public static MessageBusValidationBuilder expectAListWithAllFilters() {
