@@ -21,14 +21,13 @@
 
 package com.envimate.messageMate.messageFunction.responseHandling;
 
+import com.envimate.messageMate.messageBus.error.MessageBusExceptionHandler;
 import com.envimate.messageMate.messageFunction.responseMatching.ExpectedResponse;
 import com.envimate.messageMate.error.DeliveryFailedMessage;
 import com.envimate.messageMate.subscribing.Subscriber;
 
-public interface ResponseHandlingSubscriber<T> extends Subscriber<T> {
+public interface ResponseHandlingSubscriber<T> extends Subscriber<T>, MessageBusExceptionHandler {
 
     void addResponseMatcher(ExpectedResponse<T> expectedResponse);
 
-    @SuppressWarnings("rawtypes")
-    Subscriber<DeliveryFailedMessage> getDeliveryFailedHandler();
 }

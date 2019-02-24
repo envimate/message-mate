@@ -6,16 +6,21 @@ import com.envimate.messageMate.channel.error.ChannelExceptionHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+import java.util.function.BiConsumer;
+
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
 public final class DelegatingChannelExceptionHandlerForDelieveryChannel<T> implements ChannelExceptionHandler<T> {
     private final MessageBusExceptionHandler messageBusExceptionHandler;
+    private final ErrorListenerHandler errorListenerHandler;
     @Setter
     private Channel<?> channel;
 
-    public static <T> DelegatingChannelExceptionHandlerForDelieveryChannel<T> delegatingChannelExceptionHandlerForDeliveryChannel(final MessageBusExceptionHandler messageBusExceptionHandler) {
-        return new DelegatingChannelExceptionHandlerForDelieveryChannel<>(messageBusExceptionHandler);
+    public static <T> DelegatingChannelExceptionHandlerForDelieveryChannel<T> delegatingChannelExceptionHandlerForDeliveryChannel(
+            final MessageBusExceptionHandler messageBusExceptionHandler, final ErrorListenerHandler errorListenerHandler) {
+        return new DelegatingChannelExceptionHandlerForDelieveryChannel<>(messageBusExceptionHandler, errorListenerHandler);
     }
 
     @Override
@@ -26,10 +31,20 @@ public final class DelegatingChannelExceptionHandlerForDelieveryChannel<T> imple
     @Override
     public void handleSubscriberException(final ProcessingContext<T> message, final Exception e) {
         messageBusExceptionHandler.handleDeliveryChannelException(message, e, channel);
+        final List<BiConsumer<T, Exception>> listener = getListener(message);
+        messageBusExceptionHandler.callTemporaryExceptionListener(message, e, listener);
     }
 
     @Override
     public void handleFilterException(final ProcessingContext<T> message, final Exception e) {
         messageBusExceptionHandler.handleFilterException(message, e, channel);
+        final List<BiConsumer<T, Exception>> listener = getListener(message);
+        messageBusExceptionHandler.callTemporaryExceptionListener(message, e, listener);
+    }
+
+    private List<BiConsumer<T, Exception>> getListener(final ProcessingContext<T> message) {
+        final Class<?> aClass = message.getPayload().getClass();
+        final List<?> uncheckedListener = errorListenerHandler.listenerFor(aClass);
+        return (List<BiConsumer<T, Exception>>) uncheckedListener;
     }
 }

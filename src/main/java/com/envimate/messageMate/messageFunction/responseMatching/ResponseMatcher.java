@@ -23,7 +23,7 @@ package com.envimate.messageMate.messageFunction.responseMatching;
 
 public interface ResponseMatcher<S> {
 
-    boolean matches(S response);
+    boolean matches(Object response);
 
-    boolean wasSuccessResponse(S response);
+    boolean wasSuccessResponse(Object response);
 }

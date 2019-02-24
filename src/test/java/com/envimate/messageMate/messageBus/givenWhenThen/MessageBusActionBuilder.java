@@ -13,6 +13,7 @@ import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 import com.envimate.messageMate.subscribing.Subscriber;
+import com.envimate.messageMate.subscribing.SubscriptionId;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +25,7 @@ import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESUL
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.AsynchronousSendingTestUtils.sendMessagesBeforeAndAfterShutdownAsynchronously;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSetupActions.addASingleSubscriber;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestActions.*;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestProperties.USED_SUBSCRIPTION_ID;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.TestFilter.anErrorThrowingFilter;
 import static com.envimate.messageMate.shared.subscriber.ErrorThrowingTestSubscriber.errorThrowingTestSubscriber;
 
@@ -324,6 +326,14 @@ public final class MessageBusActionBuilder {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
             final ErrorThrowingTestSubscriber<TestMessageOfInterest> subscriber = errorThrowingTestSubscriber();
             messageBus.subscribe(TestMessageOfInterest.class, subscriber);
+            return null;
+        });
+    }
+
+    public static MessageBusActionBuilder theDynamicErrorHandlerToBeRemoved() {
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final SubscriptionId subscriptionId = testEnvironment.getPropertyAsType(USED_SUBSCRIPTION_ID, SubscriptionId.class);
+            messageBus.unregisterErrorHandler(subscriptionId);
             return null;
         });
     }

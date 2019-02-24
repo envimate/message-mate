@@ -26,11 +26,10 @@ import com.envimate.messageMate.messageFunction.requestResponseRelation.RequestR
 import com.envimate.messageMate.messageFunction.responseHandling.ResponseHandlingSubscriber;
 import com.envimate.messageMate.messageFunction.responseMatching.ExpectedResponse;
 import com.envimate.messageMate.messageFunction.responseMatching.ResponseMatcher;
-import com.envimate.messageMate.error.DeliveryFailedMessage;
-import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.NonNull;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -51,9 +50,6 @@ final class MessageFunctionImpl<R, S> implements MessageFunction<R, S> {
             messageBus.subscribe(aClass, responseHandlingSubscriber);
         }
 
-        @SuppressWarnings("rawtypes")
-        final Subscriber<DeliveryFailedMessage> deliveryFailedHandler = responseHandlingSubscriber.getDeliveryFailedHandler();
-        messageBus.subscribe(DeliveryFailedMessage.class, deliveryFailedHandler);
     }
 
     static <R, S> MessageFunctionImpl<R, S> messageFunction(
@@ -71,9 +67,22 @@ final class MessageFunctionImpl<R, S> implements MessageFunction<R, S> {
         final List<ResponseMatcher<S>> responseMatchers = requestResponseRelationMap.responseMatchers(request);
         final ExpectedResponse<S> expectedResponse = ExpectedResponse.forRequest(request, responseMatchers);
         responseHandlingSubscriber.addResponseMatcher(expectedResponse);
+        registerErrorListener(request, expectedResponse);
         messageBus.send(request);
         final ResponseFuture<S> responseFuture = expectedResponse.getAssociatedFuture();
         return responseFuture;
+    }
+
+    private void registerErrorListener(final R request, final ExpectedResponse<S> expectedResponse) {
+        final Set<Class<S>> classesToListenForErrorsOn = requestResponseRelationMap.getAllPossibleResponseClasses();
+        final LinkedList<Class<?>> classes = new LinkedList<>(classesToListenForErrorsOn);
+        classes.add(request.getClass());
+        final SubscriptionId subscriptionId = messageBus.onError(classes, (t, e) -> {
+            if (expectedResponse.matchesRequest(t) || expectedResponse.matchesResponse(t)) {
+                expectedResponse.fulfillFutureWithException(e);
+            }
+        });
+        expectedResponse.addCleanUp(() -> messageBus.unregisterErrorHandler(subscriptionId));
     }
 
     //No automatic cancel right now

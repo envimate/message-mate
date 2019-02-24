@@ -26,25 +26,30 @@ import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
+
+import static com.envimate.messageMate.messageFunction.responseMatching.ExpectedResponseFuture.expectedResponseFuture;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ExpectedResponse<S> {
     private final Object request;
     private final List<ResponseMatcher<S>> responseMatchers;
-    private final ExpectedResponseFuture<S> future = ExpectedResponseFuture.expectedResponseFuture();
-    private MatchResult<S> lastMatchResult;
+    private final ExpectedResponseFuture<S> future = expectedResponseFuture();
+    private final List<Runnable> cleanUps = new ArrayList<>();
+    private volatile MatchResult lastMatchResult;
 
     public static <S> ExpectedResponse<S> forRequest(final Object request, final List<ResponseMatcher<S>> responseMatchers) {
         return new ExpectedResponse<>(request, responseMatchers);
     }
 
-    public boolean matchesResponse(final S response) {
+    public synchronized boolean matchesResponse(final Object response) {
         if (future.isCancelled()) {
             return false;
         } else {
-            final MatchResult<S> matchResult = matchResult(response);
+            final MatchResult matchResult = matchResult(response);
             return matchResult.didMatch(response);
         }
     }
@@ -57,8 +62,8 @@ public final class ExpectedResponse<S> {
         return future;
     }
 
-    public void fulfillFuture(final S response) {
-        final MatchResult<S> matchResult = matchResult(response);
+    public synchronized void fulfillFuture(final S response) {
+        final MatchResult matchResult = matchResult(response);
         if (matchResult.didMatch(response)) {
             final boolean wasSuccessful = matchResult.wasSuccessful();
             future.fullFill(response, wasSuccessful);
@@ -67,11 +72,11 @@ public final class ExpectedResponse<S> {
         }
     }
 
-    public void fulfillFutureWithException(final Exception e) {
+    public synchronized void fulfillFutureWithException(final Exception e) {
         future.fullFillWithException(e);
     }
 
-    private MatchResult<S> matchResult(final S response) {
+    private MatchResult matchResult(final Object response) {
         if (lastMatchResult != null && lastMatchResult.wasMatchedAgainst(response)) {
             return lastMatchResult;
         } else {
@@ -88,29 +93,37 @@ public final class ExpectedResponse<S> {
         }
     }
 
-    public boolean isCancelled() {
-        return future.isCancelled();
+    public boolean isDone() {
+        return future.isDone();
+    }
+
+    public void addCleanUp(final Runnable cleanUp) {
+        this.cleanUps.add(cleanUp);
+    }
+
+    public void onCleanup() {
+        cleanUps.forEach(Runnable::run);
     }
 
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-    private static final class MatchResult<S> {
-        private final S matchedResponse;
-        private final ResponseMatcher<S> responseMatcher;
+    private static final class MatchResult {
+        private final Object matchedResponse;
+        private final ResponseMatcher<?> responseMatcher;
 
-        static <S> MatchResult<S> lastMatchResult(@NonNull final S response, @NonNull final ResponseMatcher<S> responseMatcher) {
-            return new MatchResult<>(response, responseMatcher);
+        static MatchResult lastMatchResult(@NonNull final Object response, @NonNull final ResponseMatcher<?> responseMatcher) {
+            return new MatchResult(response, responseMatcher);
         }
 
-        static <S> MatchResult<S> noMatchResult() {
-            return new MatchResult<>(null, null);
+        static MatchResult noMatchResult() {
+            return new MatchResult(null, null);
         }
 
-        boolean wasMatchedAgainst(final S response) {
-            return matchedResponse.equals(response);
+        boolean wasMatchedAgainst(final Object response) {
+            return response.equals(matchedResponse);
         }
 
-        boolean didMatch(final S response) {
-            return matchedResponse.equals(response);
+        boolean didMatch(final Object response) {
+            return response.equals(matchedResponse);
         }
 
         boolean wasSuccessful() {

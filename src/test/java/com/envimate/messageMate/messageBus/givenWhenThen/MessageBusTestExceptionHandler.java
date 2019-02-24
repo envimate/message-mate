@@ -52,4 +52,21 @@ public final class MessageBusTestExceptionHandler {
             }
         };
     }
+
+    public static  MessageBusExceptionHandler allExceptionIgnoringExceptionHandler() {
+        return new MessageBusExceptionHandler() {
+            @Override
+            public boolean shouldDeliveryChannelErrorBeHandledAndDeliveryAborted(final ProcessingContext<?> message, final Exception e, final Channel<?> channel) {
+                return true;
+            }
+
+            @Override
+            public void handleDeliveryChannelException(final ProcessingContext<?> message, final Exception e, final Channel<?> channel) {
+            }
+
+            @Override
+            public void handleFilterException(final ProcessingContext<?> message, final Exception e, final Channel<?> channel) {
+            }
+        };
+    }
 }

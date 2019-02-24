@@ -21,26 +21,21 @@
 
 package com.envimate.messageMate.qcec.queryresolving;
 
-import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.error.DeliveryFailedMessage;
 import com.envimate.messageMate.error.ExceptionInSubscriberException;
 import com.envimate.messageMate.error.NoSuitableSubscriberException;
+import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.subscribing.PreemptiveSubscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
 public class QueryResolverImpl implements QueryResolver {
     private final MessageBus messageBus;
-    private final Map<Object, Throwable> exceptionsDuringQueryProgress;
 
     QueryResolverImpl(final MessageBus messageBus) {
         this.messageBus = messageBus;
-        this.exceptionsDuringQueryProgress = new HashMap<>();
-        messageBus.subscribe(DeliveryFailedMessage.class, new DeliveryFailedMessageConsumer());
     }
 
     @Override
@@ -60,7 +55,7 @@ public class QueryResolverImpl implements QueryResolver {
         try {
             messageBus.send(query);
             return Optional.ofNullable(query.result());
-        }catch (final Exception e){
+        } catch (final Exception e) {
             return Optional.empty();
         }
     }
@@ -68,54 +63,14 @@ public class QueryResolverImpl implements QueryResolver {
     @Override
     public <R> R queryRequired(final Query<R> query) {
         messageBus.send(query);
-        if (exceptionsDuringQueryProgress.containsKey(query)) {
-            final Throwable cause = exceptionsDuringQueryProgress.get(query);
-            exceptionsDuringQueryProgress.remove(query);
-            throw new InvalidQueryDueToExceptionOccurredInReceiverException(cause);
-        } else {
-            return Optional
-                    .ofNullable(query.result())
-                    .orElseThrow(() -> new UnsupportedOperationException("Expected a query result for query " + query));
-        }
-
+        return Optional
+                .ofNullable(query.result())
+                .orElseThrow(() -> new UnsupportedOperationException("Expected a query result for query " + query));
     }
 
     @Override
     public void unsubscribe(final SubscriptionId subscriptionId) {
         messageBus.unsubcribe(subscriptionId);
-    }
-
-    @SuppressWarnings("rawtypes")
-    private class DeliveryFailedMessageConsumer implements Consumer<DeliveryFailedMessage> {
-        @Override
-        public void accept(final DeliveryFailedMessage deliveryFailedMessage) {
-            final Object originalMessage = deliveryFailedMessage.getOriginalMessage();
-            if (notYetAnExceptionThrown(originalMessage)) {
-                final Exception thrownException = deliveryFailedMessage.getCause();
-                if (canInfluenceCorrectnessOfQuery(thrownException)) {
-                    final Throwable exceptionToRethrow = getExceptionToRethrow(thrownException);
-                    exceptionsDuringQueryProgress.put(originalMessage, exceptionToRethrow);
-                }
-            }
-        }
-
-        private boolean notYetAnExceptionThrown(final Object originalMessage) {
-            return !exceptionsDuringQueryProgress.containsKey(originalMessage);
-        }
-
-        private boolean canInfluenceCorrectnessOfQuery(final Exception exception) {
-            final boolean isExceptionForNorSubscriberFound = exception instanceof NoSuitableSubscriberException;
-            return !isExceptionForNorSubscriberFound;
-        }
-
-        private Throwable getExceptionToRethrow(final Exception thrownException) {
-            if (thrownException instanceof ExceptionInSubscriberException) {
-                final Throwable originalException = thrownException.getCause();
-                return originalException;
-            } else {
-                return thrownException;
-            }
-        }
     }
 
 }

@@ -15,7 +15,7 @@ import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeM
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.TestFilter.*;
 import static com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber.blockingTestSubscriber;
 import static com.envimate.messageMate.shared.subscriber.ErrorThrowingTestSubscriber.errorThrowingTestSubscriber;
-import static com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber.interruptingSubscriber;
+import static com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber.deliveryPreemptingSubscriber;
 import static com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber.testSubscriber;
 import static lombok.AccessLevel.PRIVATE;
 
@@ -108,7 +108,7 @@ public final class PipeMessageBusSetupActions {
 
     public static void addSeveralDeliveryInterruptingSubscriber(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment, final int numberOfReceivers) {
         for (int i = 0; i < numberOfReceivers; i++) {
-            final SimpleTestSubscriber<TestMessageOfInterest> subscriber = interruptingSubscriber();
+            final SimpleTestSubscriber<TestMessageOfInterest> subscriber = deliveryPreemptingSubscriber();
             sutActions.subscribe(TestMessageOfInterest.class, subscriber);
             testEnvironment.addToListProperty(POTENTIAL_RECEIVERS, subscriber);
         }

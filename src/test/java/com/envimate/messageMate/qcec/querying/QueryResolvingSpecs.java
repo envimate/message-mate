@@ -1,6 +1,6 @@
 package com.envimate.messageMate.qcec.querying;
 
-import com.envimate.messageMate.qcec.querying.givenWhenThen.TestQueryResolver;
+import com.envimate.messageMate.qcec.querying.config.TestQueryResolver;
 import com.envimate.messageMate.qcec.shared.testQueries.SpecificQuery;
 import com.envimate.messageMate.qcec.shared.testQueries.SuperclassTestQuery;
 import com.envimate.messageMate.qcec.shared.testQueries.TestQuery;

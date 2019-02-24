@@ -4,6 +4,7 @@ import com.envimate.messageMate.error.DeliveryFailedMessage;
 import com.envimate.messageMate.qcec.shared.TestAction;
 import com.envimate.messageMate.qcec.shared.TestReceiver;
 import com.envimate.messageMate.qcec.shared.testEvents.TestEvent;
+import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.RequiredArgsConstructor;
 
@@ -61,11 +62,9 @@ public final class EventBusActionBuilder {
 
     public static EventBusActionBuilder anEventIsDeliveredToAnErrorThrowingReceiver() {
         return new EventBusActionBuilder((testEventBus, testEnvironment) -> {
-            final String expectedExceptionMessage = "An expected exception";
             testEventBus.reactTo(TestEvent.class, e -> {
-                throw new RuntimeException(expectedExceptionMessage);
+                throw new TestException();
             });
-            testEnvironment.setProperty(EXPECTED_EXCEPTION_MESSAGE, expectedExceptionMessage);
 
             @SuppressWarnings("rawtypes")
             final TestReceiver<DeliveryFailedMessage> receiver = aTestReceiver();

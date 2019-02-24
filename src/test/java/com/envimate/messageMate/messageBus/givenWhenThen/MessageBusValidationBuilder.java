@@ -193,6 +193,13 @@ public final class MessageBusValidationBuilder {
         });
     }
 
+    public static MessageBusValidationBuilder expectTheDynamicHandlerToNotBeCalled() {
+        return asValidation(testEnvironment -> {
+            assertNoExceptionThrown(testEnvironment);
+            assertNoResultSet(testEnvironment);
+        });
+    }
+
     private static PipeMessageBusSutActions sutActions(final TestEnvironment testEnvironment) {
         final MessageBus messageBus = getMessageBus(testEnvironment);
         return messageBusTestActions(messageBus);

@@ -64,23 +64,15 @@ public class MessageFunctionSpecs {
     @Test
     public void testMessageFunction_getsAccessToExceptionInFollowUp() {
         given(aMessageFunction()
-                .definedWithReponseThrowingAnException())
+                .definedWithResponseThrowingAnException())
                 .when(aFollowUpActionForAnExceptionIsAdded())
-                .then(expectAExceptionToBeThrown());
-    }
-
-    @Test
-    public void testMessageFunction_bubblesExceptionThatIsThrownInFollowUpAction() {
-        given(aMessageFunction()
-                .definedWithARequestResponseMapping())
-                .when(aFollowUpActionWithExceptionIsAddedBeforeSend())
                 .then(expectAExceptionToBeThrown());
     }
 
     @Test
     public void testMessageFunction_futuresFinishesWhenDeliveryFailedMessageIsReceived() {
         Given.given(aMessageFunction()
-                .definedWithReponseThrowingAnException())
+                .definedWithResponseThrowingAnException())
                 .when(aRequestIsSendThatCausesADeliveryFailedMessage())
                 .then(expectAFutureToBeFinishedWithException(ExecutionException.class));
     }

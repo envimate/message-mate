@@ -1,6 +1,7 @@
 package com.envimate.messageMate.qcec.eventing;
 
 import com.envimate.messageMate.qcec.eventing.givenWhenThen.TestEventBus;
+import com.envimate.messageMate.shared.subscriber.TestException;
 import org.junit.jupiter.api.Test;
 
 import static com.envimate.messageMate.qcec.eventing.givenWhenThen.EventBusActionBuilder.*;
@@ -35,7 +36,7 @@ public interface EventingSpecs {
     default void testEventBus_informsAboutThrownExceptions(final TestEventBus anEventBus) {
         given(anEventBus)
                 .when(anEventIsDeliveredToAnErrorThrowingReceiver())
-                .then(expectTheExceptionToBeDeliveredInADeliveryFailedMessage());
+                .then(expectTheException(TestException.class));
     }
 
 }

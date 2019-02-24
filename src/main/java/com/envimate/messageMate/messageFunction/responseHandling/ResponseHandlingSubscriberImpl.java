@@ -21,23 +21,23 @@
 
 package com.envimate.messageMate.messageFunction.responseHandling;
 
+import com.envimate.messageMate.channel.Channel;
+import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.messageFunction.responseMatching.ExpectedResponse;
-import com.envimate.messageMate.error.DeliveryFailedMessage;
 import com.envimate.messageMate.subscribing.AcceptingBehavior;
-import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
-import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static com.envimate.messageMate.subscribing.AcceptingBehavior.MESSAGE_ACCEPTED;
 
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public class ResponseHandlingSubscriberImpl<S> implements ResponseHandlingSubscriber<S> {
     private final SubscriptionId subscriptionId = SubscriptionId.newUniqueId();
-    private final List<ExpectedResponse<S>> expectedResponses = new LinkedList<>();
+    private final List<ExpectedResponse<S>> expectedResponses = new CopyOnWriteArrayList<>();
 
     @Override
     public AcceptingBehavior accept(final S response) {
@@ -45,9 +45,11 @@ public class ResponseHandlingSubscriberImpl<S> implements ResponseHandlingSubscr
             if (expectedResponse.matchesResponse(response)) {
                 expectedResponse.fulfillFuture(response);
                 expectedResponses.remove(expectedResponse);
+                expectedResponse.onCleanup();
             }
-            if (expectedResponse.isCancelled()) {
+            if (expectedResponse.isDone()) {
                 expectedResponses.remove(expectedResponse);
+                expectedResponse.onCleanup();
             }
         }
         return MESSAGE_ACCEPTED;
@@ -63,27 +65,30 @@ public class ResponseHandlingSubscriberImpl<S> implements ResponseHandlingSubscr
         return subscriptionId;
     }
 
-    @SuppressWarnings("rawtypes")
     @Override
-    public Subscriber<DeliveryFailedMessage> getDeliveryFailedHandler() {
-        return new Subscriber<DeliveryFailedMessage>() {
-            @Override
-            public AcceptingBehavior accept(final DeliveryFailedMessage message) {
-                for (ExpectedResponse<S> expectedResponse : expectedResponses) {
-                    final Object request = message.getOriginalMessage();
-                    if (expectedResponse.matchesRequest(request)) {
-                        final Exception exception = message.getCause();
-                        expectedResponse.fulfillFutureWithException(exception);
-                        expectedResponses.remove(expectedResponse);
-                    }
-                }
-                return MESSAGE_ACCEPTED;
-            }
+    public boolean shouldDeliveryChannelErrorBeHandledAndDeliveryAborted(final ProcessingContext<?> message, final Exception e, final Channel<?> channel) {
+        return true;
+    }
 
-            @Override
-            public SubscriptionId getSubscriptionId() {
-                return subscriptionId;
+    @Override
+    public void handleDeliveryChannelException(final ProcessingContext<?> processingContext, final Exception exception, final Channel<?> channel) {
+        final Object request = processingContext.getPayload();
+        for (final ExpectedResponse<S> expectedResponse : expectedResponses) {
+            if (expectedResponse.matchesRequest(request)) {
+                expectedResponse.fulfillFutureWithException(exception);
+                expectedResponses.remove(expectedResponse);
             }
-        };
+        }
+    }
+
+    @Override
+    public void handleFilterException(final ProcessingContext<?> processingContext, final Exception exception, final Channel<?> channel) {
+        final Object request = processingContext.getPayload();
+        for (final ExpectedResponse<S> expectedResponse : expectedResponses) {
+            if (expectedResponse.matchesRequest(request)) {
+                expectedResponse.fulfillFutureWithException(exception);
+                expectedResponses.remove(expectedResponse);
+            }
+        }
     }
 }

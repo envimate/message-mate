@@ -5,18 +5,20 @@ import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
 public final class Subscription<T> implements Action<T> {
     @Getter
-    private final Set<Subscriber<T>> subscribers;
+    private final List<Subscriber<T>> subscribers;
 
     public static <T> Subscription<T> subscription() {
-        final Set<Subscriber<T>> linkedList = ConcurrentHashMap.newKeySet();
+        final List<Subscriber<T>> linkedList = new CopyOnWriteArrayList<>();
         return new Subscription<>(linkedList);
     }
 

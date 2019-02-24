@@ -35,6 +35,8 @@ import static com.envimate.messageMate.channel.givenWhenThen.TestChannelErrorHan
 import static com.envimate.messageMate.qcec.shared.TestEnvironment.emptyTestEnvironment;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.TestFilter.*;
+import static com.envimate.messageMate.shared.subscriber.ErrorThrowingTestSubscriber.errorThrowingTestSubscriber;
+import static com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber.deliveryPreemptingSubscriber;
 
 public final class ChannelSetupBuilder {
     private final TestEnvironment testEnvironment;
@@ -163,6 +165,14 @@ public final class ChannelSetupBuilder {
 
     public ChannelSetupBuilder withSubscriptionAsAction() {
         channelBuilder.withDefaultAction(subscription());
+        return this;
+    }
+
+    public ChannelSetupBuilder withSubscriptionAsActionWithOnPreemptiveSubscriberAndOneErrorThrowingSubscriberThatShouldNeverBeCalled() {
+        final Subscription<TestMessage> subscription = subscription();
+        subscription.addSubscriber(deliveryPreemptingSubscriber());
+        subscription.addSubscriber(errorThrowingTestSubscriber());
+        channelBuilder.withDefaultAction(subscription);
         return this;
     }
 

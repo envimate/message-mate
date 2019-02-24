@@ -28,6 +28,7 @@ import com.envimate.messageMate.qcec.queryresolving.QueryResolver;
 import lombok.RequiredArgsConstructor;
 
 import static com.envimate.messageMate.messageBus.MessageBusBuilder.aMessageBus;
+import static com.envimate.messageMate.messageBus.MessageBusType.SYNCHRONOUS;
 import static com.envimate.messageMate.qcec.constraintEnforcing.ConstraintEnforcerFactory.aConstraintEnforcer;
 import static com.envimate.messageMate.qcec.domainBus.enforcing.NotNullEnforcer.ensureNotNull;
 import static com.envimate.messageMate.qcec.eventBus.EventBusFactory.aEventBus;
@@ -46,10 +47,14 @@ public final class DocumentBusBuilder {
 
     public static DocumentBus aDefaultDocumentBus() {
         final MessageBus queryMessageBus = aMessageBus()
+                .forType(SYNCHRONOUS)
                 .build();
         final MessageBus constraintMessageBus = aMessageBus()
+                .forType(SYNCHRONOUS)
                 .build();
-        final MessageBus eventMessageBus = aMessageBus().build();
+        final MessageBus eventMessageBus = aMessageBus()
+                .forType(SYNCHRONOUS)
+                .build();
         final QueryResolver queryResolver = aQueryResolver(queryMessageBus);
         final ConstraintEnforcer constraintEnforcer = aConstraintEnforcer(constraintMessageBus);
         final EventBus eventBus = aEventBus(eventMessageBus);

@@ -22,12 +22,11 @@
 package com.envimate.messageMate.messageBus;
 
 import com.envimate.messageMate.channel.Channel;
-import com.envimate.messageMate.channel.ChannelBuilder;
 import com.envimate.messageMate.channel.ProcessingContext;
-import com.envimate.messageMate.channel.action.Consume;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.filtering.FilterActions;
 import com.envimate.messageMate.messageBus.brokering.MessageBusBrokerStrategy;
+import com.envimate.messageMate.messageBus.error.ErrorListenerHandler;
 import com.envimate.messageMate.messageBus.internal.MessageBusStatusInformationAdapter;
 import com.envimate.messageMate.messageBus.statistics.MessageBusStatisticsCollector;
 import com.envimate.messageMate.subscribing.ConsumerSubscriber;
@@ -37,8 +36,8 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import static com.envimate.messageMate.messageBus.internal.MessageBusStatusInformationAdapter.statusInformationAdapter;
@@ -49,11 +48,14 @@ import static lombok.AccessLevel.PRIVATE;
 final class MessageBusImpl implements MessageBus {
     private final Channel<Object> acceptingChannel;
     private final MessageBusBrokerStrategy brokerStrategy;
+    private final ErrorListenerHandler errorListenerHandler;
     private MessageBusStatusInformationAdapter statusInformationAdapter;
 
-    public MessageBusImpl(final Channel<Object> acceptingChannel, final MessageBusBrokerStrategy brokerStrategy) {
+    public MessageBusImpl(final Channel<Object> acceptingChannel, final MessageBusBrokerStrategy brokerStrategy,
+                          final ErrorListenerHandler errorListenerHandler) {
         this.acceptingChannel = acceptingChannel;
         this.brokerStrategy = brokerStrategy;
+        this.errorListenerHandler = errorListenerHandler;
         final MessageBusStatisticsCollector statisticsCollector = channelBasedMessageBusStatisticsCollector(acceptingChannel);
         statusInformationAdapter = statusInformationAdapter(statisticsCollector, brokerStrategy);
     }
@@ -117,6 +119,21 @@ final class MessageBusImpl implements MessageBus {
                 }
             }
         }
+    }
+
+    @Override
+    public <T> SubscriptionId onError(final Class<T> errorClass, final BiConsumer<T, Exception> exceptionListener) {
+        return errorListenerHandler.register(errorClass, exceptionListener);
+    }
+
+    @Override
+    public <T> SubscriptionId onError(List<Class<? extends T>> errorClasses, BiConsumer<? extends T, Exception> exceptionListener) {
+        return errorListenerHandler.register(errorClasses, exceptionListener);
+    }
+
+    @Override
+    public void unregisterErrorHandler(final SubscriptionId subscriptionId) {
+        errorListenerHandler.unregister(subscriptionId);
     }
 
     @Override

@@ -3,20 +3,26 @@ package com.envimate.messageMate.messageFunction.givenWhenThen;
 import com.envimate.messageMate.correlation.CorrelationId;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusBuilder;
-import com.envimate.messageMate.messageFunction.*;
+import com.envimate.messageMate.messageFunction.MessageFunction;
+import com.envimate.messageMate.messageFunction.MessageFunctionBuilder;
 import com.envimate.messageMate.messageFunction.building.Step4MessageFunctionBuilder;
 import com.envimate.messageMate.messageFunction.building.Step8FinalMessageFunctionBuilder;
 import com.envimate.messageMate.messageFunction.testResponses.*;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import lombok.RequiredArgsConstructor;
 
+import static com.envimate.messageMate.messageBus.MessageBusType.ASYNCHRONOUS;
+import static com.envimate.messageMate.pipe.configuration.AsynchronousConfiguration.constantPoolSizeAsynchronousPipeConfiguration;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.MOCK;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
 public final class TestMessageFunctionBuilder {
     private final TestEnvironment testEnvironment = TestEnvironment.emptyTestEnvironment();
-    private final MessageBus messageBus = MessageBusBuilder.aMessageBus().build();
+    private final MessageBus messageBus = MessageBusBuilder.aMessageBus()
+            .forType(ASYNCHRONOUS)
+            .withAsynchronousConfiguration(constantPoolSizeAsynchronousPipeConfiguration(5))
+            .build();
     private final Step4MessageFunctionBuilder<TestRequest, TestResponse> messageFunctionBuilder;
     private Step8FinalMessageFunctionBuilder<TestRequest, TestResponse> finalBuilder;
 
@@ -90,7 +96,7 @@ public final class TestMessageFunctionBuilder {
         return this;
     }
 
-    public TestMessageFunctionBuilder definedWithReponseThrowingAnException() {
+    public TestMessageFunctionBuilder definedWithResponseThrowingAnException() {
         finalBuilder = messageFunctionBuilder.with(SimpleTestRequest.class)
                 .answeredBy(SimpleTestResponse.class)
                 .obtainingCorrelationIdsOfRequestsWith(TestRequest::getCorrelationId)

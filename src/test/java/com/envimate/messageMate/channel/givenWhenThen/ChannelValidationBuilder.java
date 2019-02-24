@@ -8,6 +8,7 @@ import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.qcec.shared.TestEnvironmentProperty;
 import com.envimate.messageMate.qcec.shared.TestValidation;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
+import com.envimate.messageMate.shared.validations.SharedTestValidations;
 import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.RequiredArgsConstructor;
 
@@ -175,7 +176,7 @@ public final class ChannelValidationBuilder {
         return aValidation(testEnvironment -> {
             final Channel<TestMessage> channel = getTestPropertyAsChannel(testEnvironment, SUT);
             final Subscription<TestMessage> subscription = (Subscription<TestMessage>) channel.getDefaultAction();
-            final Set<Subscriber<TestMessage>> subscribers = subscription.getSubscribers();
+            final List<Subscriber<TestMessage>> subscribers = subscription.getSubscribers();
             final List<?> expectedSubscriber = (List<?>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
             assertThat(subscribers, containsInAnyOrder(expectedSubscriber.toArray()));
         });
@@ -200,13 +201,16 @@ public final class ChannelValidationBuilder {
         });
     }
 
-
     public static ChannelValidationBuilder expectTheShutdownToBeFailed() {
         return aValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
             assertIsShutdown(testEnvironment);
             assertResultEqualsExpected(testEnvironment, false);
         });
+    }
+
+    public static ChannelValidationBuilder expectNoException() {
+        return aValidation(SharedTestValidations::assertNoExceptionThrown);
     }
 
     private static void assertIsShutdown(final TestEnvironment testEnvironment) {

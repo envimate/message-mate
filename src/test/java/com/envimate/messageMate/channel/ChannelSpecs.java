@@ -103,6 +103,14 @@ public interface ChannelSpecs {
                         .and(expectTheMessageToBeReceivedByAllRemainingSubscriber()));
     }
 
+    @Test
+    default void testChannel_subscriptionCanStopDeliveryEarly(final ChannelTestConfig channelTestConfig) {
+        given(aConfiguredChannel(channelTestConfig)
+                .withSubscriptionAsActionWithOnPreemptiveSubscriberAndOneErrorThrowingSubscriberThatShouldNeverBeCalled())
+                .when(aMessageIsSend())
+                .then(expectNoException());
+    }
+
     //filter
     @Test
     default void testChannel_allowsFilterToChangeAction_forPreFilter(final ChannelTestConfig channelTestConfig) {

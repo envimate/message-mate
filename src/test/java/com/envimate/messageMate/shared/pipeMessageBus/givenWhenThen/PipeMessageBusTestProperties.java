@@ -21,4 +21,5 @@ public final class PipeMessageBusTestProperties {
     public static final String EXPECTED_FILTER = "EXPECTED_FILTER";
     public static final String SLEEP_BETWEEN_EXECUTION_STEPS = "SLEEP_BETWEEN_EXECUTION_STEPS";
     public static final String SLEEP_AFTER_EXECUTION = "SLEEP_AFTER_EXECUTION";
+    public static final String USED_SUBSCRIPTION_ID = "USED_SUBSCRIPTION_ID";
 }

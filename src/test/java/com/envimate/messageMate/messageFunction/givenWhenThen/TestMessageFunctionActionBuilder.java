@@ -62,7 +62,7 @@ public final class TestMessageFunctionActionBuilder {
             final MessageBus messageBus = testEnvironment.getPropertyAsType(MOCK, MessageBus.class);
             messageBus.subscribe(SimpleTestRequest.class, new ExpectedResponseSubscriber<>(expectedResponsePairs, messageBus));
             final List<RequestResponseFuturePair> requestResponseFuturePairs = new ArrayList<>();
-            for (ExpectedRequestResponsePair expectedResponsePair : expectedResponsePairs) {
+            for (final ExpectedRequestResponsePair expectedResponsePair : expectedResponsePairs) {
                 final TestRequest request = expectedResponsePair.request;
                 final ResponseFuture<TestResponse> responseFuture = messageFunction.request(request);
                 final RequestResponseFuturePair requestResponseFuturePair = RequestResponseFuturePair.requestResponseFuturePair(request, responseFuture);
@@ -101,7 +101,10 @@ public final class TestMessageFunctionActionBuilder {
             final SimpleTestRequest testRequest = testRequest();
             testEnvironment.setProperty(TEST_OBJECT, testRequest);
             final ResponseFuture<TestResponse> responseFuture = messageFunction.request(testRequest);
-            responseFuture.then((testResponse, wasSuccessful, exception) -> testEnvironment.setProperty(EXCEPTION, exception));
+            responseFuture.then((testResponse, wasSuccessful, exception) -> {
+                testEnvironment.setProperty(EXCEPTION, exception);
+                System.out.println("Follow up called"+testResponse+"|"+wasSuccessful+"|"+exception);
+            });
             return null;
         });
     }
@@ -112,9 +115,13 @@ public final class TestMessageFunctionActionBuilder {
             final String expectedExceptionMessage = "Expected exception message.";
             testEnvironment.setProperty(EXPECTED_EXCEPTION_MESSAGE, expectedExceptionMessage);
             final ResponseFuture<TestResponse> responseFuture = messageFunction.request(testRequest);
-            responseFuture.then((testResponse, wasSuccessful, exception) -> {
-                throw new RuntimeException(expectedExceptionMessage);
-            });
+            try {
+                responseFuture.then((testResponse, wasSuccessful, exception) -> {
+                    throw new RuntimeException(expectedExceptionMessage);
+                });
+            } catch (final Exception e) {
+                testEnvironment.setProperty(EXCEPTION, e);
+            }
             return null;
         });
     }
@@ -124,7 +131,7 @@ public final class TestMessageFunctionActionBuilder {
             final ResponseFuture<TestResponse> responseFuture = messageFunction.request(SimpleTestRequest.testRequest());
             try {
                 responseFuture.get();
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 testEnvironment.setProperty(EXCEPTION, e);
                 return responseFuture;
             }
@@ -142,9 +149,9 @@ public final class TestMessageFunctionActionBuilder {
             try {
                 responseFuture.get(100, MILLISECONDS);
                 throw new RuntimeException("Future should not return a value");
-            } catch (InterruptedException | ExecutionException e) {
+            } catch (final InterruptedException | ExecutionException e) {
                 throw new RuntimeException(e);
-            } catch (TimeoutException e) {
+            } catch (final TimeoutException e) {
                 final long timeoutEnd = System.currentTimeMillis();
                 final long duration = timeoutEnd - timeoutStart;
                 return duration;
@@ -183,7 +190,7 @@ public final class TestMessageFunctionActionBuilder {
             responseFuture.cancel(true);
             try {
                 responseFuture.get();
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 testEnvironment.setProperty(EXCEPTION, e);
             }
             return responseFuture;
@@ -233,14 +240,14 @@ public final class TestMessageFunctionActionBuilder {
             }).start();
             try {
                 MILLISECONDS.sleep(20);
-            } catch (InterruptedException e) {
+            } catch (final InterruptedException e) {
                 throw new RuntimeException(e);
             }
             responseFuture.cancel(true);
             try {
                 waitingSemaphoreGet.acquire();
                 waitingSemaphoreGetTimeout.acquire();
-            } catch (InterruptedException e) {
+            } catch (final InterruptedException e) {
                 throw new RuntimeException(e);
             }
             return responseFuture;
@@ -258,8 +265,8 @@ public final class TestMessageFunctionActionBuilder {
         private final MessageBus messageBus;
 
         @Override
-        public void accept(T o) {
-            for (ExpectedRequestResponsePair expectedResponsePair : expectedRequestResponsePairs) {
+        public void accept(final T o) {
+            for (final ExpectedRequestResponsePair expectedResponsePair : expectedRequestResponsePairs) {
                 if (o.equals(expectedResponsePair.request)) {
                     messageBus.send(expectedResponsePair.response);
                 }

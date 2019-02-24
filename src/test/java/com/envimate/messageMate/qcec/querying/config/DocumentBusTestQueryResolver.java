@@ -1,4 +1,4 @@
-package com.envimate.messageMate.qcec.querying.givenWhenThen;
+package com.envimate.messageMate.qcec.querying.config;
 
 import com.envimate.messageMate.qcec.domainBus.DocumentBus;
 import com.envimate.messageMate.qcec.domainBus.DocumentBusBuilder;

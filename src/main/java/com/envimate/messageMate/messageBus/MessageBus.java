@@ -28,6 +28,7 @@ import com.envimate.messageMate.subscribing.SubscriptionId;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public interface MessageBus extends NoErrorAutoClosable {
@@ -47,6 +48,12 @@ public interface MessageBus extends NoErrorAutoClosable {
     List<Filter<Object>> getFilter();
 
     void remove(Filter<Object> filter);
+
+    <T> SubscriptionId onError(Class<T> errorClass, BiConsumer<T, Exception> errorHandler);
+
+    <T> SubscriptionId onError(List<Class<? extends T>> errorClasses, BiConsumer<? extends T, Exception> exceptionListener);
+
+    void unregisterErrorHandler(SubscriptionId subscriptionId);
 
     MessageBusStatusInformation getStatusInformation();
 

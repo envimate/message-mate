@@ -385,6 +385,43 @@ public interface MessageBusSpecs {
                 .then(expectResultToBe(1));
     }
 
+    @Test
+    default void testMessageBus_dynamicErrorListenerCanBeAdded_forExceptionInFilter(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withAnErrorThrowingFilter()
+                .withADynamicErrorListener())
+                .when(aSingleMessageIsSend())
+                .then(expectTheExceptionHandled(TestException.class));
+    }
+
+    @Test
+    default void testMessageBus_dynamicErrorListenerCanBeAdded_forExceptionInSubscriber(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withAnErrorThrowingSubscriber()
+                .withADynamicErrorListener())
+                .when(theDynamicErrorHandlerToBeRemoved()
+                        .andThen(aSingleMessageIsSend()))
+                .then(expectTheDynamicHandlerToNotBeCalled());
+    }
+
+    @Test
+    default void testMessageBus_dynamicErrorListenerCanBeAddedForSeveralClasses(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withAnErrorThrowingSubscriber()
+                .withADynamicErrorListenerForSeveralClasses())
+                .when(aSingleMessageIsSend())
+                .then(expectTheExceptionHandled(TestException.class));
+    }
+
+    @Test
+    default void testMessageBus_dynamicErrorListenerCanBeRemoved(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withAnErrorThrowingSubscriber()
+                .withADynamicErrorListener())
+                .when(aSingleMessageIsSend())
+                .then(expectTheExceptionHandled(TestException.class));
+    }
+
     //await
     @Test
     default void testMessageBus_awaitWithoutCloseReturnsAlwaysTrue(final MessageBusTestConfig messageBusTestConfig) throws Exception {

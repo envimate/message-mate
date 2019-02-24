@@ -12,21 +12,22 @@ import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.SetupAction;
 import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
+import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 import com.envimate.messageMate.subscribing.Subscriber;
+import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 import static com.envimate.messageMate.channel.action.Subscription.subscription;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActions.messageBusTestActions;
-import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler.allExceptionHandlingTestExceptionHandler;
-import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler.testExceptionIgnoringExceptionHandler;
+import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler.*;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RECEIVERS;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RESULT;
+import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSetupActions.*;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestProperties.SLEEP_AFTER_EXECUTION;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestProperties.SLEEP_BETWEEN_EXECUTION_STEPS;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestProperties.*;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
@@ -164,6 +165,28 @@ public final class MessageBusSetupBuilder {
 
     public MessageBusSetupBuilder withACustomExceptionHandler() {
         messageBusBuilder.withExceptionHandler(allExceptionHandlingTestExceptionHandler(testEnvironment));
+        return this;
+    }
+
+    public MessageBusSetupBuilder withADynamicErrorListener() {
+        messageBusBuilder.withExceptionHandler(allExceptionIgnoringExceptionHandler());
+        setupActions.add((messageBus, testEnvironment1) -> {
+            final SubscriptionId subscriptionId = messageBus.onError(TestMessageOfInterest.class, (m, e) -> {
+                testEnvironment.setProperty(RESULT, e);
+            });
+            testEnvironment.setProperty(USED_SUBSCRIPTION_ID, subscriptionId);
+        });
+        return this;
+    }
+
+    public MessageBusSetupBuilder withADynamicErrorListenerForSeveralClasses() {
+        messageBusBuilder.withExceptionHandler(allExceptionIgnoringExceptionHandler());
+        final List<Class<?>> errorClasses = Arrays.asList(TestMessageOfInterest.class, Object.class);
+        setupActions.add((messageBus, testEnvironment1) -> {
+            messageBus.onError(errorClasses, (m, e) -> {
+                testEnvironment.setProperty(RESULT, e);
+            });
+        });
         return this;
     }
 

@@ -1,5 +1,6 @@
 package com.envimate.messageMate.qcec.querying.givenWhenThen;
 
+import com.envimate.messageMate.qcec.querying.config.TestQueryResolver;
 import com.envimate.messageMate.qcec.queryresolving.Query;
 import com.envimate.messageMate.qcec.shared.TestAction;
 import com.envimate.messageMate.qcec.shared.testQueries.TestQuery;

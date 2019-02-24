@@ -1,6 +1,7 @@
-package com.envimate.messageMate.qcec.querying.givenWhenThen;
+package com.envimate.messageMate.qcec.querying.config;
 
 import com.envimate.messageMate.messageBus.MessageBus;
+import com.envimate.messageMate.messageBus.MessageBusType;
 import com.envimate.messageMate.qcec.queryresolving.Query;
 import com.envimate.messageMate.qcec.queryresolving.QueryResolver;
 import com.envimate.messageMate.qcec.queryresolving.QueryResolverFactory;
@@ -10,6 +11,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 import static com.envimate.messageMate.messageBus.MessageBusBuilder.aMessageBus;
+import static com.envimate.messageMate.messageBus.MessageBusType.SYNCHRONOUS;
 
 
 public final class QueryResolverTestQueryResolver extends TestQueryResolver {
@@ -17,6 +19,7 @@ public final class QueryResolverTestQueryResolver extends TestQueryResolver {
 
     private QueryResolverTestQueryResolver() {
         final MessageBus messageBus = aMessageBus()
+                .forType(SYNCHRONOUS)
                 .build();
         queryResolver = QueryResolverFactory.aQueryResolver(messageBus);
     }

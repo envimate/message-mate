@@ -1,5 +1,6 @@
 package com.envimate.messageMate.qcec.querying.givenWhenThen;
 
+import com.envimate.messageMate.qcec.querying.config.TestQueryResolver;
 import lombok.RequiredArgsConstructor;
 
 import static lombok.AccessLevel.PRIVATE;

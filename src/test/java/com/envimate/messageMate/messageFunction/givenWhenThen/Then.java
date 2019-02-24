@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXCEPTION;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static lombok.AccessLevel.PACKAGE;
 
 @RequiredArgsConstructor(access = PACKAGE)
@@ -17,7 +18,7 @@ public class Then {
     private final TestMessageFunctionBuilder testMessageFunctionBuilder;
     private final TestMessageFunctionActionBuilder testMessageFunctionActionBuilder;
 
-    public void then(TestMessageFunctionValidationBuilder testMessageFunctionValidationBuilder) {
+    public void then(final TestMessageFunctionValidationBuilder testMessageFunctionValidationBuilder) {
         final MessageFunction<TestRequest, TestResponse> messageFunction = testMessageFunctionBuilder.build();
         final TestEnvironment testEnvironment = testMessageFunctionBuilder.getTestEnvironment();
         final TestAction<MessageFunction<TestRequest, TestResponse>> testAction = testMessageFunctionActionBuilder.build();
@@ -26,7 +27,8 @@ public class Then {
             if (result != null) {
                 testEnvironment.setProperty(RESULT, result);
             }
-        }catch (Exception e){
+            MILLISECONDS.sleep(10);
+        } catch (final Exception e) {
             testEnvironment.setProperty(EXCEPTION, e);
         }
 

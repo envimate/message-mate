@@ -42,16 +42,17 @@ public final class ResponseMatcherImpl<S> implements ResponseMatcher<S> {
     }
 
     @Override
-    public boolean matches(final S response) {
+    public boolean matches(final Object response) {
         if (response.getClass().equals(expectedResponseClass)) {
-            final CorrelationId correlationId = correlationIdExtraction.extractCorrelationId(response);
+            final S s = (S) response;
+            final CorrelationId correlationId = correlationIdExtraction.extractCorrelationId(s);
             return correlationId.equals(expectedCorrelationId);
         }
         return false;
     }
 
     @Override
-    public boolean wasSuccessResponse(final S response) {
+    public boolean wasSuccessResponse(final Object response) {
         return isSuccessResponse;
     }
 }

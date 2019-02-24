@@ -33,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import static com.envimate.messageMate.pipe.PipeType.ASYNCHRONOUS;
 import static com.envimate.messageMate.pipe.PipeType.SYNCHRONOUS;
 import static com.envimate.messageMate.pipe.statistics.AtomicPipeStatisticsCollector.atomicPipeStatisticsCollector;
 import static com.envimate.messageMate.pipe.transport.TransportMechanismFactory.transportMechanism;
@@ -82,6 +83,9 @@ public final class PipeBuilder<T> {
     public Pipe<T> build() {
         final PipeEventListener<T> eventListener = createEventListener();
         final CopyOnWriteArrayList<Subscriber<T>> subscribers = new CopyOnWriteArrayList<>();
+        if (pipeType.equals(ASYNCHRONOUS) && asynchronousConfiguration == null) {
+            throw new IllegalArgumentException("Asynchronous configuration required.");
+        }
         final TransportMechanism<T> tTransportMechanism = transportMechanism(pipeType, eventListener, errorHandler,
                 subscribers, asynchronousConfiguration);
         return new PipeImpl<>(tTransportMechanism, statisticsCollector, subscribers);

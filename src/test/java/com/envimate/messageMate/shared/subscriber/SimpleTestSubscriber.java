@@ -15,20 +15,20 @@ import static com.envimate.messageMate.subscribing.AcceptingBehavior.acceptingBe
 public final class SimpleTestSubscriber<T> implements TestSubscriber<T> {
     private final SubscriptionId subscriptionId = SubscriptionId.newUniqueId();
     private final List<T> receivedMessages = new CopyOnWriteArrayList<>();
-    private final boolean isInterrupting;
+    private final boolean preemptDelivery;
 
     public static <T> SimpleTestSubscriber<T> testSubscriber() {
         return new SimpleTestSubscriber<>(false);
     }
 
-    public static <T> SimpleTestSubscriber<T> interruptingSubscriber() {
+    public static <T> SimpleTestSubscriber<T> deliveryPreemptingSubscriber() {
         return new SimpleTestSubscriber<>(true);
     }
 
     @Override
     public AcceptingBehavior accept(final T message) {
         receivedMessages.add(message);
-        final boolean continueDelivery = !isInterrupting;
+        final boolean continueDelivery = !preemptDelivery;
         return acceptingBehavior(continueDelivery);
     }
 
