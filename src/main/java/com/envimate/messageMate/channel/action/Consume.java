@@ -36,8 +36,15 @@ import static lombok.AccessLevel.PRIVATE;
 public final class Consume<T> implements Action<T> {
     private final Consumer<ProcessingContext<T>> consumer;
 
-    public static <T> Consume<T> consume(final Consumer<ProcessingContext<T>> consumer) {
+    public static <T> Consume<T> consumeAll(final Consumer<ProcessingContext<T>> consumer) {
         return new Consume<>(consumer);
+    }
+
+    public static <T> Consume<T> consumeMessage(final Consumer<T> consumer) {
+        return new Consume<>(processingContext -> {
+            final T payload = processingContext.getPayload();
+            consumer.accept(payload);
+        });
     }
 
     public void accept(final ProcessingContext<T> processingContext) {

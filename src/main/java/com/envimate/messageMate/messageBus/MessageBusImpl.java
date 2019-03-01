@@ -62,7 +62,7 @@ final class MessageBusImpl implements MessageBus {
 
     @Override
     public void send(final Object message) {
-        acceptingChannel.accept(message);
+        acceptingChannel.send(message);
     }
 
     @Override

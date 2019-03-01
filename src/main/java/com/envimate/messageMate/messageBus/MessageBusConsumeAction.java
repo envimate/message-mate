@@ -36,13 +36,13 @@ public final class MessageBusConsumeAction {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static Consume<Object> messageBusConsumeAction(final MessageBusBrokerStrategy brokerStrategy) {
-        return Consume.consume(objectProcessingContext -> {
+        return Consume.consumeAll(objectProcessingContext -> {
             final Object message = objectProcessingContext.getPayload();
             final Class<?> messageClass = message.getClass();
             final Set<Channel<?>> channels = brokerStrategy.getDeliveringChannelsFor(messageClass);
             for (final Channel<?> channel : channels) {
                 final ProcessingContext tProcessingContext = ProcessingContext.processingContext(message);
-                channel.accept(tProcessingContext);
+                channel.send(tProcessingContext);
             }
         });
     }

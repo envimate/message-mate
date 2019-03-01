@@ -1,9 +1,9 @@
 package com.envimate.messageMate.channel.givenWhenThen;
 
 import com.envimate.messageMate.channel.Channel;
-import com.envimate.messageMate.channel.statistics.ChannelStatistics;
 import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.channel.action.Subscription;
+import com.envimate.messageMate.channel.statistics.ChannelStatistics;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.qcec.shared.TestAction;
 import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
@@ -60,7 +60,7 @@ public final class ChannelActionBuilder {
 
     public static ChannelActionBuilder severalMessagesAreSendAsynchronously(final int numberOfMessages) {
         return anAction((channel, testEnvironment) -> {
-            sendValidMessagesAsynchronously(channel::accept, testEnvironment,
+            sendValidMessagesAsynchronously(channel::send, testEnvironment,
                     numberOfMessages, 1, false);
             final long millisecondsToLetThreadsFInishAfterReleasingSemaphoreBeforeCloseIsCalled = 5;
             testEnvironment.setProperty(SLEEP_BEFORE_CLOSE, millisecondsToLetThreadsFInishAfterReleasingSemaphoreBeforeCloseIsCalled);
@@ -70,7 +70,7 @@ public final class ChannelActionBuilder {
 
     public static ChannelActionBuilder severalMessagesAreSendAsynchronouslyBeforeTheChannelIsClosedWithoutFinishingRemainingTasks(final int numberOfMessages) {
         return anAction((channel, testEnvironment) -> {
-            sendMessagesBeforeShutdownAsynchronously(addSubscriber(channel), channel::accept,
+            sendMessagesBeforeShutdownAsynchronously(addSubscriber(channel), channel::send,
                     channel::close, testEnvironment, numberOfMessages, 1);
             return null;
         });
@@ -78,7 +78,7 @@ public final class ChannelActionBuilder {
 
     public static ChannelActionBuilder sendMessagesBeforeTheShutdownIsAwaitedWithoutFinishingTasks(final int numberOfMessages) {
         return anAction((channel, testEnvironment) -> {
-            sendMessagesBeforeShutdownAsynchronously(addSubscriber(channel), channel::accept,
+            sendMessagesBeforeShutdownAsynchronously(addSubscriber(channel), channel::send,
                     ignored -> {
                         try {
                             channel.close(false);

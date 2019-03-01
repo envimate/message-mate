@@ -21,6 +21,7 @@
 
 package com.envimate.messageMate.channel;
 
+import com.envimate.messageMate.channel.action.Action;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -63,5 +64,17 @@ public final class ProcessingContext<T> {
 
     public static <T> ProcessingContext<T> processingContext(final T payload, final Map<Object, Object> contextMetaData) {
         return new ProcessingContext<>(contextMetaData, payload, null, null);
+    }
+
+    public boolean actionWasChanged() {
+        return currentProcessingFrame.getAction() != null;
+    }
+
+    public Action<T> getAction() {
+        return currentProcessingFrame.getAction();
+    }
+
+    public void changeAction(final Action<T> action) {
+        currentProcessingFrame.setAction(action);
     }
 }

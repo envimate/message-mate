@@ -21,6 +21,7 @@
 
 package com.envimate.messageMate.channel.action;
 
+import com.envimate.messageMate.subscribing.ConsumerSubscriber;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.Getter;
@@ -28,7 +29,9 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 
+import static com.envimate.messageMate.subscribing.ConsumerSubscriber.consumerSubscriber;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
@@ -41,8 +44,15 @@ public final class Subscription<T> implements Action<T> {
         return new Subscription<>(linkedList);
     }
 
-    public void addSubscriber(final Subscriber<T> subscriber) {
+    public SubscriptionId addSubscriber(final Consumer<T> consumer) {
+        final ConsumerSubscriber<T> subscriber = consumerSubscriber(consumer);
         subscribers.add(subscriber);
+        return subscriber.getSubscriptionId();
+    }
+
+    public SubscriptionId addSubscriber(final Subscriber<T> subscriber) {
+        subscribers.add(subscriber);
+        return subscriber.getSubscriptionId();
     }
 
     public boolean hasSubscriber() {

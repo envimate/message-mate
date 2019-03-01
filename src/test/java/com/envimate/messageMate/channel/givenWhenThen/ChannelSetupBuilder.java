@@ -22,7 +22,7 @@ import java.util.concurrent.Semaphore;
 import static com.envimate.messageMate.channel.ChannelBuilder.aChannel;
 import static com.envimate.messageMate.channel.ChannelBuilder.aChannelWithDefaultAction;
 import static com.envimate.messageMate.channel.action.Call.prepareACall;
-import static com.envimate.messageMate.channel.action.Consume.consume;
+import static com.envimate.messageMate.channel.action.Consume.consumeAll;
 import static com.envimate.messageMate.channel.action.Jump.jumpTo;
 import static com.envimate.messageMate.channel.action.Return.aReturn;
 import static com.envimate.messageMate.channel.action.Subscription.subscription;
@@ -46,7 +46,7 @@ public final class ChannelSetupBuilder {
     private ChannelSetupBuilder(final ChannelTestConfig channelTestConfig) {
         this.channelTestConfig = channelTestConfig;
         this.testEnvironment = emptyTestEnvironment();
-        final Consume<TestMessage> noopConsume = consume(processingContext -> {
+        final Consume<TestMessage> noopConsume = consumeAll(processingContext -> {
         });
         final ChannelType type = channelTestConfig.getType();
         final AsynchronousConfiguration asynchronousConfiguration = channelTestConfig.getAsynchronousConfiguration();
@@ -127,7 +127,7 @@ public final class ChannelSetupBuilder {
     }
 
     private static Consume<TestMessage> consumeAsFinalResult(final TestEnvironment testEnvironment) {
-        return consume(processingContext -> testEnvironment.setProperty(RESULT, processingContext));
+        return consumeAll(processingContext -> testEnvironment.setProperty(RESULT, processingContext));
     }
 
     private void storeSleepTimesInTestEnvironment(final ChannelTestConfig channelTestConfig, final TestEnvironment testEnvironment) {
@@ -182,7 +182,7 @@ public final class ChannelSetupBuilder {
     }
 
     public ChannelSetupBuilder withAnExceptionInFinalAction() {
-        channelBuilder.withDefaultAction(Consume.consume(testMessageProcessingContext -> {
+        channelBuilder.withDefaultAction(Consume.consumeMessage(message -> {
             throw new TestException();
         }));
         return this;

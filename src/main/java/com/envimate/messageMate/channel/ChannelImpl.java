@@ -85,13 +85,13 @@ final class ChannelImpl<T> implements Channel<T> {
     }
 
     @Override
-    public void accept(final T message) {
+    public void send(final T message) {
         final ProcessingContext<T> processingContext = ProcessingContext.processingContext(message);
-        accept(processingContext);
+        send(processingContext);
     }
 
     @Override
-    public void accept(final ProcessingContext<T> processingContext) {
+    public void send(final ProcessingContext<T> processingContext) {
         advanceChannelProcessingFrameHistory(processingContext);
         acceptingPipe.send(processingContext);
     }
@@ -185,7 +185,7 @@ final class ChannelImpl<T> implements Channel<T> {
 
     @Override
     public void close(final boolean finishRemainingTasks) {
-        //accepting Pipe is the only stateful pipe.
+        //accepting Pipe is the only stateful pipe.callProcessingFrame
         //Also if closing other pipe, messages still being filtered might be causing ClosedPipeExceptions
         acceptingPipe.close(finishRemainingTasks);
     }
@@ -205,13 +205,12 @@ final class ChannelImpl<T> implements Channel<T> {
         @Override
         public void accept(final ProcessingContext<T> processingContext) {
             final Action<T> action;
-            final ChannelProcessingFrame<T> currentProcessingFrame = processingContext.getCurrentProcessingFrame();
-            final Action<T> actionSetByFilter = currentProcessingFrame.getAction();
+            final Action<T> actionSetByFilter = processingContext.getAction();
             if (actionSetByFilter != null) {
                 action = actionSetByFilter;
             } else {
                 action = defaultAction;
-                currentProcessingFrame.setAction(defaultAction);
+                processingContext.changeAction(defaultAction);
             }
             final ActionHandler<Action<T>, T> actionHandler = actionHandlerSet.getActionHandlerFor(action);
             actionHandler.handle(action, processingContext);

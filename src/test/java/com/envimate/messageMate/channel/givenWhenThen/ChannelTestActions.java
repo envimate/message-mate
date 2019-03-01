@@ -1,6 +1,9 @@
 package com.envimate.messageMate.channel.givenWhenThen;
 
-import com.envimate.messageMate.channel.*;
+import com.envimate.messageMate.channel.Channel;
+import com.envimate.messageMate.channel.ChannelProcessingFrame;
+import com.envimate.messageMate.channel.ChannelStatusInformation;
+import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.channel.action.Action;
 import com.envimate.messageMate.channel.statistics.ChannelStatistics;
 import com.envimate.messageMate.filtering.Filter;
@@ -14,10 +17,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestProperties.MODIFIED_META_DATUM;
-import static com.envimate.messageMate.channel.givenWhenThen.FilterPosition.PROCESS;
 import static com.envimate.messageMate.channel.ProcessingContext.processingContext;
 import static com.envimate.messageMate.channel.action.Call.callTo;
+import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestProperties.MODIFIED_META_DATUM;
+import static com.envimate.messageMate.channel.givenWhenThen.FilterPosition.PROCESS;
 import static com.envimate.messageMate.shared.testMessages.TestMessageOfInterest.messageOfInterest;
 import static lombok.AccessLevel.PRIVATE;
 
@@ -28,7 +31,7 @@ final class ChannelTestActions {
 
     static ProcessingContext<TestMessage> sendMessage(final Channel<TestMessage> channel, final TestMessage testMessage) {
         final ProcessingContext<TestMessage> processingContext = processingContext(testMessage);
-        channel.accept(processingContext);
+        channel.send(processingContext);
         return processingContext;
     }
 

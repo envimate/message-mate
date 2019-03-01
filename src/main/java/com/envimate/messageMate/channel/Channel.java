@@ -29,9 +29,9 @@ import java.util.concurrent.TimeUnit;
 
 public interface Channel<T> {
 
-    void accept(ProcessingContext<T> processingContext);
+    void send(T message);
 
-    void accept(T message);
+    void send(ProcessingContext<T> processingContext);
 
     void addPreFilter(Filter<ProcessingContext<T>> filter);
 

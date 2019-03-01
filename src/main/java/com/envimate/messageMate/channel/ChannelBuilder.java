@@ -56,6 +56,10 @@ public class ChannelBuilder<T> {
                 .build();
     }
 
+    public static <T> ChannelBuilder<T> aChannel() {
+        return new ChannelBuilder<>();
+    }
+
     public static <T> ChannelBuilder<T> aChannel(final Class<T> channelTypeClass) {
         return new ChannelBuilder<>();
     }
@@ -66,7 +70,7 @@ public class ChannelBuilder<T> {
     }
 
     public ChannelBuilder<T> withAsynchronousConfiguration(final AsynchronousConfiguration configuration) {
-        asynchronousConfiguration = configuration;
+        this.asynchronousConfiguration = configuration;
         return this;
     }
 
@@ -75,20 +79,13 @@ public class ChannelBuilder<T> {
         return this;
     }
 
-    public ChannelBuilder<T> withActionHandlerSet(final ActionHandlerSet<T> actionHandlerSet) {
-        this.actionHandlerSet = actionHandlerSet;
-        return this;
-    }
-
-    public ChannelBuilder<T> withEventListenerAndStatisticsCollector(final ChannelEventListener<ProcessingContext<T>> listener,
-                                                                     final ChannelStatisticsCollector statisticsCollector) {
-        this.eventListener = listener;
-        this.statisticsCollector = statisticsCollector;
-        return this;
-    }
-
     public ChannelBuilder<T> withChannelExceptionHandler(final ChannelExceptionHandler<T> channelExceptionHandler) {
         this.channelExceptionHandler = channelExceptionHandler;
+        return this;
+    }
+
+    public ChannelBuilder<T> withActionHandlerSet(final ActionHandlerSet<T> actionHandlerSet) {
+        this.actionHandlerSet = actionHandlerSet;
         return this;
     }
 

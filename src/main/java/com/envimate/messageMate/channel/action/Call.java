@@ -54,7 +54,7 @@ public final class Call<T> implements Action<T> {
         final ChannelProcessingFrame<T> currentProcessingFrame = processingContext.getCurrentProcessingFrame();
         processingFrameToContinueAfterReturn = currentProcessingFrame.copy();
         currentProcessingFrame.setAction(this);
-        targetChannel.accept(processingContext);
+        targetChannel.send(processingContext);
     }
 
 }

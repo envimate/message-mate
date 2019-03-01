@@ -41,7 +41,7 @@ public final class JumpActionHandler<T> implements ActionHandler<Jump<T>, T> {
         final Channel<T> targetChannel = jump.getTargetChannel();
         final ChannelProcessingFrame<T> finishedProcessingFrame = processingContext.getCurrentProcessingFrame();
         finishedProcessingFrame.setAction(jump);
-        targetChannel.accept(processingContext);
+        targetChannel.send(processingContext);
     }
 }
 
