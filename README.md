@@ -2,33 +2,65 @@
 Message-Mate is a library for building messaging architectures.
 
 It provides components to integrate parts of your business 
-logic in an loosely coupled fashion. This allows for applications,
-that are highly extensible, testable and easily monitored.
+logic in a loosely coupled fashion. This allows for applications,
+that are highly extensible and easily tested.
+
 ## Motivation
-TBD
+Messaging is a form of communication, that exchanges encapsulated messages between 
+parts of an application or different applications. In contrast to other types of 
+integration it models both the carrier as well as the send messages as distinct
+concepts of the application. This can provide several benefits if used correctly. But it 
+also can generate overhead and complexity. This library focuses on a lightweight 
+implementation of messaging patterns to be wire Usecases and objects within one application. 
+For integrating different applications (over network, shared memory, ...) there exist other
+libraries.
+
+This library provides implementations for typical forms of message carriers like 
+Channels or MesssageBus. Explicitly modelling these transport mechanisms as distinct
+objects have an beneficiary influence on the coupling of independent parts of the 
+application. When parts of the application want to communicate with each other, they
+send messages. The sender puts its message on the MessageBus. The MessageBus then 
+ensures, that the message is delivered to all subscriber. The sender does not need to know
+the number or type of the subscriber. The subscriber have no knowledge about the sender.
+This lead to a very loosely coupled integration. As sender and subscriber can be added or 
+removed dynamically during runtime, the application becomes very flexible. 
+
+Both, MessageBus and Channel, can be configured to provide asynchronous aspects using 
+Threads. This simplifies code using these objects, as a lot of asynchronous 
+and synchronization problems are already solved. Dynamically scaling out Threads only 
+required to change the configuration Channels and MessageBus. The rest of the application
+can remain mostly agnostic to it. 
+
+These messaging patterns ease the integration of Frameworks with the application's UseCses.
+But also the communication between UseCases is greatly simplified with a MessageBus. Even
+at the scope of Domain Objects messaging patterns can provide loosely coupling and dynamism.
+
+The following chapter explain all of message-mates components. In addition a sample
+application is provides here [!!!], that gives examples of how to use the concepts
+in a real world example.
 ## Basic Concepts
 
 ### Channel
-A reoccurring task in message driven architecture is how to the messages from a bunch of producer to 
-an arbitrary amount of consumer. This concept is implemented with a Channel.
-A channel provides the following properties:
+A common task in message driven architectures is sending messages from a bunch of producer to 
+an arbitrary amount of consumer, handling errors and allowing to add Filter dynamically.
+In MessageMate Channels provide these kind of properties:
  - add or remove sender and receiver dynamically
  - define the type of send messages, when sender and receiver have agreed on the format of the send messages
- - change the messages during the transportation: changing the contents of the message, blocking invalid messages,...
- - abstract configuration: once the channel is created, the participants should be agnostic about the used configuration, e.g. whether the channel is asynchronous
- - dynamic extension points: add filter, add logging or even replace the subscriber during tests
+ - change the messages during the transportation via Filter: changing the contents of the message, blocking invalid messages,...
+ - abstract configuration: once the Channel is created, the participants should be agnostic about the used configuration, e.g. whether the Channel is asynchronous
+ - dynamic extension points: add Filter, add logging or even replace the subscriber during tests
  - monitoring: get information about the number of messages that got delivered successful, blocked or failed with exceptions
  
 #### Creating a Channel
-Channel can be created using the `ChannelBuilder` convenience class:
+Channel can be created using the `ChannelBuilder` class:
 
 ```java
 Channel<TestMessage> channel = ChannelBuilder.aChannel(TestMessage.class)
-                .forType(ChannelType.SYNCHRONOUS)
-                .withDefaultAction(Consume.consumeMessage(m -> {
-                    System.out.println(m);
-                }))
-                .build();
+    .forType(ChannelType.SYNCHRONOUS)
+    .withDefaultAction(Consume.consumeMessage(m -> {
+        System.out.println(m);
+    }))
+    .build();
 
 channel.send(new TestMessage());
 ```
@@ -37,18 +69,18 @@ Synchronous Channels will execute the delivery on the Thread calling `send`. Asy
 Channels bring their own Threadpool with them. For more details on how to create and configure
 asynchronous Channels see [!!!]
 
-At the end of a Channel the default action is executed for each message. Actions abstract
-the consumer part of the messaging. The simplest action is the `Consume` action execute 
-the given logic for each message that reached the end of the Channel. Other actions allow
-dynamic subscriptions or jumps to other channel.
+At the end of a Channel an Action is executed for each message. Actions abstract
+the consumer part of the messaging. The simplest Action is the `Consume` Action 
+which executes the given logic for each message that reached the end of the Channel. 
+Other Actions allow dynamic subscriptions or jumps to other Channels.
 
 #### Actions
-Each message reaching the end of the channel will be consumed by an action. This can
-be the default action defined during creation time or a dynamically changed by filter 
-(explained below). Several default actions exist
+Each message reaching the end of the Channel will be consumed by an Action. This can
+be the default Action defined during creation time or a dynamically changed by Filter 
+(explained below). Several default Actions exist:
 
 ##### Consume
-A `Consume` action calls the given Consumer function for every message that reached
+A `Consume` Action calls the given Consumer function for every message that reached
 the end of the Channel:
 
 ```java
@@ -58,8 +90,9 @@ Action<T> action = Consume.consumeMessage(m -> {
 ```
 
 ##### Subscription
-In case not only a single but several subscriber are needed, the `Subscription` action
-can be used:
+The `Subscription` Action extends the `Consume` Action with the ability of having 
+several consumers, called Subscriber. The `Subscription` Action allows for adding and
+removing Subscriber dynamically:
 
 ```java
 Subscription<Object> subscription = Subscription.subscription();
@@ -75,39 +108,41 @@ Subscriber<Object> subscriber = ConsumerSubscriber.consumerSubscriber(consumer);
 SubscriptionId subscriptionId = subscription.addSubscriber(subscriber);
 subscription.removeSubscriber(subscriber);
 ``` 
-The `addSubscriber` method accepts a java Consumer. The returned SubscriptionId is a
-unique UUID generated for the Consumer tha can be used to remove it.
-
-The `addSubscriber` and `removeSubscriber` also accepts a Subscriber<T> object. Classes
-implementing this interface get more control over the management of the SubscriptionId
-and control the acceptance of messages, e.g. do not accept a message or preempt the 
-delivery, so that other subscriber do receive the message. See [!!!] for more details.
+The `addSubscriber` method is overloaded to accept either a java Consumer or 
+an `Subscriber` object. Classes implementing this interface get more control 
+over the management of the SubscriptionIdor the acceptance of messages, e.g. 
+they can preempt the delivery, so that other subscriber do receive the message. 
+See [!!!] for more details. The `addSubscriber` methods returns a `SubscriptionId`, 
+which is a unique UUID generated for each `Subscriber`. It can be used to uniquely 
+identify a Subscriber. The `removeSubscriber` methods makes use of this to remove
+subscriptions.
 
 ##### Jump
-In more complex messaging architectures Channels are often chained to split a larger
-transportation logic into separate parts. These channels can be connected via `Jump`
-actions:
+In more complex messaging architectures larger processing logics are often split 
+into smaller, logical pieces by chaining Channels. Each Channel is then responsible
+for a smaller part in this flow. These Channels can be connected via `Jump`
+Actions. A `Jump` Action takes a message and sends it in the next Channel:
 
 ```java
 Jump<sameTypeOfBothChannels> jump = Jump.jumpTo(diffentChannel);
 ```
 
-The reason to use Jumps and not a Consumer calling `send` on the next Channel is 
-history. Messages send over Channels are enveloped in `ProcessingContext` objects.
-These Context contain history information over past Channels useful for debugging.
-The `Jump` action handles these context information during the change of Channels
-(For more information about these `ProcessingContext` objects see [!!!]).
+The reason to use `Jumps` and not a `Consume` calling `send` on the next Channel is 
+the the control structure used in Channels. Messages send over Channels are
+enveloped in `ProcessingContext` objects. These context objects contain history information over past Channels useful for debugging.
+The `Jump` Action handles these context information during the change of Channels
+(For more information about the `ProcessingContext` object see [!!!]).
 
 ##### Filter
-Channel provide an extensible mechanism for processing messages: filter.
-A send message traverses all filter before being consumed by the final action.
-Each filter has two options: It can allow the message to pass it, or it can block the message.
-A blocked message will stop it's propagation through the remaining filter and will never
-reach the final action:
+Channel provide an extensible mechanism for processing messages: Filter.
+A send message traverses all Filter before being consumed by the final Action.
+Each Filter has two options: It can allow the message to pass or it can block the message.
+A blocked message will stop its propagation through the remaining Filter and will never
+reach the final Action:
 
 ```java
 channel.addProcessFilter((processingContext, filterActions) -> {
-    final TestMessage message = processingContext.getPayload();
+    TestMessage message = processingContext.getPayload();
     if (isValid()) {
         message.validated = true;
         filterActions.pass(processingContext);
@@ -116,16 +151,16 @@ channel.addProcessFilter((processingContext, filterActions) -> {
     }
 });
 ```
-Calling `filterActions.pass` will propagate the message to the next filter. 
+Calling `filterActions.pass` will propagate the message to the next Filter. 
 `filterActions.block` will stop the propagation. If none of these methods are called,
-the message is blocked, too. But not calling the `block` should be avoided as filter
-should be written as explicit as possible (Also the message is marked as forgotten and not
-as blocked in the ChannelStatistics).
+the message is also blocked. But not calling the `block` method should be avoided as 
+Filter should be written as explicit as possible (Also the message is marked as 
+`forgotten` and not as `blocked` in the `ChannelStatistics`).
 
-As mentioned earlier, each message is always enveloped in `ProcessingContext` control structure.
+As mentioned earlier, each message is always enveloped in a `ProcessingContext` control structure.
 To get access to the original message use `getPayload`. But the `pass` and
 `block` methods again expect the `ProcessingContext` object. Filter can freely access the
-`ProcessingContext` object. The most common action would be to replace the action, that
+`ProcessingContext` object. The most common usage would be to replace the Action, that
 is executed at the Channel's end:
 
 ```java
@@ -137,17 +172,27 @@ channel.addPostFilter((processingContext, filterActions) -> {
 ```
 
 Filter can be added at three different stages: Pre, Process, Post. These three different
-extension points serve as coarse-grained ordering. All filter in the Pre Stage are always
-executed before the filter in Process, which themselves execute before the Post filter.
-Within these stages the order of filter follows the contract of java's concurrent list.
+extension points serve as coarse-grained ordering. All Filter in the Pre Stage are always
+executed before the Filter in the Process stage, which themselves execute before the Post Filter.
+Within these stages the order of Filter follows the contract of java's concurrent list.
 
-[!!! TODO getFilter and removeFilter]
+For each of three stages methods exists to query registered Filter and to remove 
+Filter:
+```java
+List<Filter<ProcessingContext<T>>> preFilter = channel.getPreFilter();
+List<Filter<ProcessingContext<T>>> processFilter = channel.getProcessFilter();
+List<Filter<ProcessingContext<T>>> postFilter = channel.getPostFilter();
+        
+channel.removePreFilter(filter);
+channel.removeProcessFilter(filter);
+channel.removePostFilter(filter);        
+```
 
 ##### Call and Return
-A special action that can only be used inside a filter is the `Call` action. It is used
-to perform an immediate jump to a different channel. The transport of the message is
-resumed the moment the other Channel executes a `Return` as it's final action. This Call/Return
-combination allows filter to add arbitrarily complex logic dynamically to a Channel.
+A special Action that can only be used inside a Filter is the `Call` Action. It is used
+to perform an immediate jump to a different Channel. The transport of the message is
+resumed the moment the other Channel executes a `Return` as it's final Action. This Call/Return
+combination allows Filter to add arbitrarily complex logic dynamically to a Channel.
 
 ```java
 Channel<TestMessage> differentChannel = ChannelBuilder.aChannel(TestMessage.class)
@@ -156,15 +201,16 @@ Channel<TestMessage> differentChannel = ChannelBuilder.aChannel(TestMessage.clas
 
 channel.addPostFilter((processingContext, filterActions) -> {
     Call.callTo(differentChannel, processingContext);
-    System.out.println("Returned from other Channel");
+    System.out.println("Returned from other Channel.");
+    filterActions.pass(processingContext);
 });
 ```
 Calls can be nested arbitrarily and don't need to return (Although not returning chains
-of Channels are harder to debug than simple blocking a message). But returning without
+of Channels are harder to debug than simply blocking a message). But returning without
 a previous Call will result in an error.
 
-The factory method `Call.callTo` executes the Call directly. If access to the call object 
-is needed, a two step alternative exists:
+The factory method `Call.callTo` executes the Call directly. If access to the `Call`
+object is needed, a two step alternative exists:
 
 ```java
 channel.addPostFilter((processingContext, filterActions) -> {
@@ -180,11 +226,11 @@ messages, that were
  accepted or an exception is thrown
  - queued: asynchronous Channel can queue messages, if no Threads are available. This statistic
  resembles the number of currently waiting messages
- - blocked: number of messages that were blocked by filter
- - forgotten: number of messages that were neither passed or blocked by filter
- - successful: number of message that passed all filter and executed the final action without error
- - failed: if an exception is thrown during a filter or the final action, the message is marked
- as failed
+ - blocked: number of messages that were blocked by Filter
+ - forgotten: number of messages that were neither passed or blocked by Filter
+ - successful: number of message that passed all Filter and executed the final Action without error
+ - failed: if an exception is thrown during a Filter or the final Action, the 
+ message is marked as failed
 
  ```java
 ChannelStatusInformation statusInformation = channel.getStatusInformation();
@@ -197,8 +243,8 @@ BigInteger successfulMessages = statistics.getSuccessfulMessages();
 BigInteger failedMessages = statistics.getFailedMessages();
 Date timestamp = statistics.getTimestamp();
  ```
-Each statistic contains a timestamp indicating the date, for when the given numbers are
-approximately valid.
+Each statistic contains a timestamp indicating the date, for when the given numbers
+were approximately valid.
 
 #### Shutdown
 Each Channel can be closed to free resources in case the Channel was stateful 
@@ -218,7 +264,8 @@ try {
 ```
 
 These methods follow the contract, that classes from the standard java library with
-these sort of methods abide to.
+these sort of methods abide to. Channel (as all closable Classes in MessageMate) 
+also implement the `AutoClosable` interface and can be used in a try-with-resources statement.
 
 #### Configuration
 Configuring a Channel is done using the respective `ChannelBuilder` class' methods.
@@ -233,10 +280,10 @@ ChannelBuilder.aChannel()
 .build();
 ```
 
-The potential actions were discussed in [!!!]
+The available Actions were discussed in [!!!]
 
 ##### Type
-There exists two types of Channels: `ChannelTyoe.SYNCHRONOUS`and `ChannelType.ASYNCHRONOUS`. Sending on synchronous
+There exists two types of Channels: `ChannelType.SYNCHRONOUS`and `ChannelType.ASYNCHRONOUS`. Sending on synchronous
 Channels is executed on the Thread calling `send`. Asynchronous Channels provide their
 own Threads using a Threadpool. Asynchronous Channels require an additional 
 `AsynchronousConfiguration`. 
@@ -269,7 +316,7 @@ class, as the asynchronous Channel uses such underneath. For a comprehensive doc
 ##### ChannelExceptionHandler
 The default exception behaviour is to throw each exception on the Thread it occurs on.
 This might not be sufficient for a multi-threaded configuration. Therefore a custom 
-exception handler can be set, that gets access to all ocurred exceptions.
+exception handler can be set, that gets access to all internal exceptions.
 ```java
 ChannelExceptionHandler<T> channelExceptionHandler = new ChannelExceptionHandler<T>() {
     @Override
@@ -292,22 +339,23 @@ ChannelExceptionHandler<T> channelExceptionHandler = new ChannelExceptionHandler
 When an exception occurs during the `accept` method of a subscriber, first the
 `shouldSubscriberErrorBeHandledAndDeliveryAborted` method is called. This method
 can decide whether the exception should count as such and the delivery should be aborted.
-A `true` results in the message being marked as false. No further subscriber gets the
-message delivered and the `handleSubscriberException` method is called in the end.
-If a `false` is returned, the exception is ignored and the delivery continues normally.
+A `true` results in the message being marked as failed in the statistics.
+No further subscriber gets the message delivered and the 
+`handleSubscriberException` method is called in the end. Given a `false` the 
+exception is ignored and the delivery continues normally.
 
-In case of a filter throwing an exception, the `handleFilterException` method is called.
-An exception inside a filter always counts as failed and aborts the propagation to 
-following filter or the action.
+In case of a Filter throwing an exception, the `handleFilterException` method is called.
+An exception inside a Filter always counts as failed and aborts the propagation to 
+subsequent Filter or any final Action.
 
 ##### ActionHandlerSet
-The actions contain only necessary information to be executed. The logic how they should
-be handled is contained in ActionHandler. This makes exchanging logic without changing actions
-possible. Also when processing the history of Channels (see [!!!next]), action specific
-information can easily extracted.
+Actions serve only as representive container for the necessary information, to 
+execute the logic. Any logic regarding they execution is handled by the ActionHandler. 
+This allows for exchanging logic without changing Actions or easy debugability. The 
+`ActionHandlerSet` contains one handler for each allowed Action. 
 
 When a message reaches the end of a Channel, the `ActionHandlerSet` serves as a 
-lookup object for a handler for the action. When a suitable handler is found, its `handle`
+lookup object for a handler for the Action. When a suitable handler is found, its `handle`
 method is called. When no handler is registered an error is thrown.
 
 ```java
@@ -321,28 +369,21 @@ ActionHandlerSet<Object> defaultActionHandlerSet = DefaultActionHandlerSet.defau
 defaultActionHandlerSet.registerActionHandler(CustomAction.class, new CustomActionHandler());
 ```
 
-
-[!!! TODO: custom action hier oder in advance]
-
+A more in depth explanation about writing custom Actions and `ActionHandlerSets` 
+is given in [!!!].
 
 #### Processing Context
-Channels can be combined into arbitrary complex structures. The Channels are connected
-via actions (and Calls inside filter). Filters within these Channels might shara data or
+Channels can be chained into arbitrary complex structures. The Channels are connected
+via Actions (and Calls inside Filter). Filters within these Channels might shara data or
 the history might be of interest for debugging purpose. Since these type of information
 should not be stored inside the payload itself, a wrapping context object is needed,
 the `ProcessingContext`. 
 
-For sharing data between Channels or Filter a MetaDataMap is provided.
-```java
-ProcessingContext<Object> processingContext = ProcessingContext.processingContext(message);
-
-Map<Object, Object> metaData = processingContext.getContextMetaData();
-```
-
-The history of Channels is represented as a linked list of `ChannelProcessingFrames`.
+Each message contains its own `ProcessingContext` object. The history of Channels
+is represented as a linked list of `ChannelProcessingFrames`.
 This list includes a frame for each traversed Channel. Each frame contains a reference
 to its previous and next frame and to its respective Channel. When a Channel is traversed
-to its end, the actual final action is also stored in the frame.
+to its end, the actual final Action is also stored in the frame.
 The `ProcessingContext` object serves as root object referencing the first, initial frame
 and the frame of the currently traversed Channel.
 
@@ -356,28 +397,37 @@ Action<T> executedAction = initialProcessingFrame.getAction();
 
 Calls are also included in the linked `ChannelProcessingFrames` list, although stored
 a little bit differently. Let's suppose we have 4 Channels:
- - Channel A contains a Filter executing a Call to Channel B. The default action of
+ - Channel A contains a Filter executing a Call to Channel B. The default Action of
  Channel A is a Jump to Channel D
- - Channel B is the target of the Call withing Channel A. As default action a Jump to
+ - Channel B is the target of the Call withing Channel A. As default Action a Jump to
  Channel C is executed.
- - Channel C just executes a Return as action returning the control to Channel A
- - Channel D is the last channel with Consume as action.
+ - Channel C just executes a Return as Action returning the control to Channel A
+ - Channel D is the last Channel with Consume as Action.
  
- [!!! Bild]
+ ![Channel Call example](documentation/images/channel_call_sample.png)
  
 The linked list of `ChannelProcessingFrames` would constist of the following 5 entries:
-1) a frame for Channel A wit action Call once the Call is executed
-2) a frame for Channel B with the default Jump to Channel C
-3) a frame for Channel C with the action Return back to Channel A
-4) a frame for Channel A with the default action Jump to Channel D
+1) a frame for Channel A wit Action Call as soon as the Call is executed
+2) a frame for Channel B with the default Action Jump to Channel C
+3) a frame for Channel C with the Action Return back to Channel A
+4) a frame for Channel A with the default Action Jump to Channel D
 5) a frame for Channel D with consume
 
-So in general one frame is added per channel, except for a Call. In this case an extra
+So in general one frame is added per Channel, except for a Call. In this case an extra
 `ChannelProcessingFrames` is added to indicate the branching of the flow.
 
+Additionally the `ProcessingContext` object provides a MetaDataMap for sharing data between Channels 
+or Filter.
+```java
+ProcessingContext<Object> processingContext = ProcessingContext.processingContext(message);
+
+Map<Object, Object> metaData = processingContext.getContextMetaData();
+```
+
+
 ### MessageBus
-Channel are restricted to a specific type. This can be a benefit as the format of the 
-communication between producer and consumer is defined by the channel itself. But this solution 
+Channels are restricted to a specific type. This can be a benefit as the format of the 
+communication between producer and consumer is defined by the Channel itself. But this solution 
 comes short when several formats or communications are to be supported by the same
 transport object.
 
@@ -387,14 +437,16 @@ This makes integrating distinct parts of an application possible.
 
 A MessageBus is structured as follows:
 
-[!!! Bild]
+![Channel Call example](documentation/images/MessageBus.png)
+
+
 Every message is accepted by the AcceptingChannel. The AcceptingChannel is responsible
-for the configuration (synchronous or asynchronous) and can also contain filter that
+for the configuration (synchronous or asynchronous) and can also contain Filter that
 need access to all messages.
-After the AcceptingChannel messages are distributed into subscriber-specific Channels.
-For every class, for which one or several subscriber exist, a Channel exists, that delivery
-the message to its subscribers. On this Channel filter can be added, that are specific for
-this class.
+Messages, that passed the AcceptingChannel, are distributed into subscriber-specific 
+Channels. Every class, which has at least on subscriber, corresponds t a Channel,
+that delivers all message of its class to its subscribers. On this Channel Filter 
+can be added, that are specific for this class.
 
 
 #### Using the MessageBus
@@ -413,14 +465,14 @@ messageBus.send(new TestMessage());
 messageBus.unsubcribe(subscriptionId);
 ```
 The `MessageBusBuilder` is used to configure and create a MessageBus. 
-On a MessageBus instance the `subscribe` method is used to add a Subscriber (or a 
-java Consumer as shorter convenience). The first parameter defines the type of class
-the subscription is done for. After this point all messages of this class or an subclass
-are delivered to this subscriber. The returned subscriptionId is used in case the subscriber
-wants to remove its subscription.
+The `subscribe` method is again overloaded to either add  Subscriber or java 
+Consumer. The first parameter defines the type of class of the subscription. 
+All messages messages of this class or an subclass are delivered to its subscriber. 
+The returned subscriptionId is used in case the subscriber wants to remove its 
+subscription.
 
 #### Filter
-The MessageBus can add filter, that get access to all messages:
+The MessageBus can add Filter, that get access to all messages:
 
 ```java
 final Filter<Object> filter = new Filter<Object>() {
@@ -437,7 +489,7 @@ messageBus.remove(filter);
 ```
 
 In case a more fine-grained filtering is needed, the MessageBus allows to query for
-the specific Channel for a given class. On this Channel filter can be added as on already
+the specific Channel for a given class. On this Channel Filter can be added as on already
 described in [!!!]
 ```java
 MessageBusStatusInformation statusInformation = messageBus.getStatusInformation();
@@ -478,7 +530,9 @@ The methods to close the MessageBus are similar to those described for Channels 
 ```java
 boolean finishRemainingTasks = true;
 messageBus.close(finishRemainingTasks);
+
 boolean shutdown = messageBus.isShutdown();
+
 try {
     boolean awaitSucceeded = messageBus.awaitTermination(5, SECONDS);
 } catch (InterruptedException e) {
@@ -487,7 +541,8 @@ try {
 ```
 
 #### Configuring the MessageBus
-All configuration is done when using the `MessageBusBuilder` to create a new MessageBus.
+All configuration is done when using the `MessageBusBuilder` to create a new 
+MessageBus.
 
 ```java
 MessageBusBuilder.aMessageBus()
@@ -519,20 +574,21 @@ MessageBusBuilder.aMessageBus()
 .build();
 ```
 
-The type and the `AsynchronousConfiguration` are similar to those used in the Channel 
+The type and the `AsynchronousConfiguration` are similar to those used for Channels 
 described in [!!!].
 
-The default error rethrowing MessageBusExceptionHandler can be replaced with `withExceptionHandler`
-method. When an exception is thrown in one of the subscriber the 
-`shouldDeliveryChannelErrorBeHandledAndDeliveryAborted` is called to decide, whether
-the exception should be handled and the delivery aborted or whether the exception should 
-be ignored. In case the exception should be handled, the message is marked as failed in
-the statistics and the `handleDeliveryChannelException` method is called. When an exception
-is raised in one filter (general or classe specific channel), the delivery is aborted,
-the message is marked as failed and the control is given to `handleFilterException`.
+The default MessageBusExceptionHandler throws all exceptions. It can be replaced using
+`withExceptionHandler` method. When an exception is thrown in one of the subscriber
+the `shouldDeliveryChannelErrorBeHandledAndDeliveryAborted` is called to decide,
+whether the exception should be handled and the delivery aborted or whether the
+exception should be ignored. In case the exception should be handled, the message
+is marked as failed in the statistics and the `handleDeliveryChannelException`
+method is called. When an exception is raised in any Filter (general or class
+specific Channel), the delivery is aborted, the message is marked as failed and
+the control is given to `handleFilterException`.
 
 The `ChannelFactory` is used to create the class-specific Channels, that delivery the
-messages to the specific Subscriber. The default implementation creates synchronous channel,
+messages to the specific Subscriber. The default implementation creates synchronous Channel,
 that redirect error to the `MessageBusErrorHandler`. But in case more control over the
 configuration of these Channels is needed, a custom implementation can be given here.
 But care has to be taken to handle or redirect the errors correctly.
@@ -564,12 +620,12 @@ register all the handler, that were created for the given subscriptionId.
 
 
 ## Advance Concepts
-TBD
+
 ### QCEC
 A MessageBus allows for a loosely coupled form of communication, where Sender and 
 Subscriber do not need to know from each other. They don't even know the number of the
 others as members of both sides can join or leave dynamically. Configuring the MessageBus
-in an asynchronous way allows the different parts of the application to be very independent.
+in an asynchronous way allows for independently integrated parts of the application.
 
 The integration points between the different UseCases and Frameworks are a fitting example
 for the beneficiary use of an asynchronous MessageBus. But aspects like loose coupling
@@ -589,24 +645,25 @@ Commands perform updates on Domain Objects or Repositories.
 
 For more information see [!!! Von Richard geschriebene Doku der Sample App]
 #### Queries
-UseCases need to require information the objects they interact with. Having a list
+UseCases need to retrieve information from the objects they interact with. Having a list
 of all objects of interest results in high coupling. By using a MessageBus, a message
-can be distributed to these objects without the UseCase knowing them. The message
-is written as query. This means, that subscriber upon receiving the query can use
-query specific methods to store their data into the query. Have a look at the 
-following example:
+can be distributed to these objects without the UseCase having too much knowledge
+about them. The message is written as `Query`. This means, that subscriber 
+upon receiving the `Query` object can use `Query` specific methods to store 
+their data into the object. Let's take an example, in which we want to query all of our
+apple trees about the number of apples they currently hold:
 
 ```java
 class NumberOfApplesQuery implements Query<Integer>{
-    private int numberOfApples;
+    private int sumOfApples;
         
     public void reportPartialResult(int numberOfApples){
-        this.numberOfApples+=numberOfApples;
+        this.sumOfApples+=numberOfApples;
     }
         
     @Override
     public Integer result() {
-        return numberOfApples;
+        return sumOfApples;
     }
 }
 ```
@@ -641,7 +698,7 @@ new AppleTree(3, queryResolver);
 int numberOfApples = queryResolver.queryRequired(new NumberOfApplesQuery());
 assertEquals(4, numberOfApples);
 ```
-Executing a Query on the QueryResolver allows for querying all AppleTrees for their stock.
+Executing a Query on the QueryResolver allows for querying all AppleTrees about their stock.
 Although in this example the querying code already knows how many apples there are,
 it should be obvious, that the AppleTrees could be created somewhere else without
 compromising the validity of the code. The querying code does not even know about
@@ -674,7 +731,7 @@ necessary to ensure, that a specific constraint holds and if it does not, to rai
 exception. This differs from queries in that way as a Constraint either holds or an 
 exception is thrown. But a constraint will never return data.
 
-Let's suppose we want to ensure, that the usernames of User are unique. We use a 
+Let's suppose we want to ensure, that the usernames of users are unique. We use a 
 Constraint:
 ```java
 class UniqueUsernameConstraint {
@@ -701,8 +758,8 @@ class User {
     }
 }
 ```
-Now we can create User, give them access to the `ConstraintEnforcer` object and they 
-will raise a complaint in form of an exception if the username is already in use.
+Now any code can send Constraints on the `ConstraintEnforcer` object shared with the user
+objects to ensure, that the unique username constraint holds.
 
 ```java
 MessageBus messageBus = MessageBusBuilder.aMessageBus()
@@ -716,13 +773,14 @@ new User("Tim", constraintEnforcer);
 constraintEnforcer.enforce(new UniqueUsernameConstraint("Tim"));
 ```
 
-Similar to the QueryResolver, the `respondTo` method allows for the user of inheritance
-and interfaces to allow for greater flexibility. It also returns a `SubscriptionId` that
-can be used as paremeter for the `unsubscribe` method to stop answering to constraints.
+Similar to the QueryResolver, the `respondTo` method allows for inheritance
+and interfaces. It also returns a `SubscriptionId` that
+can be used as parameter for the `unsubscribe` method to stop responding to constraints.
+
 #### Events
-Queries retrieve information for you, constraints enforce rules between you and others
-and events are used to forward information to others. Events never return information
-and should not throw an exception. They are just used state, that something happened.
+Queries retrieve information, constraints enforce rules and events are used to 
+forward information. Events never return information
+and should not throw an exception. They are just used to indicate, that something happened.
 
 Let's suppose a very basic login UseCase: Given a username and password, a login is tried.
 If it succeeded, an event is published to inform others, that the user went online. 
@@ -741,12 +799,12 @@ if(loginSuccessful){
 }
 
 class UserOnlineEvent {
-        public String username;
+    public String username;
 
-        public UserOnlineEvent(String username) {
-            this.username = username;
-        }
+    public UserOnlineEvent(String username) {
+        this.username = username;
     }
+}
 ```
 The code publishing the event does not care, what others do with the information or even 
 if there are others. It is of no concern for its functionality that other receive the event.
@@ -754,37 +812,37 @@ if there are others. It is of no concern for its functionality that other receiv
 But other components might be interested, when a user goes online:
 ```java
 class UserOnlineView {
-        private final List<String> userOnline = new ArrayList<>();
+    private final List<String> userOnline = new ArrayList<>();
 
-        public UserOnlineView(EventBus eventBus) {
-            eventBus.reactTo(UserOnlineEvent.class, userOnlineEvent -> {
-                final String username = userOnlineEvent.username;
-                userOnline.add(username);
-            });
-        }
+    public UserOnlineView(EventBus eventBus) {
+        eventBus.reactTo(UserOnlineEvent.class, userOnlineEvent -> {
+            final String username = userOnlineEvent.username;
+            userOnline.add(username);
+        });
     }
+}
 ```
 The `UserOnlineView` is dependent on the event and its information. But it doesn't 
 care, who sent it. It just needs the information.
 
 The `EventBus` has three methods: `reactTo` to add a subscriber for a class and all
-it's subclasses. `publish` sends the Event on the underlying synchronous MessageBus.
+its subclasses. `publish` sends the Event on the underlying synchronous MessageBus.
 And `unsubscribe` removes the subscription for the given `SubscriptionId`.
 
 #### Commands
 Aside from querying and aggregating data UseCases are responsible for a safe and secure
 update to the applications data. A common pattern is to model the update in form of
-Commands. A Command is a reusable abstraction over the the update process. It gets the
+Commands. A Command is a reusable abstraction over the the update. It gets the
 required parameter during its creation by the UseCase. During its invocation by the consuming
 counterpart it gets all information to execute its task. By moving the update logic
-out of the UseCase into a distinct object, the update process decoupled from the UseCase
-and therefore reusable and testable.
+out of the UseCase into a distinct object, the update process becomes decoupled 
+from the UseCase and therefore reusable and testable.
 
 To get a more in depth explanation and examples for Commands, have a look at
 [!!! Richards super duper Doku]
 
 #### DocumentBus
-It's rarely the case that an application uses only one only Queries, Constraints or 
+It's rarely the case that an application uses only one of Queries, Constraints or 
 Events. Therefore it becomes a burden to drag along a QueryResolver, a 
 ConstraintEnforcer and an EventBus. It also becomes difficult to remember which
 SubscriptionId was used for which of these objects. Therefore the `DocumentBus`
@@ -810,7 +868,7 @@ SubscriptionId subscriptionId = documentBus.answer(NumberOfAppleQuery.class)
     .using(numberOfAppleQuery -> numberOfAppleQuery.reportPartial(this.numberOfApples))
 ```
 The `answer` method takes the Query, for which itself or its subclasses the Consumer
-given in `using` should be called. The `onlyIf` method can add arbitrary many conditions,
+given in `using` should be called. The `onlyIf` method can add arbitrary many conditions.
 Only if all of them return true, the Consumer given in `using` is called. 
 The `until` method allows for one or several automatic unsubscriptions. Whenver on of
 these conditions return true, the subscription is removed and the AppleTree stops
@@ -845,6 +903,184 @@ documentBus.enforce(new TreeSpotFreeConstraint());
 documentBus.publish(new AppleTreeCutDownEvent());
 ```
 ### Message Function
+Implementing a Request-Reply communication over an asynchronous MessageBus can be
+error-prone. Once the request is send all errors should be checked for it. One request
+can be answered by different replies, that are distinct in their format or by the request
+they correspond to. All errors for these potential replies have to be checked too.
+
+The `MessageFunction` class simplifies this Request-Reply communication. During its creation
+potential replies are defined. When a request is send, a future is returned, that allows
+to listen on for all potential cases: successful replies, failure replies or exceptions
+during the process.
+
+In the following example we want to buy a number of apples from a farmer via a
+`BuyAppleRequest`. The farmer can accept our offer with an `AcceptOfferReply` or decline
+with a `DeclineOfferReply` based on hist stock:
+
+```java
+class Farmer {
+    private int stock;
+
+    public Farmer(MessageBus messageBus, int stock) {
+    this.stock = stock;
+    messageBus.subscribe(BuyAppleRequest.class, buyAppleRequest -> {
+        CorrelationId correlationId = buyAppleRequest.correlationId;
+        if (stock >= buyAppleRequest.numberOfApples) {
+            AcceptOfferReply reply = new AcceptOfferReply(correlationId);
+            messageBus.send(reply);
+        }else{
+            DeclineOfferReply reply = new DeclineOfferReply(correlationId);
+            messageBus.send(reply);
+        }
+    });
+    }
+}
+
+class BuyAppleRequest {
+    public int numberOfApples;
+    public CorrelationId correlationId = CorrelationId.newUniqueId();
+
+    public BuyAppleRequest(int numberOfApples) {
+        this.numberOfApples = numberOfApples;
+    }
+}
+
+interface OfferReply {
+    CorrelationId getCorrelationId();
+}
+    
+class AcceptOfferReply implements OfferReply {
+    public CorrelationId correlationId;
+
+    public AcceptOfferReply(CorrelationId correlationId) {
+        this.correlationId = correlationId;
+    }
+
+    @Override
+    public CorrelationId getCorrelationId() {
+        return correlationId;
+    }
+}
+
+class DeclineOfferReply implements OfferReply {
+    public CorrelationId correlationId;
+
+    public DeclineOfferReply(CorrelationId correlationId) {
+        this.correlationId = correlationId;
+    }
+
+    @Override
+    public CorrelationId getCorrelationId() {
+        return correlationId;
+    }
+}
+```
+The `CorrelationId` is necessary to match a reply to its corresponding request. Instead
+of implementing a lot of subscriber and error logic itself the client code makes use
+of a `MessageFunction`:
+
+```java
+MessageBus messageBus = MessageBusBuilder.aMessageBus()
+    .forType(MessageBusType.ASYNCHRONOUS)
+    .withAsynchronousConfiguration(asyncConfig)
+    .build();
+
+MessageFunction<BuyAppleRequest, OfferReply> messageFunction = MessageFunctionBuilder.aMessageFunction()
+    .forRequestType(BuyAppleRequest.class)
+    .forResponseType(OfferReply.class)
+    .with(BuyAppleRequest.class)
+    .answeredBy(AcceptOfferReply.class)
+    .orByError(DeclineOfferReply.class)
+    .obtainingCorrelationIdsOfRequestsWith(buyAppleRequest -> buyAppleRequest.correlationId)
+    .obtainingCorrelationIdsOfResponsesWith(OfferReply::getCorrelationId)
+    .usingMessageBus(messageBus)
+    .build();
+
+new Farmer(messageBus, 11);
+
+ResponseFuture<OfferReply> responseFuture = messageFunction.request(new BuyAppleRequest(5));
+responseFuture.then((response, wasSuccessful, exception) -> {
+    if (exception != null) {
+        System.out.println("Exception occured: " + exception);
+    } else {
+        if (wasSuccessful) {
+            System.out.println("AcceptOfferReply received: " + response);
+        } else {
+            System.out.println("DeclineOfferReply received: " + response);
+        }
+    }
+});
+```
+The builder of a MessageFunction contains several Steps:
+- `forRequestType` defines the class (or superclass) for potential requests
+- `forResponseType` defines the class (or often superclass) for potential replies
+- the `with` method starts the request to success/failure replies. The given parameter
+defines the request class, the subsequent `answer` methods relate to
+- `answeredBy` takes a class that counts as successful response when received. It can
+be called several times for several successful responses
+- `orByError` takes a class that when received results as failure. It can also be called
+repeatedly
+- To map replies to the send request `CorrelationIds` are used. The 
+`obtainingCorrelationIdsOf...` are used to extract them out of the replies.
+- Finally the used MessageBus is given and the MessageFunction is build 
+
+A request can be send with the `request` function. It returns a `ResponseFuture` object 
+specific for that request. The `then` method allows to add handler, that will be executed
+once the future fulfills. The handler logic is called on the Thread, that fulfilled
+the future. The `FollowUpAction` given to the `then` method accepts three parameter:
+1) The response. This can be a success or failure response. Note that response is only
+available, when no exception occurred. Therefore always check for `exception == null`
+first
+2) A boolean indicating whether it was a success response (as defined by `answeredBy`)
+or an error response (as defined by `orByError`). It is also only correctly set, when
+exception is null.
+3) In case a exception occured during any of the involved messages, the exception parameter
+is not null.
+
+A future fulfills only once. So an exception during the sending of a request will fulfill
+the future. Subsequent replies to the request will be ignored and won't trigger any 
+`FollowUpActions` twice. At any time only one `FollowUpAction` is allowed
+
+The responseFuture allows several ways to deal with its completion. The `then` method
+allows for a non-blocking handling, that is executed on the Thread fulfilling the
+future. Being a subclass of the java Future interface it the following methods:
+
+```java
+try {
+    OfferReply offerReply = responseFuture.get();
+    responseFuture.get(4, TimeUnit.MILLISECONDS);
+} catch (InterruptedException | ExecutionException | TimeoutException e) {
+
+}
+
+boolean interruptIfRunning = true;
+boolean cancelSuccessful = responseFuture.cancel(interruptIfRunning);
+    
+responseFuture.isCancelled();
+responseFuture.isDone();
+        
+responseFuture.wasSuccessful();
+responseFuture.then(new FollowUpAction<OfferReply>());
+```
+
+#### MessageFunctionBuilder extendend
+[!!! TODO: after refactoring generalErrorResponse]
+```java
+MessageFunctionBuilder.aMessageFunction()
+    .forRequestType(RequestSuperClass.class)
+    .forResponseType(ResponseSuperClass.class)
+    .with(RequestType1.class)
+    .answeredBy(Reply1.class).or(Reply2.class)
+    .orByError(Error1.class).orByError(Error2.class)
+    .with(RequestType2.class)
+    .answeredBy(Reply1.class).or(Reply2.class).or(Reply3.class)
+    .orByError(Error1.class)
+    .withGeneralErrorResponse(GeneralErrorResponse.class)
+    .obtainingCorrelationIdsOfRequestsWith(request -> {})
+    .obtainingCorrelationIdsOfResponsesWith(response -> {})
+    .usingMessageBus(messageBus)
+    .build();
+```
 
 ### UseCaseEventDispatcher
 TBD
@@ -852,10 +1088,14 @@ TBD
 ### Pipe
 TBD oder komplett weglassen
 
-[!!!]
 Todos :
 - Gib der ChannelFactory access zu errorHandler
 - on Error: teste dass ein throw im MBErrorHandler trotzdem all dyn errorHandler callt
 - onError: teste dass alle errorHandler unsubscribed werden
 - Query: ist es mit SubClassen UND Interfaces getested?
 - DocumentBus: reactTo mit until auf eigenem Event -> noch einmal ausführen before unsubscribe
+- Test: fullfill future only once
+- MFBuilder: check Reihenfolge builderIfaces 
+- MFB: generalErrorResponse: corId or conditional
+- explain Subscriber
+- add custom Action
