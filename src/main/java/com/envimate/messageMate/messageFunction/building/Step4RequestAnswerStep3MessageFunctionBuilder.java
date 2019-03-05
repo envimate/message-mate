@@ -22,6 +22,6 @@
 package com.envimate.messageMate.messageFunction.building;
 
 public interface Step4RequestAnswerStep3MessageFunctionBuilder<R, S> extends AnswerOrByErrorStepMessageFunctionBuilder<R, S>,
-        Step4MessageFunctionBuilder<R,S> {
+        Step4MessageFunctionBuilder<R, S> {
 
 }

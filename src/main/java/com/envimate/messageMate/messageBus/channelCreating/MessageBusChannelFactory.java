@@ -26,5 +26,6 @@ import com.envimate.messageMate.messageBus.error.MessageBusExceptionHandler;
 import com.envimate.messageMate.subscribing.Subscriber;
 
 public interface MessageBusChannelFactory {
-    <T> Channel<?> createChannel(Class<T> tClass, Subscriber<T> subscriber, MessageBusExceptionHandler messageBusExceptionHandler);
+    <T> Channel<?> createChannel(Class<T> tClass, Subscriber<T> subscriber,
+                                 MessageBusExceptionHandler messageBusExceptionHandler);
 }

@@ -29,8 +29,8 @@ import com.envimate.messageMate.messageFunction.requestResponseRelation.RequestR
 import com.envimate.messageMate.messageFunction.responseHandling.ResponseHandlingSubscriber;
 import lombok.NonNull;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 import static com.envimate.messageMate.messageFunction.MessageFunctionImpl.messageFunction;
 import static com.envimate.messageMate.messageFunction.correlationIdExtracting.CorrelationIdExtractor.correlationIdExtractor;
@@ -93,15 +93,18 @@ class GenerifiedMessageFunctionMessageFunctionBuilder<R, S> implements Step3Mess
 
     @SuppressWarnings("unchecked")
     @Override
-    public <U extends S> Step6RequestCorrelationIdMessageFunctionBuilder<R, S> withGeneralErrorResponse(
-            final Class<U> generalErrorResponse) {
-        requestResponseRelationMap.addGeneralErrorResponse((Class<S>) generalErrorResponse);
+    public Step6RequestCorrelationIdMessageFunctionBuilder<R, S> withGeneralErrorResponse(
+            final Class<?> generalErrorResponse) {
+        requestResponseRelationMap.addGeneralErrorResponse(generalErrorResponse);
         return this;
     }
 
     @Override
-    public <U extends S> Step6RequestCorrelationIdMessageFunctionBuilder<R, S> withGeneralErrorResponse(Class<U> generalErrorResponse, Predicate<U> conditional) {
-        return null;
+    public <T> Step6RequestCorrelationIdMessageFunctionBuilder<R, S> withGeneralErrorResponse(
+            final Class<T> generalErrorResponse,
+            final BiFunction<T, R, Boolean> conditional) {
+        requestResponseRelationMap.addGeneralErrorResponse(generalErrorResponse, conditional);
+        return this;
     }
 
     @SuppressWarnings("unchecked")
@@ -128,7 +131,7 @@ class GenerifiedMessageFunctionMessageFunctionBuilder<R, S> implements Step3Mess
 
     @Override
     public MessageFunction<R, S> build() {
-        final ResponseHandlingSubscriber<S> responseHandlingSubscriber = responseHandlingSubscriber();
+        final ResponseHandlingSubscriber responseHandlingSubscriber = responseHandlingSubscriber();
         return messageFunction(messageBus, responseHandlingSubscriber, requestResponseRelationMap);
     }
 }

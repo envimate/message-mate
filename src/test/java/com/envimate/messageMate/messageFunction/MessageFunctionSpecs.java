@@ -54,6 +54,14 @@ public class MessageFunctionSpecs {
     }
 
     @Test
+    public void testMessageFunction_canSetConditionForGeneralErrorResponse() {
+        given(aMessageFunction()
+                .acceptingGeneralErrorResponsesWithCondition())
+                .when(aMatchingAndOneNotMatchingGeneralErrorResponseIsSend())
+                .then(expectTheErrorResponseToBeReceived());
+    }
+
+    @Test
     public void testMessageFunction_futureIsOnlyFulfilledOnce_forRedundantMessage() {
         given(aMessageFunction()
                 .withFulfillingResponseSendTwice())
@@ -68,10 +76,19 @@ public class MessageFunctionSpecs {
                 .when(aFollowUpActionExecutingOnlyOnceIsAddedBeforeRequest())
                 .then(expectTheFutureToBeFulFilledOnlyOnce());
     }
+
     @Test
     public void testMessageFunction_futureIsOnlyFulfilledOnce_forExceptionAndMessage() {
         given(aMessageFunction()
                 .withRequestAnsweredByExceptionThenByMessage())
+                .when(aFollowUpActionExecutingOnlyOnceIsAddedBeforeRequest())
+                .then(expectTheFutureToBeFulFilledOnlyOnce());
+    }
+
+    @Test
+    public void testMessageFunction_futureIsOnlyFulfilledOnce_forGeneralErrorMessage() {
+        given(aMessageFunction()
+                .withAGeneralErrorResponseSendTwice())
                 .when(aFollowUpActionExecutingOnlyOnceIsAddedBeforeRequest())
                 .then(expectTheFutureToBeFulFilledOnlyOnce());
     }

@@ -35,12 +35,12 @@ import static com.envimate.messageMate.messageFunction.responseMatching.Expected
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ExpectedResponse<S> {
     private final Object request;
-    private final List<ResponseMatcher<S>> responseMatchers;
+    private final List<ResponseMatcher> responseMatchers;
     private final ExpectedResponseFuture<S> future = expectedResponseFuture();
     private final List<Runnable> cleanUps = new ArrayList<>();
     private volatile MatchResult lastMatchResult;
 
-    public static <S> ExpectedResponse<S> forRequest(final Object request, final List<ResponseMatcher<S>> responseMatchers) {
+    public static <S> ExpectedResponse<S> forRequest(final Object request, final List<ResponseMatcher> responseMatchers) {
         return new ExpectedResponse<>(request, responseMatchers);
     }
 
@@ -61,11 +61,13 @@ public final class ExpectedResponse<S> {
         return future;
     }
 
-    public synchronized void fulfillFuture(final S response) {
+    public synchronized void fulfillFuture(final Object response) {
         final MatchResult matchResult = matchResult(response);
         if (matchResult.didMatch(response)) {
             final boolean wasSuccessful = matchResult.wasSuccessful();
-            future.fullFill(response, wasSuccessful);
+            @SuppressWarnings("unchecked")
+            final S castedResponse = (S) response;
+            future.fullFill(castedResponse, wasSuccessful);
         } else {
             throw new CannotFulfillFutureWithNotMatchingResponseException("Response " + response + " was no expected.");
         }
@@ -79,11 +81,11 @@ public final class ExpectedResponse<S> {
         if (lastMatchResult != null && lastMatchResult.wasMatchedAgainst(response)) {
             return lastMatchResult;
         } else {
-            final Optional<ResponseMatcher<S>> matcherOptional = responseMatchers.stream()
-                    .filter(responseMatcher -> responseMatcher.matches(response))
+            final Optional<ResponseMatcher> matcherOptional = responseMatchers.stream()
+                    .filter(responseMatcher -> responseMatcher.matches(request, response))
                     .findAny();
             if (matcherOptional.isPresent()) {
-                final ResponseMatcher<S> responseMatcher = matcherOptional.get();
+                final ResponseMatcher responseMatcher = matcherOptional.get();
                 lastMatchResult = MatchResult.lastMatchResult(response, responseMatcher);
             } else {
                 lastMatchResult = MatchResult.noMatchResult();
@@ -108,9 +110,9 @@ public final class ExpectedResponse<S> {
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     private static final class MatchResult {
         private final Object matchedResponse;
-        private final ResponseMatcher<?> responseMatcher;
+        private final ResponseMatcher responseMatcher;
 
-        static MatchResult lastMatchResult(@NonNull final Object response, @NonNull final ResponseMatcher<?> responseMatcher) {
+        static MatchResult lastMatchResult(@NonNull final Object response, @NonNull final ResponseMatcher responseMatcher) {
             return new MatchResult(response, responseMatcher);
         }
 

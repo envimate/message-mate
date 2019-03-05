@@ -21,6 +21,6 @@
 
 package com.envimate.messageMate.messageFunction.building;
 
-public interface Step5GeneralErrorResponseMessageFunctionBuilder<R, S> extends GeneralErrorResponseMessageFunctionBuilder<R,S>{
+public interface Step5GeneralErrorResponseMessageFunctionBuilder<R, S> extends GeneralErrorResponseMessageFunctionBuilder<R, S> {
 
 }

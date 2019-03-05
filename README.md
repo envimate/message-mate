@@ -1016,14 +1016,13 @@ The builder of a MessageFunction contains several Steps:
 - `forResponseType` defines the class (or often superclass) for potential replies
 - the `with` method starts the request to success/failure replies. The given parameter
 defines the request class, the subsequent `answer` methods relate to
-- `answeredBy` takes a class that counts as successful response when received. It can
-be called several times for several successful responses
-- `orByError` takes a class that when received results as failure. It can also be called
-repeatedly
+- `answeredBy` takes a class that counts as successful response when received
+- `orByError` takes a class that when received results as failure
 - To map replies to the send request `CorrelationIds` are used. The 
 `obtainingCorrelationIdsOf...` are used to extract them out of the replies.
 - Finally the used MessageBus is given and the MessageFunction is build 
 
+#### ResponseFuture
 A request can be send with the `request` function. It returns a `ResponseFuture` object 
 specific for that request. The `then` method allows to add handler, that will be executed
 once the future fulfills. The handler logic is called on the Thread, that fulfilled
@@ -1063,8 +1062,10 @@ responseFuture.wasSuccessful();
 responseFuture.then(new FollowUpAction<OfferReply>());
 ```
 
-#### MessageFunctionBuilder extendend
-[!!! TODO: after refactoring generalErrorResponse]
+#### Several Request-Response Pairs
+The `with`method can be called several times to allow for more than one pair of request
+and responses. Insde each `with` flow, one `answeredBy` is also expected as next call.
+But the subsequent `or` and `orByError` calls can be called several times:
 ```java
 MessageFunctionBuilder.aMessageFunction()
     .forRequestType(RequestSuperClass.class)
@@ -1075,11 +1076,141 @@ MessageFunctionBuilder.aMessageFunction()
     .with(RequestType2.class)
     .answeredBy(Reply1.class).or(Reply2.class).or(Reply3.class)
     .orByError(Error1.class)
+    .obtainingCorrelationIdsOfRequestsWith(request -> {})
+    .obtainingCorrelationIdsOfResponsesWith(response -> {})
+    .usingMessageBus(messageBus)
+    .build();
+```
+
+#### GeneralErrorResponse
+There happen to occur cross-cutting errors, that are not part of the request-reponse 
+class hierarchy. Nontheless the MessageFunction should react to these and abort the
+corresponding future. The `withGeneralErrorResponse` takes as arguments the class of 
+the error response and an optional conditional. Whenever a matching response is received,
+the future is fulfilled and marked as unsuccessful:
+```java
+MessageFunctionBuilder.aMessageFunction()
+    .forRequestType(RequestClass.class)
+    .forResponseType(ResponseClass.class)
+    .with(RequestClass.class).answeredBy(ReplyClass.class)
     .withGeneralErrorResponse(GeneralErrorResponse.class)
     .obtainingCorrelationIdsOfRequestsWith(request -> {})
     .obtainingCorrelationIdsOfResponsesWith(response -> {})
     .usingMessageBus(messageBus)
     .build();
+
+MessageFunctionBuilder.aMessageFunction()
+    .forRequestType(RequestClass.class)
+    .forResponseType(ResponseClass.class)
+    .with(RequestClass.class).answeredBy(ReplyClass.class)
+    .withGeneralErrorResponse(GeneralErrorResponse.class, (generalErrorResponse, request) -> {
+        return generalErrorResponse.getCorrelationId().equals(request.getCorrelationId())
+    })
+    .obtainingCorrelationIdsOfRequestsWith(request -> {})
+    .obtainingCorrelationIdsOfResponsesWith(response -> {})
+    .usingMessageBus(messageBus)
+    .build();
+```
+
+### Subscriber
+Most of the functions, that take an Subscriber object, are overloaded to take also
+an Consumer object. Internally the Consumer object is mapped to a Subscriber, but the 
+user does not have to burden itself with the handling of SubscriptionIds. But implementing
+your own Subscriber allows for greater control over the accepting and subscription mechanisms.
+The `Subscriber` interface defines two methods:
+```java
+public interface Subscriber<T> {
+
+    AcceptingBehavior accept(T message);
+
+    SubscriptionId getSubscriptionId();
+}
+```
+The `accept` method is called, whenever an object of the type `T` is received. The message
+should return an `AcceptingBehavior` object. This object can control, if the delivery of the
+message should be continued:
+```java
+public AcceptingBehavior accept(Object message) {
+    boolean continueDelivery = handle(message);
+    return AcceptingBehavior.acceptingBehavior(continueDelivery);
+}
+```
+A `false` will stop the delivery of the message to subsequent subscriber. If the result
+is known statically, two convenience constants can be used:
+
+```java
+AcceptingBehavior.MESSAGE_ACCEPTED;
+AcceptingBehavior.MESSAGE_ACCEPTED_AND_STOP_DELIVERY;
+```
+
+The second method `getSubscriptionId` should return a SubscriptionId, that is constant
+and unique for the Subscriber. The identification of an subscriber should be dependent
+on the equality of the SubscriberId returned by this method. `equals` and `hashCode` 
+should behave accordingly.
+ 
+### Custom Actions
+The built-in Actions for Channels should allow for most use cases. In case customization 
+is needed,the `Action` interface can be implemented:
+
+```java
+public interface Action<T> {}
+```
+It does not define any methods. An Action is only a container for necessary data. All
+the logic about executing the Action is done by the respective `ActionHandler`. For 
+every custom Action, there must be an ActionHandler for this Action:
+
+```java
+public interface ActionHandler<T extends Action<R>, R> { 
+    void handle(T action, ProcessingContext<R> processingContext);
+}
+```
+The ActionHandler defines two generic parameter: `R` is the generic given by the
+Action. Normally it is inherited by the type of the Channel. `T` corresponds the Action
+for which the ActionHandler is written. The `handle` method is called whenever a message
+with the Action has reached the end of the Channel. The following example implements a logging Action.
+This should clarify the generic parameter:
+
+We define a custom `Log` Action, which contains a PrintStream as target.
+
+```java
+class Log<T> implements Action<T> {
+    private final PrintStream stream = System.out;
+
+    public PrintStream getStream() {
+        return stream;
+    }
+}
+```
+
+Additionally an `ActionHandler` is needed, so that Channel can execute the Log Action:
+
+```java
+class LogActionHandler<T> implements ActionHandler<Log<T>, T> {
+     @Override
+     public void handle(Log<T> action, ProcessingContext<T> processingContext) {
+        final PrintStream stream = action.getStream();
+        stream.println(processingContext);
+     }
+}
+```
+
+When we want to use our Log Action, we have to register the Action and the handler at
+the Channel:
+
+```java
+ActionHandlerSet<Object> actionHandlerSet = DefaultActionHandlerSet.defaultActionHandlerSet();
+actionHandlerSet.registerActionHandler(Log.class, new LogActionHandler<>());
+Channel<Object> channel = ChannelBuilder.aChannel(Object.class)
+    .withDefaultAction(new Log<>())
+    .withActionHandlerSet(actionHandlerSet)
+    .build();
+```
+We used the default ActionHandlerSet, so that we do not have to register the built-in
+Actions and handler ourselves. But a completely different set can be built from scratch
+anytime with:
+
+```java
+ActionHandlerSet<T> actionHandlerSet = ActionHandlerSet.emptyActionHandlerSet();
 ```
 
 ### UseCaseEventDispatcher
@@ -1087,9 +1218,3 @@ TBD
 
 ### Pipe
 TBD oder komplett weglassen
-
-Todos :
-- MFBuilder: check Reihenfolge builderIfaces 
-- MFB: generalErrorResponse: corId or conditional
-- explain Subscriber
-- add custom Action

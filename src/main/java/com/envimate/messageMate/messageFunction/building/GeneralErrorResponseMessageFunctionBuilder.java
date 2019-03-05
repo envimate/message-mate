@@ -21,12 +21,12 @@
 
 package com.envimate.messageMate.messageFunction.building;
 
-import java.util.function.Predicate;
+import java.util.function.BiFunction;
 
 public interface GeneralErrorResponseMessageFunctionBuilder<R, S> {
 
-    <U extends S> Step6RequestCorrelationIdMessageFunctionBuilder<R, S> withGeneralErrorResponse(Class<U> generalErrorResponse);
+    Step6RequestCorrelationIdMessageFunctionBuilder<R, S> withGeneralErrorResponse(Class<?> generalErrorResponse);
 
-    <U extends S> Step6RequestCorrelationIdMessageFunctionBuilder<R, S> withGeneralErrorResponse(Class<U> generalErrorResponse,
-                                                                                                 Predicate<U> conditional);
+    <T> Step6RequestCorrelationIdMessageFunctionBuilder<R, S> withGeneralErrorResponse(Class<T> generalErrorResponse,
+                                                                                       BiFunction<T, R, Boolean> conditional);
 }

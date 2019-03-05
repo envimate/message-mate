@@ -14,14 +14,6 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 @ExtendWith(SynchronisedPipeConfigurationResolver.class)
 public class SynchronousPipeSpecs implements PipeSpecs {
 
-    //subscribing
-    @Test
-    public void testPipe_subscriberCanInterruptDeliveringMessage_whenDeliveryIsSynchronous(final PipeTestConfig testConfig) throws Exception {
-        given(aConfiguredPipe(testConfig)
-                .withSeveralDeliveryInterruptingSubscriber(5))
-                .when(severalMessagesAreSend(10))
-                .then(expectEachMessagesToBeReceivedByOnlyOneSubscriber());
-    }
 
     //messageStatistics
     @Test

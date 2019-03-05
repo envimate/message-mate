@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ResponseHandlingSubscriberFactory {
 
-    public static <T> ResponseHandlingSubscriber<T> responseHandlingSubscriber() {
-        return new ResponseHandlingSubscriberImpl<>();
+    public static ResponseHandlingSubscriber responseHandlingSubscriber() {
+        return new ResponseHandlingSubscriberImpl();
     }
 }

@@ -21,9 +21,9 @@
 
 package com.envimate.messageMate.messageFunction.responseMatching;
 
-public interface ResponseMatcher<S> {
+public interface ResponseMatcher {
 
-    boolean matches(Object response);
+    boolean matches(Object request, Object response);
 
     boolean wasSuccessResponse(Object response);
 }

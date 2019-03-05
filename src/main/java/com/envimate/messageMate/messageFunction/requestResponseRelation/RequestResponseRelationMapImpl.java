@@ -25,20 +25,22 @@ import com.envimate.messageMate.correlation.CorrelationId;
 import com.envimate.messageMate.messageFunction.correlationIdExtracting.CorrelationIdExtraction;
 import com.envimate.messageMate.messageFunction.correlationIdExtracting.CorrelationIdExtractor;
 import com.envimate.messageMate.messageFunction.responseMatching.ResponseMatcher;
-import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import java.util.*;
+import java.util.function.BiFunction;
 
 import static com.envimate.messageMate.messageFunction.responseMatching.ResponseMatcherImpl.responseMatcher;
 import static java.util.Collections.emptyList;
+import static lombok.AccessLevel.PRIVATE;
 
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@RequiredArgsConstructor(access = PRIVATE)
 final class RequestResponseRelationMapImpl<R, S> implements RequestResponseRelationMap<R, S> {
     private final Map<Class<R>, List<Class<S>>> successResponsesMap = new HashMap<>();
     private final Map<Class<R>, List<Class<S>>> errorResponsesMap = new HashMap<>();
-    private final List<Class<S>> generalErrorResponses = new LinkedList<>();
+    private final List<GeneralErrorResponse<?>> generalErrorResponses = new LinkedList<>();
     private final CorrelationIdExtractor<R> requestCorrelationIdExtractor;
     private final CorrelationIdExtractor<S> responseCorrelationIdExtractor;
 
@@ -50,11 +52,11 @@ final class RequestResponseRelationMapImpl<R, S> implements RequestResponseRelat
     }
 
     @Override
-    public <T extends R> List<ResponseMatcher<S>> responseMatchers(final T request) {
+    public <T extends R> List<ResponseMatcher> responseMatchers(final T request) {
         @SuppressWarnings("unchecked")
         final Class<T> requestClass = (Class<T>) request.getClass();
         final CorrelationId requestCorrelationId = requestCorrelationIdExtractor.extract(request);
-        final List<ResponseMatcher<S>> responseMatchers = new LinkedList<>();
+        final List<ResponseMatcher> responseMatchers = new LinkedList<>();
         collectSuccessResponseMatchers(requestClass, requestCorrelationId, responseMatchers);
         collectErrorResponseMatchers(requestClass, requestCorrelationId, responseMatchers);
         return responseMatchers;
@@ -62,7 +64,7 @@ final class RequestResponseRelationMapImpl<R, S> implements RequestResponseRelat
 
     private <T extends R> void collectSuccessResponseMatchers(final Class<T> requestClass,
                                                               final CorrelationId requestCorrelationId,
-                                                              final List<ResponseMatcher<S>> responseMatchers) {
+                                                              final List<ResponseMatcher> responseMatchers) {
         final List<Class<S>> successResponses = successResponsesMap.getOrDefault(requestClass, emptyList());
         successResponses.stream()
                 .map(c -> {
@@ -74,16 +76,17 @@ final class RequestResponseRelationMapImpl<R, S> implements RequestResponseRelat
 
     private <T extends R> void collectErrorResponseMatchers(final Class<T> requestClass,
                                                             final CorrelationId requestCorrelationId,
-                                                            final List<ResponseMatcher<S>> responseMatchers) {
-        final Set<Class<S>> redundantFreeErrorResponses = new HashSet<>();
+                                                            final List<ResponseMatcher> responseMatchers) {
         final List<Class<S>> errorResponses = errorResponsesMap.getOrDefault(requestClass, emptyList());
-        redundantFreeErrorResponses.addAll(errorResponses);
-        redundantFreeErrorResponses.addAll(generalErrorResponses);
-        redundantFreeErrorResponses.stream()
+        errorResponses.stream()
                 .map(c -> {
                     final CorrelationIdExtraction<S> correlationIdExtraction = responseCorrelationIdExtractor.extractionFor(c);
                     return responseMatcher(c, requestCorrelationId, correlationIdExtraction, false);
                 })
+                .forEach(responseMatchers::add);
+        generalErrorResponses.stream()
+                .filter(generalErrorResponse -> !errorResponses.contains(generalErrorResponse.responseClass))
+                .map(g -> responseMatcher(g.createMatchingFunction(), false))
                 .forEach(responseMatchers::add);
     }
 
@@ -102,16 +105,45 @@ final class RequestResponseRelationMapImpl<R, S> implements RequestResponseRelat
     }
 
     @Override
-    public void addGeneralErrorResponse(final Class<S> responseClass) {
-        generalErrorResponses.add(responseClass);
+    public void addGeneralErrorResponse(final Class<?> responseClass) {
+        addGeneralErrorResponse(responseClass, (o, r) -> true);
     }
 
     @Override
-    public Set<Class<S>> getAllPossibleResponseClasses() {
-        final Set<Class<S>> allPossibleResponseClasses = new HashSet<>();
+    public <T> void addGeneralErrorResponse(final Class<T> responseClass, final BiFunction<T, R, Boolean> conditional) {
+        final GeneralErrorResponse<?> generalErrorResponse = new GeneralErrorResponse<>(responseClass, conditional);
+        generalErrorResponses.add(generalErrorResponse);
+    }
+
+    @Override
+    public Set<Class<?>> getAllPossibleResponseClasses() {
+        final Set<Class<?>> allPossibleResponseClasses = new HashSet<>();
         successResponsesMap.values().forEach(allPossibleResponseClasses::addAll);
         errorResponsesMap.values().forEach(allPossibleResponseClasses::addAll);
-        allPossibleResponseClasses.addAll(generalErrorResponses);
+        generalErrorResponses.stream()
+                .map(GeneralErrorResponse::getResponseClass)
+                .forEach(allPossibleResponseClasses::add);
         return allPossibleResponseClasses;
+    }
+
+    @RequiredArgsConstructor(access = PRIVATE)
+    private final class GeneralErrorResponse<T> {
+        @Getter
+        private final Class<T> responseClass;
+        private final BiFunction<T, R, Boolean> conditional;
+
+        public BiFunction<Object, Object, Boolean> createMatchingFunction() {
+            final BiFunction<Object, Object, Boolean> matchFunction = (request, response) -> {
+                if (response.getClass().equals(responseClass)) {
+                    @SuppressWarnings("unchecked")
+                    final T castedResponse = (T) response;
+                    @SuppressWarnings("unchecked")
+                    final R castedRequest = (R) request;
+                    return conditional.apply(castedResponse, castedRequest);
+                }
+                return false;
+            };
+            return matchFunction;
+        }
     }
 }

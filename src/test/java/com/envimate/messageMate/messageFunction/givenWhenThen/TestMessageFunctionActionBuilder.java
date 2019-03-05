@@ -72,8 +72,15 @@ public final class TestMessageFunctionActionBuilder {
         });
     }
 
-
     public static TestMessageFunctionActionBuilder aRequestResultingInErrorIsSend() {
+        return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
+            final SimpleTestRequest testRequest = testRequest();
+            testEnvironment.setProperty(TEST_OBJECT, testRequest);
+            return messageFunction.request(testRequest);
+        });
+    }
+
+    public static TestMessageFunctionActionBuilder aMatchingAndOneNotMatchingGeneralErrorResponseIsSend() {
         return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
             final SimpleTestRequest testRequest = testRequest();
             testEnvironment.setProperty(TEST_OBJECT, testRequest);

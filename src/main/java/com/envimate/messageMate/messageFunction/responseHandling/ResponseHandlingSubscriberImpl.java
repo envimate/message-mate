@@ -35,13 +35,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import static com.envimate.messageMate.subscribing.AcceptingBehavior.MESSAGE_ACCEPTED;
 
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-public class ResponseHandlingSubscriberImpl<S> implements ResponseHandlingSubscriber<S> {
+public class ResponseHandlingSubscriberImpl implements ResponseHandlingSubscriber {
     private final SubscriptionId subscriptionId = SubscriptionId.newUniqueId();
-    private final List<ExpectedResponse<S>> expectedResponses = new CopyOnWriteArrayList<>();
+    private final List<ExpectedResponse<?>> expectedResponses = new CopyOnWriteArrayList<>();
 
     @Override
-    public AcceptingBehavior accept(final S response) {
-        for (final ExpectedResponse<S> expectedResponse : expectedResponses) {
+    public AcceptingBehavior accept(final Object response) {
+        for (final ExpectedResponse<?> expectedResponse : expectedResponses) {
             //synchronise on response to block concurrently fulfilling/removing Threads
             if (expectedResponse.matchesResponse(response) || expectedResponse.isDone()) {
                 handle(expectedResponse, response);
@@ -50,7 +50,7 @@ public class ResponseHandlingSubscriberImpl<S> implements ResponseHandlingSubscr
         return MESSAGE_ACCEPTED;
     }
 
-    private void handle(final ExpectedResponse<S> expectedResponse, final S response) {
+    private void handle(final ExpectedResponse<?> expectedResponse, final Object response) {
         synchronized (expectedResponse) {
             //first check that not fulfilled in meantime (CopyOnWriteList would allow that)
             if (expectedResponse.isDone()) {
@@ -65,7 +65,7 @@ public class ResponseHandlingSubscriberImpl<S> implements ResponseHandlingSubscr
     }
 
     @Override
-    public void addResponseMatcher(final ExpectedResponse<S> expectedResponse) {
+    public void addResponseMatcher(final ExpectedResponse<?> expectedResponse) {
         this.expectedResponses.add(expectedResponse);
     }
 
@@ -84,7 +84,7 @@ public class ResponseHandlingSubscriberImpl<S> implements ResponseHandlingSubscr
     public void handleDeliveryChannelException(final ProcessingContext<?> processingContext, final Exception exception,
                                                final Channel<?> channel) {
         final Object request = processingContext.getPayload();
-        for (final ExpectedResponse<S> expectedResponse : expectedResponses) {
+        for (final ExpectedResponse<?> expectedResponse : expectedResponses) {
             if (expectedResponse.matchesRequest(request)) {
                 expectedResponse.fulfillFutureWithException(exception);
                 expectedResponses.remove(expectedResponse);
@@ -96,7 +96,7 @@ public class ResponseHandlingSubscriberImpl<S> implements ResponseHandlingSubscr
     public void handleFilterException(final ProcessingContext<?> processingContext, final Exception exception,
                                       final Channel<?> channel) {
         final Object request = processingContext.getPayload();
-        for (final ExpectedResponse<S> expectedResponse : expectedResponses) {
+        for (final ExpectedResponse<?> expectedResponse : expectedResponses) {
             if (expectedResponse.matchesRequest(request)) {
                 expectedResponse.fulfillFutureWithException(exception);
                 expectedResponses.remove(expectedResponse);

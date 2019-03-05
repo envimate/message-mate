@@ -24,32 +24,39 @@ package com.envimate.messageMate.messageFunction.responseMatching;
 import com.envimate.messageMate.correlation.CorrelationId;
 import com.envimate.messageMate.messageFunction.correlationIdExtracting.CorrelationIdExtraction;
 import lombok.AccessLevel;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import java.util.function.BiFunction;
+
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public final class ResponseMatcherImpl<S> implements ResponseMatcher<S> {
-    private final Class<S> expectedResponseClass;
-    private final CorrelationId expectedCorrelationId;
-    private final CorrelationIdExtraction<S> correlationIdExtraction;
+public final class ResponseMatcherImpl implements ResponseMatcher {
+    private final BiFunction<Object, Object, Boolean> matchFunction;
     private final boolean isSuccessResponse;
 
-    public static <S> ResponseMatcherImpl<S> responseMatcher(@NonNull final Class<S> expectedResponseClass,
-                                                             @NonNull final CorrelationId correlationId,
-                                                             @NonNull final CorrelationIdExtraction<S> correlationIdExtraction,
-                                                             final boolean isSuccessResponse) {
-        return new ResponseMatcherImpl<>(expectedResponseClass, correlationId, correlationIdExtraction, isSuccessResponse);
+    public static <S> ResponseMatcherImpl responseMatcher(final Class<S> expectedResponseClass,
+                                                          final CorrelationId expectedCorrelationId,
+                                                          final CorrelationIdExtraction<S> correlationIdExtraction,
+                                                          final boolean isSuccessResponse) {
+        final BiFunction<Object, Object, Boolean> matchFunction = (request, response) -> {
+            if (response.getClass().equals(expectedResponseClass)) {
+                @SuppressWarnings("unchecked")
+                final S castedResponse = (S) response;
+                final CorrelationId correlationId = correlationIdExtraction.extractCorrelationId(castedResponse);
+                return correlationId.equals(expectedCorrelationId);
+            }
+            return false;
+        };
+        return responseMatcher(matchFunction, isSuccessResponse);
+    }
+
+    public static ResponseMatcherImpl responseMatcher(final BiFunction<Object, Object, Boolean> matchFunction,
+                                                      final boolean isSuccessResponse) {
+        return new ResponseMatcherImpl(matchFunction, isSuccessResponse);
     }
 
     @Override
-    public boolean matches(final Object response) {
-        if (response.getClass().equals(expectedResponseClass)) {
-            @SuppressWarnings("unchecked")
-            final S s = (S) response;
-            final CorrelationId correlationId = correlationIdExtraction.extractCorrelationId(s);
-            return correlationId.equals(expectedCorrelationId);
-        }
-        return false;
+    public boolean matches(final Object request, final Object response) {
+        return matchFunction.apply(request, response);
     }
 
     @Override

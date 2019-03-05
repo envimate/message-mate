@@ -25,8 +25,8 @@ import com.envimate.messageMate.messageBus.error.MessageBusExceptionHandler;
 import com.envimate.messageMate.messageFunction.responseMatching.ExpectedResponse;
 import com.envimate.messageMate.subscribing.Subscriber;
 
-public interface ResponseHandlingSubscriber<T> extends Subscriber<T>, MessageBusExceptionHandler {
+public interface ResponseHandlingSubscriber extends Subscriber<Object>, MessageBusExceptionHandler {
 
-    void addResponseMatcher(ExpectedResponse<T> expectedResponse);
+    void addResponseMatcher(ExpectedResponse<?> expectedResponse);
 
 }

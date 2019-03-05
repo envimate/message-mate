@@ -39,6 +39,14 @@ public interface PipeSpecs {
     }
 
     @Test
+    default void testPipe_subscriberCanInterruptDeliveringMessage_whenDeliveryIsSynchronous(final PipeTestConfig testConfig) throws Exception {
+        given(aConfiguredPipe(testConfig)
+                .withSeveralDeliveryInterruptingSubscriber(5))
+                .when(severalMessagesAreSend(10))
+                .then(expectEachMessagesToBeReceivedByOnlyOneSubscriber());
+    }
+
+    @Test
     default void testPipe_canQueryAllSubscriber(final PipeTestConfig testConfig) throws Exception {
         given(aConfiguredPipe(testConfig)
                 .withSeveralSubscriber(8))

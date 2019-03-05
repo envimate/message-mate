@@ -25,15 +25,18 @@ import com.envimate.messageMate.messageFunction.responseMatching.ResponseMatcher
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiFunction;
 
 public interface RequestResponseRelationMap<R, S> {
-    <T extends R> List<ResponseMatcher<S>> responseMatchers(T request);
+    <T extends R> List<ResponseMatcher> responseMatchers(T request);
 
     void addSuccessResponse(Class<R> requestClass, Class<S> responseClass);
 
     void addErrorResponse(Class<R> requestClass, Class<S> responseClass);
 
-    void addGeneralErrorResponse(Class<S> responseClass);
+    void addGeneralErrorResponse(Class<?> responseClass);
 
-    Set<Class<S>> getAllPossibleResponseClasses();
+    <T> void addGeneralErrorResponse(Class<T> responseClass, BiFunction<T, R, Boolean> conditional);
+
+    Set<Class<?>> getAllPossibleResponseClasses();
 }

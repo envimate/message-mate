@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import static com.envimate.messageMate.messageBus.MessageBusType.ASYNCHRONOUS;
+import static com.envimate.messageMate.messageFunction.testResponses.ErrorTestResponse.errorTestResponse;
 import static com.envimate.messageMate.pipe.configuration.AsynchronousConfiguration.constantPoolSizeAsynchronousPipeConfiguration;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RESULT;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.MOCK;
@@ -69,7 +70,7 @@ public final class TestMessageFunctionSetupBuilder {
                 .obtainingCorrelationIdsOfResponsesWith(TestResponse::getCorrelationId);
         setupActions.add(messageBus -> messageBus.subscribe(SimpleTestRequest.class, simpleTestRequest -> {
             final CorrelationId correlationId = simpleTestRequest.getCorrelationId();
-            final ErrorTestResponse errorTestResponse = ErrorTestResponse.errorTestResponse(correlationId);
+            final ErrorTestResponse errorTestResponse = errorTestResponse(correlationId);
             messageBus.send(errorTestResponse);
         }));
         return this;
@@ -83,8 +84,43 @@ public final class TestMessageFunctionSetupBuilder {
                 .obtainingCorrelationIdsOfResponsesWith(TestResponse::getCorrelationId);
         setupActions.add(messageBus -> messageBus.subscribe(SimpleTestRequest.class, simpleTestRequest -> {
             final CorrelationId correlationId = simpleTestRequest.getCorrelationId();
-            final ErrorTestResponse errorTestResponse = ErrorTestResponse.errorTestResponse(correlationId);
+            final ErrorTestResponse errorTestResponse = errorTestResponse(correlationId);
             messageBus.send(errorTestResponse);
+        }));
+        return this;
+    }
+
+    public TestMessageFunctionSetupBuilder withAGeneralErrorResponseSendTwice() {
+        finalBuilder = messageFunctionBuilder.with(SimpleTestRequest.class)
+                .answeredBy(SimpleTestResponse.class)
+                .withGeneralErrorResponse(ErrorTestResponse.class)
+                .obtainingCorrelationIdsOfRequestsWith(TestRequest::getCorrelationId)
+                .obtainingCorrelationIdsOfResponsesWith(TestResponse::getCorrelationId);
+        setupActions.add(messageBus -> messageBus.subscribe(SimpleTestRequest.class, simpleTestRequest -> {
+            final CorrelationId correlationId = simpleTestRequest.getCorrelationId();
+            final ErrorTestResponse firstResponse = errorTestResponse(correlationId);
+            messageBus.send(firstResponse);
+            testEnvironment.setProperty(EXPECTED_RESULT, firstResponse);
+            final ErrorTestResponse secondErrorResponse = errorTestResponse(correlationId);
+            messageBus.send(secondErrorResponse);
+        }));
+        return this;
+    }
+
+    public TestMessageFunctionSetupBuilder acceptingGeneralErrorResponsesWithCondition() {
+        finalBuilder = messageFunctionBuilder.with(SimpleTestRequest.class)
+                .answeredBy(SimpleTestResponse.class)
+                .withGeneralErrorResponse(ErrorTestResponse.class, (errorTestResponse, testRequest) -> errorTestResponse.getCorrelationId().equals(testRequest.getCorrelationId()))
+                .obtainingCorrelationIdsOfRequestsWith(TestRequest::getCorrelationId)
+                .obtainingCorrelationIdsOfResponsesWith(TestResponse::getCorrelationId);
+        setupActions.add(messageBus -> messageBus.subscribe(SimpleTestRequest.class, simpleTestRequest -> {
+            final CorrelationId differentCorrelationId = CorrelationId.newUniqueId();
+            final ErrorTestResponse notMatchingResponse = errorTestResponse(differentCorrelationId);
+            messageBus.send(notMatchingResponse);
+            final CorrelationId correlationId = simpleTestRequest.getCorrelationId();
+            final ErrorTestResponse matchingResponse = errorTestResponse(correlationId);
+            testEnvironment.setProperty(EXPECTED_RESULT, matchingResponse);
+            messageBus.send(matchingResponse);
         }));
         return this;
     }

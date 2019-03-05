@@ -21,7 +21,6 @@
 
 package com.envimate.messageMate.messageFunction.building;
 
-public interface Step3MessageFunctionBuilder<R, S> extends AnswerWithStepMessageFunctionBuilder<R,S>{
-
+public interface Step3MessageFunctionBuilder<R, S> extends AnswerWithStepMessageFunctionBuilder<R, S> {
 
 }

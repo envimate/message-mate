@@ -1,32 +1,24 @@
 package com.envimate.messageMate;
 
 import com.envimate.messageMate.channel.Channel;
+import com.envimate.messageMate.channel.ChannelBuilder;
 import com.envimate.messageMate.channel.ProcessingContext;
+import com.envimate.messageMate.channel.action.Action;
+import com.envimate.messageMate.channel.action.actionHandling.ActionHandler;
+import com.envimate.messageMate.channel.action.actionHandling.ActionHandlerSet;
+import com.envimate.messageMate.channel.action.actionHandling.DefaultActionHandlerSet;
 import com.envimate.messageMate.correlation.CorrelationId;
-import com.envimate.messageMate.filtering.Filter;
-import com.envimate.messageMate.messageBus.MessageBus;
-import com.envimate.messageMate.messageBus.MessageBusBuilder;
-import com.envimate.messageMate.messageBus.MessageBusType;
-import com.envimate.messageMate.messageFunction.MessageFunction;
-import com.envimate.messageMate.messageFunction.MessageFunctionBuilder;
-import com.envimate.messageMate.messageFunction.ResponseFuture;
 
-import java.util.List;
+import java.io.PrintStream;
 
 public class SampleMain {
     public static void main(String[] args) {
-        MessageFunctionBuilder.aMessageFunction()
-                .forRequestType(BuyAppleRequest.class)
-                .forResponseType(OfferReply.class)
-                .with(BuyAppleRequest.class).answeredBy(AcceptOfferReply.class).or(DeclineOfferReply.class).orByError(DeclineOfferReply.class).orByError(DeclineOfferReply.class)
-                .with(BuyAppleRequest.class).answeredBy(DeclineOfferReply.class)
-                .with(BuyAppleRequest.class).answeredBy(AcceptOfferReply.class).orByError(DeclineOfferReply.class)
-                .withGeneralErrorResponse(OfferReply.class)
-                .obtainingCorrelationIdsOfRequestsWith(buyAppleRequest -> buyAppleRequest.correlationId)
-                .obtainingCorrelationIdsOfResponsesWith(AcceptOfferReply::getCorrelationId)
-                .usingMessageBus(null)
+        ActionHandlerSet<Object> actionHandlerSet = DefaultActionHandlerSet.defaultActionHandlerSet();
+        actionHandlerSet.registerActionHandler(Log.class, new LogActionHandler<>());
+        Channel<Object> channel = ChannelBuilder.aChannel(Object.class)
+                .withDefaultAction(new Log<>())
+                .withActionHandlerSet(actionHandlerSet)
                 .build();
-
     }
 
 
@@ -34,57 +26,19 @@ public class SampleMain {
         CorrelationId getCorrelationId();
     }
 
-    static class Farmer {
-        private int stock;
+    static class Log<T> implements Action<T> {
+        private final PrintStream stream = System.out;
 
-        public Farmer(MessageBus messageBus, int stock) {
-            this.stock = stock;
-            messageBus.subscribe(BuyAppleRequest.class, buyAppleRequest -> {
-                CorrelationId correlationId = buyAppleRequest.correlationId;
-                if (stock >= buyAppleRequest.numberOfApples) {
-                    AcceptOfferReply reply = new AcceptOfferReply(correlationId);
-                    messageBus.send(reply);
-                } else {
-                    DeclineOfferReply reply = new DeclineOfferReply(correlationId);
-                    messageBus.send(reply);
-                }
-            });
+        public PrintStream getStream() {
+            return stream;
         }
     }
 
-    static class BuyAppleRequest {
-        public int numberOfApples;
-        public CorrelationId correlationId = CorrelationId.newUniqueId();
-
-        public BuyAppleRequest(int numberOfApples) {
-            this.numberOfApples = numberOfApples;
-        }
-    }
-
-    static class AcceptOfferReply implements OfferReply {
-        public CorrelationId correlationId;
-
-        public AcceptOfferReply(CorrelationId correlationId) {
-            this.correlationId = correlationId;
-        }
-
+    static class LogActionHandler<T> implements ActionHandler<Log<T>, T> {
         @Override
-        public CorrelationId getCorrelationId() {
-            return correlationId;
-        }
-    }
-
-
-    static class DeclineOfferReply implements OfferReply {
-        public CorrelationId correlationId;
-
-        public DeclineOfferReply(CorrelationId correlationId) {
-            this.correlationId = correlationId;
-        }
-
-        @Override
-        public CorrelationId getCorrelationId() {
-            return correlationId;
+        public void handle(Log<T> action, ProcessingContext<T> processingContext) {
+            final PrintStream stream = action.getStream();
+            stream.println(processingContext);
         }
     }
 

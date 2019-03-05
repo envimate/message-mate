@@ -35,26 +35,28 @@ import java.util.Set;
 
 final class MessageFunctionImpl<R, S> implements MessageFunction<R, S> {
     private final MessageBus messageBus;
-    private final ResponseHandlingSubscriber<S> responseHandlingSubscriber;
+    private final ResponseHandlingSubscriber responseHandlingSubscriber;
     private final RequestResponseRelationMap<R, S> requestResponseRelationMap;
     private boolean closed;
 
     private MessageFunctionImpl(@NonNull final MessageBus messageBus,
-                                @NonNull final ResponseHandlingSubscriber<S> responseHandlingSubscriber,
+                                @NonNull final ResponseHandlingSubscriber responseHandlingSubscriber,
                                 @NonNull final RequestResponseRelationMap<R, S> requestResponseRelationMap) {
         this.messageBus = messageBus;
         this.responseHandlingSubscriber = responseHandlingSubscriber;
         this.requestResponseRelationMap = requestResponseRelationMap;
-        final Set<Class<S>> responseClassToSubscribe = requestResponseRelationMap.getAllPossibleResponseClasses();
-        for (final Class<S> aClass : responseClassToSubscribe) {
-            messageBus.subscribe(aClass, responseHandlingSubscriber);
+        final Set<Class<?>> responseClassToSubscribe = requestResponseRelationMap.getAllPossibleResponseClasses();
+        for (final Class<?> aClass : responseClassToSubscribe) {
+            @SuppressWarnings("unchecked")
+            final Class<Object> castedClass = (Class) aClass;
+            messageBus.subscribe(castedClass, responseHandlingSubscriber);
         }
 
     }
 
     static <R, S> MessageFunctionImpl<R, S> messageFunction(
             @NonNull final MessageBus messageBus,
-            @NonNull final ResponseHandlingSubscriber<S> responseHandlingSubscriber,
+            @NonNull final ResponseHandlingSubscriber responseHandlingSubscriber,
             @NonNull final RequestResponseRelationMap<R, S> requestResponseRelationMap) {
         return new MessageFunctionImpl<>(messageBus, responseHandlingSubscriber, requestResponseRelationMap);
     }
@@ -64,7 +66,7 @@ final class MessageFunctionImpl<R, S> implements MessageFunction<R, S> {
         if (closed) {
             return null;
         }
-        final List<ResponseMatcher<S>> responseMatchers = requestResponseRelationMap.responseMatchers(request);
+        final List<ResponseMatcher> responseMatchers = requestResponseRelationMap.responseMatchers(request);
         final ExpectedResponse<S> expectedResponse = ExpectedResponse.forRequest(request, responseMatchers);
         responseHandlingSubscriber.addResponseMatcher(expectedResponse);
         registerErrorListener(request, expectedResponse);
@@ -74,7 +76,7 @@ final class MessageFunctionImpl<R, S> implements MessageFunction<R, S> {
     }
 
     private void registerErrorListener(final R request, final ExpectedResponse<S> expectedResponse) {
-        final Set<Class<S>> classesToListenForErrorsOn = requestResponseRelationMap.getAllPossibleResponseClasses();
+        final Set<Class<?>> classesToListenForErrorsOn = requestResponseRelationMap.getAllPossibleResponseClasses();
         final LinkedList<Class<?>> classes = new LinkedList<>(classesToListenForErrorsOn);
         classes.add(request.getClass());
         final SubscriptionId subscriptionId = messageBus.onError(classes, (t, e) -> {
