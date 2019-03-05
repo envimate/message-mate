@@ -27,47 +27,44 @@ import com.envimate.messageMate.channel.error.ChannelExceptionHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
-import java.util.function.BiConsumer;
-
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
-public final class DelegatingChannelExceptionHandlerForDelieveryChannel<T> implements ChannelExceptionHandler<T> {
+public final class DelegatingChannelExceptionHandler<T> implements ChannelExceptionHandler<T> {
     private final MessageBusExceptionHandler messageBusExceptionHandler;
-    private final ErrorListenerHandler errorListenerHandler;
+    private final DeliveryAbortDecision<T> deliveryAbortDecision;
     @Setter
     private Channel<?> channel;
 
-    public static <T> DelegatingChannelExceptionHandlerForDelieveryChannel<T> delegatingChannelExceptionHandlerForDeliveryChannel(
-            final MessageBusExceptionHandler messageBusExceptionHandler, final ErrorListenerHandler errorListenerHandler) {
-        return new DelegatingChannelExceptionHandlerForDelieveryChannel<>(messageBusExceptionHandler, errorListenerHandler);
+    public static <T> DelegatingChannelExceptionHandler<T> delegatingChannelExceptionHandlerForDeliveryChannel(
+            final MessageBusExceptionHandler messageBusExceptionHandler) {
+        final DeliveryAbortDecision<T> d = messageBusExceptionHandler::shouldDeliveryChannelErrorBeHandledAndDeliveryAborted;
+        return new DelegatingChannelExceptionHandler<>(messageBusExceptionHandler, d);
+    }
+
+    public static <T> DelegatingChannelExceptionHandler<T> delegatingChannelExceptionHandlerForAcceptingChannel(
+            final MessageBusExceptionHandler messageBusExceptionHandler) {
+        final DeliveryAbortDecision<T> d = (m, e, c) -> true;
+        return new DelegatingChannelExceptionHandler<>(messageBusExceptionHandler, d);
     }
 
     @Override
     public boolean shouldSubscriberErrorBeHandledAndDeliveryAborted(final ProcessingContext<T> message, final Exception e) {
-        return messageBusExceptionHandler.shouldDeliveryChannelErrorBeHandledAndDeliveryAborted(message, e, channel);
+        return deliveryAbortDecision.shouldSubscriberErrorBeHandledAndDeliveryAborted(message, e, channel);
     }
 
     @Override
     public void handleSubscriberException(final ProcessingContext<T> message, final Exception e) {
         messageBusExceptionHandler.handleDeliveryChannelException(message, e, channel);
-        final List<BiConsumer<T, Exception>> listener = getListener(message);
-        messageBusExceptionHandler.callTemporaryExceptionListener(message, e, listener);
     }
 
     @Override
     public void handleFilterException(final ProcessingContext<T> message, final Exception e) {
         messageBusExceptionHandler.handleFilterException(message, e, channel);
-        final List<BiConsumer<T, Exception>> listener = getListener(message);
-        messageBusExceptionHandler.callTemporaryExceptionListener(message, e, listener);
     }
 
-    private List<BiConsumer<T, Exception>> getListener(final ProcessingContext<T> message) {
-        final Class<?> aClass = message.getPayload().getClass();
-        final List<?> uncheckedListener = errorListenerHandler.listenerFor(aClass);
-        @SuppressWarnings("unchecked")
-        final List<BiConsumer<T, Exception>> castedListener = (List<BiConsumer<T, Exception>>) uncheckedListener;
-        return castedListener;
+    private interface DeliveryAbortDecision<T> {
+
+        boolean shouldSubscriberErrorBeHandledAndDeliveryAborted(ProcessingContext<T> m, Exception e, Channel<?> c);
     }
 }

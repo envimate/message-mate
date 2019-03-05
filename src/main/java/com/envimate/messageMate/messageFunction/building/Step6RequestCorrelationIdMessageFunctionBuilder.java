@@ -21,10 +21,6 @@
 
 package com.envimate.messageMate.messageFunction.building;
 
-import com.envimate.messageMate.messageFunction.MessageFunction;
-
-public interface Step8FinalMessageFunctionBuilder<R, S> {
-
-    MessageFunction<R, S> build();
+public interface Step6RequestCorrelationIdMessageFunctionBuilder<R, S> extends RequestCorrelationIdMessageFunctionBuilder<R, S> {
 
 }

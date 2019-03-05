@@ -22,8 +22,9 @@
 package com.envimate.messageMate.messageBus.channelCreating;
 
 import com.envimate.messageMate.channel.Channel;
+import com.envimate.messageMate.messageBus.error.MessageBusExceptionHandler;
 import com.envimate.messageMate.subscribing.Subscriber;
 
 public interface MessageBusChannelFactory {
-    <T> Channel<?> createChannel(Class<T> tClass, Subscriber<T> subscriber);
+    <T> Channel<?> createChannel(Class<T> tClass, Subscriber<T> subscriber, MessageBusExceptionHandler messageBusExceptionHandler);
 }

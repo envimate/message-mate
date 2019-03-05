@@ -1089,12 +1089,6 @@ TBD
 TBD oder komplett weglassen
 
 Todos :
-- Gib der ChannelFactory access zu errorHandler
-- on Error: teste dass ein throw im MBErrorHandler trotzdem all dyn errorHandler callt
-- onError: teste dass alle errorHandler unsubscribed werden
-- Query: ist es mit SubClassen UND Interfaces getested?
-- DocumentBus: reactTo mit until auf eigenem Event -> noch einmal ausführen before unsubscribe
-- Test: fullfill future only once
 - MFBuilder: check Reihenfolge builderIfaces 
 - MFB: generalErrorResponse: corId or conditional
 - explain Subscriber

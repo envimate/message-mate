@@ -40,6 +40,10 @@ public final class Subscription<T> implements Action<T> {
     private final List<Subscriber<T>> subscribers;
 
     public static <T> Subscription<T> subscription() {
+        /* Use CopyOnWriteArrayList, because
+         - concurrent collection
+         - can call unsubscribe inside of subscriber and still maintaining order (DocumentBus.until relies on that property)
+         */
         final List<Subscriber<T>> linkedList = new CopyOnWriteArrayList<>();
         return new Subscription<>(linkedList);
     }

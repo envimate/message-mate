@@ -42,17 +42,26 @@ public class ResponseHandlingSubscriberImpl<S> implements ResponseHandlingSubscr
     @Override
     public AcceptingBehavior accept(final S response) {
         for (final ExpectedResponse<S> expectedResponse : expectedResponses) {
-            if (expectedResponse.matchesResponse(response)) {
+            //synchronise on response to block concurrently fulfilling/removing Threads
+            if (expectedResponse.matchesResponse(response) || expectedResponse.isDone()) {
+                handle(expectedResponse, response);
+            }
+        }
+        return MESSAGE_ACCEPTED;
+    }
+
+    private void handle(final ExpectedResponse<S> expectedResponse, final S response) {
+        synchronized (expectedResponse) {
+            //first check that not fulfilled in meantime (CopyOnWriteList would allow that)
+            if (expectedResponse.isDone()) {
+                expectedResponses.remove(expectedResponse);
+                expectedResponse.onCleanup();
+            } else if (expectedResponse.matchesResponse(response)) {
                 expectedResponse.fulfillFuture(response);
                 expectedResponses.remove(expectedResponse);
                 expectedResponse.onCleanup();
             }
-            if (expectedResponse.isDone()) {
-                expectedResponses.remove(expectedResponse);
-                expectedResponse.onCleanup();
-            }
         }
-        return MESSAGE_ACCEPTED;
     }
 
     @Override

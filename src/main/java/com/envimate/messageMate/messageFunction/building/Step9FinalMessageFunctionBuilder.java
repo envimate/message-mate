@@ -21,9 +21,10 @@
 
 package com.envimate.messageMate.messageFunction.building;
 
-public interface Step4GeneralErrorResponseMessageFunctionBuilder<R, S> {
+import com.envimate.messageMate.messageFunction.MessageFunction;
 
-    <U extends R> Step4RequestAnswerStep1MessageFunctionBuilder<R, S> with(Class<U> requestClass);
+public interface Step9FinalMessageFunctionBuilder<R, S> {
 
-    <U extends S> Step5RequestCorrelationIdMessageFunctionBuilder<R, S> withGeneralErrorResponse(Class<U> generalErrorResponse);
+    MessageFunction<R, S> build();
+
 }

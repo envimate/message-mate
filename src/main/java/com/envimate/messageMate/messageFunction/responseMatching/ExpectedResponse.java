@@ -102,6 +102,7 @@ public final class ExpectedResponse<S> {
 
     public void onCleanup() {
         cleanUps.forEach(Runnable::run);
+        cleanUps.clear();
     }
 
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)

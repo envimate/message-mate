@@ -23,5 +23,5 @@ package com.envimate.messageMate.messageFunction.building;
 
 public interface Step2ResponseTypMessageFunctionBuilder<R> {
 
-    <S> Step4MessageFunctionBuilder<R, S> forResponseType(Class<S> responseClass);
+    <S> Step3MessageFunctionBuilder<R, S> forResponseType(Class<S> responseClass);
 }

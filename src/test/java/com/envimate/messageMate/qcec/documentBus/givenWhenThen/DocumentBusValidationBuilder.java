@@ -73,6 +73,11 @@ public final class DocumentBusValidationBuilder {
         return expectOnlyObjectsOfInterestToBeReceived();
     }
 
+
+    public static DocumentBusValidationBuilder expectTheConsumerToBeStillExecuted() {
+        return expectOnlyObjectsOfInterestToBeReceived();
+    }
+
     private static DocumentBusValidationBuilder expectOnlyObjectsOfInterestToBeReceived() {
         return new DocumentBusValidationBuilder(testEnvironment -> {
             @SuppressWarnings("unchecked")

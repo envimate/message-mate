@@ -25,9 +25,9 @@ import com.envimate.messageMate.correlation.CorrelationId;
 
 import java.util.function.Function;
 
-public interface Step6ResponseCorrelationIdMessageFunctionBuilder<R, S> {
+public interface RequestCorrelationIdMessageFunctionBuilder<R, S> {
 
-    <U extends S> Step7UsingMessageBusMessageFunctionBuilder<R, S> obtainingCorrelationIdsOfResponsesWith(
+    <U extends R> Step7ResponseCorrelationIdMessageFunctionBuilder<R, S> obtainingCorrelationIdsOfRequestsWith(
             Function<U, CorrelationId> consumer);
 
 }

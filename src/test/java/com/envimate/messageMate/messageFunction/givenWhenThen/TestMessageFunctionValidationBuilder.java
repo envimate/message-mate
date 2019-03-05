@@ -8,6 +8,7 @@ import com.envimate.messageMate.messageFunction.testResponses.TestRequest;
 import com.envimate.messageMate.messageFunction.testResponses.TestResponse;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.qcec.shared.TestValidation;
+import com.envimate.messageMate.shared.subscriber.TestException;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -16,6 +17,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
+import static com.envimate.messageMate.shared.validations.SharedTestValidations.assertResultAndExpectedResultAreEqual;
+import static com.envimate.messageMate.shared.validations.SharedTestValidations.assertResultOfClass;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static lombok.AccessLevel.PRIVATE;
@@ -181,6 +184,18 @@ public final class TestMessageFunctionValidationBuilder {
                 cancellationExceptionThrownForGetWithTimeout = true;
             }
             assertTrue(cancellationExceptionThrownForGetWithTimeout);
+        });
+    }
+
+    public static TestMessageFunctionValidationBuilder expectTheFutureToBeFulFilledOnlyOnce() {
+        return new TestMessageFunctionValidationBuilder(testEnvironment -> {
+            ensureNoExceptionThrown(testEnvironment);
+            Object result = testEnvironment.getProperty(RESULT);
+            if (result instanceof Exception) {
+                assertResultOfClass(testEnvironment, TestException.class);
+            } else {
+                assertResultAndExpectedResultAreEqual(testEnvironment);
+            }
         });
     }
 

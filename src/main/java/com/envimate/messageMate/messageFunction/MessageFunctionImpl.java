@@ -78,8 +78,12 @@ final class MessageFunctionImpl<R, S> implements MessageFunction<R, S> {
         final LinkedList<Class<?>> classes = new LinkedList<>(classesToListenForErrorsOn);
         classes.add(request.getClass());
         final SubscriptionId subscriptionId = messageBus.onError(classes, (t, e) -> {
-            if (expectedResponse.matchesRequest(t) || expectedResponse.matchesResponse(t)) {
-                expectedResponse.fulfillFutureWithException(e);
+            synchronized (expectedResponse) {
+                if (!expectedResponse.isDone()) {
+                    if (expectedResponse.matchesRequest(t) || expectedResponse.matchesResponse(t)) {
+                        expectedResponse.fulfillFutureWithException(e);
+                    }
+                }
             }
         });
         expectedResponse.addCleanUp(() -> messageBus.unregisterErrorHandler(subscriptionId));

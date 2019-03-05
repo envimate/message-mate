@@ -6,6 +6,7 @@ import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.qcec.shared.TestValidation;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
+import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.shared.subscriber.TestSubscriber;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.subscribing.Subscriber;
@@ -174,6 +175,13 @@ public final class MessageBusValidationBuilder {
     public static MessageBusValidationBuilder expectTheExceptionHandled(final Class<?> expectedExceptionClass) {
         return asValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
+            assertResultOfClass(testEnvironment, expectedExceptionClass);
+        });
+    }
+
+    public static MessageBusValidationBuilder expectTheExceptionHandledAndTheErrorToBeThrown(final Class<?> expectedExceptionClass) {
+        return asValidation(testEnvironment -> {
+            assertExceptionThrownOfType(testEnvironment, TestException.class);
             assertResultOfClass(testEnvironment, expectedExceptionClass);
         });
     }

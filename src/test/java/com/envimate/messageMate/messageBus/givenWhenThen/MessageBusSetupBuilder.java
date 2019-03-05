@@ -7,6 +7,7 @@ import com.envimate.messageMate.messageBus.MessageBusBuilder;
 import com.envimate.messageMate.messageBus.MessageBusType;
 import com.envimate.messageMate.messageBus.channelCreating.MessageBusChannelFactory;
 import com.envimate.messageMate.messageBus.config.MessageBusTestConfig;
+import com.envimate.messageMate.messageBus.error.MessageBusExceptionHandler;
 import com.envimate.messageMate.pipe.configuration.AsynchronousConfiguration;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
@@ -74,7 +75,7 @@ public final class MessageBusSetupBuilder {
     public MessageBusSetupBuilder withACustomChannelFactory() {
         messageBusBuilder.withAChannelFactory(new MessageBusChannelFactory() {
             @Override
-            public <T> Channel<?> createChannel(final Class<T> tClass, final Subscriber<T> subscriber) {
+            public <T> Channel<?> createChannel(final Class<T> tClass, final Subscriber<T> subscriber, final MessageBusExceptionHandler exceptionHandler) {
                 final Channel<T> channel = ChannelBuilder.aChannel(tClass)
                         .withDefaultAction(subscription())
                         .build();
@@ -153,11 +154,6 @@ public final class MessageBusSetupBuilder {
         return this;
     }
 
-    public MessageBusSetupBuilder withSeveralDeliveryInterruptingSubscriber(final int numberOfReceivers) {
-        setupActions.add((t, testEnvironment) -> addSeveralDeliveryInterruptingSubscriber(sutActions(t), testEnvironment, numberOfReceivers));
-        return this;
-    }
-
     public MessageBusSetupBuilder withACustomExceptionHandler() {
         messageBusBuilder.withExceptionHandler(allExceptionHandlingTestExceptionHandler(testEnvironment));
         return this;
@@ -170,6 +166,31 @@ public final class MessageBusSetupBuilder {
                 testEnvironment.setProperty(RESULT, e);
             });
             testEnvironment.setProperty(USED_SUBSCRIPTION_ID, subscriptionId);
+        });
+        return this;
+    }
+
+    public MessageBusSetupBuilder withTwoDynamicErrorListener() {
+        messageBusBuilder.withExceptionHandler(allExceptionIgnoringExceptionHandler());
+        setupActions.add((messageBus, testEnvironment1) -> {
+
+            final SubscriptionId subscriptionId = messageBus.onError(TestMessageOfInterest.class, (m, e) -> {
+                throw new RuntimeException("Should not be called");
+            });
+            testEnvironment.setProperty(USED_SUBSCRIPTION_ID, subscriptionId);
+
+            messageBus.onError(TestMessageOfInterest.class, (m, e) -> {
+                testEnvironment.setProperty(RESULT, e);
+            });
+        });
+        return this;
+    }
+
+    public MessageBusSetupBuilder withADynamicErrorListenerAndAnErrorThrowingExceptionHandler() {
+        setupActions.add((messageBus, testEnvironment1) -> {
+            messageBus.onError(TestMessageOfInterest.class, (m, e) -> {
+                testEnvironment.setProperty(RESULT, e);
+            });
         });
         return this;
     }

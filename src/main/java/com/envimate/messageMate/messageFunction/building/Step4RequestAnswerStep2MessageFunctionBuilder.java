@@ -21,11 +21,7 @@
 
 package com.envimate.messageMate.messageFunction.building;
 
-public interface Step4RequestAnswerStep2MessageFunctionBuilder<R, S> extends Step4MessageFunctionBuilder<R, S>,
-        Step4GeneralErrorResponseMessageFunctionBuilder<R, S> {
-
-    <U extends S> Step4RequestAnswerStep2MessageFunctionBuilder<R, S> or(Class<U> responseClass);
-
-    <U extends S> Step4RequestAnswerStep2MessageFunctionBuilder<R, S> orByError(Class<U> responseClass);
+public interface Step4RequestAnswerStep2MessageFunctionBuilder<R, S> extends AnswerOrStepMessageFunctionBuilder<R, S>,
+        AnswerOrByErrorStepMessageFunctionBuilder<R, S>, Step4MessageFunctionBuilder<R,S> {
 
 }

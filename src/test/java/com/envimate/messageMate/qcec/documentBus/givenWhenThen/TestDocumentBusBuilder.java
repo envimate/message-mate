@@ -11,12 +11,9 @@ import com.envimate.messageMate.qcec.shared.testEvents.SpecificEvent;
 import com.envimate.messageMate.qcec.shared.testEvents.TestEvent;
 import com.envimate.messageMate.qcec.shared.testQueries.SpecificQuery;
 import com.envimate.messageMate.qcec.shared.testQueries.TestQuery;
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RECEIVERS;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RESULT;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.TEST_OBJECT;
+import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
 import static com.envimate.messageMate.qcec.shared.testConstraints.SpecificConstraint.specificConstraintWithId;
 import static com.envimate.messageMate.qcec.shared.testQueries.SpecificQuery.specificQueryWithId;
 import static lombok.AccessLevel.PRIVATE;
@@ -109,6 +106,18 @@ public class TestDocumentBusBuilder {
             testEnvironment.addToListProperty(EXPECTED_RECEIVERS, receiver);
         }
         final SpecificEvent specificEvent = SpecificEvent.specificEventWithId(idOfInterest);
+        testEnvironment.setProperty(TEST_OBJECT, specificEvent);
+        return this;
+    }
+
+
+    public TestDocumentBusBuilder withASubscriberForTheUnscubscribeEvent() {
+        final TestReceiver<SpecificEvent> receiver = TestReceiver.aTestReceiver();
+        documentBus.reactTo(SpecificEvent.class)
+                .until(SpecificEvent.class)
+                .using(receiver);
+        testEnvironment.addToListProperty(EXPECTED_RECEIVERS, receiver);
+        final SpecificEvent specificEvent = SpecificEvent.specificEventWithId(0);
         testEnvironment.setProperty(TEST_OBJECT, specificEvent);
         return this;
     }

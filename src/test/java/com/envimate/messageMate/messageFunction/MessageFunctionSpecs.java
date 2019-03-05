@@ -54,6 +54,29 @@ public class MessageFunctionSpecs {
     }
 
     @Test
+    public void testMessageFunction_futureIsOnlyFulfilledOnce_forRedundantMessage() {
+        given(aMessageFunction()
+                .withFulfillingResponseSendTwice())
+                .when(aFollowUpActionExecutingOnlyOnceIsAddedBeforeRequest())
+                .then(expectTheFutureToBeFulFilledOnlyOnce());
+    }
+
+    @Test
+    public void testMessageFunction_futureIsOnlyFulfilledOnce_forMessageAndException() {
+        given(aMessageFunction()
+                .withRequestAnsweredByResponseThenByException())
+                .when(aFollowUpActionExecutingOnlyOnceIsAddedBeforeRequest())
+                .then(expectTheFutureToBeFulFilledOnlyOnce());
+    }
+    @Test
+    public void testMessageFunction_futureIsOnlyFulfilledOnce_forExceptionAndMessage() {
+        given(aMessageFunction()
+                .withRequestAnsweredByExceptionThenByMessage())
+                .when(aFollowUpActionExecutingOnlyOnceIsAddedBeforeRequest())
+                .then(expectTheFutureToBeFulFilledOnlyOnce());
+    }
+
+    @Test
     public void testMessageFunction_executesFollowUpWhenFuturesIsFulfilled() {
         given(aMessageFunction()
                 .definedWithAnUnansweredResponse())

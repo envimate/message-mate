@@ -2,15 +2,14 @@ package com.envimate.messageMate.messageBus;
 
 import com.envimate.messageMate.messageBus.config.MessageBusTestConfig;
 import com.envimate.messageMate.messageBus.config.SynchronisedMessageBusConfigurationResolver;
+import com.envimate.messageMate.shared.subscriber.TestException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static com.envimate.messageMate.messageBus.givenWhenThen.Given.given;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusActionBuilder.*;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusSetupBuilder.aConfiguredMessageBus;
-import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusValidationBuilder.expectResultToBe;
-import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusValidationBuilder.expectXMessagesToBeDelivered;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusValidationBuilder.*;
 
 @ExtendWith(SynchronisedMessageBusConfigurationResolver.class)
 public class SynchronisedMessageBusSpecs implements MessageBusSpecs {
@@ -44,6 +43,16 @@ public class SynchronisedMessageBusSpecs implements MessageBusSpecs {
         given(aConfiguredMessageBus(messageBusTestConfig))
                 .when(sendSeveralMessagesBeforeTheBusIsShutdown(numberOfParallelSendMessages, finishRemainingTasks))
                 .then(expectXMessagesToBeDelivered(10));
+    }
+
+    //errors
+    @Test
+    public void testMessageBus_dynamicErrorHandlerIsCalledEvenIfMessageBusExceptionHandlerThrowsException(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withAnErrorThrowingSubscriber()
+                .withADynamicErrorListenerAndAnErrorThrowingExceptionHandler())
+                .when(aSingleMessageIsSend())
+                .then(expectTheExceptionHandledAndTheErrorToBeThrown(TestException.class));
     }
 
 }

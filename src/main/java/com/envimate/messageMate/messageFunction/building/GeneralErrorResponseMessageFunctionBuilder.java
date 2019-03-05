@@ -21,13 +21,12 @@
 
 package com.envimate.messageMate.messageFunction.building;
 
-import com.envimate.messageMate.correlation.CorrelationId;
+import java.util.function.Predicate;
 
-import java.util.function.Function;
+public interface GeneralErrorResponseMessageFunctionBuilder<R, S> {
 
-public interface Step5RequestCorrelationIdMessageFunctionBuilder<R, S> {
+    <U extends S> Step6RequestCorrelationIdMessageFunctionBuilder<R, S> withGeneralErrorResponse(Class<U> generalErrorResponse);
 
-    <U extends R> Step6ResponseCorrelationIdMessageFunctionBuilder<R, S> obtainingCorrelationIdsOfRequestsWith(
-            Function<U, CorrelationId> consumer);
-
+    <U extends S> Step6RequestCorrelationIdMessageFunctionBuilder<R, S> withGeneralErrorResponse(Class<U> generalErrorResponse,
+                                                                                                 Predicate<U> conditional);
 }

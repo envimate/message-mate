@@ -114,6 +114,14 @@ public final class DocumentBusActionBuilder {
         });
     }
 
+    public static DocumentBusActionBuilder anEventIsSend() {
+        return new DocumentBusActionBuilder((documentBus, testEnvironment) -> {
+            final SpecificEvent specificEvent = testEnvironment.getPropertyAsType(TEST_OBJECT, SpecificEvent.class);
+            documentBus.publish(specificEvent);
+            return null;
+        });
+    }
+
     public TestAction<DocumentBus> build() {
         return action;
     }

@@ -21,6 +21,13 @@
 
 package com.envimate.messageMate.messageFunction.building;
 
-public interface Step4RequestAnswerStep1MessageFunctionBuilder<R, S> extends AnswerAnsweredByStepMessageFunctionBuilder<R,S>{
+import com.envimate.messageMate.correlation.CorrelationId;
+
+import java.util.function.Function;
+
+public interface Step7ResponseCorrelationIdMessageFunctionBuilder<R, S> {
+
+    <U extends S> Step8UsingMessageBusMessageFunctionBuilder<R, S> obtainingCorrelationIdsOfResponsesWith(
+            Function<U, CorrelationId> consumer);
 
 }

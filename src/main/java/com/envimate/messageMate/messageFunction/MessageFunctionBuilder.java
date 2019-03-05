@@ -22,7 +22,7 @@
 package com.envimate.messageMate.messageFunction;
 
 import com.envimate.messageMate.messageFunction.building.Step2ResponseTypMessageFunctionBuilder;
-import com.envimate.messageMate.messageFunction.building.Step4MessageFunctionBuilder;
+import com.envimate.messageMate.messageFunction.building.Step3MessageFunctionBuilder;
 
 public class MessageFunctionBuilder {
 
@@ -42,7 +42,7 @@ public class MessageFunctionBuilder {
         }
 
         @Override
-        public <S> Step4MessageFunctionBuilder<R, S> forResponseType(final Class<S> responseClass) {
+        public <S> Step3MessageFunctionBuilder<R, S> forResponseType(final Class<S> responseClass) {
             return new GenerifiedMessageFunctionMessageFunctionBuilder<>(requestClass, responseClass);
         }
     }

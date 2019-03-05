@@ -21,10 +21,6 @@
 
 package com.envimate.messageMate.messageFunction.building;
 
-import com.envimate.messageMate.messageBus.MessageBus;
-
-public interface Step7UsingMessageBusMessageFunctionBuilder<R, S> {
-
-    Step8FinalMessageFunctionBuilder<R, S> usingMessageBus(MessageBus messageBus);
+public interface Step5GeneralErrorResponseMessageFunctionBuilder<R, S> extends GeneralErrorResponseMessageFunctionBuilder<R,S>{
 
 }

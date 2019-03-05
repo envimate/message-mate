@@ -49,7 +49,7 @@ public interface QueryResolvingSpecs {
     }
 
     @Test
-    default void testQueryResolver_queryIsDeliveredToSubscribersOfDirectSuperclass(final TestQueryResolver aQueryResolver) {
+    default void testQueryResolver_queryIsDeliveredToAllSuperClasses(final TestQueryResolver aQueryResolver) {
         final int expectedResult = 5;
         final int invalidResponse = 1000;
         given(aQueryResolver

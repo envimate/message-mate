@@ -21,6 +21,10 @@
 
 package com.envimate.messageMate.messageFunction.building;
 
-public interface Step4RequestAnswerStep1MessageFunctionBuilder<R, S> extends AnswerAnsweredByStepMessageFunctionBuilder<R,S>{
+import com.envimate.messageMate.messageBus.MessageBus;
+
+public interface Step8UsingMessageBusMessageFunctionBuilder<R, S> {
+
+    Step9FinalMessageFunctionBuilder<R, S> usingMessageBus(MessageBus messageBus);
 
 }

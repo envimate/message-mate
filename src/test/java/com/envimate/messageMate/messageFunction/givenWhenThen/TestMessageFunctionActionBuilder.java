@@ -96,6 +96,26 @@ public final class TestMessageFunctionActionBuilder {
         });
     }
 
+    public static TestMessageFunctionActionBuilder aFollowUpActionExecutingOnlyOnceIsAddedBeforeRequest() {
+        return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
+            final SimpleTestRequest testRequest = SimpleTestRequest.testRequest();
+            final ResponseFuture<TestResponse> request = messageFunction.request(testRequest);
+
+            request.then((response, wasSuccessful, exception) -> {
+                if (!testEnvironment.has(RESULT)) {
+                    if (exception != null) {
+                        testEnvironment.setProperty(RESULT, exception);
+                    } else {
+                        testEnvironment.setProperty(RESULT, response);
+                    }
+                } else {
+                    testEnvironment.setProperty(EXCEPTION, new RuntimeException("FollowUp called twice"));
+                }
+            });
+            return null;
+        });
+    }
+
     public static TestMessageFunctionActionBuilder aFollowUpActionForAnExceptionIsAdded() {
         return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
             final SimpleTestRequest testRequest = testRequest();

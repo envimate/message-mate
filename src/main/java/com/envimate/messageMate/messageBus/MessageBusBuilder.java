@@ -23,9 +23,10 @@ package com.envimate.messageMate.messageBus;
 
 import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.channel.ChannelType;
+import com.envimate.messageMate.messageBus.brokering.MessageBusBrokerStrategy;
 import com.envimate.messageMate.messageBus.brokering.MessageBusBrokerStrategyImpl;
 import com.envimate.messageMate.messageBus.channelCreating.MessageBusChannelFactory;
-import com.envimate.messageMate.messageBus.error.DelegatingChannelExceptionHandlerForAcceptingChannel;
+import com.envimate.messageMate.messageBus.error.DelegatingChannelExceptionHandler;
 import com.envimate.messageMate.messageBus.error.ErrorListenerHandlerImpl;
 import com.envimate.messageMate.messageBus.error.MessageBusExceptionHandler;
 import com.envimate.messageMate.pipe.configuration.AsynchronousConfiguration;
@@ -37,7 +38,8 @@ import static com.envimate.messageMate.messageBus.MessageBusConsumeAction.messag
 import static com.envimate.messageMate.messageBus.MessageBusType.SYNCHRONOUS;
 import static com.envimate.messageMate.messageBus.brokering.MessageBusBrokerStrategyImpl.messageBusBrokerStrategy;
 import static com.envimate.messageMate.messageBus.channelCreating.SynchronousMessageBusChannelFactory.synchronousMessageBusChannelFactory;
-import static com.envimate.messageMate.messageBus.error.DelegatingChannelExceptionHandlerForAcceptingChannel.channelExceptionHandlerForAcceptingChannel;
+import static com.envimate.messageMate.messageBus.error.DelegatingChannelExceptionHandler.delegatingChannelExceptionHandlerForAcceptingChannel;
+import static com.envimate.messageMate.messageBus.error.ErrorListenerDelegatingMessageBusExceptionHandler.errorListenerDelegatingMessageBusExceptionHandler;
 import static com.envimate.messageMate.messageBus.error.ErrorListenerHandlerImpl.errorListenerHandler;
 import static com.envimate.messageMate.messageBus.error.ErrorThrowingMessageBusExceptionHandler.errorThrowingMessageBusExceptionHandler;
 
@@ -73,12 +75,35 @@ public final class MessageBusBuilder {
     }
 
     public MessageBus build() {
-        final ChannelType channelType = map(type);
         final ErrorListenerHandlerImpl errorListenerHandler = errorListenerHandler();
-        final DelegatingChannelExceptionHandlerForAcceptingChannel<Object> acceptingPipeExceptionHandler =
-                channelExceptionHandlerForAcceptingChannel(exceptionHandler, errorListenerHandler);
-        final MessageBusChannelFactory channelFactory = createChannelFactory(errorListenerHandler);
-        final MessageBusBrokerStrategyImpl brokerStrategy = messageBusBrokerStrategy(channelFactory);
+        final MessageBusExceptionHandler exceptionHandler = createExceptionHandler(errorListenerHandler);
+        final MessageBusBrokerStrategyImpl brokerStrategy = createBrokerStrategy(exceptionHandler);
+        final Channel<Object> acceptingChannel = createAcceptingChannel(brokerStrategy, exceptionHandler);
+        return new MessageBusImpl(acceptingChannel, brokerStrategy, errorListenerHandler);
+    }
+
+    private MessageBusBrokerStrategyImpl createBrokerStrategy(final MessageBusExceptionHandler exceptionHandler) {
+        final MessageBusChannelFactory channelFactory = createChannelFactory();
+        return messageBusBrokerStrategy(channelFactory, exceptionHandler);
+    }
+
+    private MessageBusExceptionHandler createExceptionHandler(final ErrorListenerHandlerImpl errorListenerHandler) {
+        return errorListenerDelegatingMessageBusExceptionHandler(exceptionHandler, errorListenerHandler);
+    }
+
+    private MessageBusChannelFactory createChannelFactory() {
+        if (this.channelFactory == null) {
+            return synchronousMessageBusChannelFactory();
+        } else {
+            return this.channelFactory;
+        }
+    }
+
+    private Channel<Object> createAcceptingChannel(final MessageBusBrokerStrategy brokerStrategy,
+                                                   final MessageBusExceptionHandler exceptionHandler) {
+        final ChannelType channelType = map(type);
+        final DelegatingChannelExceptionHandler<Object> acceptingPipeExceptionHandler =
+                delegatingChannelExceptionHandlerForAcceptingChannel(exceptionHandler);
         final Channel<Object> acceptingChannel = aChannel(Object.class)
                 .forType(channelType)
                 .withAsynchronousConfiguration(asynchronousConfiguration)
@@ -86,15 +111,7 @@ public final class MessageBusBuilder {
                 .withDefaultAction(messageBusConsumeAction(brokerStrategy))
                 .build();
         acceptingPipeExceptionHandler.setChannel(acceptingChannel);
-        return new MessageBusImpl(acceptingChannel, brokerStrategy, errorListenerHandler);
-    }
-
-    private MessageBusChannelFactory createChannelFactory(final ErrorListenerHandlerImpl errorListenerHandler) {
-        if (this.channelFactory == null) {
-            return synchronousMessageBusChannelFactory(exceptionHandler, errorListenerHandler);
-        } else {
-            return this.channelFactory;
-        }
+        return acceptingChannel;
     }
 
     private ChannelType map(final MessageBusType messageBusType) {

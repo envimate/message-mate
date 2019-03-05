@@ -44,7 +44,6 @@ public class DocumentBusSpecs {
                 .then(expectOnlyConstraintsOfInterestToBeReceived());
     }
 
-
     //events
     @Test
     public void testDocumentBus_canUnsubscribeEventsAfterASpecificEventIsReceived() {
@@ -60,5 +59,14 @@ public class DocumentBusSpecs {
                 .withSeveralSubscriberThatOnlyTakeSpecificEvents())
                 .when(oneEventOfInterestAndSeveralOtherAreSend())
                 .then(expectOnlyEventsOfInterestToBeReceived());
+    }
+
+
+    @Test
+    public void testDocumentBus_theConsumerIsCalledForTheUnsubscribingEventBeforeItIsRemoved() {
+        given(aDocumentBus()
+                .withASubscriberForTheUnscubscribeEvent())
+                .when(anEventIsSend())
+                .then(expectTheConsumerToBeStillExecuted());
     }
 }

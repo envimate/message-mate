@@ -30,19 +30,22 @@ import com.envimate.messageMate.messageFunction.responseHandling.ResponseHandlin
 import lombok.NonNull;
 
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static com.envimate.messageMate.messageFunction.MessageFunctionImpl.messageFunction;
 import static com.envimate.messageMate.messageFunction.correlationIdExtracting.CorrelationIdExtractor.correlationIdExtractor;
 import static com.envimate.messageMate.messageFunction.requestResponseRelation.RequestResponseRelationMapFactory.aRequestResponseRelationMap;
 import static com.envimate.messageMate.messageFunction.responseHandling.ResponseHandlingSubscriberFactory.responseHandlingSubscriber;
 
-class GenerifiedMessageFunctionMessageFunctionBuilder<R, S> implements Step4MessageFunctionBuilder<R, S>,
+class GenerifiedMessageFunctionMessageFunctionBuilder<R, S> implements Step3MessageFunctionBuilder<R, S>,
+        Step4MessageFunctionBuilder<R, S>,
         Step4RequestAnswerStep1MessageFunctionBuilder<R, S>,
         Step4RequestAnswerStep2MessageFunctionBuilder<R, S>,
-        Step5RequestCorrelationIdMessageFunctionBuilder<R, S>,
-        Step6ResponseCorrelationIdMessageFunctionBuilder<R, S>,
-        Step7UsingMessageBusMessageFunctionBuilder<R, S>,
-        Step8FinalMessageFunctionBuilder<R, S> {
+        Step4RequestAnswerStep3MessageFunctionBuilder<R, S>,
+        Step6RequestCorrelationIdMessageFunctionBuilder<R, S>,
+        Step7ResponseCorrelationIdMessageFunctionBuilder<R, S>,
+        Step8UsingMessageBusMessageFunctionBuilder<R, S>,
+        Step9FinalMessageFunctionBuilder<R, S> {
 
     private final Class<R> requestClass;
     private final Class<S> responseClass;
@@ -76,29 +79,34 @@ class GenerifiedMessageFunctionMessageFunctionBuilder<R, S> implements Step4Mess
 
     @SuppressWarnings("unchecked")
     @Override
-    public <U extends S> Step4RequestAnswerStep2MessageFunctionBuilder<R, S> or(final Class<U> responseClass) {
+    public <U extends S> Step4RequestAnswerStep3MessageFunctionBuilder<R, S> or(final Class<U> responseClass) {
         requestResponseRelationMap.addSuccessResponse(currentHandledResponse, (Class<S>) responseClass);
         return this;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <U extends S> Step4RequestAnswerStep2MessageFunctionBuilder<R, S> orByError(final Class<U> responseClass) {
+    public <U extends S> Step4RequestAnswerStep3MessageFunctionBuilder<R, S> orByError(final Class<U> responseClass) {
         requestResponseRelationMap.addErrorResponse(currentHandledResponse, (Class<S>) responseClass);
         return this;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <U extends S> Step5RequestCorrelationIdMessageFunctionBuilder<R, S> withGeneralErrorResponse(
+    public <U extends S> Step6RequestCorrelationIdMessageFunctionBuilder<R, S> withGeneralErrorResponse(
             final Class<U> generalErrorResponse) {
         requestResponseRelationMap.addGeneralErrorResponse((Class<S>) generalErrorResponse);
         return this;
     }
 
+    @Override
+    public <U extends S> Step6RequestCorrelationIdMessageFunctionBuilder<R, S> withGeneralErrorResponse(Class<U> generalErrorResponse, Predicate<U> conditional) {
+        return null;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
-    public <U extends R> Step6ResponseCorrelationIdMessageFunctionBuilder<R, S> obtainingCorrelationIdsOfRequestsWith(
+    public <U extends R> Step7ResponseCorrelationIdMessageFunctionBuilder<R, S> obtainingCorrelationIdsOfRequestsWith(
             final Function<U, CorrelationId> consumer) {
         requestCorrelationIdExtractor.addExtraction(requestClass, message -> consumer.apply((U) message));
         return this;
@@ -106,14 +114,14 @@ class GenerifiedMessageFunctionMessageFunctionBuilder<R, S> implements Step4Mess
 
     @SuppressWarnings("unchecked")
     @Override
-    public <U extends S> Step7UsingMessageBusMessageFunctionBuilder<R, S> obtainingCorrelationIdsOfResponsesWith(
+    public <U extends S> Step8UsingMessageBusMessageFunctionBuilder<R, S> obtainingCorrelationIdsOfResponsesWith(
             final Function<U, CorrelationId> consumer) {
         responseCorrelationIdExtractor.addExtraction(responseClass, message -> consumer.apply((U) message));
         return this;
     }
 
     @Override
-    public Step8FinalMessageFunctionBuilder<R, S> usingMessageBus(@NonNull final MessageBus messageBus) {
+    public Step9FinalMessageFunctionBuilder<R, S> usingMessageBus(@NonNull final MessageBus messageBus) {
         this.messageBus = messageBus;
         return this;
     }

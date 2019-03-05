@@ -25,6 +25,7 @@ import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.channel.action.Action;
 import com.envimate.messageMate.channel.action.Subscription;
 import com.envimate.messageMate.messageBus.channelCreating.MessageBusChannelFactory;
+import com.envimate.messageMate.messageBus.error.MessageBusExceptionHandler;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.Getter;
@@ -44,10 +45,11 @@ public final class MessageBusBrokerStrategyImpl implements MessageBusBrokerStrat
     private final Map<Class<?>, ClassInformation> classInformationMap = new ConcurrentHashMap<>();
     private final Map<SubscriptionId, Set<Subscription<?>>> subscriptionIdToSubscriptionMap = new ConcurrentHashMap<>();
     private final MessageBusChannelFactory channelFactory;
+    private final MessageBusExceptionHandler messageBusExceptionHandler;
 
     public static MessageBusBrokerStrategyImpl messageBusBrokerStrategy(
-            final MessageBusChannelFactory channelFactory) {
-        return new MessageBusBrokerStrategyImpl(channelFactory);
+            final MessageBusChannelFactory channelFactory, final MessageBusExceptionHandler messageBusExceptionHandler) {
+        return new MessageBusBrokerStrategyImpl(channelFactory, messageBusExceptionHandler);
     }
 
     @Override
@@ -88,7 +90,7 @@ public final class MessageBusBrokerStrategyImpl implements MessageBusBrokerStrat
 
     private <T> Channel<?> createNewChannel(final Class<T> tClass, final Subscriber<T> subscriber,
                                             final ClassInformation classInformation) {
-        final Channel<?> newlyCreatedChannel = channelFactory.createChannel(tClass, subscriber);
+        final Channel<?> newlyCreatedChannel = channelFactory.createChannel(tClass, subscriber, messageBusExceptionHandler);
         addSubscriberTo(newlyCreatedChannel, subscriber);
         classInformation.setChannel(newlyCreatedChannel);
         return newlyCreatedChannel;

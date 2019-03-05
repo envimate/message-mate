@@ -381,9 +381,8 @@ public interface MessageBusSpecs {
         given(aConfiguredMessageBus(messageBusTestConfig)
                 .withAnErrorThrowingSubscriber()
                 .withADynamicErrorListener())
-                .when(theDynamicErrorHandlerToBeRemoved()
-                        .andThen(aSingleMessageIsSend()))
-                .then(expectTheDynamicHandlerToNotBeCalled());
+                .when(aSingleMessageIsSend())
+                .then(expectTheExceptionHandled(TestException.class));
     }
 
     @Test
@@ -399,10 +398,12 @@ public interface MessageBusSpecs {
     default void testMessageBus_dynamicErrorListenerCanBeRemoved(final MessageBusTestConfig messageBusTestConfig) throws Exception {
         given(aConfiguredMessageBus(messageBusTestConfig)
                 .withAnErrorThrowingSubscriber()
-                .withADynamicErrorListener())
-                .when(aSingleMessageIsSend())
+                .withTwoDynamicErrorListener())
+                .when(theDynamicErrorHandlerToBeRemoved()
+                        .andThen(aSingleMessageIsSend()))
                 .then(expectTheExceptionHandled(TestException.class));
     }
+
 
     //await
     @Test
