@@ -23,7 +23,7 @@ package com.envimate.messageMate.messageBus.internal;
 
 import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.messageBus.MessageBusStatusInformation;
-import com.envimate.messageMate.messageBus.brokering.MessageBusBrokerStrategy;
+import com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategy;
 import com.envimate.messageMate.messageBus.statistics.MessageBusStatistics;
 import com.envimate.messageMate.messageBus.statistics.MessageBusStatisticsCollector;
 import com.envimate.messageMate.subscribing.Subscriber;

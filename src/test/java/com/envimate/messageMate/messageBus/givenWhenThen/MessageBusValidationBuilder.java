@@ -1,13 +1,11 @@
 package com.envimate.messageMate.messageBus.givenWhenThen;
 
 
-import com.envimate.messageMate.error.DeliveryFailedMessage;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.qcec.shared.TestValidation;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
 import com.envimate.messageMate.shared.subscriber.TestException;
-import com.envimate.messageMate.shared.subscriber.TestSubscriber;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +17,6 @@ import java.util.Map;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActions.messageBusTestActions;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.SUT;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestProperties.ERROR_SUBSCRIBER;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestValidations.*;
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.*;
 import static lombok.AccessLevel.PRIVATE;
@@ -147,26 +144,6 @@ public final class MessageBusValidationBuilder {
         });
     }
 
-    public static MessageBusValidationBuilder expectErrorMessageWithCause(final Class<?> expectedCauseClass) {
-        return asValidation(testEnvironment -> {
-                    final TestSubscriber<?> testSubscriber = testEnvironment.getPropertyAsType(ERROR_SUBSCRIBER, TestSubscriber.class);
-                    final List<?> receivedMessages = testSubscriber.getReceivedMessages();
-                    assertThat(receivedMessages.size(), equalTo(1));
-                    final Object firstMessage = receivedMessages.get(0);
-                    assertThat(firstMessage.getClass(), equalTo(DeliveryFailedMessage.class));
-                    @SuppressWarnings("unchecked")
-                    final DeliveryFailedMessage<Object> errorMessage = (DeliveryFailedMessage<Object>) firstMessage;
-                    assertThat(errorMessage.getCause().getClass(), equalTo(expectedCauseClass));
-                }
-        );
-    }
-
-    public static MessageBusValidationBuilder expectEachMessagesToBeReceivedByOnlyOneSubscriber() {
-        return asValidation(testEnvironment -> {
-            assertNoExceptionThrown(testEnvironment);
-            assertEachMessagesToBeReceivedByOnlyOneSubscriber(testEnvironment);
-        });
-    }
 
     public static MessageBusValidationBuilder expectTheException(final Class<?> expectedExceptionClass) {
         return asValidation(testEnvironment -> assertExceptionThrownOfType(testEnvironment, expectedExceptionClass));

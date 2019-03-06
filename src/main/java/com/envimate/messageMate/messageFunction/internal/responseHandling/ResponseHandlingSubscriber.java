@@ -19,12 +19,14 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageFunction;
+package com.envimate.messageMate.messageFunction.internal.responseHandling;
 
-import com.envimate.messageMate.internal.autoclosable.NoErrorAutoClosable;
+import com.envimate.messageMate.messageBus.error.MessageBusExceptionHandler;
+import com.envimate.messageMate.messageFunction.internal.responseMatching.ExpectedResponse;
+import com.envimate.messageMate.subscribing.Subscriber;
 
-public interface MessageFunction<R, S> extends NoErrorAutoClosable {
+public interface ResponseHandlingSubscriber extends Subscriber<Object>, MessageBusExceptionHandler {
 
-    ResponseFuture<S> request(R request);
+    void addResponseMatcher(ExpectedResponse<?> expectedResponse);
 
 }

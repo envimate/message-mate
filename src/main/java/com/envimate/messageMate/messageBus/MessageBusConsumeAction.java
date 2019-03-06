@@ -24,7 +24,7 @@ package com.envimate.messageMate.messageBus;
 import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.channel.action.Consume;
-import com.envimate.messageMate.messageBus.brokering.MessageBusBrokerStrategy;
+import com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategy;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Set;

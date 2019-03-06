@@ -1,6 +1,5 @@
 package com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen;
 
-import com.envimate.messageMate.error.DeliveryFailedMessage;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.subscriber.*;
@@ -89,8 +88,7 @@ public final class PipeMessageBusSetupActions {
 
     public static void addAnErrorAcceptingSubscriber(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
         @SuppressWarnings("rawtypes")
-        final SimpleTestSubscriber<DeliveryFailedMessage> errorSubscriber = testSubscriber();
-        sutActions.subscribe(DeliveryFailedMessage.class, errorSubscriber);
+        final SimpleTestSubscriber<?> errorSubscriber = testSubscriber();
         testEnvironment.setProperty(ERROR_SUBSCRIBER, errorSubscriber);
     }
 

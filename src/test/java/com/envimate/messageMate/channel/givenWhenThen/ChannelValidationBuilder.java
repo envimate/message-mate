@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestProperties.*;
 import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestValidations.*;
@@ -215,7 +214,7 @@ public final class ChannelValidationBuilder {
 
     private static void assertIsShutdown(final TestEnvironment testEnvironment) {
         final Channel<TestMessage> channel = getTestPropertyAsChannel(testEnvironment, SUT);
-        final boolean isShutdown = channel.isShutdown();
+        final boolean isShutdown = channel.isClosed();
         assertTrue(isShutdown);
     }
 

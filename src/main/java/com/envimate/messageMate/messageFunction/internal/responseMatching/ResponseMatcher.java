@@ -19,12 +19,11 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageFunction;
+package com.envimate.messageMate.messageFunction.internal.responseMatching;
 
-import com.envimate.messageMate.internal.autoclosable.NoErrorAutoClosable;
+public interface ResponseMatcher {
 
-public interface MessageFunction<R, S> extends NoErrorAutoClosable {
+    boolean matches(Object request, Object response);
 
-    ResponseFuture<S> request(R request);
-
+    boolean wasSuccessResponse(Object response);
 }

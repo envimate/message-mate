@@ -1,6 +1,5 @@
 package com.envimate.messageMate.qcec.eventing.givenWhenThen;
 
-import com.envimate.messageMate.error.DeliveryFailedMessage;
 import com.envimate.messageMate.qcec.shared.TestAction;
 import com.envimate.messageMate.qcec.shared.TestReceiver;
 import com.envimate.messageMate.qcec.shared.testEvents.TestEvent;
@@ -8,7 +7,8 @@ import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.RequiredArgsConstructor;
 
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
+import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RECEIVERS;
+import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.TEST_OBJECT;
 import static com.envimate.messageMate.qcec.shared.TestReceiver.aTestReceiver;
 import static com.envimate.messageMate.qcec.shared.testEvents.TestEvent.testEvent;
 import static lombok.AccessLevel.PRIVATE;
@@ -67,8 +67,7 @@ public final class EventBusActionBuilder {
             });
 
             @SuppressWarnings("rawtypes")
-            final TestReceiver<DeliveryFailedMessage> receiver = aTestReceiver();
-            testEventBus.reactTo(DeliveryFailedMessage.class, receiver);
+            final TestReceiver<?> receiver = aTestReceiver();
             testEnvironment.addToListProperty(EXPECTED_RECEIVERS, receiver);
 
             final TestEvent testEvent = testEvent();

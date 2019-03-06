@@ -19,12 +19,12 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageFunction;
+package com.envimate.messageMate.messageFunction.internal.building;
 
-import com.envimate.messageMate.internal.autoclosable.NoErrorAutoClosable;
+import com.envimate.messageMate.messageFunction.MessageFunction;
 
-public interface MessageFunction<R, S> extends NoErrorAutoClosable {
+public interface Step9FinalMessageFunctionBuilder<R, S> {
 
-    ResponseFuture<S> request(R request);
+    MessageFunction<R, S> build();
 
 }

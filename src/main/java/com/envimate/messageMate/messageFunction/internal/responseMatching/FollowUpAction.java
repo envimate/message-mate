@@ -19,12 +19,9 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageFunction;
+package com.envimate.messageMate.messageFunction.internal.responseMatching;
 
-import com.envimate.messageMate.internal.autoclosable.NoErrorAutoClosable;
+public interface FollowUpAction<T> {
 
-public interface MessageFunction<R, S> extends NoErrorAutoClosable {
-
-    ResponseFuture<S> request(R request);
-
+    void apply(T response, boolean wasSuccessful, Exception exception);
 }

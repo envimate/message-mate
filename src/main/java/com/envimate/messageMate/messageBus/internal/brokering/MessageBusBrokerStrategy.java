@@ -19,12 +19,27 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageFunction;
+package com.envimate.messageMate.messageBus.internal.brokering;
 
-import com.envimate.messageMate.internal.autoclosable.NoErrorAutoClosable;
+import com.envimate.messageMate.channel.Channel;
+import com.envimate.messageMate.subscribing.Subscriber;
+import com.envimate.messageMate.subscribing.SubscriptionId;
 
-public interface MessageFunction<R, S> extends NoErrorAutoClosable {
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-    ResponseFuture<S> request(R request);
+public interface MessageBusBrokerStrategy {
 
+    Set<Channel<?>> getDeliveringChannelsFor(Class<?> messageClass);
+
+    <T> void addSubscriber(Class<T> tClass, Subscriber<T> subscriber);
+
+    void removeSubscriber(SubscriptionId subscriptionId);
+
+    List<Subscriber<?>> getAllSubscribers();
+
+    Map<Class<?>, List<Subscriber<?>>> getSubscribersPerType();
+
+    Channel<?> getClassSpecificChannel(Class<?> messageClass);
 }

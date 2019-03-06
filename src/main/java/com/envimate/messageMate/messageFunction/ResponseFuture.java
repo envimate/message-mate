@@ -21,7 +21,7 @@
 
 package com.envimate.messageMate.messageFunction;
 
-import com.envimate.messageMate.messageFunction.responseMatching.FollowUpAction;
+import com.envimate.messageMate.messageFunction.internal.responseMatching.FollowUpAction;
 
 import java.util.concurrent.Future;
 

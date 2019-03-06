@@ -21,8 +21,8 @@
 
 package com.envimate.messageMate.messageFunction;
 
-import com.envimate.messageMate.messageFunction.building.Step2ResponseTypMessageFunctionBuilder;
-import com.envimate.messageMate.messageFunction.building.Step3MessageFunctionBuilder;
+import com.envimate.messageMate.messageFunction.internal.building.Step2ResponseTypMessageFunctionBuilder;
+import com.envimate.messageMate.messageFunction.internal.building.Step3MessageFunctionBuilder;
 
 public class MessageFunctionBuilder {
 

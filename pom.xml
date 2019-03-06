@@ -10,7 +10,7 @@
     </parent>
     <artifactId>message-mate</artifactId>
     <packaging>jar</packaging>
-    <version>0.7.0</version>
+    <version>1.0.0</version>
     <name>message-mate</name>
 
     <properties>

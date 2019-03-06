@@ -19,12 +19,15 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageFunction;
+package com.envimate.messageMate.messageFunction.internal.responseHandling;
 
-import com.envimate.messageMate.internal.autoclosable.NoErrorAutoClosable;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 
-public interface MessageFunction<R, S> extends NoErrorAutoClosable {
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public final class ResponseHandlingSubscriberFactory {
 
-    ResponseFuture<S> request(R request);
-
+    public static ResponseHandlingSubscriber responseHandlingSubscriber() {
+        return new ResponseHandlingSubscriberImpl();
+    }
 }

@@ -22,10 +22,10 @@
 package com.envimate.messageMate.messageFunction;
 
 import com.envimate.messageMate.messageBus.MessageBus;
-import com.envimate.messageMate.messageFunction.requestResponseRelation.RequestResponseRelationMap;
-import com.envimate.messageMate.messageFunction.responseHandling.ResponseHandlingSubscriber;
-import com.envimate.messageMate.messageFunction.responseMatching.ExpectedResponse;
-import com.envimate.messageMate.messageFunction.responseMatching.ResponseMatcher;
+import com.envimate.messageMate.messageFunction.internal.requestResponseRelation.RequestResponseRelationMap;
+import com.envimate.messageMate.messageFunction.internal.responseHandling.ResponseHandlingSubscriber;
+import com.envimate.messageMate.messageFunction.internal.responseMatching.ExpectedResponse;
+import com.envimate.messageMate.messageFunction.internal.responseMatching.ResponseMatcher;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.NonNull;
 

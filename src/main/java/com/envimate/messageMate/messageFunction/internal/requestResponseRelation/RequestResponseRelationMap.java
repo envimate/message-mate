@@ -19,12 +19,24 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageFunction;
+package com.envimate.messageMate.messageFunction.internal.requestResponseRelation;
 
-import com.envimate.messageMate.internal.autoclosable.NoErrorAutoClosable;
+import com.envimate.messageMate.messageFunction.internal.responseMatching.ResponseMatcher;
 
-public interface MessageFunction<R, S> extends NoErrorAutoClosable {
+import java.util.List;
+import java.util.Set;
+import java.util.function.BiFunction;
 
-    ResponseFuture<S> request(R request);
+public interface RequestResponseRelationMap<R, S> {
+    <T extends R> List<ResponseMatcher> responseMatchers(T request);
 
+    void addSuccessResponse(Class<R> requestClass, Class<S> responseClass);
+
+    void addErrorResponse(Class<R> requestClass, Class<S> responseClass);
+
+    void addGeneralErrorResponse(Class<?> responseClass);
+
+    <T> void addGeneralErrorResponse(Class<T> responseClass, BiFunction<T, R, Boolean> conditional);
+
+    Set<Class<?>> getAllPossibleResponseClasses();
 }

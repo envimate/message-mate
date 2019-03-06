@@ -19,12 +19,19 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageFunction;
+package com.envimate.messageMate.messageFunction.internal.requestResponseRelation;
 
-import com.envimate.messageMate.internal.autoclosable.NoErrorAutoClosable;
+import com.envimate.messageMate.messageFunction.correlationIdExtracting.CorrelationIdExtractor;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 
-public interface MessageFunction<R, S> extends NoErrorAutoClosable {
+import static com.envimate.messageMate.messageFunction.internal.requestResponseRelation.RequestResponseRelationMapImpl.requestResponseRelationMap;
 
-    ResponseFuture<S> request(R request);
-
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public final class RequestResponseRelationMapFactory {
+    public static <R, S> RequestResponseRelationMap<R, S> aRequestResponseRelationMap(
+            final CorrelationIdExtractor<R> requestCorrelationIdExtractor,
+            final CorrelationIdExtractor<S> responseCorrelationIdExtractor) {
+        return requestResponseRelationMap(requestCorrelationIdExtractor, responseCorrelationIdExtractor);
+    }
 }

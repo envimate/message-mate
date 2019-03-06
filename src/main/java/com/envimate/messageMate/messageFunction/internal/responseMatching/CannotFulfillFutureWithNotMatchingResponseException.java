@@ -19,12 +19,11 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageFunction;
+package com.envimate.messageMate.messageFunction.internal.responseMatching;
 
-import com.envimate.messageMate.internal.autoclosable.NoErrorAutoClosable;
+public class CannotFulfillFutureWithNotMatchingResponseException extends RuntimeException {
 
-public interface MessageFunction<R, S> extends NoErrorAutoClosable {
-
-    ResponseFuture<S> request(R request);
-
+    public CannotFulfillFutureWithNotMatchingResponseException(final String message) {
+        super(message);
+    }
 }

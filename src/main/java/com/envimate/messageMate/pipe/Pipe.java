@@ -21,7 +21,7 @@
 
 package com.envimate.messageMate.pipe;
 
-import com.envimate.messageMate.autoclosable.NoErrorAutoClosable;
+import com.envimate.messageMate.internal.autoclosable.NoErrorAutoClosable;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 

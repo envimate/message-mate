@@ -23,10 +23,10 @@ package com.envimate.messageMate.messageFunction;
 
 import com.envimate.messageMate.correlation.CorrelationId;
 import com.envimate.messageMate.messageBus.MessageBus;
-import com.envimate.messageMate.messageFunction.building.*;
+import com.envimate.messageMate.messageFunction.internal.building.*;
 import com.envimate.messageMate.messageFunction.correlationIdExtracting.CorrelationIdExtractor;
-import com.envimate.messageMate.messageFunction.requestResponseRelation.RequestResponseRelationMap;
-import com.envimate.messageMate.messageFunction.responseHandling.ResponseHandlingSubscriber;
+import com.envimate.messageMate.messageFunction.internal.requestResponseRelation.RequestResponseRelationMap;
+import com.envimate.messageMate.messageFunction.internal.responseHandling.ResponseHandlingSubscriber;
 import lombok.NonNull;
 
 import java.util.function.BiFunction;
@@ -34,8 +34,8 @@ import java.util.function.Function;
 
 import static com.envimate.messageMate.messageFunction.MessageFunctionImpl.messageFunction;
 import static com.envimate.messageMate.messageFunction.correlationIdExtracting.CorrelationIdExtractor.correlationIdExtractor;
-import static com.envimate.messageMate.messageFunction.requestResponseRelation.RequestResponseRelationMapFactory.aRequestResponseRelationMap;
-import static com.envimate.messageMate.messageFunction.responseHandling.ResponseHandlingSubscriberFactory.responseHandlingSubscriber;
+import static com.envimate.messageMate.messageFunction.internal.requestResponseRelation.RequestResponseRelationMapFactory.aRequestResponseRelationMap;
+import static com.envimate.messageMate.messageFunction.internal.responseHandling.ResponseHandlingSubscriberFactory.responseHandlingSubscriber;
 
 class GenerifiedMessageFunctionMessageFunctionBuilder<R, S> implements Step3MessageFunctionBuilder<R, S>,
         Step4MessageFunctionBuilder<R, S>,

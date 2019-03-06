@@ -19,12 +19,15 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageFunction;
+package com.envimate.messageMate.messageFunction.internal.building;
 
-import com.envimate.messageMate.internal.autoclosable.NoErrorAutoClosable;
+import com.envimate.messageMate.correlation.CorrelationId;
 
-public interface MessageFunction<R, S> extends NoErrorAutoClosable {
+import java.util.function.Function;
 
-    ResponseFuture<S> request(R request);
+public interface RequestCorrelationIdMessageFunctionBuilder<R, S> {
+
+    <U extends R> Step7ResponseCorrelationIdMessageFunctionBuilder<R, S> obtainingCorrelationIdsOfRequestsWith(
+            Function<U, CorrelationId> consumer);
 
 }

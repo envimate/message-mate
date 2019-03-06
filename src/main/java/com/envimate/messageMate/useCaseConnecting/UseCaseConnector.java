@@ -21,7 +21,7 @@
 
 package com.envimate.messageMate.useCaseConnecting;
 
-import com.envimate.messageMate.autoclosable.NoErrorAutoClosable;
+import com.envimate.messageMate.internal.autoclosable.NoErrorAutoClosable;
 
 import java.util.function.Consumer;
 

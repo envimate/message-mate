@@ -25,7 +25,7 @@ import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.filtering.FilterActions;
-import com.envimate.messageMate.messageBus.brokering.MessageBusBrokerStrategy;
+import com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategy;
 import com.envimate.messageMate.messageBus.error.ErrorListenerHandler;
 import com.envimate.messageMate.messageBus.internal.MessageBusStatusInformationAdapter;
 import com.envimate.messageMate.messageBus.statistics.MessageBusStatisticsCollector;

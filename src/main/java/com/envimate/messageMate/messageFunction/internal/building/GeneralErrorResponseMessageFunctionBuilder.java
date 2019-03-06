@@ -19,12 +19,14 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageFunction;
+package com.envimate.messageMate.messageFunction.internal.building;
 
-import com.envimate.messageMate.internal.autoclosable.NoErrorAutoClosable;
+import java.util.function.BiFunction;
 
-public interface MessageFunction<R, S> extends NoErrorAutoClosable {
+public interface GeneralErrorResponseMessageFunctionBuilder<R, S> {
 
-    ResponseFuture<S> request(R request);
+    Step6RequestCorrelationIdMessageFunctionBuilder<R, S> withGeneralErrorResponse(Class<?> generalErrorResponse);
 
+    <T> Step6RequestCorrelationIdMessageFunctionBuilder<R, S> withGeneralErrorResponse(Class<T> generalErrorResponse,
+                                                                                       BiFunction<T, R, Boolean> conditional);
 }
