@@ -27,6 +27,9 @@ import lombok.RequiredArgsConstructor;
 
 import static lombok.AccessLevel.PRIVATE;
 
+/**
+ * Gives access to the {@code ChannelStatistics} of the Channel.
+ */
 @RequiredArgsConstructor(access = PRIVATE)
 public final class ChannelStatusInformation {
     @Getter

@@ -41,6 +41,14 @@ import static com.envimate.messageMate.channel.events.SimpleChannelEventListener
 import static com.envimate.messageMate.channel.statistics.PipeStatisticsBasedChannelStatisticsCollector.pipeStatisticsBasedChannelStatisticsCollector;
 import static com.envimate.messageMate.qcec.domainBus.enforcing.NotNullEnforcer.ensureNotNull;
 
+/**
+ * The {@code ChannelBuilder} class provides a fluent interface to create and configure a {@code Channel}.
+ *
+ * <p>Most of the configurable properties have default values set by the builder. Only the default {@code Action} has to be set
+ * manually. Per default a synchronous {@code Channel} is created, that throws exception once they occur.</p>
+ *
+ * @param <T> the type of messages, that will be send over the created {@code Channel}
+ */
 public class ChannelBuilder<T> {
     private Action<T> action;
     private ActionHandlerSet<T> actionHandlerSet;
@@ -50,45 +58,123 @@ public class ChannelBuilder<T> {
     private ChannelType type = SYNCHRONOUS;
     private AsynchronousConfiguration asynchronousConfiguration;
 
+    /**
+     * Returns a synchronous Channel with the default {@code Action}
+     *
+     * <p>This is a short, more convenient form for
+     * <pre>{@code
+     *      aChannel().withDefaultAction(action).build();
+     * }</pre></p>
+     *
+     * @param defaultAction the {@code Channel's} default {@code Action}
+     * @param <T>           type of messages of the created {@code Channel}
+     * @return the created {@code Channel}
+     */
     public static <T> Channel<T> aChannelWithDefaultAction(final Action<T> defaultAction) {
         return new ChannelBuilder<T>()
                 .withDefaultAction(defaultAction)
                 .build();
     }
 
+    /**
+     * Creates a new {@code ChannelBuilder}
+     *
+     * @param <T> type of messages of the created {@code Channel}
+     * @return a new {@code ChannelBuilder}
+     */
     public static <T> ChannelBuilder<T> aChannel() {
         return new ChannelBuilder<>();
     }
 
+    /**
+     * Creates a new {@code ChannelBuilder} for the given class
+     *
+     * @param channelTypeClass class of messages of the created {@code Channel}
+     * @param <T>              type of messages of the created {@code Channel}
+     * @return a new {@code ChannelBuilder}
+     */
     public static <T> ChannelBuilder<T> aChannel(final Class<T> channelTypeClass) {
         return new ChannelBuilder<>();
     }
 
+    /**
+     * Sets the type for the {@code Channel}. Can be {@code ChannelType.SYNCHRONOUS} or {@code ChannelType.ASYNCHRONOUS}.
+     *
+     * <p>Per default the type is set to synchronous and no further configuration is needed. If an asynchronous {@code Channel} is to be
+     * created, an additional {@code AsynchronousConfiguration} has to be given. Also setting a different
+     * {@code ChannelExceptionHandler} is advised, as the default exception handler throws all exception on the executing Thread.
+     * </p>
+     *
+     * @param type the type of the {@code Channel}. Can be {@code ChannelType.SYNCHRONOUS} or {@code ChannelType.ASYNCHRONOUS}.
+     * @return the same {@code ChannelBuilder} instance the method was called one
+     */
     public ChannelBuilder<T> forType(final ChannelType type) {
         this.type = type;
         return this;
     }
 
+    /**
+     * Adds an {@code AsynchronousConfiguration} to the {@code Channel}.
+     *
+     * <p>The asynchronous configuration is only used if the type of the
+     * {@code Channel} is asynchronous.</p>
+     *
+     * @param configuration the configuration for the asynchronous {@code Channel}
+     * @return the same {@code ChannelBuilder} instance the method was called one
+     */
     public ChannelBuilder<T> withAsynchronousConfiguration(final AsynchronousConfiguration configuration) {
         this.asynchronousConfiguration = configuration;
         return this;
     }
 
+    /**
+     * Sets the default {@code Action} for the {@code Channel}.
+     *
+     * <p>If the {@code Action} is a custom one, make sure that a matching handler is contained in the ActionHandlerSet.</p>
+     *
+     * @param action the default {@code Action} of the {@code Channel}
+     * @return the same {@code ChannelBuilder} instance the method was called one
+     */
     public ChannelBuilder<T> withDefaultAction(final Action<T> action) {
         this.action = action;
         return this;
     }
 
+    /**
+     * Sets a different exception handler for the {@code Channel}.
+     *
+     * <p>Per default an exception handler is set, that rethrows all exceptions. This is not suitable for an asynchronous
+     * setting. So any asynchronous {@code Channel} should have a custom exception handler set.</p>
+     *
+     * @param channelExceptionHandler the exception handler for the {@code Channel}
+     * @return the same {@code ChannelBuilder} instance the method was called one
+     */
     public ChannelBuilder<T> withChannelExceptionHandler(final ChannelExceptionHandler<T> channelExceptionHandler) {
         this.channelExceptionHandler = channelExceptionHandler;
         return this;
     }
 
+    /**
+     * Overwrites the default {@code ActionHandlerSet}, that can handle all built-in {@code Actions}.
+     *
+     * <p>Actions only contain relevant data. All logic about handling {@code Actions} at the end of the {@code Channel} is done by the
+     * {@code ActionHandler}. For each {@code Action} a matching {@code ActionHandler} should be contained the {@code ActionHandlerSet}.
+     * When using custom defined {@code Actions}, the {@code ActionHandlerSet} always have to be modified, as an exception is raised,
+     * when an {@code Action} is encountered, for that no handler is known.</p>
+     *
+     * @param actionHandlerSet the new {@code ActionHandlerSet}
+     * @return the same {@code ChannelBuilder} instance the method was called one
+     */
     public ChannelBuilder<T> withActionHandlerSet(final ActionHandlerSet<T> actionHandlerSet) {
         this.actionHandlerSet = actionHandlerSet;
         return this;
     }
 
+    /**
+     * Creates the configured {@code Channel}.
+     *
+     * @return the configured {@code Channel}
+     */
     public Channel<T> build() {
         ensureNotNull(action, "Action must not be null");
         final Pipe<ProcessingContext<T>> acceptingPipe = createAcceptingPipe();

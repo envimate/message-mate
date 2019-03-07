@@ -1210,9 +1210,3 @@ anytime with:
 ```java
 ActionHandlerSet<T> actionHandlerSet = ActionHandlerSet.emptyActionHandlerSet();
 ```
-
-### UseCaseEventDispatcher
-TBD
-
-### Pipe
-TBD oder komplett weglassen

@@ -25,6 +25,16 @@ import com.envimate.messageMate.channel.action.Action;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * The {@code ProcessingContext} object stores the history of the traversed {@code Channels} in form of a linked list of
+ * {@code ChannelProcessingFrames}. For each {@code Channel} one {@code ChannelProcessingFrame} is added to the end of the list.
+ *
+ * <p>Each {@code ProcessingContext} stores the corresponding {@code Channel}, the {@code Action} that was executed as well as
+ * its preceding and succeeding frame. In case of the first frame in the list, the {@code getPreviousFrame()} returns null.
+ * Respective for the last frame the {@code getNextFrame()} returns null.</p>
+ *
+ * @param <T>
+ */
 public final class ChannelProcessingFrame<T> {
     @Getter
     private final Channel<T> channel;
@@ -53,10 +63,22 @@ public final class ChannelProcessingFrame<T> {
         this.action = action;
     }
 
+    /**
+     * Factory method to create a new {@code ChannelProcessingFrame} associated with the given {@code Channel}.
+     *
+     * @param channel the {@code Channel} this frame relates to
+     * @param <T>     the type of the {@code Channel}
+     * @return a new {@code ChannelProcessingFrame}
+     */
     public static <T> ChannelProcessingFrame<T> processingFrame(final Channel<T> channel) {
         return new ChannelProcessingFrame<>(channel);
     }
 
+    /**
+     * Creates a exact shallow copy of the current {@code ChannelProcessingFrame}.
+     *
+     * @return a shallow copy of the current {@code ChannelProcessingFrame}
+     */
     public ChannelProcessingFrame<T> copy() {
         return new ChannelProcessingFrame<>(channel, previousFrame, nextFrame, action);
     }

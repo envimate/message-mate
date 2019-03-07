@@ -63,7 +63,6 @@ public final class PipeStatisticsBasedChannelStatisticsCollector implements Part
 
     @Override
     public ChannelStatistics getStatistics() {
-        final Date timestamp = new Date();
         final PipeStatistics acceptingStatistics = statisticsOf(acceptingPipe);
         final PipeStatistics deliveringStatistics = statisticsOf(deliveringPipe);
         final BigInteger acceptedMessages = acceptingStatistics.getAcceptedMessages();
@@ -74,6 +73,7 @@ public final class PipeStatisticsBasedChannelStatisticsCollector implements Part
         final BigInteger pipeFailedMessages = deliveringStatistics.getFailedMessages();
         final BigInteger deliveryFailedBecauseOfExceptionsInFilter = asBigInt(exceptionsInFilter);
         final BigInteger failedMessages = pipeFailedMessages.add(deliveryFailedBecauseOfExceptionsInFilter);
+        final Date timestamp = new Date();
         return channelStatistics(timestamp, acceptedMessages, queuedMessages, blockedMessages,
                 forgottenMessages, successfulMessages, failedMessages);
     }
