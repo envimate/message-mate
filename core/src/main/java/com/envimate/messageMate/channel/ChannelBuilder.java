@@ -66,7 +66,7 @@ public class ChannelBuilder<T> {
      * <p>This is a short, more convenient form for
      * <pre>{@code
      *      aChannel().withDefaultAction(action).build();
-     * }</pre></p>
+     * }</pre>
      *
      * @param defaultAction the {@code Channel's} default {@code Action}
      * @param <T>           type of messages of the created {@code Channel}
