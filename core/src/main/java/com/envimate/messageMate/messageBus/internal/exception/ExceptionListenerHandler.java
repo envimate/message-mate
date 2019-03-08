@@ -25,7 +25,6 @@ import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener
 import com.envimate.messageMate.subscribing.SubscriptionId;
 
 import java.util.List;
-import java.util.function.BiConsumer;
 
 public interface ExceptionListenerHandler {
 

@@ -22,8 +22,9 @@
 package com.envimate.messageMate.qcec.domainBus;
 
 import com.envimate.messageMate.qcec.constraintEnforcing.ConstraintEnforcer;
-import com.envimate.messageMate.qcec.domainBus.answer.Answer;
-import com.envimate.messageMate.qcec.domainBus.answer.AnswerRegister;
+import com.envimate.messageMate.qcec.domainBus.internal.answer.Answer;
+import com.envimate.messageMate.qcec.domainBus.internal.answer.AnswerRegister;
+import com.envimate.messageMate.qcec.domainBus.building.AnswerStep1Builder;
 import com.envimate.messageMate.qcec.eventBus.EventBus;
 import com.envimate.messageMate.qcec.queryresolving.Query;
 import com.envimate.messageMate.qcec.queryresolving.QueryResolver;
@@ -34,7 +35,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.envimate.messageMate.qcec.domainBus.answer.AnswerBuilder.*;
+import static com.envimate.messageMate.qcec.domainBus.internal.answer.AnswerBuilder.*;
 import static lombok.AccessLevel.PACKAGE;
 
 @RequiredArgsConstructor(access = PACKAGE)

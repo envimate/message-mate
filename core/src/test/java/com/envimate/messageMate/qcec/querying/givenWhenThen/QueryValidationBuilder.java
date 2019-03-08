@@ -21,7 +21,6 @@
 
 package com.envimate.messageMate.qcec.querying.givenWhenThen;
 
-import com.envimate.messageMate.qcec.queryresolving.InvalidQueryDueToExceptionOccurredInReceiverException;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.qcec.shared.TestValidation;
 import lombok.RequiredArgsConstructor;

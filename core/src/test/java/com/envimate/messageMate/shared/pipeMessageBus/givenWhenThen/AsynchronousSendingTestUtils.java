@@ -126,7 +126,7 @@ public final class AsynchronousSendingTestUtils {
             });
         }
         try {
-            MILLISECONDS.sleep(10);
+            MILLISECONDS.sleep(20);
         } catch (final InterruptedException e) {
             throw new RuntimeException(e);
         }

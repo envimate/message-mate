@@ -26,8 +26,18 @@ import lombok.RequiredArgsConstructor;
 
 import static lombok.AccessLevel.PRIVATE;
 
+/**
+ * Factory to create a new {@code QueryResolver} object for the given {@code MessageBus}.
+ */
 @RequiredArgsConstructor(access = PRIVATE)
 public final class QueryResolverFactory {
+
+    /**
+     * Factory method to create a new {@code QueryResolver} object for the given {@code MessageBus}.
+     *
+     * @param messageBus the {@code MessageBus} to use
+     * @return a new {@code QueryResolver}
+     */
     public static QueryResolver aQueryResolver(final MessageBus messageBus) {
         return new QueryResolverImpl(messageBus);
     }

@@ -23,25 +23,24 @@ package com.envimate.messageMate.messageBus;
 
 import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.channel.ChannelType;
+import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration;
+import com.envimate.messageMate.messageBus.channelCreating.MessageBusChannelFactory;
+import com.envimate.messageMate.messageBus.exception.MessageBusExceptionHandler;
 import com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategy;
 import com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategyImpl;
-import com.envimate.messageMate.messageBus.channelCreating.MessageBusChannelFactory;
 import com.envimate.messageMate.messageBus.internal.exception.DelegatingChannelExceptionHandler;
 import com.envimate.messageMate.messageBus.internal.exception.ExceptionListenerHandlerImpl;
-import com.envimate.messageMate.messageBus.exception.MessageBusExceptionHandler;
-import com.envimate.messageMate.pipe.configuration.AsynchronousConfiguration;
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
 import static com.envimate.messageMate.channel.ChannelBuilder.aChannel;
 import static com.envimate.messageMate.messageBus.MessageBusConsumeAction.messageBusConsumeAction;
 import static com.envimate.messageMate.messageBus.MessageBusType.SYNCHRONOUS;
-import static com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategyImpl.messageBusBrokerStrategy;
 import static com.envimate.messageMate.messageBus.channelCreating.SynchronousMessageBusChannelFactory.synchronousMessageBusChannelFactory;
+import static com.envimate.messageMate.messageBus.exception.ErrorThrowingMessageBusExceptionHandler.errorThrowingMessageBusExceptionHandler;
+import static com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategyImpl.messageBusBrokerStrategy;
 import static com.envimate.messageMate.messageBus.internal.exception.DelegatingChannelExceptionHandler.delegatingChannelExceptionHandlerForAcceptingChannel;
 import static com.envimate.messageMate.messageBus.internal.exception.ErrorListenerDelegatingMessageBusExceptionHandler.errorListenerDelegatingMessageBusExceptionHandler;
 import static com.envimate.messageMate.messageBus.internal.exception.ExceptionListenerHandlerImpl.errorListenerHandler;
-import static com.envimate.messageMate.messageBus.exception.ErrorThrowingMessageBusExceptionHandler.errorThrowingMessageBusExceptionHandler;
 import static lombok.AccessLevel.PRIVATE;
 
 /**
@@ -62,6 +61,7 @@ public final class MessageBusBuilder {
 
     /**
      * Creates a new {@code MessageBusBuilder}.
+     *
      * @return a new {@code MessageBusBuilder}.
      */
     public static MessageBusBuilder aMessageBus() {
@@ -70,6 +70,7 @@ public final class MessageBusBuilder {
 
     /**
      * Overrides the {@code MessageBusType}. Per default {@code MessageBusType.SYNCHRONOUS} is configured.
+     *
      * @param type the {@code MessageBusType} to overwrite
      * @return the same {@code MessageBusBuilder} instance the method was called one
      */
@@ -92,6 +93,7 @@ public final class MessageBusBuilder {
     /**
      * In case an asynchronous {@code MessageBus} is created an {@code AsynchronousConfiguration} has to be provides with this
      * method.
+     *
      * @param asynchronousConfiguration the required {@code AsynchronousConfiguration}
      * @return the same {@code MessageBusBuilder} instance the method was called one
      */
@@ -113,6 +115,7 @@ public final class MessageBusBuilder {
 
     /**
      * Creates the {@code MessageBus}
+     *
      * @return the newly created {@code MessageBus}
      */
     public MessageBus build() {

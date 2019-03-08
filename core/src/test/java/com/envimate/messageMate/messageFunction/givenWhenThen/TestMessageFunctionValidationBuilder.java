@@ -21,8 +21,8 @@
 
 package com.envimate.messageMate.messageFunction.givenWhenThen;
 
-import com.envimate.messageMate.correlation.CorrelationId;
 import com.envimate.messageMate.messageFunction.ResponseFuture;
+import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
 import com.envimate.messageMate.messageFunction.testResponses.ErrorTestResponse;
 import com.envimate.messageMate.messageFunction.testResponses.RequestResponseFuturePair;
 import com.envimate.messageMate.messageFunction.testResponses.TestRequest;
@@ -37,6 +37,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
+import static com.envimate.messageMate.messageFunction.givenWhenThen.MessageFunctionTestProperties.CANCEL_RESULTS;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.assertResultAndExpectedResultAreEqual;
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.assertResultOfClass;
@@ -80,8 +81,7 @@ public final class TestMessageFunctionValidationBuilder {
     public static TestMessageFunctionValidationBuilder expectCorrectResponseReceivedForEachRequest() {
         return new TestMessageFunctionValidationBuilder(testEnvironment -> {
             ensureNoExceptionThrown(testEnvironment);
-            @SuppressWarnings("unchecked")
-            final List<RequestResponseFuturePair> requestResponseFuturePairs = (List<RequestResponseFuturePair>) testEnvironment.getProperty(RESULT);
+            @SuppressWarnings("unchecked") final List<RequestResponseFuturePair> requestResponseFuturePairs = (List<RequestResponseFuturePair>) testEnvironment.getProperty(RESULT);
             for (RequestResponseFuturePair requestResponseFuturePair : requestResponseFuturePairs) {
                 final ResponseFuture<TestResponse> responseFuture = requestResponseFuturePair.getResponseFuture();
                 final TestRequest testRequest = requestResponseFuturePair.getTestRequest();
@@ -185,27 +185,63 @@ public final class TestMessageFunctionValidationBuilder {
             assertTrue(responseFuture.isCancelled());
             assertTrue(responseFuture.isDone());
             assertFalse(responseFuture.wasSuccessful());
-            boolean cancellationExceptionThrownForGet = false;
-            try {
-                responseFuture.get();
-            } catch (InterruptedException | ExecutionException e) {
-                fail(e);
-            } catch (CancellationException e) {
-                cancellationExceptionThrownForGet = true;
-            }
-            assertTrue(cancellationExceptionThrownForGet);
-
-
-            boolean cancellationExceptionThrownForGetWithTimeout = false;
-            try {
-                responseFuture.get(1000, SECONDS);
-            } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                fail(e);
-            } catch (CancellationException e) {
-                cancellationExceptionThrownForGetWithTimeout = true;
-            }
-            assertTrue(cancellationExceptionThrownForGetWithTimeout);
+            assertFutureAllowsNotGettingValue(responseFuture);
         });
+    }
+
+    public static TestMessageFunctionValidationBuilder expectAllCancellationsToHaveReturnedTheSameResult() {
+        return new TestMessageFunctionValidationBuilder(testEnvironment -> {
+            ensureNoExceptionThrown(testEnvironment);
+            final ResponseFuture<?> responseFuture = testEnvironment.getPropertyAsType(RESULT, ResponseFuture.class);
+            assertCancellationRequestsSucceeded(testEnvironment);
+            assertTrue(responseFuture.isCancelled());
+            assertTrue(responseFuture.isDone());
+            assertFalse(responseFuture.wasSuccessful());
+            assertFutureAllowsNotGettingValue(responseFuture);
+        });
+    }
+
+    public static TestMessageFunctionValidationBuilder expectTheCancellationToFailed() {
+        return new TestMessageFunctionValidationBuilder(testEnvironment -> {
+            ensureNoExceptionThrown(testEnvironment);
+            final ResponseFuture<?> responseFuture = testEnvironment.getPropertyAsType(RESULT, ResponseFuture.class);
+            final Boolean cancelResults = testEnvironment.getPropertyAsType(CANCEL_RESULTS, Boolean.class);
+            assertFalse(cancelResults);
+            assertFalse(responseFuture.isCancelled());
+            assertTrue(responseFuture.isDone());
+            assertTrue(responseFuture.wasSuccessful());
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void assertCancellationRequestsSucceeded(TestEnvironment testEnvironment) {
+        final List<Boolean> cancelResults = (List<Boolean>) testEnvironment.getProperty(CANCEL_RESULTS);
+        for (final Boolean cancelResult : cancelResults) {
+            assertTrue(cancelResult);
+        }
+    }
+
+    private static void assertFutureAllowsNotGettingValue(ResponseFuture<?> responseFuture) {
+        boolean cancellationExceptionThrownForGet = false;
+        try {
+            responseFuture.get();
+        } catch (InterruptedException | ExecutionException e) {
+            fail(e);
+        } catch (CancellationException e) {
+            cancellationExceptionThrownForGet = true;
+        }
+        assertTrue(cancellationExceptionThrownForGet);
+
+
+        boolean cancellationExceptionThrownForGetWithTimeout = false;
+        try {
+            responseFuture.get(1000, SECONDS);
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            fail(e);
+        } catch (CancellationException e) {
+            cancellationExceptionThrownForGetWithTimeout = true;
+        }
+        assertTrue(cancellationExceptionThrownForGetWithTimeout);
     }
 
     public static TestMessageFunctionValidationBuilder expectTheFutureToBeFulFilledOnlyOnce() {

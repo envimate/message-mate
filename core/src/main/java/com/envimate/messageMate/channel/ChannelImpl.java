@@ -32,7 +32,7 @@ import com.envimate.messageMate.channel.internal.filtering.PostFilterActions;
 import com.envimate.messageMate.channel.statistics.ChannelStatistics;
 import com.envimate.messageMate.channel.internal.statistics.ChannelStatisticsCollector;
 import com.envimate.messageMate.filtering.Filter;
-import com.envimate.messageMate.pipe.Pipe;
+import com.envimate.messageMate.internal.pipe.Pipe;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;

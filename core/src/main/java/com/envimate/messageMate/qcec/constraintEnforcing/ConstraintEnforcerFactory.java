@@ -26,9 +26,18 @@ import lombok.RequiredArgsConstructor;
 
 import static lombok.AccessLevel.PRIVATE;
 
+/**
+ * Factory to create a new {@code ConstraintEnforcer} object for the given {@code MessageBus}.
+ */
 @RequiredArgsConstructor(access = PRIVATE)
 public final class ConstraintEnforcerFactory {
 
+    /**
+     * Factory method to create a new {@code ConstraintEnforcer} object for the given {@code MessageBus}.
+     *
+     * @param messageBus the {@code MessageBus} to use
+     * @return a new {@code ConstraintEnforcer}
+     */
     public static ConstraintEnforcer aConstraintEnforcer(final MessageBus messageBus) {
         return new ConstraintEnforcerImpl(messageBus);
     }

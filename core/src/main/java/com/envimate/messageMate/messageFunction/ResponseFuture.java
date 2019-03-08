@@ -33,9 +33,6 @@ import java.util.concurrent.Future;
  * @see <a href="https://github.com/envimate/message-mate#responsefuture">Message Mate Documentation</a>
  */
 
-//Check, that cancel fulfills contract and that isCancelled only true, if cancelled before fulfilled.
-//Check, that cancel + response does not call FollowUpAction
-//Check then on cancelled future -> CancellationException
 public interface ResponseFuture<T> extends Future<T> {
 
     /**

@@ -38,8 +38,8 @@ import static lombok.AccessLevel.PRIVATE;
  * performed. So the values should be seen as approximations.</p>
  *
  * <p>The value of {@code getAcceptedMessages()} defines the number of messages the {@code Channel} has been accepted without
- * an exception. {@code getQueuedMessages()} returns, how many messages have been accepted, but due to not enough resources have been
- * queued. The processing of queued messages will automatically be continued, when resources become available and the
+ * an exception. {@code getQueuedMessages()} returns, how many messages have been accepted, but due to not enough resources have
+ * been queued. The processing of queued messages will automatically be continued, when resources become available and the
  * {@code Channel} is not closed before. {@code getBlockedMessages()} and {@code getForgottenMessages} relate to the results of
  * {@code Filters} being applied. Messages, that have been blocked by a {@code Filter} stop their propagation through the
  * {@code Channel}. Forgotten messages are those messages, that have not explicitly marked as passed or blocked by a

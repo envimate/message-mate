@@ -41,7 +41,8 @@ public class ExceptionListenerHandlerImpl implements ExceptionListenerHandler {
     }
 
     @Override
-    public synchronized <T> SubscriptionId register(final Class<T> messageClass, final MessageBusExceptionListener<T> exceptionListener) {
+    public synchronized <T> SubscriptionId register(final Class<T> messageClass,
+                                                    final MessageBusExceptionListener<T> exceptionListener) {
         final SubscriptionId subscriptionId = SubscriptionId.newUniqueId();
         final ListenerInformation listenerInformation = new ListenerInformation(messageClass, exceptionListener);
         storeListenerInformation(messageClass, listenerInformation);
@@ -87,13 +88,13 @@ public class ExceptionListenerHandlerImpl implements ExceptionListenerHandler {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public synchronized <T> List<MessageBusExceptionListener<T>> listenerFor(final Class<T> clazz) {
         if (listenerLookupMap.containsKey(clazz)) {
             final List<ListenerInformation> listenerInformationList = listenerLookupMap.get(clazz);
             final List<?> listener = listenerInformationList.stream()
                     .map(ListenerInformation::getListener)
                     .collect(Collectors.toList());
-            @SuppressWarnings("unchecked")
             final List<MessageBusExceptionListener<T>> castedListener = (List<MessageBusExceptionListener<T>>) listener;
             return castedListener;
         } else {

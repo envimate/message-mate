@@ -21,7 +21,7 @@
 
 package com.envimate.messageMate.messageFunction.givenWhenThen;
 
-import com.envimate.messageMate.correlation.CorrelationId;
+import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
 import com.envimate.messageMate.messageFunction.testResponses.*;
 import lombok.RequiredArgsConstructor;
 

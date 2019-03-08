@@ -25,11 +25,34 @@ import com.envimate.messageMate.subscribing.SubscriptionId;
 
 import java.util.function.Consumer;
 
+/**
+ * The {@code EventBus} class is used to distribute events to all subscribers.
+ *
+ * @see <a href="https://github.com/envimate/message-mate#events">Message Mate Documentation</a>
+ */
 public interface EventBus {
 
+    /**
+     * Send the event to all interested subscribers.
+     *
+     * @param event the event to publish
+     */
     void publish(Object event);
 
+    /**
+     * Adds the {@code Consumer} as {@code Subscriber} for the given event class.
+     *
+     * @param tClass   the class of the event
+     * @param consumer the {@code Consumer} to be called
+     * @param <T>      the type of the event
+     * @return the {@code Subscriber's} {@code SubscriptionId}
+     */
     <T> SubscriptionId reactTo(Class<T> tClass, Consumer<T> consumer);
 
+    /**
+     * Removes all {@code Subscribers} matching the given {@code SubscriptionId}.
+     *
+     * @param subscriptionId the {@code SubscriptionId} to be removed
+     */
     void unsubscribe(SubscriptionId subscriptionId);
 }

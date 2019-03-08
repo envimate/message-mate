@@ -39,7 +39,6 @@ import static lombok.AccessLevel.PRIVATE;
  * if no exception occurred.
  *
  * @param <T> the type of messages of the {@code Channel}
- *
  * @see <a href="https://github.com/envimate/message-mate#subscription">Message Mate Documentation</a>
  */
 @RequiredArgsConstructor(access = PRIVATE)
@@ -51,7 +50,6 @@ public final class Subscription<T> implements Action<T> {
      * Creates a new {@code Subscription} object.
      *
      * @param <T> the type of messages of the {@code Channel}
-     *
      * @return a new {@code Subscription} object
      */
     public static <T> Subscription<T> subscription() {
@@ -104,7 +102,6 @@ public final class Subscription<T> implements Action<T> {
     public void removeSubscriber(final Subscriber<T> subscriber) {
         subscribers.remove(subscriber);
     }
-
 
     /**
      * Removes all {@code Subscribers} that match the given {@code SubscriptionId}.
