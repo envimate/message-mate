@@ -22,19 +22,29 @@
 package com.envimate.messageMate.messageBus.channelCreating;
 
 import com.envimate.messageMate.channel.Channel;
-import com.envimate.messageMate.messageBus.error.DelegatingChannelExceptionHandler;
-import com.envimate.messageMate.messageBus.error.MessageBusExceptionHandler;
+import com.envimate.messageMate.messageBus.exception.MessageBusExceptionHandler;
+import com.envimate.messageMate.messageBus.internal.exception.DelegatingChannelExceptionHandler;
 import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.RequiredArgsConstructor;
 
 import static com.envimate.messageMate.channel.ChannelBuilder.aChannel;
 import static com.envimate.messageMate.channel.action.Subscription.subscription;
-import static com.envimate.messageMate.messageBus.error.DelegatingChannelExceptionHandler.delegatingChannelExceptionHandlerForDeliveryChannel;
+import static com.envimate.messageMate.messageBus.internal.exception.DelegatingChannelExceptionHandler.delegatingChannelExceptionHandlerForDeliveryChannel;
 import static lombok.AccessLevel.PRIVATE;
 
+/**
+ * The default {@code MessageBusChannelFactory}, that creates synchronous {@code Channels}.
+ *
+ * @see <a href="https://github.com/envimate/message-mate#configuring-the-messagebus">Message Mate Documentation</a>
+ */
 @RequiredArgsConstructor(access = PRIVATE)
 public final class SynchronousMessageBusChannelFactory implements MessageBusChannelFactory {
 
+    /**
+     * Factory method to create a new {@code SynchronousMessageBusChannelFactory}.
+     *
+     * @return the newly {@code SynchronousMessageBusChannelFactory}
+     */
     public static SynchronousMessageBusChannelFactory synchronousMessageBusChannelFactory() {
         return new SynchronousMessageBusChannelFactory();
     }

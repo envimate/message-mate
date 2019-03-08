@@ -21,7 +21,7 @@
 
 package com.envimate.messageMate.pipe;
 
-import com.envimate.messageMate.error.AlreadyClosedException;
+import com.envimate.messageMate.exceptions.AlreadyClosedException;
 import com.envimate.messageMate.pipe.statistics.PipeStatistics;
 import com.envimate.messageMate.pipe.statistics.PipeStatisticsCollector;
 import com.envimate.messageMate.pipe.transport.TransportMechanism;

@@ -28,12 +28,26 @@ import lombok.Setter;
 
 import static lombok.AccessLevel.PRIVATE;
 
+/**
+ * The {@code Return} {@code Action} is used to return from a previously executed {@code Call} {@code Action}.
+ *
+ * @param <T> the type of messages of the {@code Channel}
+ *
+ * @see <a href="https://github.com/envimate/message-mate#call-and-return">Message Mate Documentation</a>
+ */
 @RequiredArgsConstructor(access = PRIVATE)
 public final class Return<T> implements Action<T> {
     @Getter
     @Setter
     private ChannelProcessingFrame<T> relatedCallFrame;
 
+    /**
+     * Factory method to create a new {@code Return} {@code Action}.
+     *
+     * @param <T> the type of messages of the {@code Channel}
+     *
+     * @return a new {@code Return} {@code Action}
+     */
     public static <T> Return<T> aReturn() {
         return new Return<>();
     }

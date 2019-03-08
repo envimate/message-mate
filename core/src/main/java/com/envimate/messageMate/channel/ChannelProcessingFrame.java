@@ -33,7 +33,8 @@ import lombok.Setter;
  * its preceding and succeeding frame. In case of the first frame in the list, the {@code getPreviousFrame()} returns null.
  * Respective for the last frame the {@code getNextFrame()} returns null.</p>
  *
- * @param <T>
+ * @param <T> the type of messages of the {@code Channel}
+ * @see <a href="https://github.com/envimate/message-mate#processing-context">Message Mate Documentation</a>
  */
 public final class ChannelProcessingFrame<T> {
     @Getter

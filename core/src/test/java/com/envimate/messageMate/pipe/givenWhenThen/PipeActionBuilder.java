@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.envimate.messageMate.pipe.givenWhenThen.PipeTestActions.pipeTestActions;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSetupActions.addAnErrorThrowingSubscriber;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSetupActions.addAnExceptionThrowingSubscriber;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestActions.*;
 import static lombok.AccessLevel.PRIVATE;
 
@@ -77,7 +77,7 @@ public final class PipeActionBuilder {
     public static PipeActionBuilder aMessageResultingInAnErrorIsSend() {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
             final PipeMessageBusSutActions sutActions = pipeTestActions(pipe);
-            final TestSubscriber<TestMessageOfInterest> subscriber = addAnErrorThrowingSubscriber(sutActions, testEnvironment);
+            final TestSubscriber<TestMessageOfInterest> subscriber = addAnExceptionThrowingSubscriber(sutActions, testEnvironment);
             testEnvironment.addToListProperty(TestEnvironmentProperty.EXPECTED_RECEIVERS, subscriber);
             sendASingleMessage(sutActions, testEnvironment);
             return null;

@@ -21,6 +21,13 @@
 
 package com.envimate.messageMate.filtering;
 
+/**
+ * Each filter can decide if the message continues its propagation with {@code pass} or if the delivery of the message stops with
+ * {@code block}.
+ *
+ * @param <T> the type of messages of the {@code Channel}
+ * @see <a href="https://github.com/envimate/message-mate#adding-filter-to-channel">Message Mate Documentation</a>
+ */
 public interface FilterActions<T> {
 
     void block(T message);

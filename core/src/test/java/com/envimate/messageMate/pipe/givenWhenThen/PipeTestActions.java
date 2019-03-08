@@ -50,7 +50,7 @@ public final class PipeTestActions implements PipeMessageBusSutActions {
     }
 
     @Override
-    public boolean isShutdown(final TestEnvironment testEnvironment) {
+    public boolean isClosed(final TestEnvironment testEnvironment) {
         return pipe.isShutdown();
     }
 

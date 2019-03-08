@@ -139,13 +139,13 @@ public final class PipeMessageBusTestValidations {
 
     public static void assertSutWasShutdownInTime(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
         final boolean wasTerminatedInTime = testEnvironment.getPropertyAsType(RESULT, Boolean.class);
-        final boolean isShutdown = sutActions.isShutdown(testEnvironment);
+        final boolean isShutdown = sutActions.isClosed(testEnvironment);
         assertTrue(isShutdown);
         assertTrue(wasTerminatedInTime);
     }
 
     public static void assertSutIsShutdown(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
-        final boolean isShutdown = sutActions.isShutdown(testEnvironment);
+        final boolean isShutdown = sutActions.isClosed(testEnvironment);
         assertTrue(isShutdown);
     }
 

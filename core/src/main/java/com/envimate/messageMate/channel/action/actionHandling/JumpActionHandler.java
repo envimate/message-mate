@@ -29,13 +29,32 @@ import lombok.RequiredArgsConstructor;
 
 import static lombok.AccessLevel.PRIVATE;
 
+/**
+ * The {@code ActionHandler} implementation for the {@code Jump} {@code Action}. This handler will take the message and sends
+ * it on the given target the type of messages of the {@code Channel}.
+ *
+ * @param <T> the type of messages of the {@code Channel}
+ * @see <a href="https://github.com/envimate/message-mate#jump">Message Mate Documentation</a>
+ */
 @RequiredArgsConstructor(access = PRIVATE)
 public final class JumpActionHandler<T> implements ActionHandler<Jump<T>, T> {
 
+    /**
+     * Factory method for a new {@code JumpActionHandler}.
+     *
+     * @param <T> the type of messages of the {@code Channel}
+     * @return a new {@code JumpActionHandler}
+     */
     public static <T> JumpActionHandler<T> jumpActionHandler() {
         return new JumpActionHandler<>();
     }
 
+    /**
+     * Takes the message and sends in on the given {@code Channel}.
+     *
+     * @param jump              the {@code Jump} {@code Action}
+     * @param processingContext the message
+     */
     @Override
     public void handle(final Jump<T> jump, final ProcessingContext<T> processingContext) {
         final Channel<T> targetChannel = jump.getTargetChannel();

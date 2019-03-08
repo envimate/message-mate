@@ -30,6 +30,13 @@ import java.util.function.Predicate;
 
 import static com.envimate.messageMate.subscribing.AcceptingBehavior.acceptingBehavior;
 
+/**
+ * A {@code Subscriber} that calls the given {@code predicate} for each message. The return value of the {@code predicate}
+ * decides, if the delivery should be continued ({@code true}), or preempted ({@code false}).
+ *
+ * @param <T> the type of messages of the {@code Subscriber} can accept
+ * @see <a href="https://github.com/envimate/message-mate#subscriber">Message Mate Documentation</a>
+ */
 @ToString
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
@@ -37,6 +44,13 @@ public final class PreemptiveSubscriber<T> implements Subscriber<T> {
     private final Predicate<T> predicate;
     private final SubscriptionId subscriptionId = SubscriptionId.newUniqueId();
 
+    /**
+     * Factory method for a new {@code PreemptiveSubscriber}.
+     *
+     * @param predicate the {@code predicate} to apply on each message
+     * @param <T>       the type of messages the {@code Subscriber} accepts
+     * @return a new {@code PreemptiveSubscriber}
+     */
     public static <T> PreemptiveSubscriber<T> preemptiveSubscriber(final Predicate<T> predicate) {
         return new PreemptiveSubscriber<>(predicate);
     }

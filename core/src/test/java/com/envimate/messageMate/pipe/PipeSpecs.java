@@ -21,7 +21,7 @@
 
 package com.envimate.messageMate.pipe;
 
-import com.envimate.messageMate.error.AlreadyClosedException;
+import com.envimate.messageMate.exceptions.AlreadyClosedException;
 import com.envimate.messageMate.pipe.config.PipeTestConfig;
 import com.envimate.messageMate.pipe.givenWhenThen.PipeActionBuilder;
 import org.junit.jupiter.api.Test;
@@ -143,7 +143,7 @@ public interface PipeSpecs {
                 .then(expectTimestampToBeInTheLastXSeconds(3));
     }
 
-    //error handling
+    //exceptions handling
     @Test
     default void testPipe_canUseCustomErrorHandler(final PipeTestConfig testConfig) throws Exception {
         given(aConfiguredPipe(testConfig)

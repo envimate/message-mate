@@ -28,7 +28,7 @@ import com.envimate.messageMate.messageBus.MessageBusBuilder;
 import com.envimate.messageMate.messageBus.MessageBusType;
 import com.envimate.messageMate.messageBus.channelCreating.MessageBusChannelFactory;
 import com.envimate.messageMate.messageBus.config.MessageBusTestConfig;
-import com.envimate.messageMate.messageBus.error.MessageBusExceptionHandler;
+import com.envimate.messageMate.messageBus.exception.MessageBusExceptionHandler;
 import com.envimate.messageMate.pipe.configuration.AsynchronousConfiguration;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
@@ -155,7 +155,7 @@ public final class MessageBusSetupBuilder {
         return this;
     }
 
-    public MessageBusSetupBuilder withAnErrorThrowingFilter() {
+    public MessageBusSetupBuilder withAnExceptionThrowingFilter() {
         setupActions.add((t, testEnvironment) -> addAFilterThatThrowsExceptions(sutActions(t), testEnvironment));
         return this;
     }
@@ -165,13 +165,13 @@ public final class MessageBusSetupBuilder {
         return this;
     }
 
-    public MessageBusSetupBuilder withAnErrorAcceptingSubscriber() {
-        setupActions.add((t, testEnvironment) -> addAnErrorAcceptingSubscriber(sutActions(t), testEnvironment));
+    public MessageBusSetupBuilder withAnExceptionAcceptingSubscriber() {
+        setupActions.add((t, testEnvironment) -> addAnExceptionAcceptingSubscriber(sutActions(t), testEnvironment));
         return this;
     }
 
-    public MessageBusSetupBuilder withAnErrorThrowingSubscriber() {
-        setupActions.add((t, testEnvironment) -> addAnErrorThrowingSubscriber(sutActions(t), testEnvironment));
+    public MessageBusSetupBuilder withAnExceptionThrowingSubscriber() {
+        setupActions.add((t, testEnvironment) -> addAnExceptionThrowingSubscriber(sutActions(t), testEnvironment));
         return this;
     }
 
@@ -180,10 +180,10 @@ public final class MessageBusSetupBuilder {
         return this;
     }
 
-    public MessageBusSetupBuilder withADynamicErrorListener() {
+    public MessageBusSetupBuilder withADynamicExceptionListener() {
         messageBusBuilder.withExceptionHandler(allExceptionIgnoringExceptionHandler());
         setupActions.add((messageBus, testEnvironment1) -> {
-            final SubscriptionId subscriptionId = messageBus.onError(TestMessageOfInterest.class, (m, e) -> {
+            final SubscriptionId subscriptionId = messageBus.onException(TestMessageOfInterest.class, (m, e) -> {
                 testEnvironment.setProperty(RESULT, e);
             });
             testEnvironment.setProperty(USED_SUBSCRIPTION_ID, subscriptionId);
@@ -191,16 +191,16 @@ public final class MessageBusSetupBuilder {
         return this;
     }
 
-    public MessageBusSetupBuilder withTwoDynamicErrorListener() {
+    public MessageBusSetupBuilder withTwoDynamicExceptionListener() {
         messageBusBuilder.withExceptionHandler(allExceptionIgnoringExceptionHandler());
         setupActions.add((messageBus, testEnvironment1) -> {
 
-            final SubscriptionId subscriptionId = messageBus.onError(TestMessageOfInterest.class, (m, e) -> {
+            final SubscriptionId subscriptionId = messageBus.onException(TestMessageOfInterest.class, (m, e) -> {
                 throw new RuntimeException("Should not be called");
             });
             testEnvironment.setProperty(USED_SUBSCRIPTION_ID, subscriptionId);
 
-            messageBus.onError(TestMessageOfInterest.class, (m, e) -> {
+            messageBus.onException(TestMessageOfInterest.class, (m, e) -> {
                 testEnvironment.setProperty(RESULT, e);
             });
         });
@@ -209,29 +209,24 @@ public final class MessageBusSetupBuilder {
 
     public MessageBusSetupBuilder withADynamicErrorListenerAndAnErrorThrowingExceptionHandler() {
         setupActions.add((messageBus, testEnvironment1) -> {
-            messageBus.onError(TestMessageOfInterest.class, (m, e) -> {
+            messageBus.onException(TestMessageOfInterest.class, (m, e) -> {
                 testEnvironment.setProperty(RESULT, e);
             });
         });
         return this;
     }
 
-    public MessageBusSetupBuilder withADynamicErrorListenerForSeveralClasses() {
+    public MessageBusSetupBuilder withADynamicExceptionListenerForSeveralClasses() {
         messageBusBuilder.withExceptionHandler(allExceptionIgnoringExceptionHandler());
         final List<Class<?>> errorClasses = Arrays.asList(TestMessageOfInterest.class, Object.class);
         setupActions.add((messageBus, testEnvironment1) -> {
-            messageBus.onError(errorClasses, (m, e) -> {
+            messageBus.onException(errorClasses, (m, e) -> {
                 testEnvironment.setProperty(RESULT, e);
             });
         });
         return this;
     }
 
-
-    public MessageBusSetupBuilder withACustomExceptionHandlerIgnoringExceptions() {
-        messageBusBuilder.withExceptionHandler(testExceptionIgnoringExceptionHandler(testEnvironment));
-        return this;
-    }
 
     public MessageBusSetup build() {
         final MessageBus messageBus = messageBusBuilder.build();

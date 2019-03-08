@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 
 public interface PipeMessageBusSutActions {
 
-    boolean isShutdown(final TestEnvironment testEnvironment);
+    boolean isClosed(final TestEnvironment testEnvironment);
 
     <R> void subscribe(Class<R> messageClass, Subscriber<R> subscriber);
 

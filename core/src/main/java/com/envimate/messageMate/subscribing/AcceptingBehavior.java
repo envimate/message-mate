@@ -25,13 +25,32 @@ import lombok.RequiredArgsConstructor;
 
 import static lombok.AccessLevel.PRIVATE;
 
+/**
+ * When accepting a message, a {@code Subscriber} can decide if it the delivery to subsequent {@code Subscribers} should continue
+ * or if the delivery is preempted.
+ *
+ * @see <a href="https://github.com/envimate/message-mate#subscriber">Message Mate Documentation</a>
+ */
 @RequiredArgsConstructor(access = PRIVATE)
 public final class AcceptingBehavior {
+    /**
+     * The message was accepted and the delivery continues.
+     */
     public static final AcceptingBehavior MESSAGE_ACCEPTED = new AcceptingBehavior(true);
+
+    /**
+     * The message was accepted and the delivery can stop early.
+     */
     public static final AcceptingBehavior MESSAGE_ACCEPTED_AND_STOP_DELIVERY = new AcceptingBehavior(false);
 
     private final boolean continueDelivery;
 
+    /**
+     * Factory method to create a new {@code AcceptingBehavior}.
+     *
+     * @param continueDelivery {@code true} continues the delivery, {@code false} preempts it
+     * @return a new {@code AcceptingBehavior}
+     */
     public static AcceptingBehavior acceptingBehavior(final boolean continueDelivery) {
         return new AcceptingBehavior(continueDelivery);
     }

@@ -30,23 +30,49 @@ import java.util.function.Consumer;
 
 import static lombok.AccessLevel.PRIVATE;
 
+/**
+ * The {@code Consume} {@code Action} calls the given consumer for every message that reached the end of the {@code Channel}.
+ *
+ * @param <T> the type of messages of the {@code Channel}
+ *
+ * @see <a href="https://github.com/envimate/message-mate#consume">Message Mate Documentation</a>
+ */
 @ToString
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = PRIVATE)
 public final class Consume<T> implements Action<T> {
     private final Consumer<ProcessingContext<T>> consumer;
 
-    public static <T> Consume<T> consumeAll(final Consumer<ProcessingContext<T>> consumer) {
+    /**
+     * Factory method for creating a new {@code Consume} {@code Action} for a consumer accepting {@code ProcessingContext}.
+     *
+     * @param consumer consumer to be called for each message
+     * @param <T>      the type of the {@code Channels} payload
+     * @return a new {@code Consume} {@code Action}
+     */
+    public static <T> Consume<T> consumeMessage(final Consumer<ProcessingContext<T>> consumer) {
         return new Consume<>(consumer);
     }
 
-    public static <T> Consume<T> consumeMessage(final Consumer<T> consumer) {
+    /**
+     * Factory method for creating a new {@code Consume} {@code Action} for a consumer accepting {@code ProcessingContext}.
+     *
+     * @param consumer consumer to be called for each message
+     * @param <T>      the type of the {@code Channels} payload
+     * @return a new {@code Consume} {@code Action}
+     */
+    public static <T> Consume<T> consumePayload(final Consumer<T> consumer) {
         return new Consume<>(processingContext -> {
             final T payload = processingContext.getPayload();
             consumer.accept(payload);
         });
     }
 
+    /**
+     * Executes the consumer with the given message
+     *
+     * @param processingContext the message
+     */
     public void accept(final ProcessingContext<T> processingContext) {
         consumer.accept(processingContext);
     }

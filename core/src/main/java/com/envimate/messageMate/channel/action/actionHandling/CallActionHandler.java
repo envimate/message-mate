@@ -27,13 +27,32 @@ import lombok.RequiredArgsConstructor;
 
 import static lombok.AccessLevel.PRIVATE;
 
+/**
+ * The {@code ActionHandler} implementation for the {@code Call} {@code Action}. It will always throw an
+ * {@code CallNotAllowedAsFinalChannelAction}, when called.
+ *
+ * @param <T> the type of messages of the {@code Channel}
+ */
 @RequiredArgsConstructor(access = PRIVATE)
 public final class CallActionHandler<T> implements ActionHandler<Call<T>, T> {
 
+    /**
+     * Factory method to create an new {@code CallActionHandler}.
+     *
+     * @param <T> the type of messages of the {@code Channel}
+     * @return a new {@code CallActionHandler}
+     */
     public static <T> CallActionHandler<T> callActionHandler() {
         return new CallActionHandler<>();
     }
 
+    /**
+     * Will always throw {@code CallNotAllowedAsFinalChannelAction}.
+     *
+     * @param action            the {@code Call} {@code Action} this handler was written for
+     * @param processingContext the message
+     * @throws CallNotAllowedAsFinalChannelAction always
+     */
     @Override
     public void handle(final Call<T> action, final ProcessingContext<T> processingContext) {
         throw new CallNotAllowedAsFinalChannelAction();

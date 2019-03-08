@@ -29,7 +29,7 @@ import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusStatusInformation;
 import com.envimate.messageMate.qcec.shared.TestAction;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
-import com.envimate.messageMate.shared.subscriber.ErrorThrowingTestSubscriber;
+import com.envimate.messageMate.shared.subscriber.ExceptionThrowingTestSubscriber;
 import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
@@ -42,14 +42,13 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActions.messageBusTestActions;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXCEPTION;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.AsynchronousSendingTestUtils.sendMessagesBeforeAndAfterShutdownAsynchronously;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSetupActions.addASingleSubscriber;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestActions.*;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestProperties.USED_SUBSCRIPTION_ID;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.TestFilter.anErrorThrowingFilter;
-import static com.envimate.messageMate.shared.subscriber.ErrorThrowingTestSubscriber.errorThrowingTestSubscriber;
+import static com.envimate.messageMate.shared.subscriber.ExceptionThrowingTestSubscriber.exceptionThrowingTestSubscriber;
 
 
 public final class MessageBusActionBuilder {
@@ -297,7 +296,7 @@ public final class MessageBusActionBuilder {
         });
     }
 
-    public static MessageBusActionBuilder anErrorThrowingFilterIsAddedInChannelOf(final Class<TestMessageOfInterest> clazz) {
+    public static MessageBusActionBuilder anExceptionThrowingFilterIsAddedInChannelOf(final Class<TestMessageOfInterest> clazz) {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
             final MessageBusStatusInformation statusInformation = messageBus.getStatusInformation();
             final Channel<TestMessageOfInterest> channel = statusInformation.getChannelFor(clazz);
@@ -308,18 +307,18 @@ public final class MessageBusActionBuilder {
         });
     }
 
-    public static MessageBusActionBuilder anErrorThrowingSubscriberIsAdded() {
+    public static MessageBusActionBuilder anExceptionThrowingSubscriberIsAdded() {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
-            final ErrorThrowingTestSubscriber<TestMessageOfInterest> subscriber = errorThrowingTestSubscriber();
+            final ExceptionThrowingTestSubscriber<TestMessageOfInterest> subscriber = exceptionThrowingTestSubscriber();
             messageBus.subscribe(TestMessageOfInterest.class, subscriber);
             return null;
         });
     }
 
-    public static MessageBusActionBuilder theDynamicErrorHandlerToBeRemoved() {
+    public static MessageBusActionBuilder theDynamicExceptionHandlerToBeRemoved() {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
             final SubscriptionId subscriptionId = testEnvironment.getPropertyAsType(USED_SUBSCRIPTION_ID, SubscriptionId.class);
-            messageBus.unregisterErrorHandler(subscriptionId);
+            messageBus.unregisterExceptionListener(subscriptionId);
             return null;
         });
     }

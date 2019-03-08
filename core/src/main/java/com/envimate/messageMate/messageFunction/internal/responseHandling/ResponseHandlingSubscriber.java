@@ -21,7 +21,7 @@
 
 package com.envimate.messageMate.messageFunction.internal.responseHandling;
 
-import com.envimate.messageMate.messageBus.error.MessageBusExceptionHandler;
+import com.envimate.messageMate.messageBus.exception.MessageBusExceptionHandler;
 import com.envimate.messageMate.messageFunction.internal.responseMatching.ExpectedResponse;
 import com.envimate.messageMate.subscribing.Subscriber;
 

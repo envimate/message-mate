@@ -30,6 +30,12 @@ import java.util.function.Consumer;
 
 import static com.envimate.messageMate.subscribing.AcceptingBehavior.MESSAGE_ACCEPTED;
 
+/**
+ * A {@code Subscriber} that calls the given {@code consumer} for each message.
+ *
+ * @param <T> the type of messages of the {@code Subscriber} can accept
+ * @see <a href="https://github.com/envimate/message-mate#subscriber">Message Mate Documentation</a>
+ */
 @ToString
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
@@ -37,6 +43,13 @@ public final class ConsumerSubscriber<T> implements Subscriber<T> {
     private final Consumer<T> consumer;
     private final SubscriptionId subscriptionId = SubscriptionId.newUniqueId();
 
+    /**
+     * Factory method to create a new {@code ConsumerSubscriber}.
+     *
+     * @param consumer the {@code consumer} to call for each message
+     * @param <T>      the type of the message the {@code Subscriber} accepts
+     * @return a new {@code ConsumerSubscriber}
+     */
     public static <T> ConsumerSubscriber<T> consumerSubscriber(final Consumer<T> consumer) {
         return new ConsumerSubscriber<>(consumer);
     }

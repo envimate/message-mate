@@ -31,6 +31,9 @@ import java.util.UUID;
 
 import static com.envimate.messageMate.internal.enforcing.StringValidator.cleaned;
 
+/**
+ * Each {@code Subscriber} possesses a unique {@code SubscriptionId}, which acts as its identity.
+ */
 @ToString
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
@@ -38,6 +41,12 @@ public final class SubscriptionId {
 
     private final UUID value;
 
+    /**
+     * Creates a {@code SubscriptionId} from the given string value. The string has to be a valid {@code UUID}.
+     *
+     * @param value string form of an UUID
+     * @return new {@code SubscriptionId}
+     */
     public static SubscriptionId fromString(final String value) {
         final String cleaned = cleaned(value);
         try {
@@ -47,6 +56,11 @@ public final class SubscriptionId {
         }
     }
 
+    /**
+     * Creates a new randomly generated {@code SubscriptionId}.
+     *
+     * @return randomly generated {@code SubscriptionId}
+     */
     public static SubscriptionId newUniqueId() {
         return new SubscriptionId(UUID.randomUUID());
     }

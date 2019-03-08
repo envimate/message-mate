@@ -27,13 +27,32 @@ import lombok.RequiredArgsConstructor;
 
 import static lombok.AccessLevel.PRIVATE;
 
+/**
+ * The {@code ActionHandler} implementation for the {@code Consume} {@code Action}. This handler will always execute the
+ * consumer given to the {@code Consume} {@code Action}.
+ *
+ * @param <T> the type of messages of the {@code Channel}
+ * @see <a href="https://github.com/envimate/message-mate#consume">Message Mate Documentation</a>
+ */
 @RequiredArgsConstructor(access = PRIVATE)
 public final class ConsumerActionHandler<T> implements ActionHandler<Consume<T>, T> {
 
+    /**
+     * Factory method for a new {@code ConsumerActionHandler}.
+     *
+     * @param <T> the type of messages of the {@code Channel}
+     * @return a new {@code ConsumerActionHandler}
+     */
     public static <T> ConsumerActionHandler<T> consumerActionHandler() {
         return new ConsumerActionHandler<>();
     }
 
+    /**
+     * Will call the {@code Consume} {@code Action's} consumer.
+     *
+     * @param consume           the {@code Consume} {@code Action} to be handled
+     * @param processingContext the message
+     */
     @Override
     public void handle(final Consume<T> consume, final ProcessingContext<T> processingContext) {
         consume.accept(processingContext);

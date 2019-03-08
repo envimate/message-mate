@@ -27,11 +27,25 @@ import lombok.RequiredArgsConstructor;
 
 import static lombok.AccessLevel.PRIVATE;
 
+/**
+ * This {@code Action} takes the message and sends it in the given {@code Channel}.
+ *
+ * @param <T> the type of messages of both {@code Channels}
+ *
+ * @see <a href="https://github.com/envimate/message-mate#jump">Message Mate Documentation</a>
+ */
 @RequiredArgsConstructor(access = PRIVATE)
 public final class Jump<T> implements Action<T> {
     @Getter
     private final Channel<T> targetChannel;
 
+    /**
+     * Factory method to create a new {@code Jump} object, that forwards messages into the given {@code Channel}.
+     *
+     * @param targetChannel the {@code Channel} to forward messages to
+     * @param <T>           the tyoe if messages of both {@code Channels}
+     * @return a new {@code Jump} {@code Action}
+     */
     public static <T> Jump<T> jumpTo(final Channel<T> targetChannel) {
         return new Jump<>(targetChannel);
     }

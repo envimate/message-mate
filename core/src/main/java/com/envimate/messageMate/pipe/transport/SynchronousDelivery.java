@@ -21,7 +21,7 @@
 
 package com.envimate.messageMate.pipe.transport;
 
-import com.envimate.messageMate.error.NoSuitableSubscriberException;
+import com.envimate.messageMate.exceptions.NoSuitableSubscriberException;
 import com.envimate.messageMate.pipe.error.PipeErrorHandler;
 import com.envimate.messageMate.pipe.events.PipeEventListener;
 import com.envimate.messageMate.subscribing.AcceptingBehavior;

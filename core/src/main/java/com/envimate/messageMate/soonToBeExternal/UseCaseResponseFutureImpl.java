@@ -22,7 +22,7 @@
 package com.envimate.messageMate.soonToBeExternal;
 
 import com.envimate.messageMate.messageFunction.ResponseFuture;
-import com.envimate.messageMate.messageFunction.internal.responseMatching.FollowUpAction;
+import com.envimate.messageMate.messageFunction.followup.FollowUpAction;
 import lombok.RequiredArgsConstructor;
 
 import static lombok.AccessLevel.PRIVATE;

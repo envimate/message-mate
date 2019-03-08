@@ -22,7 +22,7 @@
 package com.envimate.messageMate.messageBus;
 
 
-import com.envimate.messageMate.error.AlreadyClosedException;
+import com.envimate.messageMate.exceptions.AlreadyClosedException;
 import com.envimate.messageMate.messageBus.config.MessageBusTestConfig;
 import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.shared.testMessages.InvalidTestMessage;
@@ -342,75 +342,76 @@ public interface MessageBusSpecs {
 
     //error cases
     @Test
-    default void testMessageBus_throwsErrorWhenSendOnAClosedMessageBusIsCalled(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+    default void testMessageBus_throwsExceptionWhenSendOnAClosedMessageBusIsCalled(final MessageBusTestConfig messageBusTestConfig) throws Exception {
         given(aConfiguredMessageBus(messageBusTestConfig)
-                .withAnErrorAcceptingSubscriber())
+                .withAnExceptionAcceptingSubscriber())
                 .when(theMessageBusIsShutdown()
                         .andThen(aSingleMessageIsSend()))
                 .then(expectTheException(AlreadyClosedException.class));
     }
 
     @Test
-    default void testMessageBus_customErrorHandlerCanAccessErrorsInsideFilterOfAcceptingPipe(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+    default void testMessageBus_customExceptionHandlerCanAccessExceptionsInsideFilterOfAcceptingPipe(final MessageBusTestConfig messageBusTestConfig) throws Exception {
         given(aConfiguredMessageBus(messageBusTestConfig)
-                .withAnErrorThrowingFilter()
+                .withAnExceptionThrowingFilter()
                 .withACustomExceptionHandler())
                 .when(aSingleMessageIsSend())
                 .then(expectTheExceptionHandled(TestException.class));
     }
 
     @Test
-    default void testMessageBus_customErrorHandlerCanAccessErrorsInsideFilterOfDeliveringPipes(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+    default void testMessageBus_customExceptionHandlerCanAccessExceptionsInsideFilterOfDeliveringPipes(final MessageBusTestConfig messageBusTestConfig) throws Exception {
         given(aConfiguredMessageBus(messageBusTestConfig)
                 .withACustomExceptionHandler())
                 .when(aSubscriberIsAdded(TestMessageOfInterest.class)
-                        .andThen(anErrorThrowingFilterIsAddedInChannelOf(TestMessageOfInterest.class))
+                        .andThen(anExceptionThrowingFilterIsAddedInChannelOf(TestMessageOfInterest.class))
                         .andThen(aSingleMessageIsSend()))
                 .then(expectTheExceptionHandled(TestException.class));
     }
 
     @Test
-    default void testMessageBus_customErrorHandlerCanAccessErrorsDuringDelivery(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+    default void testMessageBus_customExceptionHandlerCanAccessExceptionsDuringDelivery(final MessageBusTestConfig messageBusTestConfig) throws Exception {
         given(aConfiguredMessageBus(messageBusTestConfig)
                 .withACustomExceptionHandler())
-                .when(anErrorThrowingSubscriberIsAdded()
+                .when(anExceptionThrowingSubscriberIsAdded()
                         .andThen(aSingleMessageIsSend()))
                 .then(expectTheExceptionHandled(TestException.class));
     }
 
     @Test
-    default void testMessageBus_customErrorHandlerCanMarkExceptionAsNotDeliveryAborting(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+    default void testMessageBus_customExceptionHandlerCanMarkExceptionAsNotDeliveryAborting(final MessageBusTestConfig messageBusTestConfig) throws Exception {
         given(aConfiguredMessageBus(messageBusTestConfig)
                 .withACustomExceptionHandler())
-                .when(anErrorThrowingSubscriberIsAdded()
+                .when(anExceptionThrowingSubscriberIsAdded()
                         .andThen(aSingleMessageIsSend()
                                 .andThen(theNumberOfSuccessfulMessagesIsQueried())))
                 .then(expectResultToBe(1));
     }
 
+    //dynamic exception listener
     @Test
-    default void testMessageBus_dynamicErrorListenerCanBeAdded_forExceptionInFilter(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+    default void testMessageBus_dynamicExceptionListenerCanBeAdded_forExceptionInFilter(final MessageBusTestConfig messageBusTestConfig) throws Exception {
         given(aConfiguredMessageBus(messageBusTestConfig)
-                .withAnErrorThrowingFilter()
-                .withADynamicErrorListener())
+                .withAnExceptionThrowingFilter()
+                .withADynamicExceptionListener())
                 .when(aSingleMessageIsSend())
                 .then(expectTheExceptionHandled(TestException.class));
     }
 
     @Test
-    default void testMessageBus_dynamicErrorListenerCanBeAdded_forExceptionInSubscriber(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+    default void testMessageBus_dynamicExceptionListenerCanBeAdded_forExceptionInSubscriber(final MessageBusTestConfig messageBusTestConfig) throws Exception {
         given(aConfiguredMessageBus(messageBusTestConfig)
-                .withAnErrorThrowingSubscriber()
-                .withADynamicErrorListener())
+                .withAnExceptionThrowingSubscriber()
+                .withADynamicExceptionListener())
                 .when(aSingleMessageIsSend())
                 .then(expectTheExceptionHandled(TestException.class));
     }
 
     @Test
-    default void testMessageBus_dynamicErrorListenerCanBeAddedForSeveralClasses(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+    default void testMessageBus_dynamicExceptionListenerCanBeAddedForSeveralClasses(final MessageBusTestConfig messageBusTestConfig) throws Exception {
         given(aConfiguredMessageBus(messageBusTestConfig)
-                .withAnErrorThrowingSubscriber()
-                .withADynamicErrorListenerForSeveralClasses())
+                .withAnExceptionThrowingSubscriber()
+                .withADynamicExceptionListenerForSeveralClasses())
                 .when(aSingleMessageIsSend())
                 .then(expectTheExceptionHandled(TestException.class));
     }
@@ -418,9 +419,9 @@ public interface MessageBusSpecs {
     @Test
     default void testMessageBus_dynamicErrorListenerCanBeRemoved(final MessageBusTestConfig messageBusTestConfig) throws Exception {
         given(aConfiguredMessageBus(messageBusTestConfig)
-                .withAnErrorThrowingSubscriber()
-                .withTwoDynamicErrorListener())
-                .when(theDynamicErrorHandlerToBeRemoved()
+                .withAnExceptionThrowingSubscriber()
+                .withTwoDynamicExceptionListener())
+                .when(theDynamicExceptionHandlerToBeRemoved()
                         .andThen(aSingleMessageIsSend()))
                 .then(expectTheExceptionHandled(TestException.class));
     }
@@ -430,7 +431,7 @@ public interface MessageBusSpecs {
     @Test
     default void testMessageBus_awaitWithoutCloseReturnsAlwaysTrue(final MessageBusTestConfig messageBusTestConfig) throws Exception {
         given(aConfiguredMessageBus(messageBusTestConfig)
-                .withAnErrorAcceptingSubscriber())
+                .withAnExceptionAcceptingSubscriber())
                 .when(theMessageBusShutdownIsExpectedForTimeoutInSeconds(1))
                 .then(expectResultToBe(true));
     }

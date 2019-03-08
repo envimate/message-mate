@@ -22,7 +22,7 @@
 package com.envimate.messageMate.channel.givenWhenThen;
 
 import com.envimate.messageMate.channel.ProcessingContext;
-import com.envimate.messageMate.channel.error.ChannelExceptionHandler;
+import com.envimate.messageMate.channel.exception.ChannelExceptionHandler;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.shared.testMessages.TestMessage;

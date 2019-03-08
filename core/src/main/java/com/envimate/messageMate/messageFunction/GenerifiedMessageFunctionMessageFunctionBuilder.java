@@ -23,7 +23,7 @@ package com.envimate.messageMate.messageFunction;
 
 import com.envimate.messageMate.correlation.CorrelationId;
 import com.envimate.messageMate.messageBus.MessageBus;
-import com.envimate.messageMate.messageFunction.internal.building.*;
+import com.envimate.messageMate.messageFunction.building.*;
 import com.envimate.messageMate.messageFunction.correlationIdExtracting.CorrelationIdExtractor;
 import com.envimate.messageMate.messageFunction.internal.requestResponseRelation.RequestResponseRelationMap;
 import com.envimate.messageMate.messageFunction.internal.responseHandling.ResponseHandlingSubscriber;

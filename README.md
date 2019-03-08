@@ -80,8 +80,16 @@ A `Consume` Action calls the given Consumer function for every message that reac
 the end of the Channel:
 
 ```java
-Action<T> action = Consume.consumeMessage(m -> {
-    System.out.println(m);
+Action<T> action = Consume.consumeMessage(processingContext -> {
+    T payload = processingContext.getPayload();
+    System.out.println(payload);
+});
+```
+
+A shortcut exists, if only the payload is needed: 
+```java
+Action<T> action = Consume.consumePayload(payload -> {
+    System.out.println(payload);
 });
 ```
 
@@ -93,9 +101,8 @@ removing Subscriber dynamically:
 ```java
 Subscription<Object> subscription = Subscription.subscription();
 
-Consumer<Object> consumer = m -> {
-    System.out.println(m);
-};
+Consumer<Object> consumer = message -> System.out.println(message);
+
 SubscriptionId subscriptionId = subscription.addSubscriber(consumer);
 
 subscription.removeSubscriber(subscriptionId);
@@ -103,6 +110,8 @@ subscription.removeSubscriber(subscriptionId);
 Subscriber<Object> subscriber = ConsumerSubscriber.consumerSubscriber(consumer);
 SubscriptionId subscriptionId = subscription.addSubscriber(subscriber);
 subscription.removeSubscriber(subscriber);
+
+boolean notEmpty = subsription.hasSubscribers();
 ``` 
 The `addSubscriber` method is overloaded to accept either a java Consumer or 
 a `Subscriber` object. Classes implementing this interface get more control 
@@ -120,7 +129,8 @@ for a smaller part in this flow. These Channels can be connected via `Jump`
 Actions. A `Jump` Action takes a message and sends it on the next Channel:
 
 ```java
-Jump<sameTypeOfBothChannels> jump = Jump.jumpTo(differentChannel);
+Channel<T> nextChannel = ...;
+Jump<T> jump = Jump.jumpTo(nextChannel);
 ```
 
 The reason to use `Jumps` and not a `Consume` calling `send` on the next Channel is 
@@ -188,7 +198,7 @@ channel.removePostFilter(filter);
 ##### Call and Return
 A special Action that can only be used inside a Filter is the `Call` Action. It is used
 to perform an immediate jump to a different Channel. The transport of the message is
-resumed the moment the other Channel executes a `Return` as it's final Action. This Call/Return
+resumed the moment the other Channel executes a `Return` as it's final Action. This `Call`/`Return`
 combination allows Filter to add arbitrarily complex logic dynamically to a Channel.
 
 ```java
@@ -202,11 +212,10 @@ channel.addPostFilter((processingContext, filterActions) -> {
     filterActions.pass(processingContext);
 });
 ```
-Calls can be nested arbitrarily and don't need to return (Although not returning chains
-of Channels are harder to debug than simply blocking a message). But returning without
-a previous Call will result in an error.
+`Calls` can be nested arbitrarily and don't need to return. But executing a `Return` without
+a previous `Call` will result in an error.
 
-The factory method `Call.callTo` executes the Call directly. If access to the `Call`
+The factory method `Call.callTo` executes the `Call` directly. If access to the `Call`
 object is needed, a two step alternative exists:
 
 ```java
@@ -216,7 +225,24 @@ channel.addPostFilter((processingContext, filterActions) -> {
     call.execute(processingContext);
 });
 ```
-#### Statistics
+
+Once a `Call` and its matching `Return` object was executed, both objects are linked to each other:
+```java
+//suppose these are the two related actions
+Return<Object> returnAction = Return.aReturn();
+Call<Object> callAction = Call.prepareACall(otherChannel);
+
+
+ChannelProcessingFrame<Object> returnFrame = callAction.getReturnFrame();
+assertThat(returnFrame.getAction(), equalTo(returnAction));
+
+ChannelProcessingFrame<Object> callFrame = returnAction.getRelatedCallFrame();
+assertThat(callFrame.getAction(), equalTo(callAction));
+
+Channel<Object> callActionTargetChannel = callAction.getTargetChannel();
+```
+
+#### Channel Statistics
 Each Channel provides basic logging in form of statistics itself: It logs the number of 
 messages, that were
  - accepted: message was received by Channel and transport was started. A message is always
@@ -347,24 +373,21 @@ An exception inside a Filter always counts as failed and aborts the propagation 
 subsequent Filter or any final Action.
 
 ##### ActionHandlerSet
-Actions serve only as representative container for the necessary information, to 
-execute the logic. Any logic regarding they execution is handled by the ActionHandler. 
-This allows exchanging logic without changing Actions or easy debugability. The 
-`ActionHandlerSet` contains one handler for each allowed Action. 
+Actions serve only as representative container for the information necessary to 
+execute them. Any logic regarding their execution is handled by the `ActionHandlers`. 
+This allows exchanging logic without changing Actions and makes debuging easier. The 
+`ActionHandlerSet` contains one handler for each Action. 
 
 When a message reaches the end of a Channel, the `ActionHandlerSet` serves as a 
-lookup object for a handler for the Action. When a suitable handler is found, its `handle`
-method is called. When no handler is registered an error is thrown.
+lookup object for an `ActionHandler` matching the Channel's final Action. When a suitable 
+handler is found, its `handle` method is called. When no handler is registered an exception is thrown.
 
 ```java
-ActionHandlerSet<Object> actionHandlerSet = ActionHandlerSet.emptyActionHandlerSet();
-actionHandlerSet.registerActionHandler(Jump.class, JumpActionHandler.jumpActionHandler());
+ActionHandlerSet<Object> defaultActionHandlerSet = DefaultActionHandlerSet.defaultActionHandlerSet();
+defaultActionHandlerSet.registerActionHandler(CustomAction.class, new CustomActionHandler());
         
 ChannelBuilder.aChannel()
 .withActionHandlerSet(actionHandlerSet);
-
-ActionHandlerSet<Object> defaultActionHandlerSet = DefaultActionHandlerSet.defaultActionHandlerSet();
-defaultActionHandlerSet.registerActionHandler(CustomAction.class, new CustomActionHandler());
 ```
 
 A more in depth explanation about writing custom Actions and `ActionHandlerSets` 
@@ -499,8 +522,8 @@ channel.addProcessFilter(filter);
 channel.addPostFilter(filter);
 ```
 
-#### Statistics
-Similar to a Channel the MessageBus collects statistics about all messages:
+#### MessageBus Statistics
+Similar to the Channel the MessageBus collects statistics about all messages:
 
 ```java
 MessageBusStatusInformation statusInformation = messageBus.getStatusInformation();
@@ -541,8 +564,9 @@ try {
 ```
 
 #### Configuring the MessageBus
-All configuration is done when using the `MessageBusBuilder` to create a new 
-MessageBus.
+All configuration is done using the `MessageBusBuilder` class. All configurable properties have default values. This creates
+a synchronous MessageBus. The default `MessageBusExceptionHandler` throws all exceptions on the calling Thread. Whenever a
+class specific Channel has to be created, a synchronous one is created by the default MessageBusChannelFactory. 
 
 ```java
 MessageBusBuilder.aMessageBus()
@@ -589,22 +613,30 @@ exception should be ignored. In case the exception should be handled, the messag
 is marked as failed in the statistics and the `handleDeliveryChannelException`
 method is called. When an exception is raised in any Filter (general or class
 specific Channel), the delivery is aborted, the message is marked as failed and
-the control is given to `handleFilterException`.
+the control is given to `handleFilterException`. After each of the `handle_Exception`
+methods all suitable exception listener are called.
 
-The `ChannelFactory` is used to create the class-specific Channel, that delivers the
+The `MessageBusChannelFactory` is used to create the class-specific Channel, that delivers the
 messages to the Subscribers for this class. The default implementation creates a synchronous Channel,
 that redirect errors to the `MessageBusErrorHandler`. But in case more control over the
-configuration of these Channels is needed, a custom implementation can be given here.
-But care has to be taken to handle or redirect the errors correctly.
+configuration of these Channels is needed, a custom implementation can be given here. The 
+creation of a new happen Channel can be requested in two cases: First a subscriber is added 
+for a not yet known class. Second, an unknown message was sent. Then for the class of the message 
+and all newly discovered parent classes, a new Channel is created.                                                                                        * discovered parent classes, a new {@code Channel} is created.
+Care has to be taken to handle or redirect the errors correctly. Also important to note is,
+that the `close` call to the MessageBus will not be propagated to the `MessageBusChannelFactory`.
+If a custom `MessageBusChannelFactory` contains state that requires a teardown, the 
+synchronisation with the `close` call has to be enforced manually.
 
-#### Dynamically adding error handlers
-Once the MessageBus is created, the given `MessageBusErrorHandler` can not be changed.
-But since subscriber[s] are added or removed to or from a[] MessageBus in a highly dynamical 
-way, a static error handler becomes a problem. Therefore the MessageBus provides a
-way to register error-handler for specific classes of messages on the fly:
+#### Dynamically adding exception listener
+Once the MessageBus is created, the given `MessageBusExceptionHandler` can not be changed.
+But since subscribers are added or removed to or from a MessageBus in a highly dynamical 
+way, a static exception handler becomes a problem. Therefore the MessageBus provides a
+way to register exception listener for specific classes of messages on the fly. These 
+listener will always be called after the `MessageBusExceptionHandler`.
 
 ```java
-SubscriptionId subscriptionId = messageBus.onError(TestMessage.class, new BiConsumer<TestMessage, Exception>() {
+SubscriptionId subscriptionId = messageBus.onException(TestMessage.class, new MessageBusExceptionListener<TestMessage>() {
     @Override
     public void accept(TestMessage testMessage, Exception e) {
         System.out.println(e);
@@ -612,16 +644,15 @@ SubscriptionId subscriptionId = messageBus.onError(TestMessage.class, new BiCons
 });
 
 List<Class<?>> list = new ArrayList<>();
-messageBus.onError(list, customErrorHandler);
+SubscriptionId subscriptionId = messageBus.onException(list, customExceptionListener);
         
-messageBus.unregisterErrorHandler(subscriptionId);
+messageBus.unregisterExceptionListener(subscriptionId);
 ```
 
-The `onError` method takes either a single class or a list of classes and a 
-BiConsumer<Class<T>, Exception> as handler. Whenever an error occurs for one of the
-given classes, the errorHandler is invoked. The `unregisterErrorHandler` is used to 
-register all the handler, that were created for the given subscriptionId.
-
+The `onException` method takes either a single class or a list of classes and a 
+`MessageBusExceptionListener<T>` as listener. Whenever an exception occurs for one of the
+given classes, the error listener is invoked. The `unregisterExceptionListener` is used to 
+remove all the listener matching the given subscriptionId.
 
 ## Advance Concepts
 
@@ -902,18 +933,25 @@ documentBus.publish(new AppleTreeCutDownEvent());
 ```
 ### Message Function
 Implementing a Request-Reply communication over an asynchronous MessageBus can be
-error-prone. Once the request is send all errors should be checked for it. One request
-can be answered by different replies, that are distinct in their format or by the request
-they correspond to. All errors for these potential replies have to be checked too.
+error-prone. Once the request is send, numerous ways exist, how to respond to it.
+It could be answered by different types for replies. Some model success responses, 
+others error responses. But also exceptions can occur and no regular response is ever
+sent. In case several requests are simultaneously active, responses and exceptions 
+have to be checked, if they correspond to the correct request.
 
 The `MessageFunction` class simplifies this Request-Reply communication. During its creation
-potential replies are defined. When a request is send, a future is returned, that is fulfilled once one of the following
-cases arise: a successful reply is received, a reply defined as failure reply is received or an exception is thrown
-during the process.
+you can define, which potential success and error responses could occur. Sending the request 
+returns a future, that is fulfilled once the request was answered: may it be a successful reply,
+a reply indicating an error or an exception, that was thrown during the process.
 
-In the following example we want to buy a number of apples from a farmer via a
-`BuyAppleRequest`. The farmer can accept our offer with an `AcceptOfferReply` or decline
-with a `DeclineOfferReply` based on hist stock:
+The future provides the methods `get`and `await`, which block the caller until a result
+is received or the optional timeout expired. The future also allows for a non blocking
+processing. Via the `then` method follow up actions can be defined, that are executed
+once a the future is fulfilled.
+
+The following example modells the process of buying a number of apples from a farmer.
+The `BuyAppleRequest` starts the negotiation. The farmer can accept the offer with 
+an `AcceptOfferReply` or decline with a `DeclineOfferReply` based on his stock:
 
 ```java
 class Farmer {
@@ -1012,52 +1050,83 @@ responseFuture.then((response, wasSuccessful, exception) -> {
 The builder of a MessageFunction contains several Steps:
 - `forRequestType` defines the class (or superclass) for potential requests
 - `forResponseType` defines the class (or often superclass) for potential replies
-- the `with` method starts the request to success/failure replies. The given parameter
-defines the request class, the subsequent `answer` methods relate to
-- `answeredBy` takes a class that counts as successful response when received
-- `orByError` takes a class that when received results as failure
-- To map replies to the send request `CorrelationIds` are used. The 
-`obtainingCorrelationIdsOf...` are used to extract them out of the replies.
-- Finally the used MessageBus is given and the MessageFunction is build 
+- The mapping of a request class to  its potential replies is started using the 
+`with` method. The `with` method takes the class of the request (which has to 
+extend the class given in `forRequestType`). Afterwards potential replies are
+defined.
+- The `answeredBy` method takes a reply class that counts as successful response when received
+- The `orByError` method takes a class that when received results as not successful
+- Distinguishing replies from different replies is done based on `CorrelationIds`.
+Each request creates a new, unique one. All responses should contain the same 
+`CorrelationIds`. The two `obtainingCorrelationIdsOf...` methods are used to extract 
+ these identifiers out of the request and its reply.
+- Finally the MessageBus to use is set and the MessageFunction is build 
+
+The difference of `answeredBy` (and later `or`) and `orByError` is the marking the 
+message as successful in the `ResponseFuture`. Responses defined in `answeredBy` and
+`or` will fulfill the future successful. The future's method `wasSuccessful` or 
+the property `wasSuccessful` inside the `FollowUpActions` will be set to `true`.
+Responses defined in `orByError` will result `false` being the result.
 
 #### ResponseFuture
 A request can be send with the `request` function. It returns a `ResponseFuture` object 
-specific for that request. The `then` method allows to add handler, that will be executed
+specific for that request. This `ResponseFuture` instance is fulfilled, once a response
+defined by `answeredBy`, `or` and `orByError` with a matching `CorrelationId` was 
+received. Being a java `Future`, it provides methods to query or wait on the result:
+
+```java
+ResponseFuture<T> future = messageFunction.request(message);
+try {
+    T result = future.get();
+} catch (InterruptedException | ExecutionException e) {
+
+}
+
+try {
+    T result = future.get(3, TimeUnit.SECONDS);
+} catch (InterruptedException | ExecutionException | TimeoutException e) {
+
+}
+
+boolean isDone = future.isDone();
+
+boolean mayInterruptIfRunning = true;
+boolean cancelSucceeded = future.cancel(mayInterruptIfRunning);
+boolean cancelled = future.isCancelled();
+```
+These standard future methods follow the contract described in the `Future`javadoc.
+
+The `get` methods suspend the caller until a result was receied or the optional 
+timeout expired. Handling the result in a nonblocking way is provides with
+`FollowUpAction`. The `then` method allows to one `FollowUpAction`, that will be executed
 once the future fulfills. The handler logic is called on the Thread, that fulfilled
-the future. The `FollowUpAction` given to the `then` method accepts three parameter:
+the future. The `FollowUpAction` accepts three parameter:
 1) The response. This can be a success or failure response. Note that response is only
 available, when no exception occurred. Therefore always check for `exception == null`
 first
-2) A boolean indicating whether it was a success response (as defined by `answeredBy`)
-or an error response (as defined by `orByError`). It is also only correctly set, when
+2) A boolean indicating whether it was a success response (as defined by `answeredBy`
+and `or`) or an error response (as defined by `orByError`). It is also only correctly set, when
 exception is null.
 3) In case a exception occurred during any of the involved messages, the exception parameter
 is not null.
 
 A future fulfills only once. So an exception during the sending of a request will fulfill
 the future. Subsequent replies to the request will be ignored and won't trigger any 
-`FollowUpActions` twice. At any time only one `FollowUpAction` is allowed
-
-The responseFuture allows several ways to deal with its completion. The `then` method
-allows for a non-blocking handling, that is executed on the Thread fulfilling the
-future. Being a subclass of the java Future interface it the following methods:
+`FollowUpActions` twice. At any time only one `FollowUpAction` is allowed. When the future
+is cancelled, no `FollowUpActions` will be executed. 
 
 ```java
-try {
-    OfferReply offerReply = responseFuture.get();
-    responseFuture.get(4, TimeUnit.MILLISECONDS);
-} catch (InterruptedException | ExecutionException | TimeoutException e) {
-
-}
-
-boolean interruptIfRunning = true;
-boolean cancelSuccessful = responseFuture.cancel(interruptIfRunning);
-    
-responseFuture.isCancelled();
-responseFuture.isDone();
-        
-responseFuture.wasSuccessful();
-responseFuture.then(new FollowUpAction<OfferReply>());
+responseFuture.then((response, wasSuccessful, exception) -> {
+    if (exception != null) {
+        System.out.println("Exception occured: " + exception);
+    } else {
+        if (wasSuccessful) {
+            System.out.println("AcceptOfferReply received: " + response);
+        } else {
+            System.out.println("DeclineOfferReply received: " + response);
+        }
+    }
+});
 ```
 
 #### Several Request-Response Pairs
@@ -1081,7 +1150,7 @@ MessageFunctionBuilder.aMessageFunction()
 ```
 
 #### GeneralErrorResponse
-There happen to occur cross-cutting errors, that are not part of the request-reponse 
+There happen to occur cross-cutting errors, that are not part of the request-response 
 class hierarchy. Nonetheless the MessageFunction should react to these and abort the
 corresponding future. The `withGeneralErrorResponse` takes as arguments the class of 
 the error response and an optional conditional. Whenever a matching response is received,
@@ -1145,9 +1214,28 @@ The second method `getSubscriptionId` should return a SubscriptionId, that is co
 and unique for the Subscriber. The identification of an subscriber should be dependent
 on the equality of the SubscriberId returned by this method. `equals` and `hashCode` 
 should behave accordingly.
+
+Two convenience implementations of the `Subscriber` interface exist: The `ConsumerSubscriber`
+which creates a `Subscriber` from java `consume` and the `PreemptiveSubscriber`, which takes
+a java `predicate`. The return value of the `predicate` is used to decide, if the
+delivery is continued (return `true`) or if it is preempted (return `false`):
+
+```java
+ConsumerSubscriber<Object> consumerSubscriber = ConsumerSubscriber.consumerSubscriber(m -> {
+    System.out.println(m);
+});
+
+PreemptiveSubscriber<Object> preemptiveSubscriber = PreemptiveSubscriber.preemptiveSubscriber(m -> {
+    if (shouldDeliveryContinue(m)) {
+        return true;
+    } else {
+        return false;
+    }
+});
+```
  
 ### Custom Actions
-The built-in Actions for Channels should allow for most use cases. In case customization 
+The built-in Actions for Channels should cover most use cases. In case customization 
 is needed, the `Action` interface can be implemented:
 
 ```java
@@ -1155,14 +1243,14 @@ public interface Action<T> {}
 ```
 It does not define any methods. An Action is only a container for necessary data. All
 the logic about executing the Action is done by the respective `ActionHandler`. For 
-every custom Action, there must be an ActionHandler specifically written for this Action:
+every custom Action, there must be an `ActionHandler` specifically written for this Action:
 
 ```java
 public interface ActionHandler<T extends Action<R>, R> { 
     void handle(T action, ProcessingContext<R> processingContext);
 }
 ```
-The ActionHandler defines two generic parameter: `R` is the generic given by the
+The `ActionHandler` interface defines two generic parameter: `R` is the generic given by the
 Action. Normally it is inherited by the type of the Channel. `T` corresponds the Action
 for which the ActionHandler is written. The `handle` method is called whenever a message
 with the Action has reached the end of the Channel. The following example implements a logging Action.
@@ -1192,9 +1280,13 @@ class LogActionHandler<T> implements ActionHandler<Log<T>, T> {
 }
 ```
 
-When we want to use our Log Action, we have to register the Action and the handler at
-the Channel:
+When we want to use our Log Action, we have to make it known to the Channel. Each 
+Channel has an `ActionHandlerSet` set during creation. Only those code Actions 
+can be used as final code Action of the code Channel, that have a matching 
+ActionHandler registered in the set. If an unknown Action is encountered, an 
+`NoHandlerForUnknownActionException` is thrown.
 
+To add your custom Action, register it the your custom `ActionHandlerSet`:
 ```java
 ActionHandlerSet<Object> actionHandlerSet = DefaultActionHandlerSet.defaultActionHandlerSet();
 actionHandlerSet.registerActionHandler(Log.class, new LogActionHandler<>());
@@ -1203,10 +1295,17 @@ Channel<Object> channel = ChannelBuilder.aChannel(Object.class)
     .withActionHandlerSet(actionHandlerSet)
     .build();
 ```
-We used the default ActionHandlerSet, so that we do not have to register the built-in
-Actions and handler ourselves. But a completely different set can be built from scratch
+We used the default `ActionHandlerSet`, so that we do not have to register the built-in
+Actions and their ActionHandlers ourselves. But a completely different set can be built from scratch
 anytime with:
 
 ```java
 ActionHandlerSet<T> actionHandlerSet = ActionHandlerSet.emptyActionHandlerSet();
+
+//manually registering all built-in actions
+actionHandlerSet.registerActionHandler(Consume.class, ConsumerActionHandler.consumerActionHandler());
+actionHandlerSet.registerActionHandler(Subscription.class, SubscriptionActionHandler.subscriptionActionHandler());
+actionHandlerSet.registerActionHandler(Jump.class, JumpActionHandler.jumpActionHandler());
+actionHandlerSet.registerActionHandler(Return.class, ReturnActionHandler.returnActionHandler());
+actionHandlerSet.registerActionHandler(Call.class, CallActionHandler.callActionHandler());
 ```

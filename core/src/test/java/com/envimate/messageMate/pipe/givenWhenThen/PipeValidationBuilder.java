@@ -22,7 +22,7 @@
 package com.envimate.messageMate.pipe.givenWhenThen;
 
 import com.envimate.messageMate.pipe.Pipe;
-import com.envimate.messageMate.error.AlreadyClosedException;
+import com.envimate.messageMate.exceptions.AlreadyClosedException;
 import com.envimate.messageMate.pipe.PipeStatusInformation;
 import com.envimate.messageMate.pipe.statistics.PipeStatistics;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;

@@ -34,7 +34,7 @@ import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPEC
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestProperties.*;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.TestFilter.*;
 import static com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber.blockingTestSubscriber;
-import static com.envimate.messageMate.shared.subscriber.ErrorThrowingTestSubscriber.errorThrowingTestSubscriber;
+import static com.envimate.messageMate.shared.subscriber.ExceptionThrowingTestSubscriber.exceptionThrowingTestSubscriber;
 import static com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber.deliveryPreemptingSubscriber;
 import static com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber.testSubscriber;
 import static lombok.AccessLevel.PRIVATE;
@@ -107,14 +107,14 @@ public final class PipeMessageBusSetupActions {
         testEnvironment.setProperty(EXECUTION_END_SEMAPHORE, semaphore);
     }
 
-    public static void addAnErrorAcceptingSubscriber(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
+    public static void addAnExceptionAcceptingSubscriber(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
         @SuppressWarnings("rawtypes")
         final SimpleTestSubscriber<?> errorSubscriber = testSubscriber();
         testEnvironment.setProperty(ERROR_SUBSCRIBER, errorSubscriber);
     }
 
-    public static TestSubscriber<TestMessageOfInterest> addAnErrorThrowingSubscriber(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
-        final ErrorThrowingTestSubscriber<TestMessageOfInterest> subscriber = errorThrowingTestSubscriber();
+    public static TestSubscriber<TestMessageOfInterest> addAnExceptionThrowingSubscriber(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
+        final ExceptionThrowingTestSubscriber<TestMessageOfInterest> subscriber = exceptionThrowingTestSubscriber();
         sutActions.subscribe(TestMessageOfInterest.class, subscriber);
         return subscriber;
     }

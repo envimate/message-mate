@@ -26,9 +26,9 @@ import com.envimate.messageMate.channel.ChannelType;
 import com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategy;
 import com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategyImpl;
 import com.envimate.messageMate.messageBus.channelCreating.MessageBusChannelFactory;
-import com.envimate.messageMate.messageBus.error.DelegatingChannelExceptionHandler;
-import com.envimate.messageMate.messageBus.error.ErrorListenerHandlerImpl;
-import com.envimate.messageMate.messageBus.error.MessageBusExceptionHandler;
+import com.envimate.messageMate.messageBus.internal.exception.DelegatingChannelExceptionHandler;
+import com.envimate.messageMate.messageBus.internal.exception.ExceptionListenerHandlerImpl;
+import com.envimate.messageMate.messageBus.exception.MessageBusExceptionHandler;
 import com.envimate.messageMate.pipe.configuration.AsynchronousConfiguration;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -38,44 +38,85 @@ import static com.envimate.messageMate.messageBus.MessageBusConsumeAction.messag
 import static com.envimate.messageMate.messageBus.MessageBusType.SYNCHRONOUS;
 import static com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategyImpl.messageBusBrokerStrategy;
 import static com.envimate.messageMate.messageBus.channelCreating.SynchronousMessageBusChannelFactory.synchronousMessageBusChannelFactory;
-import static com.envimate.messageMate.messageBus.error.DelegatingChannelExceptionHandler.delegatingChannelExceptionHandlerForAcceptingChannel;
-import static com.envimate.messageMate.messageBus.error.ErrorListenerDelegatingMessageBusExceptionHandler.errorListenerDelegatingMessageBusExceptionHandler;
-import static com.envimate.messageMate.messageBus.error.ErrorListenerHandlerImpl.errorListenerHandler;
-import static com.envimate.messageMate.messageBus.error.ErrorThrowingMessageBusExceptionHandler.errorThrowingMessageBusExceptionHandler;
+import static com.envimate.messageMate.messageBus.internal.exception.DelegatingChannelExceptionHandler.delegatingChannelExceptionHandlerForAcceptingChannel;
+import static com.envimate.messageMate.messageBus.internal.exception.ErrorListenerDelegatingMessageBusExceptionHandler.errorListenerDelegatingMessageBusExceptionHandler;
+import static com.envimate.messageMate.messageBus.internal.exception.ExceptionListenerHandlerImpl.errorListenerHandler;
+import static com.envimate.messageMate.messageBus.exception.ErrorThrowingMessageBusExceptionHandler.errorThrowingMessageBusExceptionHandler;
+import static lombok.AccessLevel.PRIVATE;
 
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+/**
+ * The {@code MessageBusBuilder} class provides a fluent interface to create and configure a {@code MessageBus}.
+ *
+ * <p>Most of the configurable properties have default values set by the builder. Per default a synchronous {@code MessageBus}
+ * is created with an exception handler, that throws exception once they occur. The default {@code MessageBusChannelFactory}
+ * creates synchronous class specific {@code Channels}.</p>
+ *
+ * @see <a href="https://github.com/envimate/configuring-the-messagebus#">Message Mate Documentation</a>
+ */
+@RequiredArgsConstructor(access = PRIVATE)
 public final class MessageBusBuilder {
     private MessageBusChannelFactory channelFactory;
     private MessageBusType type = SYNCHRONOUS;
     private AsynchronousConfiguration asynchronousConfiguration;
     private MessageBusExceptionHandler exceptionHandler = errorThrowingMessageBusExceptionHandler();
 
+    /**
+     * Creates a new {@code MessageBusBuilder}.
+     * @return a new {@code MessageBusBuilder}.
+     */
     public static MessageBusBuilder aMessageBus() {
         return new MessageBusBuilder();
     }
 
+    /**
+     * Overrides the {@code MessageBusType}. Per default {@code MessageBusType.SYNCHRONOUS} is configured.
+     * @param type the {@code MessageBusType} to overwrite
+     * @return the same {@code MessageBusBuilder} instance the method was called one
+     */
     public MessageBusBuilder forType(final MessageBusType type) {
         this.type = type;
         return this;
     }
 
+    /**
+     * Overrides the the {@code MessageBusChannelFactory}.
+     *
+     * @param channelFactory the new {@code MessageBusChannelFactory}.
+     * @return the same {@code MessageBusBuilder} instance the method was called one
+     */
     public MessageBusBuilder withAChannelFactory(final MessageBusChannelFactory channelFactory) {
         this.channelFactory = channelFactory;
         return this;
     }
 
+    /**
+     * In case an asynchronous {@code MessageBus} is created an {@code AsynchronousConfiguration} has to be provides with this
+     * method.
+     * @param asynchronousConfiguration the required {@code AsynchronousConfiguration}
+     * @return the same {@code MessageBusBuilder} instance the method was called one
+     */
     public MessageBusBuilder withAsynchronousConfiguration(final AsynchronousConfiguration asynchronousConfiguration) {
         this.asynchronousConfiguration = asynchronousConfiguration;
         return this;
     }
 
+    /**
+     * Overrides the default exception throwing {@code MessageBusExceptionHandler}.
+     *
+     * @param exceptionHandler the new {@code MessageBusExceptionHandler}
+     * @return the same {@code MessageBusBuilder} instance the method was called one
+     */
     public MessageBusBuilder withExceptionHandler(final MessageBusExceptionHandler exceptionHandler) {
         this.exceptionHandler = exceptionHandler;
         return this;
     }
 
+    /**
+     * Creates the {@code MessageBus}
+     * @return the newly created {@code MessageBus}
+     */
     public MessageBus build() {
-        final ErrorListenerHandlerImpl errorListenerHandler = errorListenerHandler();
+        final ExceptionListenerHandlerImpl errorListenerHandler = errorListenerHandler();
         final MessageBusExceptionHandler exceptionHandler = createExceptionHandler(errorListenerHandler);
         final MessageBusBrokerStrategyImpl brokerStrategy = createBrokerStrategy(exceptionHandler);
         final Channel<Object> acceptingChannel = createAcceptingChannel(brokerStrategy, exceptionHandler);
@@ -87,7 +128,7 @@ public final class MessageBusBuilder {
         return messageBusBrokerStrategy(channelFactory, exceptionHandler);
     }
 
-    private MessageBusExceptionHandler createExceptionHandler(final ErrorListenerHandlerImpl errorListenerHandler) {
+    private MessageBusExceptionHandler createExceptionHandler(final ExceptionListenerHandlerImpl errorListenerHandler) {
         return errorListenerDelegatingMessageBusExceptionHandler(exceptionHandler, errorListenerHandler);
     }
 

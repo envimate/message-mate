@@ -23,7 +23,18 @@ package com.envimate.messageMate.messageFunction.correlationIdExtracting;
 
 import com.envimate.messageMate.correlation.CorrelationId;
 
+/**
+ * Interface to define the logic how to extract the {@code CorrelationId} out of a message.
+ *
+ * @param <T> the type of the message
+ */
 public interface CorrelationIdExtraction<T> {
 
+    /**
+     * Extracts the {@code CorrelationId} out of the message.
+     *
+     * @param message the given message
+     * @return the extracted {@code CorrelationId}
+     */
     CorrelationId extractCorrelationId(T message);
 }

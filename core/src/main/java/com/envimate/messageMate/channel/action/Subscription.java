@@ -34,11 +34,26 @@ import java.util.function.Consumer;
 import static com.envimate.messageMate.subscribing.ConsumerSubscriber.consumerSubscriber;
 import static lombok.AccessLevel.PRIVATE;
 
+/**
+ * A {@code Subscription} object manages a list of {@code Subscribers}. Each message is distributed to each {@code Subscriber},
+ * if no exception occurred.
+ *
+ * @param <T> the type of messages of the {@code Channel}
+ *
+ * @see <a href="https://github.com/envimate/message-mate#subscription">Message Mate Documentation</a>
+ */
 @RequiredArgsConstructor(access = PRIVATE)
 public final class Subscription<T> implements Action<T> {
     @Getter
     private final List<Subscriber<T>> subscribers;
 
+    /**
+     * Creates a new {@code Subscription} object.
+     *
+     * @param <T> the type of messages of the {@code Channel}
+     *
+     * @return a new {@code Subscription} object
+     */
     public static <T> Subscription<T> subscription() {
         /* Use CopyOnWriteArrayList, because
          - concurrent collection
@@ -48,25 +63,54 @@ public final class Subscription<T> implements Action<T> {
         return new Subscription<>(linkedList);
     }
 
+    /**
+     * Adds a the consumer wrapped in a {@code Subscriber} object.
+     *
+     * @param consumer the consuming {@code Subscriber} to be added
+     * @return the wrapping {@code Subscriber's} {@code SubscriptionId}
+     */
     public SubscriptionId addSubscriber(final Consumer<T> consumer) {
         final ConsumerSubscriber<T> subscriber = consumerSubscriber(consumer);
         subscribers.add(subscriber);
         return subscriber.getSubscriptionId();
     }
 
+    /**
+     * Adds a {@code Subscriber}.
+     *
+     * @param subscriber the {@code Subscriber} to be added
+     * @return the wrapping {@code Subscriber's} {@code SubscriptionId}
+     */
     public SubscriptionId addSubscriber(final Subscriber<T> subscriber) {
         subscribers.add(subscriber);
         return subscriber.getSubscriptionId();
     }
 
-    public boolean hasSubscriber() {
+    /**
+     * Returns if at least one subscriber exists.
+     *
+     * @return {@code true} if at least one {@code Subscriber} exists, {@code false} otherwise
+     */
+    public boolean hasSubscribers() {
         return !subscribers.isEmpty();
     }
+
+    /**
+     * Removes the given {@code Subscriber}.
+     *
+     * @param subscriber the {@code Subscriber} to be removed
+     */
 
     public void removeSubscriber(final Subscriber<T> subscriber) {
         subscribers.remove(subscriber);
     }
 
+
+    /**
+     * Removes all {@code Subscribers} that match the given {@code SubscriptionId}.
+     *
+     * @param subscriptionId the {@code SubscriptionId}, for which all {@code Subscribers} should be removed.
+     */
     public void removeSubscriber(final SubscriptionId subscriptionId) {
         subscribers.removeIf(subscriber -> subscriber.getSubscriptionId().equals(subscriptionId));
     }

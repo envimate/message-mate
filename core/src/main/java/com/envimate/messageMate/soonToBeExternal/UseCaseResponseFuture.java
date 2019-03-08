@@ -21,7 +21,7 @@
 
 package com.envimate.messageMate.soonToBeExternal;
 
-import com.envimate.messageMate.messageFunction.internal.responseMatching.FollowUpAction;
+import com.envimate.messageMate.messageFunction.followup.FollowUpAction;
 
 public interface UseCaseResponseFuture {
 

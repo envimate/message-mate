@@ -24,7 +24,26 @@ package com.envimate.messageMate.channel.action.actionHandling;
 import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.channel.action.Action;
 
+/**
+ * {@code ActionHandler} are responsible to handle the execution of the final {@code Action} of a {@code Channel}.
+ *
+ * <p>{@code Actions} serve only as representative container for the information necessary to execute them. Any logic regarding
+ * their execution is handled by the {@code ActionHandlers}. When a message reaches the end of a {@code Channel}, the
+ * {@code ActionHandlerSet} serves as a lookup object for an {@code ActionHandler} matching the {@code Channel's} final
+ * {@code Action}.</p>
+ *
+ * @param <T> the type of the {@code Action} to handle
+ * @param <R> the type of messages of the {@code Channel}
+ *
+ * @see <a href="https://github.com/envimate/message-mate#custom-actions">Message Mate Documentation</a>
+ */
 public interface ActionHandler<T extends Action<R>, R> {
 
+    /**
+     * Handle the execution of the given {@code Action} and message.
+     *
+     * @param action the {@code Action} this handler was written for
+     * @param processingContext the message
+     */
     void handle(T action, ProcessingContext<R> processingContext);
 }

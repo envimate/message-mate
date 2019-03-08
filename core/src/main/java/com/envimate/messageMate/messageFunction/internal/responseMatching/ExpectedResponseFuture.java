@@ -22,6 +22,7 @@
 package com.envimate.messageMate.messageFunction.internal.responseMatching;
 
 import com.envimate.messageMate.messageFunction.ResponseFuture;
+import com.envimate.messageMate.messageFunction.followup.FollowUpAction;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 

@@ -23,6 +23,9 @@ package com.envimate.messageMate.channel.action.actionHandling;
 
 import com.envimate.messageMate.channel.action.Action;
 
+/**
+ * Exception, that is thrown, when the {@code ActionHandlerSet} is queried for an unknown {@code Action}.
+ */
 public class NoHandlerForUnknownActionException extends RuntimeException {
 
     public NoHandlerForUnknownActionException(final Action<?> action) {

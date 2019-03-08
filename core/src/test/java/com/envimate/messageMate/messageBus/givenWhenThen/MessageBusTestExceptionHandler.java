@@ -23,13 +23,12 @@ package com.envimate.messageMate.messageBus.givenWhenThen;
 
 import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.channel.ProcessingContext;
-import com.envimate.messageMate.messageBus.error.MessageBusExceptionHandler;
+import com.envimate.messageMate.messageBus.exception.MessageBusExceptionHandler;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.subscriber.TestException;
 import lombok.RequiredArgsConstructor;
 
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXCEPTION;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RESULT;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
 import static lombok.AccessLevel.PRIVATE;
 

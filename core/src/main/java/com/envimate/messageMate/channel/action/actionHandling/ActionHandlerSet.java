@@ -26,6 +26,15 @@ import com.envimate.messageMate.channel.action.Action;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * The {@code ActionHandlerSet} defines the mapping of {@code Actions} to their respective {@code ActionHandler}.
+ *
+ * <p>Each {@code Channel} has an {@code ActionHandlerSet} set during creation. Only those {@code Actions} can be used as
+ * final {@code Action} of the {@code Channel}, that have a matching {@code ActionHandler} registered in the set. </p>
+ *
+ * @param <T> the type of messages of the {@code Channel}
+ * @see <a href="https://github.com/envimate/message-mate#custom-actions">Message Mate Documentation</a>
+ */
 public final class ActionHandlerSet<T> {
 
     @SuppressWarnings("rawtypes")
@@ -36,18 +45,38 @@ public final class ActionHandlerSet<T> {
         this.actionHandlerMap = actionHandlerMap;
     }
 
+    /**
+     * Factory method to create a new {@code ActionHandlerSet} based on an existing mapping.
+     *
+     * @param handlerMap map containing existing mapping.
+     * @param <T>        the type of messages of the {@code Channel}
+     * @return a new {@code ActionHandlerSet}
+     */
     @SuppressWarnings("rawtypes")
     public static <T> ActionHandlerSet<T> actionHandlerSet(
             final Map<Class<? extends Action>, ActionHandler<? extends Action<T>, T>> handlerMap) {
         return new ActionHandlerSet<>(handlerMap);
     }
 
+    /**
+     * Creates a new, empty {@code ActionHandlerSet}.
+     *
+     * @param <T> the type of messages of the {@code Channel}
+     * @return a new, empty {@code ActionHandlerSet}
+     */
     @SuppressWarnings("rawtypes")
     public static <T> ActionHandlerSet<T> emptyActionHandlerSet() {
         final Map<Class<? extends Action>, ActionHandler<? extends Action<T>, T>> map = new HashMap<>();
         return new ActionHandlerSet<>(map);
     }
 
+    /**
+     * Returns the {@code ActionHandler} registered for the given action.
+     *
+     * @param action the action for which the handler is queried
+     * @return the {@code ActionHandler} if one is present
+     * @throws NoHandlerForUnknownActionException if no {@code ActionHandler} for the {@code Action} exists
+     */
     @SuppressWarnings({"rawtypes", "unchecked"})
     public ActionHandler<Action<T>, T> getActionHandlerFor(final Action<T> action) {
         final Class<? extends Action> actionClass = action.getClass();
@@ -59,6 +88,13 @@ public final class ActionHandlerSet<T> {
         }
     }
 
+    /**
+     * Method, that can be used to add an {@code Action} and its {@code ActionHandler} dynamically to the set. Can be used
+     * to overwrite existing mappings.
+     *
+     * @param actionClass the {@code Action} for which the handler should be added
+     * @param actionHandler the {@code ActionHandler}
+     */
     @SuppressWarnings("rawtypes")
     public void registerActionHandler(final Class<? extends Action> actionClass,
                                       final ActionHandler<? extends Action<T>, T> actionHandler) {

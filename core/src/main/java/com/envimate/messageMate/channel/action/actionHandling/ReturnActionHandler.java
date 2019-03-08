@@ -30,13 +30,36 @@ import lombok.RequiredArgsConstructor;
 
 import static lombok.AccessLevel.PRIVATE;
 
+/**
+ * The {@code ActionHandler} implementation for the {@code Return} {@code Action}. This handler will go back through the
+ * {@code ChannelProcessingFrame} history to obtain the last {@code Call} {@code Action}, that was not yet matched with an
+ * {@code Return} {@code Action}. If found, it will link those two and will return back to the point the {@code Call} was
+ * executed. If no not yet consumed {@code Call} was found, a {@code ReturnWithoutCallException} is thrown.
+ *
+ * @param <T> the type of messages of the {@code Channel}
+ *
+ * @see <a href="https://github.com/envimate/message-mate#call-and-return">Message Mate Documentation</a>
+ */
 @RequiredArgsConstructor(access = PRIVATE)
 public final class ReturnActionHandler<T> implements ActionHandler<Return<T>, T> {
 
+    /**
+     * Factory method for a new {@code ReturnActionHandler}.
+     *
+     * @param <T> the type of messages of the {@code Channel}
+     * @return a new {@code ReturnActionHandler}
+     */
     public static <T> ReturnActionHandler<T> returnActionHandler() {
         return new ReturnActionHandler<>();
     }
 
+    /**
+     * Will lookup the last {@code Call} {@code Action} and return from it.
+     *
+     * @param returnAction the {@code Return} {@code Action} to be handled
+     * @param processingContext the message
+     * @throws ReturnWithoutCallException if not not yet handled {@code Call} could be found
+     */
     @Override
     public void handle(final Return<T> returnAction, final ProcessingContext<T> processingContext) {
         final ChannelProcessingFrame<T> currentProcessingFrame = processingContext.getCurrentProcessingFrame();

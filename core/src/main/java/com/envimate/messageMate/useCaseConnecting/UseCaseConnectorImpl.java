@@ -21,7 +21,6 @@
 
 package com.envimate.messageMate.useCaseConnecting;
 
-import com.envimate.messageMate.error.ExceptionInSubscriberException;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageFunction.MessageFunction;
 import com.envimate.messageMate.messageFunction.ResponseFuture;
@@ -55,13 +54,7 @@ public final class UseCaseConnectorImpl implements UseCaseConnector {
         final ResponseFuture<UseCaseResponse> responseFuture = messageFunction.request(useCaseRequest);
         responseFuture.then((useCaseResponse, wasSuccessful, exception) -> {
             if (exception != null) {
-                final Object returnedException;
-                if (exception instanceof ExceptionInSubscriberException) {
-                    returnedException = exception.getCause();
-                } else {
-                    returnedException = exception;
-                }
-                onResponseCallback.accept(returnedException);
+                onResponseCallback.accept(exception);
             } else {
                 final Object response = useCaseResponse.getResponse();
                 onResponseCallback.accept(response);

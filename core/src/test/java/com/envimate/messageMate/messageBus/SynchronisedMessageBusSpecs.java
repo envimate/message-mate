@@ -70,7 +70,7 @@ public class SynchronisedMessageBusSpecs implements MessageBusSpecs {
     @Test
     public void testMessageBus_dynamicErrorHandlerIsCalledEvenIfMessageBusExceptionHandlerThrowsException(final MessageBusTestConfig messageBusTestConfig) throws Exception {
         given(aConfiguredMessageBus(messageBusTestConfig)
-                .withAnErrorThrowingSubscriber()
+                .withAnExceptionThrowingSubscriber()
                 .withADynamicErrorListenerAndAnErrorThrowingExceptionHandler())
                 .when(aSingleMessageIsSend())
                 .then(expectTheExceptionHandledAndTheErrorToBeThrown(TestException.class));

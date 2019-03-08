@@ -21,6 +21,9 @@
 
 package com.envimate.messageMate.channel.action.actionHandling;
 
+/**
+ * Exception, that is thrown, when a {@code Return} {@code Action} is executed without a previous {@code Call}.
+ */
 public class ReturnWithoutCallException extends RuntimeException {
     public ReturnWithoutCallException() {
         super("Found Return without a previous not yet returned call.");

@@ -21,15 +21,32 @@
 
 package com.envimate.messageMate.messageFunction;
 
-import com.envimate.messageMate.messageFunction.internal.building.Step2ResponseTypMessageFunctionBuilder;
-import com.envimate.messageMate.messageFunction.internal.building.Step3MessageFunctionBuilder;
+import com.envimate.messageMate.messageFunction.building.Step2ResponseTypMessageFunctionBuilder;
+import com.envimate.messageMate.messageFunction.building.Step3MessageFunctionBuilder;
 
+/**
+ * The {@code MessageFunctionBuilder} class provides a fluent interface for defining a new {@code MessageFunction}.
+ *
+ * @see <a href="https://github.com/envimate/message-mate#message-function">Message Mate Documentation</a>
+ */
 public class MessageFunctionBuilder {
 
+    /**
+     * Factory method for creating a new {@code MessageFunctionBuilder}.
+     *
+     * @return a new {@code MessageFunctionBuilder}
+     */
     public static MessageFunctionBuilder aMessageFunction() {
         return new MessageFunctionBuilder();
     }
 
+    /**
+     * Sets the superclass for all requests.
+     *
+     * @param requestClass the request superclass
+     * @param <R> the supertype of the requests
+     * @return a {@code MessageFunctionBuilder} instance expecting the next configuration step
+     */
     public <R> Step2ResponseTypMessageFunctionBuilder<R> forRequestType(final Class<R> requestClass) {
         return new Step2ResponseTypMessageFunctionBuilderImpl<>(requestClass);
     }

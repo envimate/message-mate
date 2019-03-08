@@ -79,7 +79,7 @@ final class MessageFunctionImpl<R, S> implements MessageFunction<R, S> {
         final Set<Class<?>> classesToListenForErrorsOn = requestResponseRelationMap.getAllPossibleResponseClasses();
         final LinkedList<Class<?>> classes = new LinkedList<>(classesToListenForErrorsOn);
         classes.add(request.getClass());
-        final SubscriptionId subscriptionId = messageBus.onError(classes, (t, e) -> {
+        final SubscriptionId subscriptionId = messageBus.onException(classes, (t, e) -> {
             synchronized (expectedResponse) {
                 if (!expectedResponse.isDone()) {
                     if (expectedResponse.matchesRequest(t) || expectedResponse.matchesResponse(t)) {
@@ -88,7 +88,7 @@ final class MessageFunctionImpl<R, S> implements MessageFunction<R, S> {
                 }
             }
         });
-        expectedResponse.addCleanUp(() -> messageBus.unregisterErrorHandler(subscriptionId));
+        expectedResponse.addCleanUp(() -> messageBus.unregisterExceptionListener(subscriptionId));
     }
 
     //No automatic cancel right now

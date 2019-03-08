@@ -21,13 +21,36 @@
 
 package com.envimate.messageMate.messageFunction;
 
-import com.envimate.messageMate.messageFunction.internal.responseMatching.FollowUpAction;
+import com.envimate.messageMate.messageFunction.followup.FollowUpAction;
 
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.Future;
 
+/**
+ * For each request, the related {@code ResponseFuture} provides methods, to query or wait on the result.
+ *
+ * @param <T> the type of responses
+ * @see <a href="https://github.com/envimate/message-mate#responsefuture">Message Mate Documentation</a>
+ */
+
+//Check, that cancel fulfills contract and that isCancelled only true, if cancelled before fulfilled.
+//Check, that cancel + response does not call FollowUpAction
+//Check then on cancelled future -> CancellationException
 public interface ResponseFuture<T> extends Future<T> {
 
+    /**
+     * Returns {@code true} if the future was fulfilled with an success response, {@code false} otherwise.
+     *
+     * @return {@code true} if success, {@code false} for an error response or an exception
+     */
     boolean wasSuccessful();
 
+    /**
+     * Adds a {@code FollowUpAction}, that gets executed, once the Future is fulfilled.
+     *
+     * @param followUpAction the {@code FollowUpAction} to execute
+     * @throws UnsupportedOperationException if one {@code FollowUpAction} has already been set
+     * @throws CancellationException         if the future has already been cancelled
+     */
     void then(FollowUpAction<T> followUpAction);
 }

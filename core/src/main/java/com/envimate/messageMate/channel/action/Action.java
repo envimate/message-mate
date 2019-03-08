@@ -21,5 +21,10 @@
 
 package com.envimate.messageMate.channel.action;
 
+/**
+ * At the end of each {@code Channel} an {@code Action} decides, how to consume each message.
+ *
+ * @param <T> the type of the {@code Channels} messages
+ */
 public interface Action<T> {
 }

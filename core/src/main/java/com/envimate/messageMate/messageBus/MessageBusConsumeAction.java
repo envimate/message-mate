@@ -36,7 +36,7 @@ public final class MessageBusConsumeAction {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static Consume<Object> messageBusConsumeAction(final MessageBusBrokerStrategy brokerStrategy) {
-        return Consume.consumeAll(objectProcessingContext -> {
+        return Consume.consumeMessage(objectProcessingContext -> {
             final Object message = objectProcessingContext.getPayload();
             final Class<?> messageClass = message.getClass();
             final Set<Channel<?>> channels = brokerStrategy.getDeliveringChannelsFor(messageClass);

@@ -22,7 +22,7 @@
 package com.envimate.messageMate.channel;
 
 import com.envimate.messageMate.channel.action.Action;
-import com.envimate.messageMate.error.AlreadyClosedException;
+import com.envimate.messageMate.exceptions.AlreadyClosedException;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.internal.autoclosable.NoErrorAutoClosable;
 
@@ -45,6 +45,7 @@ import java.util.concurrent.TimeUnit;
  * </p>
  *
  * @param <T> the type of messages send over this {@code Channel}
+ * @see <a href="https://github.com/envimate/message-mate#channel">Message Mate Documentation</a>
  *
  * @see ChannelBuilder
  */
@@ -206,21 +207,21 @@ public interface Channel<T> extends NoErrorAutoClosable {
     void close(boolean finishRemainingTasks);
 
     /**
-     * Returns {@code true} if this {@code close} has been called on this {@code Channel}.
+     * Returns {@code true} if {@code close} has been called on this {@code Channel}.
      *
      * @return true, if a {@code close} was already called, or false otherwise
      */
     boolean isClosed();
 
     /**
-     * Blocks the caller until all remainings tasks have completed execution after a close has been called, the timeout occurs
-     * or the current thread is interrupted.
+     * Blocks the caller until all remaining tasks have completed execution after a {@code close} has been called, the timeout
+     * occurs or the current thread is interrupted.
      *
      * @param timeout the duration to wait
      * @param timeUnit the time unit of the timeout
-     * @return {@code true} if this executor terminated and
-     *         {@code false} if the timeout elapsed before termination
-     *         {@code false} if close was not yet called
+     * @return {@code true} if this {@code Channel} terminated,
+     *         {@code false} if the timeout elapsed before termination or
+     *         {@code false} if {@code close} was not yet called
      * @throws InterruptedException if interrupted while waiting
      */
     boolean awaitTermination(int timeout, TimeUnit timeUnit) throws InterruptedException;

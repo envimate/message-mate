@@ -50,6 +50,7 @@ import java.util.Map;
  * All subsequent {@code Channel} will be contained normally in the list of frames.</p>
  *
  * @param <T> the type of the processing {@code Channel}
+ * @see <a href="https://github.com/envimate/message-mate#processing-context">Message Mate Documentation</a>
  */
 @ToString
 @EqualsAndHashCode
@@ -82,7 +83,7 @@ public final class ProcessingContext<T> {
      * Factory method to create a new {@code ProcessingContext} for a given payload.
      *
      * @param payload the message to envelope
-     * @param <T> the type of the message
+     * @param <T>     the type of the message
      * @return a new {@code ProcessingContext} object
      */
     public static <T> ProcessingContext<T> processingContext(final T payload) {
@@ -93,9 +94,9 @@ public final class ProcessingContext<T> {
     /**
      * Factory method to create a new {@code ProcessingContext} for a given payload and a filled meta data map.
      *
-     * @param payload the message to envelope
+     * @param payload         the message to envelope
      * @param contextMetaData the map to store shared meta data into
-     * @param <T> the type of the message
+     * @param <T>             the type of the message
      * @return a new {@code ProcessingContext} object
      */
     public static <T> ProcessingContext<T> processingContext(final T payload, final Map<Object, Object> contextMetaData) {

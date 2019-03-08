@@ -38,15 +38,17 @@ import static lombok.AccessLevel.PRIVATE;
  * performed. So the values should be seen as approximations.</p>
  *
  * <p>The value of {@code getAcceptedMessages()} defines the number of messages the {@code Channel} has been accepted without
- * error. {@code getQueuedMessages()} returns, how many messages have been accepted, but due to not enough resources had to be
+ * an exception. {@code getQueuedMessages()} returns, how many messages have been accepted, but due to not enough resources have been
  * queued. The processing of queued messages will automatically be continued, when resources become available and the
  * {@code Channel} is not closed before. {@code getBlockedMessages()} and {@code getForgottenMessages} relate to the results of
- * {@code Filter} being applied. Messages, that have been blocked by a filter stop their propagation through the {@code Channel}.
- * Forgotten messages ar those messages, that have not explicitly marked as passed or blocked by a {@code Filter}. Usually they
- * are the result of a bug inside on of the {@code Filter}. Once a message passed all {@code Filter} the final {@code Action} is
- * executed. The {@code getSuccessfulMessages()} returns the number of messages, that could have been delivered without
- * exceptions. In case of an exception during the delivery, the message is marked as failed. {@code getFailedMessges()} returns
- * the amount of those messages.</p>
+ * {@code Filters} being applied. Messages, that have been blocked by a {@code Filter} stop their propagation through the
+ * {@code Channel}. Forgotten messages are those messages, that have not explicitly marked as passed or blocked by a
+ * {@code Filter}. Usually they are the result of a bug inside on of the {@code Filters}. Once a message passed all
+ * {@code Filter} the final {@code Action} is executed. The {@code getSuccessfulMessages()} returns the number of messages,
+ * that have been delivered without exceptions. In case of an exception during the delivery, the message is marked as failed.
+ * {@code getFailedMessges()} returns the amount of those messages.</p>
+ *
+ * @see <a href="https://github.com/envimate/message-mate#channel-statistics">Message Mate Documentation</a>
  */
 @ToString
 @EqualsAndHashCode

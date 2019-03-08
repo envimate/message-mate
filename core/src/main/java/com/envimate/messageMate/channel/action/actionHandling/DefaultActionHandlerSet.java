@@ -32,17 +32,25 @@ import static com.envimate.messageMate.channel.action.actionHandling.ReturnActio
 import static com.envimate.messageMate.channel.action.actionHandling.SubscriptionActionHandler.subscriptionActionHandler;
 import static lombok.AccessLevel.PRIVATE;
 
+/**
+ * An {@code ActionHandlerSet}, that contains all built-in {@code Actions} and their {@code ActionHandlers}.
+ */
 @RequiredArgsConstructor(access = PRIVATE)
 public final class DefaultActionHandlerSet {
 
+    /**
+     * Creates an {@code ActionHandlerSet} with all built-in {@code Actions} and their {@code ActionHandlers}.
+     *
+     * @param <T> the type of messages of the {@code Channel}
+     * @return an {@code ActionHandlerSet} with all default {@code Actions}
+     */
     public static <T> ActionHandlerSet<T> defaultActionHandlerSet() {
         final ActionHandlerSet<T> actionHandlerSet = emptyActionHandlerSet();
+        actionHandlerSet.registerActionHandler(Subscription.class, subscriptionActionHandler());
         actionHandlerSet.registerActionHandler(Consume.class, consumerActionHandler());
         actionHandlerSet.registerActionHandler(Jump.class, jumpActionHandler());
         actionHandlerSet.registerActionHandler(Return.class, returnActionHandler());
         actionHandlerSet.registerActionHandler(Call.class, callActionHandler());
-        actionHandlerSet.registerActionHandler(Call.class, callActionHandler());
-        actionHandlerSet.registerActionHandler(Subscription.class, subscriptionActionHandler());
         return actionHandlerSet;
     }
 }

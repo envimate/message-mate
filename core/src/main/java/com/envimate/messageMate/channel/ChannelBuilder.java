@@ -23,10 +23,10 @@ package com.envimate.messageMate.channel;
 
 import com.envimate.messageMate.channel.action.Action;
 import com.envimate.messageMate.channel.action.actionHandling.ActionHandlerSet;
-import com.envimate.messageMate.channel.error.ChannelExceptionHandler;
-import com.envimate.messageMate.channel.events.ChannelEventListener;
-import com.envimate.messageMate.channel.statistics.ChannelStatisticsCollector;
-import com.envimate.messageMate.channel.statistics.PipeStatisticsBasedChannelStatisticsCollector;
+import com.envimate.messageMate.channel.exception.ChannelExceptionHandler;
+import com.envimate.messageMate.channel.internal.events.ChannelEventListener;
+import com.envimate.messageMate.channel.internal.statistics.ChannelStatisticsCollector;
+import com.envimate.messageMate.channel.internal.statistics.PipeStatisticsBasedChannelStatisticsCollector;
 import com.envimate.messageMate.pipe.Pipe;
 import com.envimate.messageMate.pipe.PipeBuilder;
 import com.envimate.messageMate.pipe.PipeType;
@@ -36,18 +36,21 @@ import com.envimate.messageMate.pipe.error.PipeErrorHandler;
 import static com.envimate.messageMate.channel.ChannelImpl.channel;
 import static com.envimate.messageMate.channel.ChannelType.SYNCHRONOUS;
 import static com.envimate.messageMate.channel.action.actionHandling.DefaultActionHandlerSet.defaultActionHandlerSet;
-import static com.envimate.messageMate.channel.error.ErrorThrowingChannelExceptionHandler.errorThrowingChannelExceptionHandler;
-import static com.envimate.messageMate.channel.events.SimpleChannelEventListener.simpleChannelEventListener;
-import static com.envimate.messageMate.channel.statistics.PipeStatisticsBasedChannelStatisticsCollector.pipeStatisticsBasedChannelStatisticsCollector;
+import static com.envimate.messageMate.channel.exception.ErrorThrowingChannelExceptionHandler.errorThrowingChannelExceptionHandler;
+import static com.envimate.messageMate.channel.internal.events.SimpleChannelEventListener.simpleChannelEventListener;
+import static com.envimate.messageMate.channel.internal.statistics.PipeStatisticsBasedChannelStatisticsCollector.pipeStatisticsBasedChannelStatisticsCollector;
 import static com.envimate.messageMate.qcec.domainBus.enforcing.NotNullEnforcer.ensureNotNull;
 
 /**
  * The {@code ChannelBuilder} class provides a fluent interface to create and configure a {@code Channel}.
  *
  * <p>Most of the configurable properties have default values set by the builder. Only the default {@code Action} has to be set
- * manually. Per default a synchronous {@code Channel} is created, that throws exception once they occur.</p>
+ * manually. Per default a synchronous {@code Channel} is created with an exception handler, that throws exception
+ * once they occur.</p>
  *
  * @param <T> the type of messages, that will be send over the created {@code Channel}
+ *
+ * @see <a href="https://github.com/envimate/configuring-the-channel#">Message Mate Documentation</a>
  */
 public class ChannelBuilder<T> {
     private Action<T> action;

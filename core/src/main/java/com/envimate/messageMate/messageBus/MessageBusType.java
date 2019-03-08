@@ -21,6 +21,9 @@
 
 package com.envimate.messageMate.messageBus;
 
+/**
+ * Defines the type of the {@code MessageBus}. Can be either {@code SYNCHRONOUS} or {@code ASYNCHRONOUS}.
+ */
 public enum MessageBusType {
     SYNCHRONOUS,
     ASYNCHRONOUS

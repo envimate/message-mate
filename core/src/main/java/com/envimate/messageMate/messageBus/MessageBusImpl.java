@@ -25,10 +25,11 @@ import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.filtering.FilterActions;
-import com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategy;
-import com.envimate.messageMate.messageBus.error.ErrorListenerHandler;
+import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener;
 import com.envimate.messageMate.messageBus.internal.MessageBusStatusInformationAdapter;
-import com.envimate.messageMate.messageBus.statistics.MessageBusStatisticsCollector;
+import com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategy;
+import com.envimate.messageMate.messageBus.internal.exception.ExceptionListenerHandler;
+import com.envimate.messageMate.messageBus.internal.statistics.MessageBusStatisticsCollector;
 import com.envimate.messageMate.subscribing.ConsumerSubscriber;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
@@ -37,25 +38,24 @@ import lombok.RequiredArgsConstructor;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import static com.envimate.messageMate.messageBus.internal.MessageBusStatusInformationAdapter.statusInformationAdapter;
-import static com.envimate.messageMate.messageBus.statistics.ChannelBasedMessageBusStatisticsCollector.channelBasedMessageBusStatisticsCollector;
+import static com.envimate.messageMate.messageBus.internal.statistics.ChannelBasedMessageBusStatisticsCollector.channelBasedMessageBusStatisticsCollector;
 import static com.envimate.messageMate.subscribing.ConsumerSubscriber.consumerSubscriber;
 import static lombok.AccessLevel.PRIVATE;
 
 final class MessageBusImpl implements MessageBus {
     private final Channel<Object> acceptingChannel;
     private final MessageBusBrokerStrategy brokerStrategy;
-    private final ErrorListenerHandler errorListenerHandler;
+    private final ExceptionListenerHandler exceptionListenerHandler;
     private MessageBusStatusInformationAdapter statusInformationAdapter;
 
     MessageBusImpl(final Channel<Object> acceptingChannel, final MessageBusBrokerStrategy brokerStrategy,
-                   final ErrorListenerHandler errorListenerHandler) {
+                   final ExceptionListenerHandler exceptionListenerHandler) {
         this.acceptingChannel = acceptingChannel;
         this.brokerStrategy = brokerStrategy;
-        this.errorListenerHandler = errorListenerHandler;
+        this.exceptionListenerHandler = exceptionListenerHandler;
         final MessageBusStatisticsCollector statisticsCollector = channelBasedMessageBusStatisticsCollector(acceptingChannel);
         statusInformationAdapter = statusInformationAdapter(statisticsCollector, brokerStrategy);
     }
@@ -120,19 +120,19 @@ final class MessageBusImpl implements MessageBus {
     }
 
     @Override
-    public <T> SubscriptionId onError(final Class<T> errorClass, final BiConsumer<T, Exception> exceptionListener) {
-        return errorListenerHandler.register(errorClass, exceptionListener);
+    public <T> SubscriptionId onException(final Class<T> messageClass, final MessageBusExceptionListener<T> exceptionListener) {
+        return exceptionListenerHandler.register(messageClass, exceptionListener);
     }
 
     @Override
-    public <T> SubscriptionId onError(final List<Class<? extends T>> errorClasses,
-                                      final BiConsumer<? extends T, Exception> exceptionListener) {
-        return errorListenerHandler.register(errorClasses, exceptionListener);
+    public <T> SubscriptionId onException(final List<Class<? extends T>> messageClasses,
+                                          final MessageBusExceptionListener<? extends T> exceptionListener) {
+        return exceptionListenerHandler.register(messageClasses, exceptionListener);
     }
 
     @Override
-    public void unregisterErrorHandler(final SubscriptionId subscriptionId) {
-        errorListenerHandler.unregister(subscriptionId);
+    public void unregisterExceptionListener(final SubscriptionId subscriptionId) {
+        exceptionListenerHandler.unregister(subscriptionId);
     }
 
     @Override
@@ -156,7 +156,7 @@ final class MessageBusImpl implements MessageBus {
     }
 
     @Override
-    public boolean isShutdown() {
+    public boolean isClosed() {
         return true;
     }
 

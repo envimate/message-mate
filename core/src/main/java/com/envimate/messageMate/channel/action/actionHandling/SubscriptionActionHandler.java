@@ -31,13 +31,31 @@ import java.util.List;
 
 import static lombok.AccessLevel.PRIVATE;
 
+/**
+ * The {@code ActionHandler} implementation for the {@code Subscription} {@code Action}.
+ *
+ * @param <T>the type of messages of the {@code Channel}
+ * @see <a href="https://github.com/envimate/message-mate#subscription">Message Mate Documentation</a>
+ */
 @RequiredArgsConstructor(access = PRIVATE)
 public final class SubscriptionActionHandler<T> implements ActionHandler<Subscription<T>, T> {
 
+    /**
+     * Factory method for a new {@code SubscriptionActionHandler}.
+     *
+     * @param <T> the type of messages of the {@code Channel}
+     * @return a new {@code SubscriptionActionHandler}
+     */
     public static <T> SubscriptionActionHandler<T> subscriptionActionHandler() {
         return new SubscriptionActionHandler<>();
     }
 
+    /**
+     * Takes the message and delivers it to all {@code Subscribers}.
+     *
+     * @param subscription      the {@code Subscription} {@code Action}
+     * @param processingContext the message
+     */
     @Override
     public void handle(final Subscription<T> subscription, final ProcessingContext<T> processingContext) {
         final T payload = processingContext.getPayload();

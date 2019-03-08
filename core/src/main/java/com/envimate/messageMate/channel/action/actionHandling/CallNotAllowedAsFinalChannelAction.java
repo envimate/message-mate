@@ -21,6 +21,9 @@
 
 package com.envimate.messageMate.channel.action.actionHandling;
 
+/**
+ * Exception for the case, that a {@code Call} was set as final {@code Action} of a {@code Channel}.
+ */
 public class CallNotAllowedAsFinalChannelAction extends RuntimeException {
 
     public CallNotAllowedAsFinalChannelAction() {

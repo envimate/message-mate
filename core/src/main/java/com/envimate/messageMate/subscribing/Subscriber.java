@@ -21,9 +21,28 @@
 
 package com.envimate.messageMate.subscribing;
 
+/**
+ * All delivering of messages to dynamically added and removed objects is done on the basis of {@code Subscribers}. A
+ * {@code Subscriber} can accept messages and is uniquely identified by a {@code SubscriptionId}.
+ *
+ * @param <T> the type of messages of the {@code Subscriber} can accept
+ * @see <a href="https://github.com/envimate/message-mate#subscriber">Message Mate Documentation</a>
+ */
 public interface Subscriber<T> {
 
+    /**
+     * Delivers the message to the {@code Subscriber}. The {@code Subscriber} can decide, if the delivery continues or
+     * is preempted by returning the respective {@code AcceptingBehavior}.
+     *
+     * @param message the message
+     * @return {@code AcceptingBehavior} to continue or preempt delivery
+     */
     AcceptingBehavior accept(T message);
 
+    /**
+     * The unique and constant {@code SubscriptionId} of the {@code Subscriber}.
+     *
+     * @return the {@code Subscriber's} {@code SubscriptionId}
+     */
     SubscriptionId getSubscriptionId();
 }
