@@ -25,10 +25,34 @@ import com.envimate.messageMate.subscribing.SubscriptionId;
 
 import java.util.function.Consumer;
 
+/**
+ * The {@code ConstraintEnforcer} class is used to distribute constraints to all subscribers.
+ *
+ * @see <a href="https://github.com/envimate/message-mate#constraints">Message Mate Documentation</a>
+ */
 public interface ConstraintEnforcer {
-    <T> SubscriptionId respondTo(Class<T> aClass, Consumer<T> responder);
 
+    /**
+     * Sends the given constraint to all interested subscribers.
+     *
+     * @param constraint the constraint to be enforced
+     */
     void enforce(Object constraint);
 
+    /**
+     * Adds the given {@code Consumer} as {@code Subscriber} for the given class.
+     *
+     * @param aClass    the class of constraint
+     * @param responder the {@code Consumer} to be called for a matching constraint
+     * @param <T>       the type of the constraint
+     * @return a {@code SubscriptionId} identifying the {@code Consumer}
+     */
+    <T> SubscriptionId respondTo(Class<T> aClass, Consumer<T> responder);
+
+    /**
+     * Removes all {@code Subscribers} matching the given {@code SubscriptionId}.
+     *
+     * @param subscriptionId the {@code SubscriptionId} to remove
+     */
     void unsubscribe(SubscriptionId subscriptionId);
 }

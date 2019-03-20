@@ -22,13 +22,13 @@
 package com.envimate.messageMate.channel.config;
 
 import com.envimate.messageMate.channel.ChannelType;
-import com.envimate.messageMate.pipe.configuration.AsynchronousConfiguration;
+import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import static com.envimate.messageMate.channel.ChannelType.ASYNCHRONOUS;
 import static com.envimate.messageMate.channel.ChannelType.SYNCHRONOUS;
-import static com.envimate.messageMate.pipe.configuration.AsynchronousConfiguration.constantPoolSizeAsynchronousPipeConfiguration;
+import static com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration.constantPoolSizeAsynchronousPipeConfiguration;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)

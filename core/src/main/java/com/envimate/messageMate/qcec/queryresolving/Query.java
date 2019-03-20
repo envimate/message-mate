@@ -21,9 +21,25 @@
 
 package com.envimate.messageMate.qcec.queryresolving;
 
+/**
+ * The {@code Queries} interface to be used with the {@code QueryResolver}
+ *
+ * @param <R> the type of the result
+ * @see <a href="https://github.com/envimate/message-mate#queries">Message Mate Documentation</a>
+ */
 public interface Query<R> {
+    /**
+     * Returns the result once the {@code Query} has finished or nur further {@code Subscribers} exist.
+     *
+     * @return the result
+     */
     R result();
 
+    /**
+     * Method to preemptive stop the delivery of a {@code Query} to its {@code Subscribers}.
+     *
+     * @return {@code true} if stop delivery or {@code false} otherwise
+     */
     default boolean finished() {
         return false;
     }

@@ -22,12 +22,12 @@
 package com.envimate.messageMate.messageBus.config;
 
 import com.envimate.messageMate.messageBus.MessageBusType;
-import com.envimate.messageMate.pipe.configuration.AsynchronousConfiguration;
+import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration;
 import lombok.*;
 
 import static com.envimate.messageMate.messageBus.MessageBusType.ASYNCHRONOUS;
 import static com.envimate.messageMate.messageBus.MessageBusType.SYNCHRONOUS;
-import static com.envimate.messageMate.pipe.configuration.AsynchronousConfiguration.constantPoolSizeAsynchronousPipeConfiguration;
+import static com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration.constantPoolSizeAsynchronousPipeConfiguration;
 
 @ToString
 @EqualsAndHashCode

@@ -26,9 +26,18 @@ import lombok.RequiredArgsConstructor;
 
 import static lombok.AccessLevel.PRIVATE;
 
+/**
+ * Factory to create a new {@code EventBus} object for the given {@code MessageBus}.
+ */
 @RequiredArgsConstructor(access = PRIVATE)
 public final class EventBusFactory {
 
+    /**
+     * Factory method to create a new {@code EventBus} object for the given {@code MessageBus}.
+     *
+     * @param messageBus the {@code MessageBus} to use
+     * @return a new {@code EventBus}
+     */
     public static EventBus aEventBus(final MessageBus messageBus) {
         return new EventBusImpl(messageBus);
     }

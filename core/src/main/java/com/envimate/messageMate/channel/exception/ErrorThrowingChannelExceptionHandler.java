@@ -29,7 +29,7 @@ import static lombok.AccessLevel.PRIVATE;
 /**
  * A {@code ChannelExceptionHandler}, that will throw every exception on the current {@code Thread}.
  *
- * @param <T>
+ * @param <T> the type of the message
  */
 @RequiredArgsConstructor(access = PRIVATE)
 public final class ErrorThrowingChannelExceptionHandler<T> implements ChannelExceptionHandler<T> {

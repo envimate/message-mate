@@ -30,21 +30,25 @@ import lombok.RequiredArgsConstructor;
 import static com.envimate.messageMate.messageBus.MessageBusBuilder.aMessageBus;
 import static com.envimate.messageMate.messageBus.MessageBusType.SYNCHRONOUS;
 import static com.envimate.messageMate.qcec.constraintEnforcing.ConstraintEnforcerFactory.aConstraintEnforcer;
-import static com.envimate.messageMate.qcec.domainBus.enforcing.NotNullEnforcer.ensureNotNull;
+import static com.envimate.messageMate.internal.enforcing.NotNullEnforcer.ensureNotNull;
 import static com.envimate.messageMate.qcec.eventBus.EventBusFactory.aEventBus;
 import static com.envimate.messageMate.qcec.queryresolving.QueryResolverFactory.aQueryResolver;
 import static lombok.AccessLevel.PRIVATE;
 
+/**
+ * Builder class to create a new {@code DocumentBus}.
+ */
 @RequiredArgsConstructor(access = PRIVATE)
 public final class DocumentBusBuilder {
     private QueryResolver queryResolver;
     private ConstraintEnforcer constraintEnforcer;
     private EventBus eventBus;
 
-    public static DocumentBusBuilder aDocumentBus() {
-        return new DocumentBusBuilder();
-    }
-
+    /**
+     * Creates a new {@code DocumentBus} based on a synchronous {@code MessageBus}.
+     *
+     * @return a new {@code DocumentBus}
+     */
     public static DocumentBus aDefaultDocumentBus() {
         final MessageBus queryMessageBus = aMessageBus()
                 .forType(SYNCHRONOUS)
@@ -58,28 +62,60 @@ public final class DocumentBusBuilder {
         final QueryResolver queryResolver = aQueryResolver(queryMessageBus);
         final ConstraintEnforcer constraintEnforcer = aConstraintEnforcer(constraintMessageBus);
         final EventBus eventBus = aEventBus(eventMessageBus);
-        return new DocumentBusBuilder()
+        return aDocumentBus()
                 .using(queryResolver)
                 .using(constraintEnforcer)
                 .using(eventBus)
                 .build();
     }
 
+    /**
+     * Factory method to create a new {@code DocumentBusBuilder}.
+     *
+     * @return newly created {@code DocumentBusBuilder}
+     */
+    public static DocumentBusBuilder aDocumentBus() {
+        return new DocumentBusBuilder();
+    }
+
+    /**
+     * Sets the {@code QueryResolver} to be used for the {@code DocumentBus}.
+     *
+     * @param queryResolver the {@code QueryResolver} to be used
+     * @return the same {@code DocumentBusBuilder} instance the method was called one
+     */
     public DocumentBusBuilder using(final QueryResolver queryResolver) {
         this.queryResolver = queryResolver;
         return this;
     }
 
+    /**
+     * Sets the {@code ConstraintEnforcer} to be used for the {@code DocumentBus}.
+     *
+     * @param constraintEnforcer the {@code ConstraintEnforcer} to be used
+     * @return the same {@code DocumentBusBuilder} instance the method was called one
+     */
     public DocumentBusBuilder using(final ConstraintEnforcer constraintEnforcer) {
         this.constraintEnforcer = constraintEnforcer;
         return this;
     }
 
+    /**
+     * Sets the {@code EventBus} to be used for the {@code DocumentBus}.
+     *
+     * @param eventBus the {@code EventBus} to be used
+     * @return the same {@code DocumentBusBuilder} instance the method was called one
+     */
     public DocumentBusBuilder using(final EventBus eventBus) {
         this.eventBus = eventBus;
         return this;
     }
 
+    /**
+     * Creates the configured {@code DocumentBus}.
+     *
+     * @return newly created {@code DocumentBus}
+     */
     public DocumentBusImpl build() {
         ensureNotNull(queryResolver, "DocumentBus needs a QueryResolver.");
         ensureNotNull(constraintEnforcer, "DocumentBus needs a ConstraintEnforcer.");

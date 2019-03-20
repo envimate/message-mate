@@ -21,7 +21,7 @@
 
 package com.envimate.messageMate.soonToBeExternal;
 
-import com.envimate.messageMate.correlation.CorrelationId;
+import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
 import com.envimate.messageMate.messageFunction.MessageFunction;
 import com.envimate.messageMate.messageFunction.ResponseFuture;
 import com.envimate.messageMate.soonToBeExternal.methodInvoking.UseCaseMethodInvoker;
@@ -31,7 +31,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.ArrayList;
 import java.util.Map;
 
-import static com.envimate.messageMate.correlation.CorrelationId.newUniqueId;
+import static com.envimate.messageMate.messageFunction.correlation.CorrelationId.newUniqueId;
 import static com.envimate.messageMate.soonToBeExternal.UseCaseCallRequest.useCaseCallRequest;
 import static com.envimate.messageMate.soonToBeExternal.UseCaseResponseFutureImpl.useCaseResponseFuture;
 import static lombok.AccessLevel.PACKAGE;

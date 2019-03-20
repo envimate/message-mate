@@ -46,7 +46,6 @@ import java.util.concurrent.TimeUnit;
  *
  * @param <T> the type of messages send over this {@code Channel}
  * @see <a href="https://github.com/envimate/message-mate#channel">Message Mate Documentation</a>
- *
  * @see ChannelBuilder
  */
 public interface Channel<T> extends NoErrorAutoClosable {
@@ -62,10 +61,10 @@ public interface Channel<T> extends NoErrorAutoClosable {
     /**
      * Send the given processingContext object over this {@code Channel}.
      *
-     * <p>{@code Channels} use {@code ProcessingContext} objects internally to store and share processing relevant information. Examples
-     * are a shared key-value map or the history of past {@code Channels}. In case several {@code Channels} are logical connected
-     * and the information and history should be kept, {@code Channels} can accept the {@code ProcessingContext} object of the previous
-     * {@code Channel} directly.</p>
+     * <p>{@code Channels} use {@code ProcessingContext} objects internally to store and share processing relevant information.
+     * Examples are a shared key-value map or the history of past {@code Channels}. In case several {@code Channels} are logical
+     * connected and the information and history should be kept, {@code Channels} can accept the {@code ProcessingContext}
+     * object of the previous {@code Channel} directly.</p>
      *
      * @param processingContext the {@code ProcessingContext} to be sent
      * @throws AlreadyClosedException if the {@code Channel} is already closed
@@ -217,11 +216,11 @@ public interface Channel<T> extends NoErrorAutoClosable {
      * Blocks the caller until all remaining tasks have completed execution after a {@code close} has been called, the timeout
      * occurs or the current thread is interrupted.
      *
-     * @param timeout the duration to wait
+     * @param timeout  the duration to wait
      * @param timeUnit the time unit of the timeout
      * @return {@code true} if this {@code Channel} terminated,
-     *         {@code false} if the timeout elapsed before termination or
-     *         {@code false} if {@code close} was not yet called
+     * {@code false} if the timeout elapsed before termination or
+     * {@code false} if {@code close} was not yet called
      * @throws InterruptedException if interrupted while waiting
      */
     boolean awaitTermination(int timeout, TimeUnit timeUnit) throws InterruptedException;

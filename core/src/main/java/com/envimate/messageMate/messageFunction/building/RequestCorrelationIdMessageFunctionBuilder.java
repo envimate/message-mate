@@ -21,7 +21,7 @@
 
 package com.envimate.messageMate.messageFunction.building;
 
-import com.envimate.messageMate.correlation.CorrelationId;
+import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
 
 import java.util.function.Function;
 

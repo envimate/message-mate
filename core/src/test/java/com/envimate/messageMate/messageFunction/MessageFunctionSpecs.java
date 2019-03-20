@@ -146,6 +146,7 @@ public class MessageFunctionSpecs {
                 .then(expectTheTimeoutToBeTriggered());
     }
 
+    //cancelling
     @Test
     public void testMessageFunction_canCancelAResponse() {
         given(aMessageFunction()
@@ -158,8 +159,16 @@ public class MessageFunctionSpecs {
     public void testMessageFunction_canCancelAResponseSeveralTimes() {
         given(aMessageFunction()
                 .definedWithAnUnansweredResponse())
-                .when(aRequestCanBeCancelledMoreThanOnce())
+                .when(aRequestIsCancelledSeveralTimes())
                 .then(expectTheRequestToBeCancelledAndNoFollowUpActionToBeExecuted());
+    }
+
+    @Test
+    public void testMessageFunction_cancellationAlwaysReturnsTheSameResult() {
+        given(aMessageFunction()
+                .definedWithAnUnansweredResponse())
+                .when(aRequestIsCancelledSeveralTimes())
+                .then(expectAllCancellationsToHaveReturnedTheSameResult());
     }
 
     @Test
@@ -175,6 +184,30 @@ public class MessageFunctionSpecs {
         given(aMessageFunction()
                 .definedWithAnUnansweredResponse())
                 .when(theResultOfACancelledRequestIsTaken())
+                .then(expectAExceptionToBeThrownOfType(CancellationException.class));
+    }
+
+    @Test
+    public void testMessageFunction_cancellingAFulfilled() {
+        given(aMessageFunction()
+                .definedWithAnUnansweredResponse())
+                .when(theFutureIsFulfilledAndThenCancelled())
+                .then(expectTheCancellationToFailed());
+    }
+
+    @Test
+    public void testMessageFunction_aResponseAfterACancellationDoesNotExecuteFollowUpAction() {
+        given(aMessageFunction()
+                .definedWithAnUnansweredResponse())
+                .when(aResponseToACancelledRequestDoesNotExecuteFollowUpAction())
+                .then(expectTheRequestToBeCancelledAndNoFollowUpActionToBeExecuted());
+    }
+
+    @Test
+    public void testMessageFunction_addingAFollowUpActionToACancelledFutureFails() {
+        given(aMessageFunction()
+                .definedWithARequestResponseMapping())
+                .when(aFollowUpActionIsAddedToACancelledFuture())
                 .then(expectAExceptionToBeThrownOfType(CancellationException.class));
     }
 

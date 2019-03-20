@@ -25,7 +25,7 @@ import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusStatusInformation;
 import com.envimate.messageMate.messageBus.statistics.MessageBusStatistics;
-import com.envimate.messageMate.pipe.statistics.PipeStatistics;
+import com.envimate.messageMate.internal.pipe.statistics.PipeStatistics;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
 import com.envimate.messageMate.shared.testMessages.TestMessage;

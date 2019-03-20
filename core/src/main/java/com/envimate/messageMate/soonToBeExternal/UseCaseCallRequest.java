@@ -21,7 +21,7 @@
 
 package com.envimate.messageMate.soonToBeExternal;
 
-import com.envimate.messageMate.correlation.CorrelationId;
+import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
 import com.envimate.messageMate.soonToBeExternal.methodInvoking.UseCaseMethodInvoker;
 import lombok.Getter;
 

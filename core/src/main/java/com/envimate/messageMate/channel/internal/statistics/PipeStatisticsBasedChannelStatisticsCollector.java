@@ -22,8 +22,8 @@
 package com.envimate.messageMate.channel.internal.statistics;
 
 import com.envimate.messageMate.channel.statistics.ChannelStatistics;
-import com.envimate.messageMate.pipe.Pipe;
-import com.envimate.messageMate.pipe.statistics.PipeStatistics;
+import com.envimate.messageMate.internal.pipe.Pipe;
+import com.envimate.messageMate.internal.pipe.statistics.PipeStatistics;
 import lombok.RequiredArgsConstructor;
 
 import java.math.BigInteger;

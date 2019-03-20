@@ -21,7 +21,7 @@
 
 package com.envimate.messageMate.messageFunction.internal.responseMatching;
 
-import com.envimate.messageMate.correlation.CorrelationId;
+import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
 import com.envimate.messageMate.messageFunction.correlationIdExtracting.CorrelationIdExtraction;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

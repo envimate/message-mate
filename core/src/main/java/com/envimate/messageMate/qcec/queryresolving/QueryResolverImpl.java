@@ -36,13 +36,13 @@ public class QueryResolverImpl implements QueryResolver {
     }
 
     @Override
-    public <T extends Query<?>> SubscriptionId answer(final Class<T> queryType, final Consumer<T> responder) {
+    public <T extends Query<?>> SubscriptionId answer(final Class<T> queryClass, final Consumer<T> responder) {
         final PreemptiveSubscriber<T> subscriber = PreemptiveSubscriber.preemptiveSubscriber(t -> {
             responder.accept(t);
             final boolean continueDelivery = !t.finished();
             return continueDelivery;
         });
-        messageBus.subscribe(queryType, subscriber);
+        messageBus.subscribe(queryClass, subscriber);
         final SubscriptionId subscriptionId = subscriber.getSubscriptionId();
         return subscriptionId;
     }

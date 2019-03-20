@@ -39,6 +39,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
+import static com.envimate.messageMate.messageFunction.givenWhenThen.MessageFunctionTestProperties.CANCEL_RESULTS;
 import static com.envimate.messageMate.messageFunction.testResponses.RequestResponseFuturePair.requestResponseFuturePair;
 import static com.envimate.messageMate.messageFunction.testResponses.SimpleTestRequest.testRequest;
 import static com.envimate.messageMate.messageFunction.testResponses.SimpleTestResponse.testResponse;
@@ -210,7 +211,7 @@ public final class TestMessageFunctionActionBuilder {
         return callCancelXTimes(1);
     }
 
-    public static TestMessageFunctionActionBuilder aRequestCanBeCancelledMoreThanOnce() {
+    public static TestMessageFunctionActionBuilder aRequestIsCancelledSeveralTimes() {
         return callCancelXTimes(5);
     }
 
@@ -222,10 +223,50 @@ public final class TestMessageFunctionActionBuilder {
                 throw new RuntimeException("This FollowUpActionShouldNotBeCalled");
             });
             for (int i = 0; i < cancelCalls; i++) {
-                responseFuture.cancel(true);
+                final boolean cancelResult = responseFuture.cancel(true);
+                testEnvironment.addToListProperty(CANCEL_RESULTS, cancelResult);
             }
             final MessageBus messageBus = testEnvironment.getPropertyAsType(MOCK, MessageBus.class);
             messageBus.send(testResponse(testRequest.getCorrelationId()));
+            return responseFuture;
+        });
+    }
+
+    public static TestMessageFunctionActionBuilder theFutureIsFulfilledAndThenCancelled() {
+        return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
+            final SimpleTestRequest testRequest = SimpleTestRequest.testRequest();
+            final ResponseFuture<TestResponse> responseFuture = messageFunction.request(testRequest);
+            final MessageBus messageBus = testEnvironment.getPropertyAsType(MOCK, MessageBus.class);
+            final SimpleTestResponse response = testResponse(testRequest.getCorrelationId());
+            messageBus.send(response);
+            try {
+                MILLISECONDS.sleep(10);
+            } catch (InterruptedException e) {
+                testEnvironment.setProperty(EXCEPTION, e);
+            }
+            final boolean cancelResult = responseFuture.cancel(true);
+            testEnvironment.setProperty(CANCEL_RESULTS, cancelResult);
+            return responseFuture;
+        });
+    }
+
+    public static TestMessageFunctionActionBuilder aResponseToACancelledRequestDoesNotExecuteFollowUpAction() {
+        return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
+            final SimpleTestRequest testRequest = SimpleTestRequest.testRequest();
+            final ResponseFuture<TestResponse> responseFuture = messageFunction.request(testRequest);
+            responseFuture.then((testResponse, wasSuccessful, exception) -> {
+                throw new RuntimeException("This FollowUpActionShouldNotBeCalled");
+            });
+            final boolean cancelResult = responseFuture.cancel(true);
+            testEnvironment.addToListProperty(CANCEL_RESULTS, cancelResult);
+            final MessageBus messageBus = testEnvironment.getPropertyAsType(MOCK, MessageBus.class);
+            final SimpleTestResponse response = testResponse(testRequest.getCorrelationId());
+            messageBus.send(response);
+            try {
+                MILLISECONDS.sleep(10);
+            } catch (InterruptedException e) {
+                testEnvironment.setProperty(EXCEPTION, e);
+            }
             return responseFuture;
         });
     }
@@ -296,6 +337,22 @@ public final class TestMessageFunctionActionBuilder {
                 waitingSemaphoreGetTimeout.acquire();
             } catch (final InterruptedException e) {
                 throw new RuntimeException(e);
+            }
+            return responseFuture;
+        });
+    }
+
+    public static TestMessageFunctionActionBuilder aFollowUpActionIsAddedToACancelledFuture() {
+        return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
+            final SimpleTestRequest testRequest = SimpleTestRequest.testRequest();
+            final ResponseFuture<TestResponse> responseFuture = messageFunction.request(testRequest);
+            responseFuture.cancel(true);
+            try {
+                responseFuture.then((response, wasSuccessful, exception) -> {
+                    throw new UnsupportedOperationException();
+                });
+            } catch (final Exception e) {
+                testEnvironment.setProperty(EXCEPTION, e);
             }
             return responseFuture;
         });

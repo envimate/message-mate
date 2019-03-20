@@ -27,11 +27,11 @@ import com.envimate.messageMate.channel.exception.ChannelExceptionHandler;
 import com.envimate.messageMate.channel.internal.events.ChannelEventListener;
 import com.envimate.messageMate.channel.internal.statistics.ChannelStatisticsCollector;
 import com.envimate.messageMate.channel.internal.statistics.PipeStatisticsBasedChannelStatisticsCollector;
-import com.envimate.messageMate.pipe.Pipe;
-import com.envimate.messageMate.pipe.PipeBuilder;
-import com.envimate.messageMate.pipe.PipeType;
-import com.envimate.messageMate.pipe.configuration.AsynchronousConfiguration;
-import com.envimate.messageMate.pipe.error.PipeErrorHandler;
+import com.envimate.messageMate.internal.pipe.Pipe;
+import com.envimate.messageMate.internal.pipe.PipeBuilder;
+import com.envimate.messageMate.internal.pipe.PipeType;
+import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration;
+import com.envimate.messageMate.internal.pipe.error.PipeErrorHandler;
 
 import static com.envimate.messageMate.channel.ChannelImpl.channel;
 import static com.envimate.messageMate.channel.ChannelType.SYNCHRONOUS;
@@ -39,17 +39,16 @@ import static com.envimate.messageMate.channel.action.actionHandling.DefaultActi
 import static com.envimate.messageMate.channel.exception.ErrorThrowingChannelExceptionHandler.errorThrowingChannelExceptionHandler;
 import static com.envimate.messageMate.channel.internal.events.SimpleChannelEventListener.simpleChannelEventListener;
 import static com.envimate.messageMate.channel.internal.statistics.PipeStatisticsBasedChannelStatisticsCollector.pipeStatisticsBasedChannelStatisticsCollector;
-import static com.envimate.messageMate.qcec.domainBus.enforcing.NotNullEnforcer.ensureNotNull;
+import static com.envimate.messageMate.internal.enforcing.NotNullEnforcer.ensureNotNull;
 
 /**
  * The {@code ChannelBuilder} class provides a fluent interface to create and configure a {@code Channel}.
  *
- * <p>Most of the configurable properties have default values set by the builder. Only the default {@code Action} has to be set
- * manually. Per default a synchronous {@code Channel} is created with an exception handler, that throws exception
- * once they occur.</p>
+ * <p>Most of the configurable properties have default values set by the builder. Only the default {@code Action} has to
+ * be set manually. Per default a synchronous {@code Channel} is created with an exception handler, that throws
+ * exception once they occur.</p>
  *
  * @param <T> the type of messages, that will be send over the created {@code Channel}
- *
  * @see <a href="https://github.com/envimate/configuring-the-channel#">Message Mate Documentation</a>
  */
 public class ChannelBuilder<T> {
@@ -67,7 +66,7 @@ public class ChannelBuilder<T> {
      * <p>This is a short, more convenient form for
      * <pre>{@code
      *      aChannel().withDefaultAction(action).build();
-     * }</pre></p>
+     * }</pre>
      *
      * @param defaultAction the {@code Channel's} default {@code Action}
      * @param <T>           type of messages of the created {@code Channel}
@@ -103,9 +102,10 @@ public class ChannelBuilder<T> {
     /**
      * Sets the type for the {@code Channel}. Can be {@code ChannelType.SYNCHRONOUS} or {@code ChannelType.ASYNCHRONOUS}.
      *
-     * <p>Per default the type is set to synchronous and no further configuration is needed. If an asynchronous {@code Channel} is to be
-     * created, an additional {@code AsynchronousConfiguration} has to be given. Also setting a different
-     * {@code ChannelExceptionHandler} is advised, as the default exception handler throws all exception on the executing Thread.
+     * <p>Per default the type is set to synchronous and no further configuration is needed. If an asynchronous
+     * {@code Channel} is to be created, an additional {@code AsynchronousConfiguration} has to be given. Also setting
+     * a different {@code ChannelExceptionHandler} is advised, as the default exception handler throws all exception on
+     * the executing Thread.
      * </p>
      *
      * @param type the type of the {@code Channel}. Can be {@code ChannelType.SYNCHRONOUS} or {@code ChannelType.ASYNCHRONOUS}.
@@ -160,10 +160,10 @@ public class ChannelBuilder<T> {
     /**
      * Overwrites the default {@code ActionHandlerSet}, that can handle all built-in {@code Actions}.
      *
-     * <p>Actions only contain relevant data. All logic about handling {@code Actions} at the end of the {@code Channel} is done by the
-     * {@code ActionHandler}. For each {@code Action} a matching {@code ActionHandler} should be contained the {@code ActionHandlerSet}.
-     * When using custom defined {@code Actions}, the {@code ActionHandlerSet} always have to be modified, as an exception is raised,
-     * when an {@code Action} is encountered, for that no handler is known.</p>
+     * <p>Actions only contain relevant data. All logic about handling {@code Actions} at the end of the {@code Channel} is done
+     * by the {@code ActionHandler}. For each {@code Action} a matching {@code ActionHandler} should be contained the
+     * {@code ActionHandlerSet}. When using custom defined {@code Actions}, the {@code ActionHandlerSet} always have to be
+     * modified, as an exception is raised, when an {@code Action} is encountered, for that no handler is known.</p>
      *
      * @param actionHandlerSet the new {@code ActionHandlerSet}
      * @return the same {@code ChannelBuilder} instance the method was called one
@@ -214,8 +214,8 @@ public class ChannelBuilder<T> {
                 .ofType(PipeType.SYNCHRONOUS)
                 .withErrorHandler(new PipeErrorHandler<ProcessingContext<T>>() {
                     @Override
-                    public boolean shouldErrorBeHandledAndDeliveryAborted(final ProcessingContext<T> message, final Exception e) {
-                        return channelExceptionHandler.shouldSubscriberErrorBeHandledAndDeliveryAborted(message, e);
+                    public boolean shouldErrorBeHandledAndDeliveryAborted(final ProcessingContext<T> m, final Exception e) {
+                        return channelExceptionHandler.shouldSubscriberErrorBeHandledAndDeliveryAborted(m, e);
                     }
 
                     @Override

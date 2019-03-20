@@ -11,7 +11,7 @@ parts of an application or different applications. In contrast to other types of
 integration it models both the carrier and the send messages as distinct
 concepts of the application. This can provide several benefits if used correctly. But it 
 can also generate overhead and complexity. This library focuses on a lightweight 
-implementation of messaging patterns to be wire Usecases and objects within one application. 
+implementation of messaging patterns to be wire use cases and objects within one application. 
 For integrating different applications (over network, shared memory, ...) other libraries exist.
 
 This library provides implementations for typical forms of message carriers like 
@@ -30,9 +30,19 @@ and synchronization problems are already solved. Dynamically scaling out Threads
 required to change the configuration Channels and MessageBus. The rest of the application
 can remain mostly agnostic to it. 
 
-These messaging patterns ease the integration of Frameworks with the application's UseCases.
-But also the communication between UseCases is greatly simplified with a MessageBus. Even
+These messaging patterns ease the integration of Frameworks with the application's use cases.
+But also the communication between use cases is greatly simplified with a MessageBus. Even
 at the scope of Domain Objects messaging patterns can provide loosely coupling and dynamism.
+
+## Installation
+To use Message-Mate add the following Maven depedency to your 'pom.xml`:
+```java
+<dependency>
+    <groupId>com.envimate.message-mate</groupId>
+    <artifactId>core</artifactId>
+    <version>1.0.2</version>
+</dependency>
+```
 
 ## Basic Concepts
 
@@ -662,30 +672,31 @@ Subscriber do not need to know from each other. They don't even know the number 
 others as members of both sides can join or leave dynamically. Configuring the MessageBus
 in an asynchronous way allows for independently integrated parts of the application.
 
-The integration points between the different UseCases and Frameworks are a fitting example
+The integration points between the different use cases and Frameworks are a fitting example
 for the beneficiary use of an asynchronous MessageBus. But aspects like loose coupling
 and dynamic extensibility are of great benefit even in more coupled parts of the 
-application, like UseCases. UseCases execute their logic by assembling different parts
-of the application. A MessageBus can be of great help here. QCEC defines concepts and
-practices how to use a MessageBus inside the context of UseCases or components with 
+application, like within a use cases. Use cases execute their logic by assembling different parts
+of the application. A MessageBus can be of great help here. `QCEC` defines concepts and
+practices how to use a MessageBus inside the context of use cases or components with 
 similar requirements of loosely coupling, extensibility and testability while having
-more shared context than integration between UseCases and Frameworks.
+more shared context than integration between use cases and Frameworks.
 
 QCEC (qcc) stands for Query, Constraint, Event and Command. These four concepts when
-combined with a synchronous MessageBus ease the assembling of logic into a UseCase.
-Queries are responsible to get information from others, like Domain Objects or Repositories.
+combined with a synchronous MessageBus ease the assembling of logic into a use case.
+Queries are responsible to retrieve information out of other objects.
 Constraints inform others about a requirement, that, if violated, should rise an 
 exception. The purpose of Events is to inform others or to share information with them.
 Commands perform updates on Domain Objects or Repositories.
 
 #### Queries
-UseCases need to retrieve information from the objects they interact with. Having a list
+Use cases need to retrieve information from the objects they interact with. Having a list
 of all objects of interest results in high coupling. By using a MessageBus, a message
-can be distributed to these objects without the UseCase having too much knowledge
+can be distributed to these objects without the use case having too much knowledge
 about them. The message is written as `Query`. This means, that subscriber 
 upon receiving the `Query` object can use `Query` specific methods to store 
 their data into the object. Let's take an example, in which we want to query all of our
-apple trees about the number of apples they currently hold:
+apple trees about the number of apples they currently hold. We define a custom Query, 
+that is responsible to query how many apples all of our apple trees have:
 
 ```java
 class NumberOfApplesQuery implements Query<Integer>{
@@ -701,9 +712,9 @@ class NumberOfApplesQuery implements Query<Integer>{
     }
 }
 ```
-We define a custom Query, that is responsible to query how many apples all of our 
-apple trees have.
-
+The `AppleTree` class can subscribe itself on the `NumberOfApplesQuery`. 
+Each AppleTree reports its number of apples, whenever someone wants to know how many
+apples there are:
 
 ```java
 class AppleTree {
@@ -714,10 +725,9 @@ class AppleTree {
     }
 }
 ```
-We also define our AppleTree class. For simplicity the number of apples is constant.
-Each AppleTree reports its number of apples, whenever someone wants to know how many
-apples there are.
 
+Now the use case does not not how to interact with `AppleTree` objects. He just
+needs to send the query:
 
 ```java
 MessageBus messageBus = MessageBusBuilder.aMessageBus()
@@ -756,6 +766,41 @@ The `answer` method returns an `SubscriptionId` object. This can be used for the
 on super classes or interfaces. In this case all subclasses will result in the 
 `answer` method to be called with the respective instance.
 
+```java
+SubscriptionId subscriptionId = queryResolver.answer(Query.class, q -> handle(q));
+queryResolver.unsubscribe(subscriptionId);
+```
+
+Per default queries are delivered to all Subscribers and the result is returned
+afterwards. But queries can be stopped early, when it's apparent, that further
+Subscribers won't add value to the result. To stop a query early, override the 
+`finished` method. Once it returns `true`, the query is stopped and the result
+is returned immediately.
+
+```java
+class PreemptiveQuery implements Query<Object> {
+     private Object result;
+
+     public void setResult(Object result) {
+        this.result = result; 
+     }
+
+     @Override
+     public Object result() {
+        return result; 
+     }
+
+     @Override
+     public boolean finished() {
+         return result != null; 
+     }
+}
+```
+
+When subscribing for queries, superclasses can be used. The underlying MessageBus 
+ensures, that all subclasses of the class used in `answer` will also call the
+consumer. 
+
 #### Constraints
 Queries are used to retrieve data from others. They should not throw an exception, 
 because it would mix up the partially retrieved data with the exception. But it's often
@@ -790,8 +835,8 @@ class User {
     }
 }
 ```
-Now any code can send Constraints on the `ConstraintEnforcer` object shared with the user
-objects to ensure, that the unique username constraint holds.
+Now any code can send Constraints on the `ConstraintEnforcer` object
+to ensure, that the unique username constraint holds.
 
 ```java
 MessageBus messageBus = MessageBusBuilder.aMessageBus()
@@ -809,12 +854,16 @@ Similar to the QueryResolver, the `respondTo` method allows for inheritance
 and interfaces. It also returns a `SubscriptionId` that
 can be used as parameter for the `unsubscribe` method to stop responding to constraints.
 
+When subscribing for constraints, superclasses can be used. The underlying MessageBus 
+ensures, that all subclasses of the class used in `respondTo` will also call the
+consumer. 
+
 #### Events
 Queries retrieve information, constraints enforce rules and events are used to 
 forward information. Events never return information
 and should not throw an exception. They are just used to indicate, that something happened.
 
-Let's suppose a very basic login UseCase: Given a username and password, a login is tried.
+Let's suppose a very basic login use case: Given a username and password, a login is tried.
 If it succeeded, an event is published to inform others, that the user went online. 
 ```java
 MessageBus messageBus = MessageBusBuilder.aMessageBus()
@@ -861,19 +910,24 @@ The `EventBus` has three methods: `reactTo` to add a subscriber for a class and 
 its subclasses. `publish` sends the Event on the underlying synchronous MessageBus.
 And `unsubscribe` removes the subscription for the given `SubscriptionId`.
 
+When subscribing for events, superclasses can be used. The underlying MessageBus 
+ensures, that all subclasses of the class used in `reactTo` will also call the
+consumer. 
+
 #### Commands
-Aside from querying and aggregating data, UseCases are responsible for a safe and secure
+Aside from querying and aggregating data, use cases are responsible for a safe and secure
 update to the applications data. A common pattern is to model the update in form of
 Commands. A Command is a reusable abstraction over the the update. It gets the
-required parameter during its creation by the UseCase. During its invocation by the consuming
+required parameter during its creation by the use case. During its invocation by the consuming
 counterpart it gets all information to execute its task. By moving the update logic
-out of the UseCase into a distinct object, the update process becomes decoupled 
-from the UseCase and therefore reusable and testable.
+out of the use case into a distinct object, the update process becomes decoupled 
+from the use case and therefore reusable and testable.
 
 #### DocumentBus
-It's rarely the case that an application uses only one of Queries, Constraints or 
-Events. Therefore it becomes a burden to drag along a QueryResolver, a 
-ConstraintEnforcer and an EventBus. It also becomes difficult to remember which
+It's rarely the case that an application uses only Queries, Constraints or 
+Events. Most of the time it's a mixture of these three. Therefore it 
+becomes a burden to drag along a `QueryResolver`, a 
+`ConstraintEnforcer` and an `EventBus`. It also becomes difficult to remember which
 SubscriptionId was used for which of these objects. Therefore the `DocumentBus`
 was created to combine these concepts and provide an easier to use interface.
 
@@ -885,7 +939,7 @@ with conditionals and an automatic unsubscription.
 Let's extend the AppleTree example with an DocumentBus. An AppleTree still reports his
 stock of apples to the `NumberOfApplesQuery`. But only if the query is from the owner
 of the tree. And the tree can only report as long as it is not cut down. Then it should
-stop its reporting or unsubscribe from the `NumberOfApplesQuery` to be more technical.
+stop its reporting and unsubscribe from the `NumberOfApplesQuery`.
 
 
 ```java
@@ -898,10 +952,12 @@ SubscriptionId subscriptionId = documentBus.answer(NumberOfAppleQuery.class)
 ```
 The `answer` method takes the Query, for which itself or its subclasses the Consumer
 given in `using` should be called. The `onlyIf` method can add arbitrary many conditions.
-Only if all of them return true, the Consumer given in `using` is called. 
-The `until` method allows for one or several automatic unsubscriptions. Whenver on of
+Only if all of them return `true` the Consumer given in `using` is called. 
+The `until` method allows for one or several automatic unsubscriptions. Whenever one of
 these conditions return true, the subscription is removed and the AppleTree stops
-responding to the `NumberOfAppleQuery`
+responding to the `NumberOfAppleQuery`. The returned SubscriptionId identified 
+subscription for the query. It can be used to manually unsubscribe as long
+as an the `until` condition has not been met yet.
 
 The same convenience interface exists for the Constraint's `ensure` and the 
 Event's `reactTo` method:
@@ -920,6 +976,8 @@ documentBus.ensure(TreeSpotFreeConstraint.class)
         }
     });
 ```
+
+The `onlyIf` methods also exists for `reactTo` and `ensure`.
 
 Sending objects is similar to the distinct single objects:
 
