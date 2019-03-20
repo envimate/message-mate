@@ -40,7 +40,6 @@
         <artifactId>message-mate-parent</artifactId>
         <version>1.0.2</version>
     </parent>
-    <groupId>com.envimate.message-mate</groupId>
     <artifactId>core</artifactId>
     <version>1.0.2</version>
     <name>MessageMate - Core Library</name>
@@ -102,4 +101,5 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
 </project>

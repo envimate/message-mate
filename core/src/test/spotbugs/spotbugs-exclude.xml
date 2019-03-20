@@ -68,4 +68,15 @@
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
     </Match>
 
+    <Match>
+        <Class name="com.envimate.messageMate.internal.pipe.statistics.PipeStatistics"/>
+        <Method name="equals"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+    <Match>
+        <Class name="com.envimate.messageMate.internal.pipe.statistics.PipeStatistics"/>
+        <Method name="hashCode"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+
 </FindBugsFilter>
