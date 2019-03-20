@@ -49,12 +49,8 @@ public class QueryResolverImpl implements QueryResolver {
 
     @Override
     public <R> Optional<R> query(final Query<R> query) {
-        try {
-            messageBus.send(query);
-            return Optional.ofNullable(query.result());
-        } catch (final Exception e) {
-            return Optional.empty();
-        }
+        messageBus.send(query);
+        return Optional.ofNullable(query.result());
     }
 
     @Override

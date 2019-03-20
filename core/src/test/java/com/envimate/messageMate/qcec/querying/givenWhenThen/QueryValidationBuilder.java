@@ -21,7 +21,6 @@
 
 package com.envimate.messageMate.qcec.querying.givenWhenThen;
 
-import com.envimate.messageMate.qcec.queryresolving.InvalidQueryDueToExceptionOccurredInReceiverException;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.qcec.shared.TestValidation;
 import lombok.RequiredArgsConstructor;
@@ -76,6 +75,10 @@ public final class QueryValidationBuilder {
             final Optional<?> result = testEnvironment.getPropertyAsType(RESULT, Optional.class);
             assertFalse(result.isPresent());
         });
+    }
+
+    public static QueryValidationBuilder theThrownException() {
+        return aExceptionForNoResultButOneWasRequired();
     }
 
     public static QueryValidationBuilder aExceptionForNoResultButOneWasRequired() {

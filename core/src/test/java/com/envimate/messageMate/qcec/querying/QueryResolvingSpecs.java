@@ -98,7 +98,7 @@ public interface QueryResolvingSpecs {
     default void testQueryResolver_returnsNoResultWhenExceptionIsThrown(final TestQueryResolver aQueryResolver) {
         given(aQueryResolver)
                 .when(aQueryIsExecutedThatThrowsAnException())
-                .expect(expectNoResult());
+                .expect(theThrownException());
     }
 
     @Test

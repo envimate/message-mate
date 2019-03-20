@@ -41,7 +41,6 @@
     <suppress checks="IllegalCatch" files="SynchronousDelivery.java" />
     <suppress checks="IllegalCatch" files="EventToUseCaseDispatcherBuilder.java"/>
     <suppress checks="IllegalCatch" files="ChannelImpl.java"/>
-    <suppress checks="IllegalCatch" files="QueryResolverImpl.java"/>
     <suppress checks="VisibilityModifierCheck" files="AbstractSharedAnswerImpl.java" />
     <suppress checks="ParameterNumber" files="ChannelImpl.java" />
 </suppressions>
