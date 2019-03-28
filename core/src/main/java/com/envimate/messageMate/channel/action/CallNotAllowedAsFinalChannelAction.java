@@ -19,16 +19,14 @@
  * under the License.
  */
 
-package com.envimate.messageMate.channel.action.actionHandling;
-
-import com.envimate.messageMate.channel.action.Action;
+package com.envimate.messageMate.channel.action;
 
 /**
- * Exception, that is thrown, when the {@code ActionHandlerSet} is queried for an unknown {@code Action}.
+ * Exception for the case, that a {@code Call} was set as final {@code Action} of a {@code Channel}.
  */
-public class NoHandlerForUnknownActionException extends RuntimeException {
+public class CallNotAllowedAsFinalChannelAction extends RuntimeException {
 
-    public NoHandlerForUnknownActionException(final Action<?> action) {
-        super("No registered handler for " + action.getClass().getSimpleName() + ".");
+    public CallNotAllowedAsFinalChannelAction() {
+        super();
     }
 }

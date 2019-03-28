@@ -25,6 +25,7 @@ import com.envimate.messageMate.channel.action.Action;
 import com.envimate.messageMate.exceptions.AlreadyClosedException;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.internal.autoclosable.NoErrorAutoClosable;
+import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -54,9 +55,20 @@ public interface Channel<T> extends NoErrorAutoClosable {
      * Send the given message over this {@code Channel}.
      *
      * @param message the message to be sent
+     * @return the {@code CorrelationId} of the send message
      * @throws AlreadyClosedException if the {@code Channel} is already closed
      */
-    void send(T message);
+    CorrelationId send(T message);
+
+    /**
+     * Send the given message over this {@code Channel} with the given {@code CorrelationId}.
+     *
+     * @param message       the message to be sent
+     * @param correlationId the {@code CorrelationId} of the message
+     * @return the {@code CorrelationId} of the send message
+     * @throws AlreadyClosedException if the {@code Channel} is already closed
+     */
+    CorrelationId send(T message, CorrelationId correlationId);
 
     /**
      * Send the given processingContext object over this {@code Channel}.
@@ -69,7 +81,7 @@ public interface Channel<T> extends NoErrorAutoClosable {
      * @param processingContext the {@code ProcessingContext} to be sent
      * @throws AlreadyClosedException if the {@code Channel} is already closed
      */
-    void send(ProcessingContext<T> processingContext);
+    CorrelationId send(ProcessingContext<T> processingContext);
 
     /**
      * Adds the {@code Filter} to the list of pre {@code Filter}.

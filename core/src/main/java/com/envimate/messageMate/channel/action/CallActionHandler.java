@@ -19,43 +19,41 @@
  * under the License.
  */
 
-package com.envimate.messageMate.channel.action.actionHandling;
+package com.envimate.messageMate.channel.action;
 
 import com.envimate.messageMate.channel.ProcessingContext;
-import com.envimate.messageMate.channel.action.Consume;
 import lombok.RequiredArgsConstructor;
 
 import static lombok.AccessLevel.PRIVATE;
 
 /**
- * The {@code ActionHandler} implementation for the {@code Consume} {@code Action}. This handler will always execute the
- * consumer given to the {@code Consume} {@code Action}.
+ * The {@code ActionHandler} implementation for the {@code Call} {@code Action}. It will always throw an
+ * {@code CallNotAllowedAsFinalChannelAction}, when called.
  *
  * @param <T> the type of messages of the {@code Channel}
- * @see <a href="https://github.com/envimate/message-mate#consume">Message Mate Documentation</a>
  */
 @RequiredArgsConstructor(access = PRIVATE)
-public final class ConsumerActionHandler<T> implements ActionHandler<Consume<T>, T> {
+public final class CallActionHandler<T> implements ActionHandler<Call<T>, T> {
 
     /**
-     * Factory method for a new {@code ConsumerActionHandler}.
+     * Factory method to create an new {@code CallActionHandler}.
      *
      * @param <T> the type of messages of the {@code Channel}
-     * @return a new {@code ConsumerActionHandler}
+     * @return a new {@code CallActionHandler}
      */
-    public static <T> ConsumerActionHandler<T> consumerActionHandler() {
-        return new ConsumerActionHandler<>();
+    public static <T> CallActionHandler<T> callActionHandler() {
+        return new CallActionHandler<>();
     }
 
     /**
-     * Will call the {@code Consume} {@code Action's} consumer.
+     * Will always throw {@code CallNotAllowedAsFinalChannelAction}.
      *
-     * @param consume           the {@code Consume} {@code Action} to be handled
+     * @param action            the {@code Call} {@code Action} this handler was written for
      * @param processingContext the message
+     * @throws CallNotAllowedAsFinalChannelAction always
      */
     @Override
-    public void handle(final Consume<T> consume, final ProcessingContext<T> processingContext) {
-        consume.accept(processingContext);
+    public void handle(final Call<T> action, final ProcessingContext<T> processingContext) {
+        throw new CallNotAllowedAsFinalChannelAction();
     }
 }
-

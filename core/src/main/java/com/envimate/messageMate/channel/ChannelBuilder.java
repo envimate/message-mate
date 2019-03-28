@@ -22,7 +22,7 @@
 package com.envimate.messageMate.channel;
 
 import com.envimate.messageMate.channel.action.Action;
-import com.envimate.messageMate.channel.action.actionHandling.ActionHandlerSet;
+import com.envimate.messageMate.channel.action.ActionHandlerSet;
 import com.envimate.messageMate.channel.exception.ChannelExceptionHandler;
 import com.envimate.messageMate.channel.internal.events.ChannelEventListener;
 import com.envimate.messageMate.channel.internal.statistics.ChannelStatisticsCollector;
@@ -35,7 +35,7 @@ import com.envimate.messageMate.internal.pipe.error.PipeErrorHandler;
 
 import static com.envimate.messageMate.channel.ChannelImpl.channel;
 import static com.envimate.messageMate.channel.ChannelType.SYNCHRONOUS;
-import static com.envimate.messageMate.channel.action.actionHandling.DefaultActionHandlerSet.defaultActionHandlerSet;
+import static com.envimate.messageMate.channel.action.DefaultActionHandlerSet.defaultActionHandlerSet;
 import static com.envimate.messageMate.channel.exception.ErrorThrowingChannelExceptionHandler.errorThrowingChannelExceptionHandler;
 import static com.envimate.messageMate.channel.internal.events.SimpleChannelEventListener.simpleChannelEventListener;
 import static com.envimate.messageMate.channel.internal.statistics.PipeStatisticsBasedChannelStatisticsCollector.pipeStatisticsBasedChannelStatisticsCollector;

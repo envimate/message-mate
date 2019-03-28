@@ -22,6 +22,7 @@
 package com.envimate.messageMate.channel;
 
 import com.envimate.messageMate.channel.action.Action;
+import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -66,17 +67,23 @@ public final class ProcessingContext<T> {
     @Setter
     private ChannelProcessingFrame<T> initialProcessingFrame;
 
-    @Setter
     @Getter
+    @Setter
     private ChannelProcessingFrame<T> currentProcessingFrame;
+
+    @Getter
+    @Setter
+    private CorrelationId correlationId;
 
     private ProcessingContext(final Map<Object, Object> contextMetaData, final T payload,
                               final ChannelProcessingFrame<T> initialProcessingFrame,
-                              final ChannelProcessingFrame<T> currentProcessingFrame) {
+                              final ChannelProcessingFrame<T> currentProcessingFrame,
+                              final CorrelationId correlationId) {
         this.contextMetaData = contextMetaData;
         this.payload = payload;
         this.initialProcessingFrame = initialProcessingFrame;
         this.currentProcessingFrame = currentProcessingFrame;
+        this.correlationId = correlationId;
     }
 
     /**
@@ -88,7 +95,21 @@ public final class ProcessingContext<T> {
      */
     public static <T> ProcessingContext<T> processingContext(final T payload) {
         final Map<Object, Object> contextMetaData = new HashMap<>();
-        return new ProcessingContext<>(contextMetaData, payload, null, null);
+        final CorrelationId corId = CorrelationId.newUniqueId();
+        return new ProcessingContext<>(contextMetaData, payload, null, null, corId);
+    }
+
+    /**
+     * Factory method to create a new {@code ProcessingContext} for a given payload and {@code CorrelationId}.
+     *
+     * @param payload       the message to envelope
+     * @param correlationId the {@code CorrelationId} to be used
+     * @param <T>           the type of the message
+     * @return a new {@code ProcessingContext} object
+     */
+    public static <T> ProcessingContext<T> processingContext(final T payload, final CorrelationId correlationId) {
+        final Map<Object, Object> metaData = new HashMap<>();
+        return new ProcessingContext<>(metaData, payload, null, null, correlationId);
     }
 
     /**
@@ -100,7 +121,8 @@ public final class ProcessingContext<T> {
      * @return a new {@code ProcessingContext} object
      */
     public static <T> ProcessingContext<T> processingContext(final T payload, final Map<Object, Object> contextMetaData) {
-        return new ProcessingContext<>(contextMetaData, payload, null, null);
+        final CorrelationId corId = CorrelationId.newUniqueId();
+        return new ProcessingContext<>(contextMetaData, payload, null, null, corId);
     }
 
     /**

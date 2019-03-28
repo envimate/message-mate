@@ -19,13 +19,16 @@
  * under the License.
  */
 
-package com.envimate.messageMate.channel.action.actionHandling;
+package com.envimate.messageMate.channel.action;
+
+import com.envimate.messageMate.channel.action.Action;
 
 /**
- * Exception, that is thrown, when a {@code Return} {@code Action} is executed without a previous {@code Call}.
+ * Exception, that is thrown, when the {@code ActionHandlerSet} is queried for an unknown {@code Action}.
  */
-public class ReturnWithoutCallException extends RuntimeException {
-    public ReturnWithoutCallException() {
-        super("Found Return without a previous not yet returned call.");
+public class NoHandlerForUnknownActionException extends RuntimeException {
+
+    public NoHandlerForUnknownActionException(final Action<?> action) {
+        super("No registered handler for " + action.getClass().getSimpleName() + ".");
     }
 }

@@ -21,10 +21,12 @@
 
 package com.envimate.messageMate.messageBus;
 
+import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.exceptions.AlreadyClosedException;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.internal.autoclosable.NoErrorAutoClosable;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener;
+import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 
@@ -44,9 +46,20 @@ public interface MessageBus extends NoErrorAutoClosable {
      * Sends the message on the {@code MessageBus}
      *
      * @param message the message to send
+     * @return the {@code CorrelationId} of the send message
      * @throws AlreadyClosedException if {@code MessageBus} already closed
      */
-    void send(Object message);
+    CorrelationId send(Object message);
+
+    /**
+     * Sends the message on the {@code MessageBus}
+     *
+     * @param message       the message to send
+     * @param correlationId the {@code CorrelationId} for the given message
+     * @return the {@code CorrelationId} of the send message
+     * @throws AlreadyClosedException if {@code MessageBus} already closed
+     */
+    CorrelationId send(Object message, CorrelationId correlationId);
 
     /**
      * Adds the given {@code Consumer} wrapped in a {@code Subscriber} object.
@@ -67,6 +80,27 @@ public interface MessageBus extends NoErrorAutoClosable {
      * @return the {@code SubscriptionId} of the {@code Subscriber}
      */
     <T> SubscriptionId subscribe(Class<T> messageClass, Subscriber<T> subscriber);
+
+
+    /**
+     * Adds the given {@code Consumer} wrapped in a {@code Subscriber} object with access to the {@code ProcessingContext} object.
+     *
+     * @param messageClass the class of interest
+     * @param consumer     the consumer as {@code Subscriber}
+     * @param <T>          the type of the message and the {@code consumer}
+     * @return the {@code SubscriptionId} of the created {@code Subscriber}
+     */
+    <T> SubscriptionId subscribeRaw(Class<T> messageClass, Consumer<ProcessingContext<T>> consumer);
+
+    /**
+     * Adds the given {@code Subscriber} with access to the {@code ProcessingContext} object.
+     *
+     * @param messageClass the class of interest
+     * @param subscriber   the {@code Subscriber} to add
+     * @param <T>          the type of the message and the {@code Subscriber}
+     * @return the {@code SubscriptionId} of the {@code Subscriber}
+     */
+    <T> SubscriptionId subscribeRaw(Class<T> messageClass, Subscriber<ProcessingContext<T>> subscriber);
 
     /**
      * Removes all {@code Subscribers} with the given {@code SubscriptionId}

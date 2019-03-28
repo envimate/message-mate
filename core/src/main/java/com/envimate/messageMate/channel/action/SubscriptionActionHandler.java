@@ -19,10 +19,9 @@
  * under the License.
  */
 
-package com.envimate.messageMate.channel.action.actionHandling;
+package com.envimate.messageMate.channel.action;
 
 import com.envimate.messageMate.channel.ProcessingContext;
-import com.envimate.messageMate.channel.action.Subscription;
 import com.envimate.messageMate.subscribing.AcceptingBehavior;
 import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.RequiredArgsConstructor;
@@ -58,10 +57,9 @@ public final class SubscriptionActionHandler<T> implements ActionHandler<Subscri
      */
     @Override
     public void handle(final Subscription<T> subscription, final ProcessingContext<T> processingContext) {
-        final T payload = processingContext.getPayload();
-        final List<Subscriber<T>> subscribers = subscription.getSubscribers();
-        for (final Subscriber<T> subscriber : subscribers) {
-            final AcceptingBehavior acceptingBehavior = subscriber.accept(payload);
+        final List<Subscriber<ProcessingContext<T>>> subscribers = subscription.getRealSubscribers();
+        for (final Subscriber<ProcessingContext<T>> subscriber : subscribers) {
+            final AcceptingBehavior acceptingBehavior = subscriber.accept(processingContext);
             if (!acceptingBehavior.continueDelivery()) {
                 return;
             }

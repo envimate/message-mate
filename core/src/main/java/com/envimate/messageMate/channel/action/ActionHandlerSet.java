@@ -19,9 +19,7 @@
  * under the License.
  */
 
-package com.envimate.messageMate.channel.action.actionHandling;
-
-import com.envimate.messageMate.channel.action.Action;
+package com.envimate.messageMate.channel.action;
 
 import java.util.HashMap;
 import java.util.Map;

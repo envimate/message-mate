@@ -22,6 +22,8 @@
 package com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen;
 
 import com.envimate.messageMate.internal.pipe.statistics.PipeStatistics;
+import com.envimate.messageMate.messageBus.MessageBus;
+import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
@@ -42,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RESULT;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.AsynchronousSendingTestUtils.*;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestProperties.*;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static lombok.AccessLevel.PRIVATE;
@@ -50,10 +52,17 @@ import static lombok.AccessLevel.PRIVATE;
 @RequiredArgsConstructor(access = PRIVATE)
 public final class PipeMessageBusTestActions {
 
-    public static void sendASingleMessage(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
+    public static CorrelationId sendASingleMessage(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
         final TestMessageOfInterest message = TestMessageOfInterest.messageOfInterest();
         testEnvironment.setProperty(SINGLE_SEND_MESSAGE, message);
-        sutActions.send(message);
+        return sutActions.send(message);
+    }
+
+    public static CorrelationId sendASingleMessage(final MessageBus messageBus, final CorrelationId correlationId,
+                                                   final TestEnvironment testEnvironment) {
+        final TestMessageOfInterest message = TestMessageOfInterest.messageOfInterest();
+        testEnvironment.setProperty(SINGLE_SEND_MESSAGE, message);
+        return messageBus.send(message, correlationId);
     }
 
     public static void sendTheMessage(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment,

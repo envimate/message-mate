@@ -49,7 +49,7 @@ import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestEx
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RECEIVERS;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSetupActions.*;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestProperties.*;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
@@ -96,7 +96,7 @@ public final class MessageBusSetupBuilder {
     public MessageBusSetupBuilder withACustomChannelFactory() {
         messageBusBuilder.withAChannelFactory(new MessageBusChannelFactory() {
             @Override
-            public <T> Channel<?> createChannel(final Class<T> tClass, final Subscriber<T> subscriber, final MessageBusExceptionHandler exceptionHandler) {
+            public <T> Channel<?> createChannel(final Class<T> tClass, final Subscriber<?> subscriber, final MessageBusExceptionHandler exceptionHandler) {
                 final Channel<T> channel = ChannelBuilder.aChannel(tClass)
                         .withDefaultAction(subscription())
                         .build();
@@ -117,6 +117,16 @@ public final class MessageBusSetupBuilder {
 
     public MessageBusSetupBuilder withASingleSubscriber() {
         setupActions.add((t, testEnvironment) -> addASingleSubscriber(sutActions(t), testEnvironment));
+        return this;
+    }
+
+    public MessageBusSetupBuilder withASingleRawSubscriber() {
+        setupActions.add((t, testEnvironment) -> addASingleRawSubscriber(testEnvironment));
+        return this;
+    }
+
+    public <T> MessageBusSetupBuilder withARawSubscriberForType(final Class<T> clazz) {
+        setupActions.add((t, testEnvironment) -> addASingleRawSubscriber(testEnvironment, clazz));
         return this;
     }
 

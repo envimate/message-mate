@@ -27,6 +27,7 @@ import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusStatusInformation;
+import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
 import com.envimate.messageMate.qcec.shared.TestAction;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
 import com.envimate.messageMate.shared.subscriber.ExceptionThrowingTestSubscriber;
@@ -42,11 +43,13 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActions.messageBusTestActions;
+import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RESULT;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.AsynchronousSendingTestUtils.sendMessagesBeforeAndAfterShutdownAsynchronously;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.SEND_CORRELATION_ID;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.USED_SUBSCRIPTION_ID;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSetupActions.addASingleSubscriber;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestActions.*;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestProperties.USED_SUBSCRIPTION_ID;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.TestFilter.anErrorThrowingFilter;
 import static com.envimate.messageMate.shared.subscriber.ExceptionThrowingTestSubscriber.exceptionThrowingTestSubscriber;
 
@@ -61,7 +64,18 @@ public final class MessageBusActionBuilder {
     public static MessageBusActionBuilder aSingleMessageIsSend() {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
             final PipeMessageBusSutActions sutActions = messageBusTestActions(messageBus);
-            sendASingleMessage(sutActions, testEnvironment);
+            final CorrelationId correlationId = sendASingleMessage(sutActions, testEnvironment);
+            testEnvironment.setProperty(SEND_CORRELATION_ID, correlationId);
+            return null;
+        });
+    }
+
+    public static MessageBusActionBuilder aMessageWithCorrelationIdIsSend() {
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final CorrelationId correlationId = CorrelationId.newUniqueId();
+            final CorrelationId sendCorrelationId = sendASingleMessage(messageBus, correlationId, testEnvironment);
+            testEnvironment.setProperty(EXPECTED_RESULT, correlationId);
+            testEnvironment.setProperty(SEND_CORRELATION_ID, sendCorrelationId);
             return null;
         });
     }

@@ -19,42 +19,47 @@
  * under the License.
  */
 
-package com.envimate.messageMate.channel.action.actionHandling;
+package com.envimate.messageMate.channel.action;
 
+import com.envimate.messageMate.channel.Channel;
+import com.envimate.messageMate.channel.ChannelProcessingFrame;
 import com.envimate.messageMate.channel.ProcessingContext;
-import com.envimate.messageMate.channel.action.Call;
 import lombok.RequiredArgsConstructor;
 
 import static lombok.AccessLevel.PRIVATE;
 
 /**
- * The {@code ActionHandler} implementation for the {@code Call} {@code Action}. It will always throw an
- * {@code CallNotAllowedAsFinalChannelAction}, when called.
+ * The {@code ActionHandler} implementation for the {@code Jump} {@code Action}. This handler will take the message and sends
+ * it on the given target the type of messages of the {@code Channel}.
  *
  * @param <T> the type of messages of the {@code Channel}
+ * @see <a href="https://github.com/envimate/message-mate#jump">Message Mate Documentation</a>
  */
 @RequiredArgsConstructor(access = PRIVATE)
-public final class CallActionHandler<T> implements ActionHandler<Call<T>, T> {
+public final class JumpActionHandler<T> implements ActionHandler<Jump<T>, T> {
 
     /**
-     * Factory method to create an new {@code CallActionHandler}.
+     * Factory method for a new {@code JumpActionHandler}.
      *
      * @param <T> the type of messages of the {@code Channel}
-     * @return a new {@code CallActionHandler}
+     * @return a new {@code JumpActionHandler}
      */
-    public static <T> CallActionHandler<T> callActionHandler() {
-        return new CallActionHandler<>();
+    public static <T> JumpActionHandler<T> jumpActionHandler() {
+        return new JumpActionHandler<>();
     }
 
     /**
-     * Will always throw {@code CallNotAllowedAsFinalChannelAction}.
+     * Takes the message and sends in on the given {@code Channel}.
      *
-     * @param action            the {@code Call} {@code Action} this handler was written for
+     * @param jump              the {@code Jump} {@code Action}
      * @param processingContext the message
-     * @throws CallNotAllowedAsFinalChannelAction always
      */
     @Override
-    public void handle(final Call<T> action, final ProcessingContext<T> processingContext) {
-        throw new CallNotAllowedAsFinalChannelAction();
+    public void handle(final Jump<T> jump, final ProcessingContext<T> processingContext) {
+        final Channel<T> targetChannel = jump.getTargetChannel();
+        final ChannelProcessingFrame<T> finishedProcessingFrame = processingContext.getCurrentProcessingFrame();
+        finishedProcessingFrame.setAction(jump);
+        targetChannel.send(processingContext);
     }
 }
+

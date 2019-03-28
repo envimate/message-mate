@@ -143,6 +143,23 @@ public interface MessageBusSpecs {
                 .then(expectAllMessagesToBeReceivedByAllSubscribers());
     }
 
+    //CorrelationId
+    @Test
+    default void testMessageBus_sendCorrelationIdEqualsToReceived(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withASingleRawSubscriber())
+                .when(aSingleMessageIsSend())
+                .then(expectSendAndReceivedCorrelationIdsToMatch());
+    }
+
+    @Test
+    default void testMessageBus_canSetCorrelationIdWhenSend(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withASingleRawSubscriber())
+                .when(aMessageWithCorrelationIdIsSend())
+                .then(expectSendAndReceivedCorrelationIdsToMatch());
+    }
+
     //unsubscribe
     @Test
     default void testMessageBus_canUnsubscribe(final MessageBusTestConfig messageBusTestConfig) throws Exception {
@@ -173,7 +190,7 @@ public interface MessageBusSpecs {
     @Test
     default void testMessageBus_allowsFiltersToChangeMessages(final MessageBusTestConfig messageBusTestConfig) throws Exception {
         given(aConfiguredMessageBus(messageBusTestConfig)
-                .withSeveralSubscriber(1)
+                .withASingleSubscriber()
                 .withAFilterThatChangesTheContentOfEveryMessage())
                 .when(severalMessagesAreSend(1))
                 .then(expectAllMessagesToHaveTheContentChanged());
@@ -296,9 +313,10 @@ public interface MessageBusSpecs {
         given(aConfiguredMessageBus(messageBusTestConfig)
                 .withASubscriberForTyp(TestMessageOfInterest.class)
                 .withASubscriberForTyp(TestMessageOfInterest.class)
+                .withARawSubscriberForType(TestMessageOfInterest.class)
                 .withASubscriberForTyp(InvalidTestMessage.class))
                 .when(theSubscriberAreQueriedPerType())
-                .then(expectSubscriberOfType(2, TestMessageOfInterest.class)
+                .then(expectSubscriberOfType(3, TestMessageOfInterest.class)
                         .and(expectSubscriberOfType(1, InvalidTestMessage.class)));
     }
 

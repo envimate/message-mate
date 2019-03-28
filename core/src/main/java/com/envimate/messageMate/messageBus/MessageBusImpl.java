@@ -30,6 +30,7 @@ import com.envimate.messageMate.messageBus.internal.MessageBusStatusInformationA
 import com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategy;
 import com.envimate.messageMate.messageBus.internal.exception.ExceptionListenerHandler;
 import com.envimate.messageMate.messageBus.internal.statistics.MessageBusStatisticsCollector;
+import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
 import com.envimate.messageMate.subscribing.ConsumerSubscriber;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
@@ -61,8 +62,13 @@ final class MessageBusImpl implements MessageBus {
     }
 
     @Override
-    public void send(final Object message) {
-        acceptingChannel.send(message);
+    public CorrelationId send(final Object message) {
+        return acceptingChannel.send(message);
+    }
+
+    @Override
+    public CorrelationId send(final Object message, final CorrelationId correlationId) {
+        return acceptingChannel.send(message, correlationId);
     }
 
     @Override
@@ -74,6 +80,18 @@ final class MessageBusImpl implements MessageBus {
     @Override
     public <T> SubscriptionId subscribe(final Class<T> messageClass, final Subscriber<T> subscriber) {
         brokerStrategy.addSubscriber(messageClass, subscriber);
+        return subscriber.getSubscriptionId();
+    }
+
+    @Override
+    public <T> SubscriptionId subscribeRaw(final Class<T> messageClass, final Consumer<ProcessingContext<T>> consumer) {
+        final ConsumerSubscriber<ProcessingContext<T>> subscriber = consumerSubscriber(consumer);
+        return subscribeRaw(messageClass, subscriber);
+    }
+
+    @Override
+    public <T> SubscriptionId subscribeRaw(final Class<T> messageClass, final Subscriber<ProcessingContext<T>> subscriber) {
+        brokerStrategy.addRawSubscriber(messageClass, subscriber);
         return subscriber.getSubscriptionId();
     }
 

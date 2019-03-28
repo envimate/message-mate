@@ -19,17 +19,16 @@
  * under the License.
  */
 
-package com.envimate.messageMate.channel.action.actionHandling;
+package com.envimate.messageMate.channel.action;
 
-import com.envimate.messageMate.channel.action.*;
 import lombok.RequiredArgsConstructor;
 
-import static com.envimate.messageMate.channel.action.actionHandling.ActionHandlerSet.emptyActionHandlerSet;
-import static com.envimate.messageMate.channel.action.actionHandling.CallActionHandler.callActionHandler;
-import static com.envimate.messageMate.channel.action.actionHandling.ConsumerActionHandler.consumerActionHandler;
-import static com.envimate.messageMate.channel.action.actionHandling.JumpActionHandler.jumpActionHandler;
-import static com.envimate.messageMate.channel.action.actionHandling.ReturnActionHandler.returnActionHandler;
-import static com.envimate.messageMate.channel.action.actionHandling.SubscriptionActionHandler.subscriptionActionHandler;
+import static com.envimate.messageMate.channel.action.ActionHandlerSet.emptyActionHandlerSet;
+import static com.envimate.messageMate.channel.action.CallActionHandler.callActionHandler;
+import static com.envimate.messageMate.channel.action.ConsumerActionHandler.consumerActionHandler;
+import static com.envimate.messageMate.channel.action.JumpActionHandler.jumpActionHandler;
+import static com.envimate.messageMate.channel.action.ReturnActionHandler.returnActionHandler;
+import static com.envimate.messageMate.channel.action.SubscriptionActionHandler.subscriptionActionHandler;
 import static lombok.AccessLevel.PRIVATE;
 
 /**

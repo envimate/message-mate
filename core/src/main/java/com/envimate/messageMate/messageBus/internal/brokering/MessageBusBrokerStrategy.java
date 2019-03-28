@@ -22,6 +22,7 @@
 package com.envimate.messageMate.messageBus.internal.brokering;
 
 import com.envimate.messageMate.channel.Channel;
+import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 
@@ -34,6 +35,8 @@ public interface MessageBusBrokerStrategy {
     Set<Channel<?>> getDeliveringChannelsFor(Class<?> messageClass);
 
     <T> void addSubscriber(Class<T> tClass, Subscriber<T> subscriber);
+
+    <T> void addRawSubscriber(Class<T> tClass, Subscriber<ProcessingContext<T>> subscriber);
 
     void removeSubscriber(SubscriptionId subscriptionId);
 

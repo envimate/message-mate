@@ -21,7 +21,9 @@
 
 package com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen;
 
+import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.filtering.Filter;
+import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.subscriber.*;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
@@ -30,8 +32,8 @@ import lombok.RequiredArgsConstructor;
 import java.util.concurrent.Semaphore;
 
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RECEIVERS;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RESULT;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestProperties.*;
+import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.TestFilter.*;
 import static com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber.blockingTestSubscriber;
 import static com.envimate.messageMate.shared.subscriber.ExceptionThrowingTestSubscriber.exceptionThrowingTestSubscriber;
@@ -57,6 +59,21 @@ public final class PipeMessageBusSetupActions {
     public static void addSeveralSubscriber(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment, final int numberOfReceivers) {
         for (int i = 0; i < numberOfReceivers; i++) {
             addASingleSubscriber(sutActions, testEnvironment);
+        }
+    }
+
+    public static void addASingleRawSubscriber(final TestEnvironment testEnvironment) {
+        addASingleRawSubscriber(testEnvironment, TestMessageOfInterest.class);
+    }
+
+    public static <T> void addASingleRawSubscriber(final TestEnvironment testEnvironment, final Class<T> clazz) {
+        final SimpleTestSubscriber<ProcessingContext<T>> subscriber = testSubscriber();
+        final MessageBus messageBus = testEnvironment.getPropertyAsType(SUT, MessageBus.class);
+        messageBus.subscribeRaw(clazz, subscriber);
+        if (testEnvironment.has(EXPECTED_RECEIVERS)) {
+            testEnvironment.addToListProperty(EXPECTED_RECEIVERS, subscriber);
+        } else {
+            testEnvironment.setProperty(EXPECTED_RECEIVERS, subscriber);
         }
     }
 

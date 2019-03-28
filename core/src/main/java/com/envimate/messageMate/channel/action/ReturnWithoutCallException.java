@@ -19,14 +19,13 @@
  * under the License.
  */
 
-package com.envimate.messageMate.channel.action.actionHandling;
+package com.envimate.messageMate.channel.action;
 
 /**
- * Exception for the case, that a {@code Call} was set as final {@code Action} of a {@code Channel}.
+ * Exception, that is thrown, when a {@code Return} {@code Action} is executed without a previous {@code Call}.
  */
-public class CallNotAllowedAsFinalChannelAction extends RuntimeException {
-
-    public CallNotAllowedAsFinalChannelAction() {
-        super();
+public class ReturnWithoutCallException extends RuntimeException {
+    public ReturnWithoutCallException() {
+        super("Found Return without a previous not yet returned call.");
     }
 }

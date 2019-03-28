@@ -93,4 +93,5 @@ public final class SharedTestValidations {
         final List<?> list = testEnvironment.getPropertyAsType(RESULT, List.class);
         assertThat(list.size(), equalTo(expectedSize));
     }
+
 }

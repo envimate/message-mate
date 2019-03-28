@@ -45,6 +45,6 @@ public interface MessageBusChannelFactory {
      * @param <T>                        the type of the class, the optional {@code Subscriber} and the created {@code Channel}
      * @return the newly created {@code Channel}
      */
-    <T> Channel<?> createChannel(Class<T> tClass, Subscriber<T> subscriber,
+    <T> Channel<?> createChannel(Class<T> tClass, Subscriber<?> subscriber,
                                  MessageBusExceptionHandler messageBusExceptionHandler);
 }

@@ -22,17 +22,18 @@
 package com.envimate.messageMate.channel;
 
 import com.envimate.messageMate.channel.action.Action;
-import com.envimate.messageMate.channel.action.actionHandling.ActionHandler;
-import com.envimate.messageMate.channel.action.actionHandling.ActionHandlerSet;
+import com.envimate.messageMate.channel.action.ActionHandler;
+import com.envimate.messageMate.channel.action.ActionHandlerSet;
 import com.envimate.messageMate.channel.exception.ChannelExceptionHandler;
 import com.envimate.messageMate.channel.internal.events.ChannelEventListener;
 import com.envimate.messageMate.channel.internal.filtering.FilterApplier;
 import com.envimate.messageMate.channel.internal.filtering.FilterApplierImpl;
 import com.envimate.messageMate.channel.internal.filtering.PostFilterActions;
-import com.envimate.messageMate.channel.statistics.ChannelStatistics;
 import com.envimate.messageMate.channel.internal.statistics.ChannelStatisticsCollector;
+import com.envimate.messageMate.channel.statistics.ChannelStatistics;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.internal.pipe.Pipe;
+import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -85,15 +86,22 @@ final class ChannelImpl<T> implements Channel<T> {
     }
 
     @Override
-    public void send(final T message) {
+    public CorrelationId send(final T message) {
         final ProcessingContext<T> processingContext = ProcessingContext.processingContext(message);
-        send(processingContext);
+        return send(processingContext);
     }
 
     @Override
-    public void send(final ProcessingContext<T> processingContext) {
+    public CorrelationId send(final T message, final CorrelationId correlationId) {
+        final ProcessingContext<T> processingContext = ProcessingContext.processingContext(message, correlationId);
+        return send(processingContext);
+    }
+
+    @Override
+    public CorrelationId send(final ProcessingContext<T> processingContext) {
         advanceChannelProcessingFrameHistory(processingContext);
         acceptingPipe.send(processingContext);
+        return processingContext.getCorrelationId();
     }
 
     private void advanceChannelProcessingFrameHistory(final ProcessingContext<T> processingContext) {

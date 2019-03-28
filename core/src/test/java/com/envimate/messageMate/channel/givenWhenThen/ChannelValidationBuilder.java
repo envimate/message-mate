@@ -31,6 +31,7 @@ import com.envimate.messageMate.qcec.shared.TestValidation;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.shared.validations.SharedTestValidations;
 import com.envimate.messageMate.subscribing.Subscriber;
+import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Collections;
@@ -40,11 +41,10 @@ import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestProperti
 import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestValidations.*;
 import static com.envimate.messageMate.channel.givenWhenThen.ProcessingFrameHistoryMatcher.aProcessingFrameHistory;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestValidations.assertExpectedReceiverReceivedAllMessages;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestValidations.assertExpectedReceiverReceivedAllMessages;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestValidations.assertSendReceivedAndExpectedCorrelationIdAreEqual;
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.*;
 import static lombok.AccessLevel.PRIVATE;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @RequiredArgsConstructor(access = PRIVATE)
@@ -183,6 +183,10 @@ public final class ChannelValidationBuilder {
         return aValidation(testEnvironment -> assertExceptionThrownOfType(testEnvironment, expectedExceptionClass));
     }
 
+    public static ChannelValidationBuilder expectTheMessageToBeReceivedByAllRemainingSubscriber() {
+        return expectTheMessageToBeReceivedByAllSubscriber();
+    }
+
     public static ChannelValidationBuilder expectTheMessageToBeReceivedByAllSubscriber() {
         return aValidation(testEnvironment -> {
             final ProcessingContext<?> processingContext = testEnvironment.getPropertyAsType(EXPECTED_RESULT, ProcessingContext.class);
@@ -192,18 +196,31 @@ public final class ChannelValidationBuilder {
         });
     }
 
+
+    public static ChannelValidationBuilder expectTheProcessingContextObjectToBeReceivedByAllSubscriber() {
+        return aValidation(testEnvironment -> {
+            final ProcessingContext<?> processingContext = testEnvironment.getPropertyAsType(EXPECTED_RESULT, ProcessingContext.class);
+            final List<?> expectedTestMessages = Collections.singletonList(processingContext);
+            assertExpectedReceiverReceivedAllMessages(testEnvironment, expectedTestMessages);
+        });
+    }
+
     public static ChannelValidationBuilder expectRemainingSubscriber() {
         return aValidation(testEnvironment -> {
             final Channel<TestMessage> channel = getTestPropertyAsChannel(testEnvironment, SUT);
             final Subscription<TestMessage> subscription = (Subscription<TestMessage>) channel.getDefaultAction();
-            final List<Subscriber<TestMessage>> subscribers = subscription.getSubscribers();
-            final List<?> expectedSubscriber = (List<?>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
-            assertThat(subscribers, containsInAnyOrder(expectedSubscriber.toArray()));
-        });
-    }
+            final List<Subscriber<?>> subscribers = subscription.getAllSubscribers();
+            final List<Subscriber<?>> expectedSubscribers = getPropertyAsListOfSubscriber(testEnvironment);
+            assertEquals(subscribers.size(), expectedSubscribers.size());
+            for (final Subscriber<?> expectedSubscriber : expectedSubscribers) {
+                final SubscriptionId expectedSubscriptionId = expectedSubscriber.getSubscriptionId();
+                subscribers.stream()
+                        .filter(s -> s.getSubscriptionId().equals(expectedSubscriptionId))
+                        .findAny()
+                        .orElseThrow(AssertionError::new);
 
-    public static ChannelValidationBuilder expectTheMessageToBeReceivedByAllRemainingSubscriber() {
-        return expectTheMessageToBeReceivedByAllSubscriber();
+            }
+        });
     }
 
     public static ChannelValidationBuilder expectTheChannelToBeShutdown() {
@@ -233,6 +250,15 @@ public final class ChannelValidationBuilder {
         return aValidation(SharedTestValidations::assertNoExceptionThrown);
     }
 
+
+    public static ChannelValidationBuilder expectSendAndReceivedCorrelationIdsToMatch() {
+        return aValidation(testEnvironment -> {
+            assertNoExceptionThrown(testEnvironment);
+            final ProcessingContext<?> result = testEnvironment.getPropertyAsType(RESULT, ProcessingContext.class);
+            assertSendReceivedAndExpectedCorrelationIdAreEqual(testEnvironment, result);
+        });
+    }
+
     private static void assertIsShutdown(final TestEnvironment testEnvironment) {
         final Channel<TestMessage> channel = getTestPropertyAsChannel(testEnvironment, SUT);
         final boolean isShutdown = channel.isClosed();
@@ -257,6 +283,11 @@ public final class ChannelValidationBuilder {
     private static List<Filter<ProcessingContext<TestMessage>>> getTestPropertyAsListOfFilter(final TestEnvironment testEnvironment,
                                                                                               final TestEnvironmentProperty property) {
         return (List<Filter<ProcessingContext<TestMessage>>>) testEnvironment.getProperty(property);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<Subscriber<?>> getPropertyAsListOfSubscriber(final TestEnvironment testEnvironment) {
+        return (List<Subscriber<?>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
     }
 
     public ChannelValidationBuilder and(final ChannelValidationBuilder other) {

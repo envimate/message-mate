@@ -22,6 +22,7 @@
 package com.envimate.messageMate.messageBus.internal.brokering;
 
 import com.envimate.messageMate.channel.Channel;
+import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.channel.action.Action;
 import com.envimate.messageMate.channel.action.Subscription;
 import com.envimate.messageMate.messageBus.channelCreating.MessageBusChannelFactory;
@@ -71,27 +72,39 @@ public final class MessageBusBrokerStrategyImpl implements MessageBusBrokerStrat
 
     @Override
     public synchronized <T> void addSubscriber(final Class<T> tClass, final Subscriber<T> subscriber) {
+        final Channel<?> channel = createOrGetChannel(tClass, subscriber);
+        addSubscriberTo(channel, subscriber);
+    }
+
+    @Override
+    public <T> void addRawSubscriber(final Class<T> tClass, final Subscriber<ProcessingContext<T>> subscriber) {
+        final Channel<?> channel = createOrGetChannel(tClass, subscriber);
+        addRawSubscriberTo(channel, subscriber);
+    }
+
+    private <T> Channel<?> createOrGetChannel(final Class<T> tClass, final Subscriber<?> subscriber) {
         if (classInformationMap.containsKey(tClass)) {
             final ClassInformation classInformation = classInformationMap.get(tClass);
             if (classInformation.hasChannel()) {
                 final Channel<?> channel = classInformation.getChannel();
-                addSubscriberTo(channel, subscriber);
+                return channel;
             } else {
                 final Channel<?> newlyCreatedChannel = createNewChannel(tClass, subscriber, classInformation);
                 publishNewChannelToAllChildren(classInformation, newlyCreatedChannel);
+                return newlyCreatedChannel;
             }
         } else {
             final ClassInformation classInformation = createClassInformation(tClass);
-            createNewChannel(tClass, subscriber, classInformation);
+            final Channel<?> newlyCreatedChannel = createNewChannel(tClass, subscriber, classInformation);
             final Set<Channel<?>> channels = collectAllChannelsFromSuperClassHierarchy(classInformation);
             cachedChannelMap.put(tClass, channels);
+            return newlyCreatedChannel;
         }
     }
 
-    private <T> Channel<?> createNewChannel(final Class<T> tClass, final Subscriber<T> subscriber,
+    private <T> Channel<?> createNewChannel(final Class<T> tClass, final Subscriber<?> subscriber,
                                             final ClassInformation classInformation) {
         final Channel<?> newlyCreatedChannel = channelFactory.createChannel(tClass, subscriber, messageBusExceptionHandler);
-        addSubscriberTo(newlyCreatedChannel, subscriber);
         classInformation.setChannel(newlyCreatedChannel);
         return newlyCreatedChannel;
     }
@@ -112,6 +125,16 @@ public final class MessageBusBrokerStrategyImpl implements MessageBusBrokerStrat
     private <T> void addSubscriberTo(final Channel<?> channel, final Subscriber<T> subscriber) {
         final Subscription<T> subscription = getSubscriptionOf(channel);
         subscription.addSubscriber(subscriber);
+        storeSubscription(subscription, subscriber);
+    }
+
+    private <T> void addRawSubscriberTo(final Channel<?> channel, final Subscriber<ProcessingContext<T>> subscriber) {
+        final Subscription<T> subscription = getSubscriptionOf(channel);
+        subscription.addRawSubscriber(subscriber);
+        storeSubscription(subscription, subscriber);
+    }
+
+    private <T> void storeSubscription(final Subscription<T> subscription, final Subscriber<?> subscriber) {
         final SubscriptionId subscriptionId = subscriber.getSubscriptionId();
         subscriptionIdToSubscriptionMap.putIfAbsent(subscriptionId, new HashSet<>());
         final Set<Subscription<?>> subscriptions = subscriptionIdToSubscriptionMap.get(subscriptionId);
@@ -194,7 +217,7 @@ public final class MessageBusBrokerStrategyImpl implements MessageBusBrokerStrat
         final Set<? extends Subscriber<?>> subscribers = subscriptionIdToSubscriptionMap.values()
                 .stream()
                 .flatMap(Collection::stream)
-                .map(Subscription::getSubscribers)
+                .map(Subscription::getAllSubscribers)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toSet());
         return new LinkedList<>(subscribers);
@@ -222,7 +245,7 @@ public final class MessageBusBrokerStrategyImpl implements MessageBusBrokerStrat
         final ClassInformation classInformation = entry.getValue();
         final Channel<?> channel = classInformation.getChannel();
         final Subscription<?> subscription = getSubscriptionOf(channel);
-        return new LinkedList<>(subscription.getSubscribers());
+        return new LinkedList<>(subscription.getAllSubscribers());
     }
 
     private static final class ClassInformation {

@@ -26,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
-public final class PipeMessageBusTestProperties {
+public final class PipeChannelMessageBusSharedTestProperties {
     public static final String SINGLE_SEND_MESSAGE = "SINGLE_SEND_MESSAGE";
     public static final String EXPECTED_RECEIVERS = "EXPECTED_RECEIVERS";
     public static final String INITIAL_SUBSCRIBER = "INITIAL_SUBSCRIBER";
@@ -37,10 +37,10 @@ public final class PipeMessageBusTestProperties {
     public static final String MESSAGES_SEND_OF_INTEREST = "MESSAGES_SEND_OF_INTEREST";
     public static final String EXPECTED_CHANGED_CONTENT = "EXPECTED_CHANGED_CONTENT";
     public static final String EXECUTION_END_SEMAPHORE = "EXECUTION_END_SEMAPHORE";
-    public static final String EXECUTE_MESSAGE_BUS_IN_OWN_THREAD = "EXECUTE_MESSAGE_BUS_IN_OWN_THREAD";
     public static final String ERROR_SUBSCRIBER = "ERROR_SUBSCRIBER";
     public static final String EXPECTED_FILTER = "EXPECTED_FILTER";
     public static final String SLEEP_BETWEEN_EXECUTION_STEPS = "SLEEP_BETWEEN_EXECUTION_STEPS";
     public static final String SLEEP_AFTER_EXECUTION = "SLEEP_AFTER_EXECUTION";
     public static final String USED_SUBSCRIPTION_ID = "USED_SUBSCRIPTION_ID";
+    public static final String SEND_CORRELATION_ID = "SEND_CORRELATION_ID";
 }

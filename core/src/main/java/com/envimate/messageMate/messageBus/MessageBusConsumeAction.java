@@ -25,6 +25,7 @@ import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.channel.action.Consume;
 import com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategy;
+import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Set;
@@ -41,7 +42,8 @@ public final class MessageBusConsumeAction {
             final Class<?> messageClass = message.getClass();
             final Set<Channel<?>> channels = brokerStrategy.getDeliveringChannelsFor(messageClass);
             for (final Channel<?> channel : channels) {
-                final ProcessingContext tProcessingContext = ProcessingContext.processingContext(message);
+                final CorrelationId correlationId = objectProcessingContext.getCorrelationId();
+                final ProcessingContext tProcessingContext = ProcessingContext.processingContext(message, correlationId);
                 channel.send(tProcessingContext);
             }
         });

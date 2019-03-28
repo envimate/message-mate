@@ -22,12 +22,15 @@
 package com.envimate.messageMate.messageBus.givenWhenThen;
 
 
+import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.qcec.shared.TestValidation;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
 import com.envimate.messageMate.shared.subscriber.TestException;
+import com.envimate.messageMate.shared.subscriber.TestSubscriber;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
+import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.RequiredArgsConstructor;
 
@@ -36,9 +39,8 @@ import java.util.List;
 import java.util.Map;
 
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActions.messageBusTestActions;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.SUT;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestValidations.*;
+import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestValidations.*;
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.*;
 import static lombok.AccessLevel.PRIVATE;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -90,11 +92,20 @@ public final class MessageBusValidationBuilder {
         });
     }
 
-    public static MessageBusValidationBuilder expectOnlyValidMessageToBeReceived() {
+    public static MessageBusValidationBuilder expectSendAndReceivedCorrelationIdsToMatch() {
         return asValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
-            assertReceiverReceivedOnlyValidMessages(testEnvironment);
+            final ProcessingContext<TestMessageOfInterest> result = getOnlyMessageOfSingleReceiver(testEnvironment);
+            assertSendReceivedAndExpectedCorrelationIdAreEqual(testEnvironment, result);
         });
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static ProcessingContext<TestMessageOfInterest> getOnlyMessageOfSingleReceiver(final TestEnvironment testEnvironment) {
+        final TestSubscriber testReceiver = testEnvironment.getPropertyAsType(EXPECTED_RECEIVERS, TestSubscriber.class);
+        final List<ProcessingContext<TestMessageOfInterest>> receivedObjects = testReceiver.getReceivedMessages();
+        assertEquals(receivedObjects.size(), 1);
+        return receivedObjects.get(0);
     }
 
     public static MessageBusValidationBuilder expectXMessagesToBeDelivered(final int expectedNumberOfDeliveredMessages) {

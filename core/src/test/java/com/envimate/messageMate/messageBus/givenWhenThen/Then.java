@@ -34,7 +34,7 @@ import java.util.concurrent.Semaphore;
 
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXCEPTION;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.SUT;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestProperties.*;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -60,6 +60,7 @@ public class Then {
         final MessageBusSetup setup = setupBuilder.build();
         final TestEnvironment testEnvironment = setup.testEnvironment;
         final MessageBus messageBus = setup.messageBus;
+        testEnvironment.setProperty(SUT, messageBus);
         final List<SetupAction<MessageBus>> setupActions = setup.setupActions;
         try {
             for (final SetupAction<MessageBus> setupAction : setupActions) {
@@ -68,7 +69,6 @@ public class Then {
         } catch (final Exception e) {
             testEnvironment.setProperty(EXCEPTION, e);
         }
-        testEnvironment.setProperty(SUT, messageBus);
         return setup;
     }
 

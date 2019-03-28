@@ -22,10 +22,11 @@
 package com.envimate.messageMate.messageBus.givenWhenThen;
 
 import com.envimate.messageMate.filtering.Filter;
+import com.envimate.messageMate.internal.pipe.statistics.PipeStatistics;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusStatusInformation;
 import com.envimate.messageMate.messageBus.statistics.MessageBusStatistics;
-import com.envimate.messageMate.internal.pipe.statistics.PipeStatistics;
+import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
@@ -86,8 +87,8 @@ public final class MessageBusTestActions implements PipeMessageBusSutActions {
     }
 
     @Override
-    public void send(final TestMessage message) {
-        messageBus.send(message);
+    public CorrelationId send(final TestMessage message) {
+        return messageBus.send(message);
     }
 
     @Override

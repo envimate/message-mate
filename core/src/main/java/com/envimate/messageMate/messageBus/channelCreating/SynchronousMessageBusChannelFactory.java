@@ -50,7 +50,7 @@ public final class SynchronousMessageBusChannelFactory implements MessageBusChan
     }
 
     @Override
-    public <T> Channel<?> createChannel(final Class<T> tClass, final Subscriber<T> subscriber,
+    public <T> Channel<?> createChannel(final Class<T> tClass, final Subscriber<?> subscriber,
                                         final MessageBusExceptionHandler messageBusExceptionHandler) {
         final DelegatingChannelExceptionHandler<T> delegatingChannelExceptionHandler =
                 delegatingChannelExceptionHandlerForDeliveryChannel(messageBusExceptionHandler);

@@ -21,9 +21,9 @@
 
 package com.envimate.messageMate.channel;
 
-import com.envimate.messageMate.channel.action.actionHandling.CallNotAllowedAsFinalChannelAction;
-import com.envimate.messageMate.channel.action.actionHandling.NoHandlerForUnknownActionException;
-import com.envimate.messageMate.channel.action.actionHandling.ReturnWithoutCallException;
+import com.envimate.messageMate.channel.action.CallNotAllowedAsFinalChannelAction;
+import com.envimate.messageMate.channel.action.NoHandlerForUnknownActionException;
+import com.envimate.messageMate.channel.action.ReturnWithoutCallException;
 import com.envimate.messageMate.channel.config.ChannelTestConfig;
 import com.envimate.messageMate.shared.subscriber.TestException;
 import org.junit.jupiter.api.Test;
@@ -130,6 +130,15 @@ public interface ChannelSpecs {
                 .withSubscriptionAsActionWithOnPreemptiveSubscriberAndOneErrorThrowingSubscriberThatShouldNeverBeCalled())
                 .when(aMessageIsSend())
                 .then(expectNoException());
+    }
+
+    @Test
+    default void testChannel_subscriptionActionGetsAccessToProcessingContextObject(final ChannelTestConfig channelTestConfig) {
+        given(aConfiguredChannel(channelTestConfig)
+                .withSubscriptionAsAction())
+                .when(severalSubscriberWithAccessToProcessingContextAreAdded()
+                        .andThen(aProcessingContextObjectIsSend()))
+                .then(expectTheProcessingContextObjectToBeReceivedByAllSubscriber());
     }
 
     //filter
@@ -320,6 +329,23 @@ public interface ChannelSpecs {
                 .withAPostFilterAtAnInvalidPosition(100))
                 .when(aMessageIsSend())
                 .then(expectTheException(IndexOutOfBoundsException.class));
+    }
+
+    //correlationId
+    @Test
+    default void testChannel_returnsSameCorrelationIdOnSendAsTheOneDelivered(final ChannelTestConfig channelTestConfig) {
+        given(aConfiguredChannel(channelTestConfig)
+                .withDefaultActionConsume())
+                .when(aMessageWithoutCorrelationIdIsSend())
+                .then(expectSendAndReceivedCorrelationIdsToMatch());
+    }
+
+    @Test
+    default void testChannel_canSetCorrelationIdWhenSend(final ChannelTestConfig channelTestConfig) {
+        given(aConfiguredChannel(channelTestConfig)
+                .withDefaultActionConsume())
+                .when(aMessageWithCorrelationIdIsSend())
+                .then(expectSendAndReceivedCorrelationIdsToMatch());
     }
 
     //metadata
