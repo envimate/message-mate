@@ -26,8 +26,11 @@ import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionHandler;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
+import static java.util.Collections.emptyList;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
@@ -52,8 +55,7 @@ public final class ErrorListenerDelegatingMessageBusExceptionHandler implements 
         try {
             delegate.handleDeliveryChannelException(message, e, channel);
         } finally {
-            @SuppressWarnings("raw")
-            final List listener = getListener(message);
+            @SuppressWarnings("raw") final List listener = getListener(message);
             delegate.callTemporaryExceptionListener(message, e, listener);
         }
     }
@@ -71,8 +73,11 @@ public final class ErrorListenerDelegatingMessageBusExceptionHandler implements 
 
     @SuppressWarnings("rawtypes")
     private List getListener(final ProcessingContext<?> message) {
-        final Class<?> aClass = message.getPayload().getClass();
-        final List listener = exceptionListenerHandler.listenerFor(aClass);
-        return listener;
+        final Object payload = message.getPayload();
+        if (payload == null) {
+            return emptyList();
+        }
+        final Class<?> aClass = payload.getClass();
+        return exceptionListenerHandler.listenerFor(aClass);
     }
 }

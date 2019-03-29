@@ -29,7 +29,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.concurrent.*;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-final class ExpectedResponseFuture<S> implements ResponseFuture<S> {
+public final class ExpectedResponseFuture<S> implements ResponseFuture<S> {
     private final CountDownLatch countDownLatch = new CountDownLatch(1);
     private volatile boolean isCancelled;
     private volatile S response;
@@ -37,11 +37,11 @@ final class ExpectedResponseFuture<S> implements ResponseFuture<S> {
     private volatile FollowUpAction<S> followUpAction;
     private volatile Exception thrownException;
 
-    static <S> ExpectedResponseFuture<S> expectedResponseFuture() {
+    public static <S> ExpectedResponseFuture<S> expectedResponseFuture() {
         return new ExpectedResponseFuture<>();
     }
 
-    synchronized void fullFill(final S response, final boolean successful) {
+    public synchronized void fullFill(final S response, final boolean successful) {
         this.response = response;
         this.successful = successful;
         countDownLatch.countDown();

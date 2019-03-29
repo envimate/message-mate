@@ -33,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 import java.util.Set;
 
+import static com.envimate.messageMate.channel.action.Consume.consumeMessage;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
@@ -41,14 +42,16 @@ public final class MessageBusConsumeAction {
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static Consume<Object> messageBusConsumeAction(final MessageBusBrokerStrategy brokerStrategy,
                                                           final CorrelationBasedSubscriptions correlationBasedSubscriptions) {
-        return Consume.consumeMessage(objectProcessingContext -> {
+        return consumeMessage(objectProcessingContext -> {
             final Object message = objectProcessingContext.getPayload();
             final CorrelationId correlationId = objectProcessingContext.getCorrelationId();
-            final Class<?> messageClass = message.getClass();
-            final Set<Channel<?>> channels = brokerStrategy.getDeliveringChannelsFor(messageClass);
-            for (final Channel<?> channel : channels) {
-                final ProcessingContext tProcessingContext = ProcessingContext.processingContext(message, correlationId);
-                channel.send(tProcessingContext);
+            if(message != null) {
+                final Class<?> messageClass = message.getClass();
+                final Set<Channel<?>> channels = brokerStrategy.getDeliveringChannelsFor(messageClass);
+                for (final Channel<?> channel : channels) {
+                    final ProcessingContext tProcessingContext = ProcessingContext.processingContext(message, correlationId);
+                    channel.send(tProcessingContext);
+                }
             }
             final List<Subscriber<ProcessingContext<Object>>> corIdSubscribers = correlationBasedSubscriptions.getSubscribersFor(correlationId);
             for (final Subscriber<ProcessingContext<Object>> correlationSubscriber : corIdSubscribers) {

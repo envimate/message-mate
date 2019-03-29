@@ -21,33 +21,25 @@
 
 package com.envimate.messageMate.soonToBeExternal;
 
-import com.envimate.messageMate.messageBus.MessageBus;
-import com.envimate.messageMate.messageBus.MessageBusStatusInformation;
-import com.envimate.messageMate.messageFunction.MessageFunction;
-import com.envimate.messageMate.soonToBeExternal.building.*;
-import com.envimate.messageMate.subscribing.AcceptingBehavior;
-import com.envimate.messageMate.subscribing.Subscriber;
-import com.envimate.messageMate.subscribing.SubscriptionId;
+import com.envimate.messageMate.soonToBeExternal.building.EventToUseCaseDispatcherStep1Builder;
+import com.envimate.messageMate.soonToBeExternal.building.EventToUseCaseDispatcherStep2Builder;
+import com.envimate.messageMate.soonToBeExternal.building.EventToUseCaseDispatcherStep3Builder;
+import com.envimate.messageMate.soonToBeExternal.building.EventToUseCaseDispatcherStepCallingBuilder;
+import com.envimate.messageMate.soonToBeExternal.neww.UseCaseAdapter;
+import com.envimate.messageMate.soonToBeExternal.neww.UseCaseInstantiator;
 import lombok.RequiredArgsConstructor;
 
-import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 
-import static com.envimate.messageMate.messageFunction.MessageFunctionBuilder.aMessageFunction;
 import static com.envimate.messageMate.soonToBeExternal.EventToUseCaseMapping.eventToUseCaseMapping;
-import static com.envimate.messageMate.soonToBeExternal.UseCaseCallResponse.useCaseCallResponseForException;
-import static com.envimate.messageMate.soonToBeExternal.UseCaseCallResponse.useCaseCallResponseForSuccess;
-import static com.envimate.messageMate.subscribing.AcceptingBehavior.MESSAGE_ACCEPTED;
+import static com.envimate.messageMate.soonToBeExternal.neww.UseCaseAdapterImpl.useCaseAdapterImpl;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
 public class EventToUseCaseDispatcherBuilder implements EventToUseCaseDispatcherStep1Builder,
-        EventToUseCaseDispatcherStep3Builder,
-        EventToUseCaseDispatcherStep4Builder {
-    private final Map<Class<?>, EventToUseCaseMapping> eventToUseCaseMappings = new HashMap<>();
-    private MessageBus messageBus;
+        EventToUseCaseDispatcherStep3Builder<UseCaseAdapter> {
+    private final List<EventToUseCaseMapping> eventToUseCaseMappings = new LinkedList<>();
 
     public static EventToUseCaseDispatcherStep1Builder anEventToUseCaseDispatcher() {
         return new EventToUseCaseDispatcherBuilder();
@@ -59,7 +51,7 @@ public class EventToUseCaseDispatcherBuilder implements EventToUseCaseDispatcher
             @Override
             public <EVENT> EventToUseCaseDispatcherStepCallingBuilder<USECASE, EVENT> forEvent(Class<EVENT> eventClass) {
                 return caller -> {
-                    eventToUseCaseMappings.put(eventClass, eventToUseCaseMapping(useCaseClass, eventClass, caller));
+                    eventToUseCaseMappings.add(eventToUseCaseMapping(useCaseClass, eventClass, caller));
                     return EventToUseCaseDispatcherBuilder.this;
                 };
             }
@@ -67,72 +59,7 @@ public class EventToUseCaseDispatcherBuilder implements EventToUseCaseDispatcher
     }
 
     @Override
-    public EventToUseCaseDispatcherStep4Builder usingMessageBus(final MessageBus messageBus) {
-        this.messageBus = messageBus;
-        return this;
-    }
-
-    @Override
-    public EventToUseCaseDispatcher obtainingUseCaseInstancesUsing(final Function<Class, Object> instantiator) {
-        final MessageFunction<UseCaseCallRequest, UseCaseCallResponse> messageFunction = aMessageFunction()
-                .forRequestType(UseCaseCallRequest.class)
-                .forResponseType(UseCaseCallResponse.class)
-                .with(UseCaseCallRequest.class).answeredBy(UseCaseCallResponse.class)
-                .obtainingCorrelationIdsOfRequestsWith(UseCaseCallRequest::getCorrelationId)
-                .obtainingCorrelationIdsOfResponsesWith(UseCaseCallResponse::getCorrelationId)
-                .usingMessageBus(messageBus)
-                .build();
-        ensureSharedSubscriberSingletonSubscribedOnMessagesBus(messageBus);
-        return new EventToUseCaseDispatcherImpl(instantiator, eventToUseCaseMappings, messageFunction);
-    }
-
-    private void ensureSharedSubscriberSingletonSubscribedOnMessagesBus(final MessageBus messageBus) {
-        if (notAlreadyOnUseCaseRequestSubscriberIncluded(messageBus)) {
-            final UseCaseRequestExecutingSubscriber useCaseRequestSubscriber = new UseCaseRequestExecutingSubscriber(messageBus);
-            messageBus.subscribe(UseCaseCallRequest.class, useCaseRequestSubscriber);
-        }
-    }
-
-    private boolean notAlreadyOnUseCaseRequestSubscriberIncluded(final MessageBus messageBus) {
-        final MessageBusStatusInformation statusInformation = messageBus.getStatusInformation();
-        final Map<Class<?>, List<Subscriber<?>>> subscribersPerType = statusInformation.getSubscribersPerType();
-        if (!subscribersPerType.containsKey(UseCaseCallRequest.class)) {
-            return true;
-        } else {
-            final List<Subscriber<?>> subscribers = subscribersPerType.get(UseCaseCallRequest.class);
-            for (final Subscriber<?> subscriber : subscribers) {
-                if (subscriber.getClass().equals(UseCaseRequestExecutingSubscriber.class)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-    }
-
-    @RequiredArgsConstructor(access = PRIVATE)
-    private final class UseCaseRequestExecutingSubscriber implements Subscriber<UseCaseCallRequest> {
-        private final MessageBus messageBus;
-        private final SubscriptionId subscriptionId = SubscriptionId.newUniqueId();
-
-        @Override
-        public AcceptingBehavior accept(final UseCaseCallRequest useCaseCallRequest) {
-            try {
-                final Object useCase = useCaseCallRequest.getUseCase();
-                final Caller caller = useCaseCallRequest.getCaller();
-                final Object event = useCaseCallRequest.getEvent();
-                final Object returnValue = caller.call(useCase, event).orElse(null);
-                final UseCaseCallResponse useCaseCallResponse = useCaseCallResponseForSuccess(returnValue, useCaseCallRequest);
-                messageBus.send(useCaseCallResponse);
-            } catch (final Exception e) {
-                final UseCaseCallResponse useCaseCallResponse = useCaseCallResponseForException(useCaseCallRequest, e);
-                messageBus.send(useCaseCallResponse);
-            }
-            return MESSAGE_ACCEPTED;
-        }
-
-        @Override
-        public SubscriptionId getSubscriptionId() {
-            return subscriptionId;
-        }
+    public UseCaseAdapter obtainingUseCaseInstancesUsing(final UseCaseInstantiator useCaseInstantiator) {
+        return useCaseAdapterImpl(eventToUseCaseMappings, useCaseInstantiator);
     }
 }
