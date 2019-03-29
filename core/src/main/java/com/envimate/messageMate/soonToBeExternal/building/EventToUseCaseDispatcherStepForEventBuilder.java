@@ -21,6 +21,6 @@
 
 package com.envimate.messageMate.soonToBeExternal.building;
 
-public interface EventToUseCaseDispatcherStepForEventBuilder {
-    EventToUseCaseDispatcherStep3Builder forEvent(Class<?> eventClass);
+public interface EventToUseCaseDispatcherStepForEventBuilder<USECASE> {
+    <EVENT> EventToUseCaseDispatcherStepCallingBuilder<USECASE, EVENT> forEvent(Class<EVENT> eventClass);
 }

@@ -29,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Optional;
 
 import static com.envimate.messageMate.internal.reflections.ForbiddenUseCaseMethods.NOT_ALLOWED_USECASE_PUBLIC_METHODS;
 import static com.envimate.messageMate.internal.reflections.ReflectionUtils.getAllPublicMethods;
@@ -36,37 +37,29 @@ import static com.envimate.messageMate.internal.reflections.ReflectionUtils.getC
 import static com.envimate.messageMate.soonToBeExternal.eventCreating.ConstructorEventFactoryImpl.constructorEventFactory;
 import static com.envimate.messageMate.soonToBeExternal.methodInvoking.SinglePublicUseCaseMethodInvokerImpl.singlePublicUseCaseMethodInvoker;
 import static com.envimate.messageMate.soonToBeExternal.usecaseCreating.ZeroArgumentsConstructorUseCaseFactory.zeroArgumentsConstructorUseCaseFactory;
-import static com.envimate.messageMate.soonToBeExternal.usecaseInvoking.CannotIdentifyEventForZeroArgumentMethodException.exceptionThatNoEventCanBeIdentifiedForMethodWithoutParameter;
 import static com.envimate.messageMate.soonToBeExternal.usecaseInvoking.UseCaseInvocationInformation.useCaseInvocationInformation;
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
 public final class ClassBasedUseCaseInvokerImpl implements UseCaseInvoker {
     private final UseCaseInvocationInformation useCaseInvocationInformation;
-    private final EventFactory eventFactory;
 
     public static ClassBasedUseCaseInvokerImpl classBasedUseCaseInvoker(final Class<?> useCaseClass) {
-        final Method method = locateUseCaseMethod(useCaseClass);
-        final Class<?> eventClass = getFirstParameter(method);
-        final EventFactory eventFactory = createFactoryFor(eventClass);
-        return classBasedUseCaseInvoker(useCaseClass, eventFactory);
-    }
-
-    public static ClassBasedUseCaseInvokerImpl classBasedUseCaseInvoker(final Class<?> useCaseClass,
-                                                                        final EventFactory eventFactory) {
         final UseCaseFactory useCaseFactory = zeroArgumentsConstructorUseCaseFactory(useCaseClass);
         final Method method = locateUseCaseMethod(useCaseClass);
         final SinglePublicUseCaseMethodInvokerImpl methodInvoker = singlePublicUseCaseMethodInvoker(method);
         final UseCaseInvocationInformation invocationInformation = useCaseInvocationInformation(useCaseFactory, methodInvoker);
-        return new ClassBasedUseCaseInvokerImpl(invocationInformation, eventFactory);
+        return new ClassBasedUseCaseInvokerImpl(invocationInformation);
     }
 
-    private static Class<?> getFirstParameter(final Method method) {
+    private static Optional<Class<?>> getFirstParameter(final Method method) {
         if (method.getParameterCount() == 0) {
-            throw exceptionThatNoEventCanBeIdentifiedForMethodWithoutParameter(method);
+            return empty(); // TODO
         } else {
             final Class<?>[] parameterTypes = method.getParameterTypes();
-            return parameterTypes[0];
+            return of(parameterTypes[0]);
         }
     }
 
@@ -94,6 +87,6 @@ public final class ClassBasedUseCaseInvokerImpl implements UseCaseInvoker {
 
     @Override
     public EventFactory getEventFactory() {
-        return eventFactory;
+        throw new UnsupportedOperationException(); // TODO
     }
 }

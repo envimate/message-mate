@@ -29,28 +29,28 @@ import java.util.List;
 
 public final class UseCaseCallRequest {
     @Getter
-    private final List<Object> parameter;
-    @Getter
     private final CorrelationId correlationId;
     @Getter
     private Object useCase;
     @Getter
-    private UseCaseMethodInvoker methodInvoker;
+    private Caller caller;
     @Getter
     private Object event;
 
-    private UseCaseCallRequest(final Object useCase, final UseCaseMethodInvoker methodInvoker, final Object event,
-                               final List<Object> parameter, final CorrelationId correlationId) {
-        this.parameter = parameter;
-        this.correlationId = correlationId;
+    private UseCaseCallRequest(final Object useCase,
+                               final Object event,
+                               final Caller caller,
+                               final CorrelationId correlationId) {
         this.useCase = useCase;
-        this.methodInvoker = methodInvoker;
         this.event = event;
+        this.caller = caller;
+        this.correlationId = correlationId;
     }
 
-    public static UseCaseCallRequest useCaseCallRequest(final Object useCase, final UseCaseMethodInvoker methodInvoker,
-                                                        final Object event, final List<Object> parameter,
+    public static UseCaseCallRequest useCaseCallRequest(final Object useCase,
+                                                        final Object event,
+                                                        final Caller caller,
                                                         final CorrelationId correlationId) {
-        return new UseCaseCallRequest(useCase, methodInvoker, event, parameter, correlationId);
+        return new UseCaseCallRequest(useCase, event, caller, correlationId);
     }
 }

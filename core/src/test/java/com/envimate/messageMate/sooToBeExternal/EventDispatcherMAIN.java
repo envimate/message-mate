@@ -27,6 +27,8 @@ import com.envimate.messageMate.soonToBeExternal.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 
 public class EventDispatcherMAIN {
 
@@ -34,18 +36,10 @@ public class EventDispatcherMAIN {
         final MessageBus messageBus = MessageBusBuilder.aMessageBus().build();
         final EventToUseCaseDispatcher useCaseDispatcher = EventToUseCaseDispatcherBuilder.anEventToUseCaseDispatcher()
                 .invokingUseCase(TestUseCase.class)
-                //.invokingUseCase(new TestUseCase())
+                .forEvent(TestEvent.class)
+                .callingVoid((testUseCase, testEvent) -> testUseCase.doSomething(testEvent, "hello"))
                 .usingMessageBus(messageBus)
-                .build();
-
-        messageBus.add((message, filterActions) -> {
-            if (message instanceof UseCaseCallRequest) {
-                final List<Object> parameter = ((UseCaseCallRequest) message).getParameter();
-                parameter.add("hello");
-            }
-            filterActions.pass(message);
-        });
-
+                .obtainingUseCaseInstancesUsingTheZeroArgumentConstructor();
         final EventFactory eventFactory = useCaseDispatcher.eventFactoryFor(TestEvent.class);
         final Object event = eventFactory.createEvent(new ArrayList<>());
         final UseCaseResponseFuture useCaseResponseFuture = useCaseDispatcher.dispatch(event);

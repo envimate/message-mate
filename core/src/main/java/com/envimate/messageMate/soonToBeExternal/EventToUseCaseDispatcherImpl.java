@@ -24,12 +24,10 @@ package com.envimate.messageMate.soonToBeExternal;
 import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
 import com.envimate.messageMate.messageFunction.MessageFunction;
 import com.envimate.messageMate.messageFunction.ResponseFuture;
-import com.envimate.messageMate.soonToBeExternal.methodInvoking.UseCaseMethodInvoker;
-import com.envimate.messageMate.soonToBeExternal.usecaseInvoking.UseCaseInvocationInformation;
 import lombok.RequiredArgsConstructor;
 
-import java.util.ArrayList;
 import java.util.Map;
+import java.util.function.Function;
 
 import static com.envimate.messageMate.messageFunction.correlation.CorrelationId.newUniqueId;
 import static com.envimate.messageMate.soonToBeExternal.UseCaseCallRequest.useCaseCallRequest;
@@ -38,30 +36,28 @@ import static lombok.AccessLevel.PACKAGE;
 
 @RequiredArgsConstructor(access = PACKAGE)
 public final class EventToUseCaseDispatcherImpl implements EventToUseCaseDispatcher {
-    private final Map<Class<?>, EventFactory> eventFactories;
-    private final Map<Class<?>, UseCaseInvocationInformation> useCaseInvokingInformationMap;
+    private final Function<Class, Object> instantiator;
+    private final Map<Class<?>, EventToUseCaseMapping> eventToUseCaseMappings;
     private final MessageFunction<UseCaseCallRequest, UseCaseCallResponse> messageFunction;
 
     @Override
     public EventFactory eventFactoryFor(final Class<?> eventType) {
-        return eventFactories.get(eventType);
+        throw new UnsupportedOperationException(); // TODO
     }
 
     @Override
     public UseCaseResponseFuture dispatch(final Object event) {
         final Class<?> eventClass = event.getClass();
-        if (useCaseInvokingInformationMap.containsKey(eventClass)) {
-            final UseCaseInvocationInformation invokingInformation = useCaseInvokingInformationMap.get(eventClass);
-            final UseCaseMethodInvoker methodInvoker = invokingInformation.getMethodInvoker();
-            final Object useCase = invokingInformation.getUseCaseFactory().createInstance();
+        if (eventToUseCaseMappings.containsKey(eventClass)) {
+            final EventToUseCaseMapping mapping = eventToUseCaseMappings.get(eventClass);
+            final Caller caller = mapping.caller;
+            final Object useCase = instantiator.apply(mapping.useCaseClass);
             final CorrelationId correlationId = newUniqueId();
-            final ArrayList<Object> parameter = new ArrayList<>();
-            final UseCaseCallRequest request = useCaseCallRequest(useCase, methodInvoker, event, parameter, correlationId);
+            final UseCaseCallRequest request = useCaseCallRequest(useCase, event, caller, correlationId);
             final ResponseFuture<UseCaseCallResponse> responseFuture = messageFunction.request(request);
             return useCaseResponseFuture(responseFuture);
         } else {
             throw new NoUseCaseKnownForEventException(event);
         }
-
     }
 }

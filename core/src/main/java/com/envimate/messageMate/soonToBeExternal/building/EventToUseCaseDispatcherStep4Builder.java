@@ -23,7 +23,5 @@ package com.envimate.messageMate.soonToBeExternal.building;
 
 import com.envimate.messageMate.soonToBeExternal.EventToUseCaseDispatcher;
 
-public interface EventToUseCaseDispatcherStep4Builder {
-
-    EventToUseCaseDispatcher build();
+public interface EventToUseCaseDispatcherStep4Builder extends EventToUseCaseDispatcherStepInstantiationBuilder<EventToUseCaseDispatcher> {
 }

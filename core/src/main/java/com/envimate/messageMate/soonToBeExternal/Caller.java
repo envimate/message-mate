@@ -1,4 +1,8 @@
 package com.envimate.messageMate.soonToBeExternal;
 
-public class Caller {
+import java.util.Optional;
+
+@FunctionalInterface
+public interface Caller<USECASE, EVENT> {
+    Optional<?> call(USECASE useCase, EVENT event);
 }

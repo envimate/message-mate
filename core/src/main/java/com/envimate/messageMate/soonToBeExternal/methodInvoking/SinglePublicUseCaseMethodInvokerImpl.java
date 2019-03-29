@@ -42,12 +42,12 @@ public final class SinglePublicUseCaseMethodInvokerImpl implements UseCaseMethod
     @Override
     public Object invoke(final Object useCase, final Object event, final List<Object> parameter) {
         try {
-            if (parameter.size() == 0) {
+            if (useCaseMethod.getParameters().length == 0) {
+                return useCaseMethod.invoke(useCase);
+            } else if(useCaseMethod.getParameters().length == 1) {
                 return useCaseMethod.invoke(useCase, event);
             } else {
-                final List<Object> arguments = new LinkedList<>(parameter);
-                arguments.add(0, event);
-                return useCaseMethod.invoke(useCase, arguments.toArray());
+                throw new UnsupportedOperationException(); // TODO
             }
         } catch (final IllegalAccessException e) {
             final Class<?> useCaseClass = useCase.getClass();
