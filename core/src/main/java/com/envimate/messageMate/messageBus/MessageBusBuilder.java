@@ -28,6 +28,8 @@ import com.envimate.messageMate.messageBus.channelCreating.MessageBusChannelFact
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionHandler;
 import com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategy;
 import com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategyImpl;
+import com.envimate.messageMate.messageBus.internal.correlationIds.CorrelationBasedSubscriptions;
+import com.envimate.messageMate.messageBus.internal.correlationIds.CorrelationBasedSubscriptionsImpl;
 import com.envimate.messageMate.messageBus.internal.exception.DelegatingChannelExceptionHandler;
 import com.envimate.messageMate.messageBus.internal.exception.ExceptionListenerHandlerImpl;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +40,7 @@ import static com.envimate.messageMate.messageBus.MessageBusType.SYNCHRONOUS;
 import static com.envimate.messageMate.messageBus.channelCreating.SynchronousMessageBusChannelFactory.synchronousMessageBusChannelFactory;
 import static com.envimate.messageMate.messageBus.exception.ErrorThrowingMessageBusExceptionHandler.errorThrowingMessageBusExceptionHandler;
 import static com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategyImpl.messageBusBrokerStrategy;
+import static com.envimate.messageMate.messageBus.internal.correlationIds.CorrelationBasedSubscriptionsImpl.correlationBasedSubscriptions;
 import static com.envimate.messageMate.messageBus.internal.exception.DelegatingChannelExceptionHandler.delegatingChannelExceptionHandlerForAcceptingChannel;
 import static com.envimate.messageMate.messageBus.internal.exception.ErrorListenerDelegatingMessageBusExceptionHandler.errorListenerDelegatingMessageBusExceptionHandler;
 import static com.envimate.messageMate.messageBus.internal.exception.ExceptionListenerHandlerImpl.errorListenerHandler;
@@ -122,8 +125,9 @@ public final class MessageBusBuilder {
         final ExceptionListenerHandlerImpl errorListenerHandler = errorListenerHandler();
         final MessageBusExceptionHandler exceptionHandler = createExceptionHandler(errorListenerHandler);
         final MessageBusBrokerStrategyImpl brokerStrategy = createBrokerStrategy(exceptionHandler);
-        final Channel<Object> acceptingChannel = createAcceptingChannel(brokerStrategy, exceptionHandler);
-        return new MessageBusImpl(acceptingChannel, brokerStrategy, errorListenerHandler);
+        final CorrelationBasedSubscriptionsImpl corSubscriptions = correlationBasedSubscriptions();
+        final Channel<Object> acceptingChannel = createAcceptingChannel(brokerStrategy, exceptionHandler, corSubscriptions);
+        return new MessageBusImpl(acceptingChannel, brokerStrategy, corSubscriptions, errorListenerHandler);
     }
 
     private MessageBusBrokerStrategyImpl createBrokerStrategy(final MessageBusExceptionHandler exceptionHandler) {
@@ -144,7 +148,8 @@ public final class MessageBusBuilder {
     }
 
     private Channel<Object> createAcceptingChannel(final MessageBusBrokerStrategy brokerStrategy,
-                                                   final MessageBusExceptionHandler exceptionHandler) {
+                                                   final MessageBusExceptionHandler exceptionHandler,
+                                                   final CorrelationBasedSubscriptions correlationBasedSubscriptions) {
         final ChannelType channelType = map(type);
         final DelegatingChannelExceptionHandler<Object> acceptingPipeExceptionHandler =
                 delegatingChannelExceptionHandlerForAcceptingChannel(exceptionHandler);
@@ -152,7 +157,7 @@ public final class MessageBusBuilder {
                 .forType(channelType)
                 .withAsynchronousConfiguration(asynchronousConfiguration)
                 .withChannelExceptionHandler(acceptingPipeExceptionHandler)
-                .withDefaultAction(messageBusConsumeAction(brokerStrategy))
+                .withDefaultAction(messageBusConsumeAction(brokerStrategy, correlationBasedSubscriptions))
                 .build();
         acceptingPipeExceptionHandler.setChannel(acceptingChannel);
         return acceptingChannel;

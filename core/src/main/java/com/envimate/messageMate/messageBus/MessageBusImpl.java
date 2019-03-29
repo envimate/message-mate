@@ -28,6 +28,7 @@ import com.envimate.messageMate.filtering.FilterActions;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener;
 import com.envimate.messageMate.messageBus.internal.MessageBusStatusInformationAdapter;
 import com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategy;
+import com.envimate.messageMate.messageBus.internal.correlationIds.CorrelationBasedSubscriptions;
 import com.envimate.messageMate.messageBus.internal.exception.ExceptionListenerHandler;
 import com.envimate.messageMate.messageBus.internal.statistics.MessageBusStatisticsCollector;
 import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
@@ -49,13 +50,17 @@ import static lombok.AccessLevel.PRIVATE;
 final class MessageBusImpl implements MessageBus {
     private final Channel<Object> acceptingChannel;
     private final MessageBusBrokerStrategy brokerStrategy;
+    private final CorrelationBasedSubscriptions correlationBasedSubscriptions;
     private final ExceptionListenerHandler exceptionListenerHandler;
     private MessageBusStatusInformationAdapter statusInformationAdapter;
 
-    MessageBusImpl(final Channel<Object> acceptingChannel, final MessageBusBrokerStrategy brokerStrategy,
+    MessageBusImpl(final Channel<Object> acceptingChannel,
+                   final MessageBusBrokerStrategy brokerStrategy,
+                   final CorrelationBasedSubscriptions correlationBasedSubscriptions,
                    final ExceptionListenerHandler exceptionListenerHandler) {
         this.acceptingChannel = acceptingChannel;
         this.brokerStrategy = brokerStrategy;
+        this.correlationBasedSubscriptions = correlationBasedSubscriptions;
         this.exceptionListenerHandler = exceptionListenerHandler;
         final MessageBusStatisticsCollector statisticsCollector = channelBasedMessageBusStatisticsCollector(acceptingChannel);
         statusInformationAdapter = statusInformationAdapter(statisticsCollector, brokerStrategy);
@@ -96,8 +101,20 @@ final class MessageBusImpl implements MessageBus {
     }
 
     @Override
+    public SubscriptionId subscribe(final CorrelationId correlationId, final Consumer<ProcessingContext<Object>> consumer) {
+        final ConsumerSubscriber<ProcessingContext<Object>> subscriber = consumerSubscriber(consumer);
+        return subscribe(correlationId, subscriber);
+    }
+
+    @Override
+    public SubscriptionId subscribe(final CorrelationId correlationId, final Subscriber<ProcessingContext<Object>> subscriber) {
+        return correlationBasedSubscriptions.addCorrelationBasedSubscriber(correlationId, subscriber);
+    }
+
+    @Override
     public void unsubcribe(final SubscriptionId subscriptionId) {
         brokerStrategy.removeSubscriber(subscriptionId);
+        correlationBasedSubscriptions.unsubscribe(subscriptionId);
     }
 
     @Override

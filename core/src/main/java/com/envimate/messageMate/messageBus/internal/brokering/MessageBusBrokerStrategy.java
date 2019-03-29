@@ -23,6 +23,7 @@ package com.envimate.messageMate.messageBus.internal.brokering;
 
 import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.channel.ProcessingContext;
+import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 

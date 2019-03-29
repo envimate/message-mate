@@ -25,9 +25,12 @@ import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.channel.action.Consume;
 import com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategy;
+import com.envimate.messageMate.messageBus.internal.correlationIds.CorrelationBasedSubscriptions;
 import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
+import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
 import java.util.Set;
 
 import static lombok.AccessLevel.PRIVATE;
@@ -36,15 +39,20 @@ import static lombok.AccessLevel.PRIVATE;
 public final class MessageBusConsumeAction {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static Consume<Object> messageBusConsumeAction(final MessageBusBrokerStrategy brokerStrategy) {
+    public static Consume<Object> messageBusConsumeAction(final MessageBusBrokerStrategy brokerStrategy,
+                                                          final CorrelationBasedSubscriptions correlationBasedSubscriptions) {
         return Consume.consumeMessage(objectProcessingContext -> {
             final Object message = objectProcessingContext.getPayload();
+            final CorrelationId correlationId = objectProcessingContext.getCorrelationId();
             final Class<?> messageClass = message.getClass();
             final Set<Channel<?>> channels = brokerStrategy.getDeliveringChannelsFor(messageClass);
             for (final Channel<?> channel : channels) {
-                final CorrelationId correlationId = objectProcessingContext.getCorrelationId();
                 final ProcessingContext tProcessingContext = ProcessingContext.processingContext(message, correlationId);
                 channel.send(tProcessingContext);
+            }
+            final List<Subscriber<ProcessingContext<Object>>> corIdSubscribers = correlationBasedSubscriptions.getSubscribersFor(correlationId);
+            for (final Subscriber<ProcessingContext<Object>> correlationSubscriber : corIdSubscribers) {
+                correlationSubscriber.accept(objectProcessingContext);
             }
         });
     }

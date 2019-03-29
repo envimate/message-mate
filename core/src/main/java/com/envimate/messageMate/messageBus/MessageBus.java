@@ -103,6 +103,25 @@ public interface MessageBus extends NoErrorAutoClosable {
     <T> SubscriptionId subscribeRaw(Class<T> messageClass, Subscriber<ProcessingContext<T>> subscriber);
 
     /**
+     * Adds the given {@code Consumer} wrapped in a {@code Subscriber} object for all messages with a matching
+     * {@code CorrelationId}.
+     *
+     * @param correlationId the correlation of interest
+     * @param consumer      the {@code Subscriber} to add
+     * @return the {@code SubscriptionId} of the {@code Subscriber}
+     */
+    SubscriptionId subscribe(CorrelationId correlationId, Consumer<ProcessingContext<Object>> consumer);
+
+    /**
+     * Adds the given {@code Subscriber} for all messages with a matching {@code CorrelationId}.
+     *
+     * @param correlationId the correlation of interest
+     * @param subscriber    the {@code Subscriber} to add
+     * @return the {@code SubscriptionId} of the {@code Subscriber}
+     */
+    SubscriptionId subscribe(CorrelationId correlationId, Subscriber<ProcessingContext<Object>> subscriber);
+
+    /**
      * Removes all {@code Subscribers} with the given {@code SubscriptionId}
      *
      * @param subscriptionId the {@code SubscriptionId} to remove {@code Subscribers}

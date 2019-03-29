@@ -23,13 +23,15 @@ package com.envimate.messageMate.messageBus.givenWhenThen;
 
 import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.channel.ChannelBuilder;
+import com.envimate.messageMate.channel.ProcessingContext;
+import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusBuilder;
 import com.envimate.messageMate.messageBus.MessageBusType;
 import com.envimate.messageMate.messageBus.channelCreating.MessageBusChannelFactory;
 import com.envimate.messageMate.messageBus.config.MessageBusTestConfig;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionHandler;
-import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration;
+import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.SetupAction;
@@ -45,11 +47,15 @@ import java.util.List;
 
 import static com.envimate.messageMate.channel.action.Subscription.subscription;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActions.messageBusTestActions;
-import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler.*;
+import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler.allExceptionHandlingTestExceptionHandler;
+import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler.allExceptionIgnoringExceptionHandler;
+import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.CORRELATION_ID;
+import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.CORRELATION_SUBSCRIPTION_ID;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RECEIVERS;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSetupActions.*;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSetupActions.*;
+import static com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber.testSubscriber;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
@@ -62,6 +68,17 @@ public final class MessageBusSetupBuilder {
     public static MessageBusSetupBuilder aConfiguredMessageBus(final MessageBusTestConfig testConfig) {
         return new MessageBusSetupBuilder()
                 .configuredWith(testConfig);
+    }
+
+    public static <T> void addASingleRawSubscriber(final TestEnvironment testEnvironment, final Class<T> clazz) {
+        final SimpleTestSubscriber<ProcessingContext<T>> subscriber = testSubscriber();
+        final MessageBus messageBus = testEnvironment.getPropertyAsType(SUT, MessageBus.class);
+        messageBus.subscribeRaw(clazz, subscriber);
+        if (testEnvironment.has(EXPECTED_RECEIVERS)) {
+            testEnvironment.addToListProperty(EXPECTED_RECEIVERS, subscriber);
+        } else {
+            testEnvironment.setProperty(EXPECTED_RECEIVERS, subscriber);
+        }
     }
 
     private MessageBusSetupBuilder configuredWith(final MessageBusTestConfig testConfig) {
@@ -121,7 +138,7 @@ public final class MessageBusSetupBuilder {
     }
 
     public MessageBusSetupBuilder withASingleRawSubscriber() {
-        setupActions.add((t, testEnvironment) -> addASingleRawSubscriber(testEnvironment));
+        setupActions.add((t, testEnvironment) -> addASingleRawSubscriber(testEnvironment, TestMessageOfInterest.class));
         return this;
     }
 
@@ -132,6 +149,19 @@ public final class MessageBusSetupBuilder {
 
     public MessageBusSetupBuilder withASingleSubscriber(final Class<?> clazz) {
         setupActions.add((t, testEnvironment) -> addASingleSubscriber(sutActions(t), testEnvironment, clazz));
+        return this;
+    }
+
+    public MessageBusSetupBuilder withASubscriberForACorrelationId() {
+        setupActions.add((t, testEnvironment) -> {
+            final CorrelationId correlationId = CorrelationId.newUniqueId();
+            final SimpleTestSubscriber<ProcessingContext<Object>> subscriber = testSubscriber();
+            final MessageBus messageBus = testEnvironment.getPropertyAsType(SUT, MessageBus.class);
+            final SubscriptionId subscriptionId = messageBus.subscribe(correlationId, subscriber);
+            testEnvironment.setProperty(CORRELATION_ID, correlationId);
+            testEnvironment.setProperty(CORRELATION_SUBSCRIPTION_ID, subscriptionId);
+            testEnvironment.addToListProperty(EXPECTED_RECEIVERS, subscriber);
+        });
         return this;
     }
 

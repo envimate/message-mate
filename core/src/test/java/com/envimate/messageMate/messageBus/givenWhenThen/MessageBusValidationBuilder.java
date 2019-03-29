@@ -24,6 +24,7 @@ package com.envimate.messageMate.messageBus.givenWhenThen;
 
 import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.messageBus.MessageBus;
+import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.qcec.shared.TestValidation;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
@@ -40,6 +41,7 @@ import java.util.Map;
 
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActions.messageBusTestActions;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.SINGLE_SEND_MESSAGE;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestValidations.*;
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.*;
 import static lombok.AccessLevel.PRIVATE;
@@ -50,7 +52,7 @@ import static org.hamcrest.Matchers.equalTo;
 public final class MessageBusValidationBuilder {
     private final TestValidation testValidation;
 
-    public static MessageBusValidationBuilder asValidation(final TestValidation testValidation) {
+    private static MessageBusValidationBuilder asValidation(final TestValidation testValidation) {
         return new MessageBusValidationBuilder(testValidation);
     }
 
@@ -215,6 +217,31 @@ public final class MessageBusValidationBuilder {
             assertNoExceptionThrown(testEnvironment);
             assertNoResultSet(testEnvironment);
         });
+    }
+
+    public static MessageBusValidationBuilder expectTheMessageWrappedInProcessingContextToBeReceived() {
+        return asValidation(testEnvironment -> {
+            assertNoExceptionThrown(testEnvironment);
+            assertAllReceiverReceivedProcessingContextWithCorrectCorrelationId(testEnvironment);
+        });
+    }
+
+    private static void assertAllReceiverReceivedProcessingContextWithCorrectCorrelationId(final TestEnvironment testEnvironment) {
+        final List<TestSubscriber<ProcessingContext<Object>>> receivers = getExpectedReceiverAsCorrelationBasedSubscriberList(testEnvironment);
+        final Object expectedResult = testEnvironment.getProperty(SINGLE_SEND_MESSAGE);
+        for (final TestSubscriber<ProcessingContext<Object>> receiver : receivers) {
+            final List<ProcessingContext<Object>> receivedMessages = receiver.getReceivedMessages();
+            assertEquals(receivedMessages.size(), 1);
+            final ProcessingContext<Object> processingContext = receivedMessages.get(0);
+            final CorrelationId expectedCorrelationId = testEnvironment.getPropertyAsType(MessageBusTestProperties.CORRELATION_ID, CorrelationId.class);
+            assertEquals(processingContext.getCorrelationId(), expectedCorrelationId);
+            assertEquals(processingContext.getPayload(), expectedResult);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<TestSubscriber<ProcessingContext<Object>>> getExpectedReceiverAsCorrelationBasedSubscriberList(final TestEnvironment testEnvironment) {
+        return (List<TestSubscriber<ProcessingContext<Object>>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
     }
 
     private static PipeMessageBusSutActions sutActions(final TestEnvironment testEnvironment) {

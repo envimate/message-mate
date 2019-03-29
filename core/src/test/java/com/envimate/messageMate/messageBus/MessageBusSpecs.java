@@ -143,23 +143,6 @@ public interface MessageBusSpecs {
                 .then(expectAllMessagesToBeReceivedByAllSubscribers());
     }
 
-    //CorrelationId
-    @Test
-    default void testMessageBus_sendCorrelationIdEqualsToReceived(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aConfiguredMessageBus(messageBusTestConfig)
-                .withASingleRawSubscriber())
-                .when(aSingleMessageIsSend())
-                .then(expectSendAndReceivedCorrelationIdsToMatch());
-    }
-
-    @Test
-    default void testMessageBus_canSetCorrelationIdWhenSend(final MessageBusTestConfig messageBusTestConfig) throws Exception {
-        given(aConfiguredMessageBus(messageBusTestConfig)
-                .withASingleRawSubscriber())
-                .when(aMessageWithCorrelationIdIsSend())
-                .then(expectSendAndReceivedCorrelationIdsToMatch());
-    }
-
     //unsubscribe
     @Test
     default void testMessageBus_canUnsubscribe(final MessageBusTestConfig messageBusTestConfig) throws Exception {
@@ -184,6 +167,40 @@ public interface MessageBusSpecs {
                 .withSeveralSubscriber(5))
                 .when(oneSubscriberUnsubscribesSeveralTimes(2))
                 .then(expectAllRemainingSubscribersToStillBeSubscribed());
+    }
+
+    //CorrelationId
+    @Test
+    default void testMessageBus_sendCorrelationIdEqualsToReceived(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withASingleRawSubscriber())
+                .when(aSingleMessageIsSend())
+                .then(expectSendAndReceivedCorrelationIdsToMatch());
+    }
+
+    @Test
+    default void testMessageBus_canSetCorrelationIdWhenSend(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withASingleRawSubscriber())
+                .when(aMessageWithCorrelationIdIsSend())
+                .then(expectSendAndReceivedCorrelationIdsToMatch());
+    }
+
+    @Test
+    default void testMessageBus_canSubscriberForSpecificCorrelationIds(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withASubscriberForACorrelationId())
+                .when(aMessageWithCorrelationIdIsSend())
+                .then(expectTheMessageWrappedInProcessingContextToBeReceived());
+    }
+
+    @Test
+    default void testMessageBus_canUnsubscribeForCorrelationId(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withASubscriberForACorrelationId())
+                .when(theSubscriberForTheCorrelationIdUnsubscribes()
+                        .andThen(aMessageWithCorrelationIdIsSend()))
+                .then(expectNoMessagesToBeDelivered());
     }
 
     //filter

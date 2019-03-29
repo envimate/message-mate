@@ -62,21 +62,6 @@ public final class PipeMessageBusSetupActions {
         }
     }
 
-    public static void addASingleRawSubscriber(final TestEnvironment testEnvironment) {
-        addASingleRawSubscriber(testEnvironment, TestMessageOfInterest.class);
-    }
-
-    public static <T> void addASingleRawSubscriber(final TestEnvironment testEnvironment, final Class<T> clazz) {
-        final SimpleTestSubscriber<ProcessingContext<T>> subscriber = testSubscriber();
-        final MessageBus messageBus = testEnvironment.getPropertyAsType(SUT, MessageBus.class);
-        messageBus.subscribeRaw(clazz, subscriber);
-        if (testEnvironment.has(EXPECTED_RECEIVERS)) {
-            testEnvironment.addToListProperty(EXPECTED_RECEIVERS, subscriber);
-        } else {
-            testEnvironment.setProperty(EXPECTED_RECEIVERS, subscriber);
-        }
-    }
-
     public static void addAFilterThatChangesTheContentOfEveryMessage(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
         testEnvironment.setProperty(EXPECTED_CHANGED_CONTENT, TestFilter.CHANGED_CONTENT);
         final Filter<TestMessageOfInterest> filter = aContentChangingFilter();

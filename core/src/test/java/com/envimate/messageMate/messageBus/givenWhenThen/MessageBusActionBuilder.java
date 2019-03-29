@@ -43,6 +43,8 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActions.messageBusTestActions;
+import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.CORRELATION_ID;
+import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.CORRELATION_SUBSCRIPTION_ID;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RESULT;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.AsynchronousSendingTestUtils.sendMessagesBeforeAndAfterShutdownAsynchronously;
@@ -72,7 +74,12 @@ public final class MessageBusActionBuilder {
 
     public static MessageBusActionBuilder aMessageWithCorrelationIdIsSend() {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
-            final CorrelationId correlationId = CorrelationId.newUniqueId();
+            final CorrelationId correlationId;
+            if (testEnvironment.has(CORRELATION_ID)) {
+                correlationId = testEnvironment.getPropertyAsType(CORRELATION_ID, CorrelationId.class);
+            } else {
+                correlationId = CorrelationId.newUniqueId();
+            }
             final CorrelationId sendCorrelationId = sendASingleMessage(messageBus, correlationId, testEnvironment);
             testEnvironment.setProperty(EXPECTED_RESULT, correlationId);
             testEnvironment.setProperty(SEND_CORRELATION_ID, sendCorrelationId);
@@ -140,6 +147,14 @@ public final class MessageBusActionBuilder {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
             final PipeMessageBusSutActions sutActions = messageBusTestActions(messageBus);
             unsubscribeASubscriberXTimes(sutActions, testEnvironment, 1);
+            return null;
+        });
+    }
+
+    public static MessageBusActionBuilder theSubscriberForTheCorrelationIdUnsubscribes() {
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final SubscriptionId subscriptionId = testEnvironment.getPropertyAsType(CORRELATION_SUBSCRIPTION_ID, SubscriptionId.class);
+            messageBus.unsubcribe(subscriptionId);
             return null;
         });
     }
