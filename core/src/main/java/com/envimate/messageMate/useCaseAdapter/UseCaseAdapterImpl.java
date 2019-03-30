@@ -1,7 +1,6 @@
-package com.envimate.messageMate.soonToBeExternal.neww;
+package com.envimate.messageMate.useCaseAdapter;
 
 import com.envimate.messageMate.messageBus.MessageBus;
-import com.envimate.messageMate.soonToBeExternal.EventToUseCaseMapping;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -9,7 +8,7 @@ import lombok.ToString;
 import java.util.List;
 
 import static com.envimate.messageMate.internal.enforcing.NotNullEnforcer.ensureNotNull;
-import static com.envimate.messageMate.soonToBeExternal.neww.UseCaseRequestExecutingSubscriber.useCaseRequestExecutingSubscriber;
+import static com.envimate.messageMate.useCaseAdapter.UseCaseRequestExecutingSubscriber.useCaseRequestExecutingSubscriber;
 import static lombok.AccessLevel.PRIVATE;
 
 @ToString

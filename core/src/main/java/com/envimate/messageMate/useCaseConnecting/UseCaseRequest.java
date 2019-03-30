@@ -21,7 +21,7 @@
 
 package com.envimate.messageMate.useCaseConnecting;
 
-import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
+import com.envimate.messageMate.identification.CorrelationId;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +37,7 @@ public final class UseCaseRequest {
     private final CorrelationId correlationId;
 
     public static UseCaseRequest useCaseRequest(final Object request) {
-        final CorrelationId correlationId = CorrelationId.newUniqueId();
+        final CorrelationId correlationId = CorrelationId.newUniqueCorrelationId();
         return new UseCaseRequest(request, correlationId);
     }
 }

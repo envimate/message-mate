@@ -27,12 +27,13 @@ import com.envimate.messageMate.soonToBeExternal.building.EventToUseCaseDispatch
 import com.envimate.messageMate.soonToBeExternal.building.EventToUseCaseDispatcherStepCallingBuilder;
 import com.envimate.messageMate.soonToBeExternal.neww.UseCaseAdapter;
 import com.envimate.messageMate.soonToBeExternal.neww.UseCaseInstantiator;
+import com.envimate.messageMate.useCaseAdapter.EventToUseCaseMapping;
 import lombok.RequiredArgsConstructor;
 
 import java.util.LinkedList;
 import java.util.List;
 
-import static com.envimate.messageMate.soonToBeExternal.EventToUseCaseMapping.eventToUseCaseMapping;
+import static com.envimate.messageMate.useCaseAdapter.EventToUseCaseMapping.eventToUseCaseMapping;
 import static com.envimate.messageMate.soonToBeExternal.neww.UseCaseAdapterImpl.useCaseAdapterImpl;
 import static lombok.AccessLevel.PRIVATE;
 

@@ -54,25 +54,6 @@ public final class MessageBusTestExceptionHandler {
         };
     }
 
-    public static  MessageBusExceptionHandler testExceptionIgnoringExceptionHandler(final TestEnvironment testEnvironment) {
-        return new MessageBusExceptionHandler() {
-            @Override
-            public boolean shouldDeliveryChannelErrorBeHandledAndDeliveryAborted(final ProcessingContext<?> message, final Exception e, final Channel<?> channel) {
-                return !(e instanceof TestException);
-            }
-
-            @Override
-            public void handleDeliveryChannelException(final ProcessingContext<?> message, final Exception e, final Channel<?> channel) {
-                testEnvironment.setProperty(EXCEPTION, e);
-            }
-
-            @Override
-            public void handleFilterException(final ProcessingContext<?> message, final Exception e, final Channel<?> channel) {
-                testEnvironment.setProperty(EXCEPTION, e);
-            }
-        };
-    }
-
     public static  MessageBusExceptionHandler allExceptionIgnoringExceptionHandler() {
         return new MessageBusExceptionHandler() {
             @Override

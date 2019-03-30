@@ -21,11 +21,9 @@
 
 package com.envimate.messageMate.soonToBeExternal;
 
-import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
-import com.envimate.messageMate.soonToBeExternal.methodInvoking.UseCaseMethodInvoker;
+import com.envimate.messageMate.identification.CorrelationId;
+import com.envimate.messageMate.useCaseAdapter.Caller;
 import lombok.Getter;
-
-import java.util.List;
 
 public final class UseCaseCallRequest {
     @Getter

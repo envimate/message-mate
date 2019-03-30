@@ -25,5 +25,5 @@ import com.envimate.messageMate.messageFunction.followup.FollowUpAction;
 
 public interface UseCaseResponseFuture {
 
-    void then(FollowUpAction<Object> followUpAction);
+    void then(FollowUpAction followUpAction);
 }

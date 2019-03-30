@@ -19,17 +19,12 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageFunction.correlation;
+package com.envimate.messageMate.identification;
 
-import com.envimate.messageMate.internal.enforcing.InvalidInputException;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
-
-import java.util.UUID;
-
-import static com.envimate.messageMate.internal.enforcing.StringValidator.cleaned;
 
 /**
  * Unique identifier to match all messages, that are related.
@@ -40,7 +35,7 @@ import static com.envimate.messageMate.internal.enforcing.StringValidator.cleane
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class CorrelationId {
-    private final UUID value;
+    private final MessageId messageId;
 
     /**
      * Creates a new {@code CorrelationId} using the string representation of an {@code UUID}.
@@ -49,12 +44,18 @@ public final class CorrelationId {
      * @return a new {@code CorrelationId}
      */
     public static CorrelationId fromString(final String value) {
-        final String cleaned = cleaned(value);
-        try {
-            return new CorrelationId(UUID.fromString(cleaned));
-        } catch (final IllegalArgumentException e) {
-            throw new InvalidInputException("Must be a valid uuid.");
-        }
+        final MessageId messageId = MessageId.fromString(value);
+        return new CorrelationId(messageId);
+    }
+
+    /**
+     * Creates a {@code CorrelationId} matching the given {@code MessageId}.
+     *
+     * @param messageId the {@code MessageId} to match
+     * @return a new {@code CorrelationId}
+     */
+    public static CorrelationId correlationIdFor(final MessageId messageId) {
+        return new CorrelationId(messageId);
     }
 
     /**
@@ -62,11 +63,22 @@ public final class CorrelationId {
      *
      * @return the new, randomly generated {@code CorrelationId}
      */
-    public static CorrelationId newUniqueId() {
-        return new CorrelationId(UUID.randomUUID());
+    public static CorrelationId newUniqueCorrelationId() {
+        final MessageId uniqueMessageId = MessageId.newUniqueMessageId();
+        return new CorrelationId(uniqueMessageId);
+    }
+
+    /**
+     * Checks, if the {@code CorrelationId} is related to the given {@code MessageId}.
+     *
+     * @param messageId the {@code MessageId} to check
+     * @return {@code true} if the ids are related, {@code false} otherwise
+     */
+    public boolean matches(final MessageId messageId) {
+        return this.messageId.equals(messageId);
     }
 
     public String stringValue() {
-        return this.value.toString();
+        return this.messageId.stringValue();
     }
 }

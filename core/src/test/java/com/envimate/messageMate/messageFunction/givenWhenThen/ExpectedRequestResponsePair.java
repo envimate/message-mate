@@ -21,7 +21,6 @@
 
 package com.envimate.messageMate.messageFunction.givenWhenThen;
 
-import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
 import com.envimate.messageMate.messageFunction.testResponses.*;
 import lombok.RequiredArgsConstructor;
 
@@ -36,15 +35,13 @@ public final class ExpectedRequestResponsePair {
 
     public static ExpectedRequestResponsePair generateNewPair() {
         final SimpleTestRequest testRequest = SimpleTestRequest.testRequest();
-        final CorrelationId correlationId = testRequest.getCorrelationId();
-        final SimpleTestResponse testResponse = testResponse(correlationId);
+        final SimpleTestResponse testResponse = testResponse(testRequest);
         return new ExpectedRequestResponsePair(testRequest, testResponse);
     }
 
     public static ExpectedRequestResponsePair generateNewPairWithAlternativeResponse() {
         final SimpleTestRequest testRequest = SimpleTestRequest.testRequest();
-        final CorrelationId correlationId = testRequest.getCorrelationId();
-        final AlternativTestResponse testResponse = alternativTestResponse(correlationId);
+        final AlternativTestResponse testResponse = alternativTestResponse(testRequest);
         return new ExpectedRequestResponsePair(testRequest, testResponse);
     }
 }

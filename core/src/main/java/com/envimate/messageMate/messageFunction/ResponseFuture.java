@@ -29,18 +29,18 @@ import java.util.concurrent.Future;
 /**
  * For each request, the related {@code ResponseFuture} provides methods, to query or wait on the result.
  *
- * @param <T> the type of responses
  * @see <a href="https://github.com/envimate/message-mate#responsefuture">Message Mate Documentation</a>
  */
 
-public interface ResponseFuture<T> extends Future<T> {
+public interface ResponseFuture extends Future {
 
     /**
      * Returns {@code true} if the future was fulfilled with an success response, {@code false} otherwise.
      *
-     * @return {@code true} if success, {@code false} for an error response or an exception
+     * @return {@code true} if success, {@code false} an exception occurred or the future was cancelled
      */
     boolean wasSuccessful();
+
 
     /**
      * Adds a {@code FollowUpAction}, that gets executed, once the Future is fulfilled.
@@ -49,5 +49,5 @@ public interface ResponseFuture<T> extends Future<T> {
      * @throws UnsupportedOperationException if one {@code FollowUpAction} has already been set
      * @throws CancellationException         if the future has already been cancelled
      */
-    void then(FollowUpAction<T> followUpAction);
+    void then(FollowUpAction followUpAction);
 }

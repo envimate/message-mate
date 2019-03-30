@@ -24,6 +24,7 @@ package com.envimate.messageMate.messageBus.internal.exception;
 import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionHandler;
+import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Collections;
@@ -66,18 +67,13 @@ public final class ErrorListenerDelegatingMessageBusExceptionHandler implements 
         try {
             delegate.handleDeliveryChannelException(message, e, channel);
         } finally {
-            final List listener = getListener(message);
+            final List<MessageBusExceptionListener> listener = getListener(message);
             delegate.callTemporaryExceptionListener(message, e, listener);
         }
     }
 
     @SuppressWarnings("rawtypes")
-    private List getListener(final ProcessingContext<?> message) {
-        final Object payload = message.getPayload();
-        if (payload == null) {
-            return emptyList();
-        }
-        final Class<?> aClass = payload.getClass();
-        return exceptionListenerHandler.listenerFor(aClass);
+    private List<MessageBusExceptionListener> getListener(final ProcessingContext<?> message) {
+        return exceptionListenerHandler.listenerFor(message);
     }
 }

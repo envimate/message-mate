@@ -24,6 +24,7 @@ package com.envimate.messageMate.messageBus.givenWhenThen;
 import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.channel.ChannelBuilder;
 import com.envimate.messageMate.channel.ProcessingContext;
+import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusBuilder;
@@ -31,7 +32,6 @@ import com.envimate.messageMate.messageBus.MessageBusType;
 import com.envimate.messageMate.messageBus.channelCreating.MessageBusChannelFactory;
 import com.envimate.messageMate.messageBus.config.MessageBusTestConfig;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionHandler;
-import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.SetupAction;
@@ -46,10 +46,10 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static com.envimate.messageMate.channel.action.Subscription.subscription;
+import static com.envimate.messageMate.identification.CorrelationId.newUniqueCorrelationId;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActions.messageBusTestActions;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler.allExceptionHandlingTestExceptionHandler;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler.allExceptionIgnoringExceptionHandler;
-import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.CORRELATION_ID;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.CORRELATION_SUBSCRIPTION_ID;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RECEIVERS;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
@@ -154,11 +154,11 @@ public final class MessageBusSetupBuilder {
 
     public MessageBusSetupBuilder withASubscriberForACorrelationId() {
         setupActions.add((t, testEnvironment) -> {
-            final CorrelationId correlationId = CorrelationId.newUniqueId();
+            final CorrelationId correlationId = newUniqueCorrelationId();
             final SimpleTestSubscriber<ProcessingContext<Object>> subscriber = testSubscriber();
             final MessageBus messageBus = testEnvironment.getPropertyAsType(SUT, MessageBus.class);
             final SubscriptionId subscriptionId = messageBus.subscribe(correlationId, subscriber);
-            testEnvironment.setProperty(CORRELATION_ID, correlationId);
+            testEnvironment.setProperty(EXPECTED_CORRELATION_ID, correlationId);
             testEnvironment.setProperty(CORRELATION_SUBSCRIPTION_ID, subscriptionId);
             testEnvironment.addToListProperty(EXPECTED_RECEIVERS, subscriber);
         });
@@ -222,26 +222,26 @@ public final class MessageBusSetupBuilder {
 
     public MessageBusSetupBuilder withADynamicExceptionListener() {
         messageBusBuilder.withExceptionHandler(allExceptionIgnoringExceptionHandler());
-        setupActions.add((messageBus, testEnvironment1) -> {
+        setupActions.add((messageBus, testEnvironment) -> {
             final SubscriptionId subscriptionId = messageBus.onException(TestMessageOfInterest.class, (m, e) -> {
-                testEnvironment.setProperty(RESULT, e);
+                this.testEnvironment.setProperty(RESULT, e);
             });
-            testEnvironment.setProperty(USED_SUBSCRIPTION_ID, subscriptionId);
+            this.testEnvironment.setProperty(USED_SUBSCRIPTION_ID, subscriptionId);
         });
         return this;
     }
 
     public MessageBusSetupBuilder withTwoDynamicExceptionListener() {
         messageBusBuilder.withExceptionHandler(allExceptionIgnoringExceptionHandler());
-        setupActions.add((messageBus, testEnvironment1) -> {
+        setupActions.add((messageBus, testEnvironment) -> {
 
             final SubscriptionId subscriptionId = messageBus.onException(TestMessageOfInterest.class, (m, e) -> {
                 throw new RuntimeException("Should not be called");
             });
-            testEnvironment.setProperty(USED_SUBSCRIPTION_ID, subscriptionId);
+            this.testEnvironment.setProperty(USED_SUBSCRIPTION_ID, subscriptionId);
 
             messageBus.onException(TestMessageOfInterest.class, (m, e) -> {
-                testEnvironment.setProperty(RESULT, e);
+                this.testEnvironment.setProperty(RESULT, e);
             });
         });
         return this;
@@ -249,9 +249,7 @@ public final class MessageBusSetupBuilder {
 
     public MessageBusSetupBuilder withADynamicErrorListenerAndAnErrorThrowingExceptionHandler() {
         setupActions.add((messageBus, testEnvironment1) -> {
-            messageBus.onException(TestMessageOfInterest.class, (m, e) -> {
-                testEnvironment.setProperty(RESULT, e);
-            });
+            messageBus.onException(TestMessageOfInterest.class, (m, e) -> testEnvironment.setProperty(RESULT, e));
         });
         return this;
     }
@@ -259,14 +257,44 @@ public final class MessageBusSetupBuilder {
     public MessageBusSetupBuilder withADynamicExceptionListenerForSeveralClasses() {
         messageBusBuilder.withExceptionHandler(allExceptionIgnoringExceptionHandler());
         final List<Class<?>> errorClasses = Arrays.asList(TestMessageOfInterest.class, Object.class);
-        setupActions.add((messageBus, testEnvironment1) -> {
+        setupActions.add((messageBus, testEnvironment) -> {
             messageBus.onException(errorClasses, (m, e) -> {
-                testEnvironment.setProperty(RESULT, e);
+                this.testEnvironment.setProperty(RESULT, e);
             });
         });
         return this;
     }
 
+    public MessageBusSetupBuilder withADynamicCorrelationIdBasedExceptionListener() {
+        messageBusBuilder.withExceptionHandler(allExceptionIgnoringExceptionHandler());
+        setupActions.add((messageBus, testEnvironment) -> {
+            final CorrelationId correlationId = newUniqueCorrelationId();
+            testEnvironment.setProperty(EXPECTED_CORRELATION_ID, correlationId);
+            final SubscriptionId subscriptionId = messageBus.onException(correlationId, (m, e) -> {
+                this.testEnvironment.setProperty(RESULT, e);
+            });
+            this.testEnvironment.setProperty(USED_SUBSCRIPTION_ID, subscriptionId);
+        });
+        return this;
+    }
+
+    public MessageBusSetupBuilder withTwoDynamicCorrelationBasedExceptionListener() {
+        messageBusBuilder.withExceptionHandler(allExceptionIgnoringExceptionHandler());
+        setupActions.add((messageBus, testEnvironment) -> {
+            final CorrelationId correlationId = CorrelationId.newUniqueCorrelationId();
+            testEnvironment.setProperty(EXPECTED_CORRELATION_ID, correlationId);
+
+            final SubscriptionId subscriptionId = messageBus.onException(correlationId, (m, e) -> {
+                throw new RuntimeException("Should not be called");
+            });
+            this.testEnvironment.setProperty(USED_SUBSCRIPTION_ID, subscriptionId);
+
+            messageBus.onException(correlationId, (m, e) -> {
+                this.testEnvironment.setProperty(RESULT, e);
+            });
+        });
+        return this;
+    }
 
     public MessageBusSetup build() {
         final MessageBus messageBus = messageBusBuilder.build();

@@ -22,16 +22,18 @@
 package com.envimate.messageMate.messageFunction.givenWhenThen;
 
 
+import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageFunction.MessageFunction;
 import com.envimate.messageMate.messageFunction.ResponseFuture;
-import com.envimate.messageMate.messageFunction.testResponses.*;
+import com.envimate.messageMate.messageFunction.testResponses.RequestResponseFuturePair;
+import com.envimate.messageMate.messageFunction.testResponses.SimpleTestRequest;
+import com.envimate.messageMate.messageFunction.testResponses.SimpleTestResponse;
+import com.envimate.messageMate.messageFunction.testResponses.TestRequest;
 import com.envimate.messageMate.qcec.shared.TestAction;
 import com.envimate.messageMate.qcec.shared.TestEnvironmentProperty;
 import lombok.RequiredArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -50,7 +52,7 @@ import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
 public final class TestMessageFunctionActionBuilder {
-    private final TestAction<MessageFunction<TestRequest, TestResponse>> testAction;
+    private final TestAction<MessageFunction> testAction;
 
     public static TestMessageFunctionActionBuilder aRequestIsSend() {
         return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
@@ -66,7 +68,7 @@ public final class TestMessageFunctionActionBuilder {
             final int numberOfRequests = 5;
             for (int i = 0; i < numberOfRequests; i++) {
                 final SimpleTestRequest testRequest = testRequest();
-                final ResponseFuture<TestResponse> responseFuture = messageFunction.request(testRequest);
+                final ResponseFuture responseFuture = messageFunction.request(testRequest);
                 final RequestResponseFuturePair requestResponseFuturePair = requestResponseFuturePair(testRequest, responseFuture);
                 requestResponsePairs.add(requestResponseFuturePair);
             }
@@ -76,34 +78,19 @@ public final class TestMessageFunctionActionBuilder {
 
     public static TestMessageFunctionActionBuilder twoRequestsAreSendThatWithOneOfEachResponsesAnswered() {
         return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
-            final ExpectedRequestResponsePair expectedRequestResponsePair1 = ExpectedRequestResponsePair.generateNewPair();
-            final ExpectedRequestResponsePair expectedRequestResponsePair2 = ExpectedRequestResponsePair.generateNewPairWithAlternativeResponse();
-            final List<ExpectedRequestResponsePair> expectedResponsePairs = Arrays.asList(
-                    expectedRequestResponsePair1,
-                    expectedRequestResponsePair2);
+
             final MessageBus messageBus = testEnvironment.getPropertyAsType(MOCK, MessageBus.class);
-            messageBus.subscribe(SimpleTestRequest.class, new ExpectedResponseSubscriber<>(expectedResponsePairs, messageBus));
-            final List<RequestResponseFuturePair> requestResponseFuturePairs = new ArrayList<>();
-            for (final ExpectedRequestResponsePair expectedResponsePair : expectedResponsePairs) {
-                final TestRequest request = expectedResponsePair.request;
-                final ResponseFuture<TestResponse> responseFuture = messageFunction.request(request);
-                final RequestResponseFuturePair requestResponseFuturePair = RequestResponseFuturePair.requestResponseFuturePair(request, responseFuture);
-                requestResponseFuturePairs.add(requestResponseFuturePair);
-            }
-            return requestResponseFuturePairs;
-        });
-    }
+            messageBus.subscribeRaw(TestRequest.class, processingContext -> {
+                final CorrelationId wrongCorrelationId = CorrelationId.newUniqueCorrelationId();
+                final SimpleTestResponse wrongResponse = testResponse(null);
+                messageBus.send(wrongResponse, wrongCorrelationId);
 
-    public static TestMessageFunctionActionBuilder aRequestResultingInErrorIsSend() {
-        return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
-            final SimpleTestRequest testRequest = testRequest();
-            testEnvironment.setProperty(TEST_OBJECT, testRequest);
-            return messageFunction.request(testRequest);
-        });
-    }
+                final CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();
+                final TestRequest payload = processingContext.getPayload();
+                final SimpleTestResponse testResponse = testResponse(payload);
+                messageBus.send(testResponse, correlationId);
+            });
 
-    public static TestMessageFunctionActionBuilder aMatchingAndOneNotMatchingGeneralErrorResponseIsSend() {
-        return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
             final SimpleTestRequest testRequest = testRequest();
             testEnvironment.setProperty(TEST_OBJECT, testRequest);
             return messageFunction.request(testRequest);
@@ -116,11 +103,14 @@ public final class TestMessageFunctionActionBuilder {
             testEnvironment.setProperty(TEST_OBJECT, testRequest);
             final String expectedResult = "success";
             testEnvironment.setProperty(EXPECTED_RESULT, expectedResult);
-            final ResponseFuture<TestResponse> responseFuture = messageFunction.request(testRequest);
-            responseFuture.then((testResponse, wasSuccessful, exception) -> testEnvironment.setProperty(RESULT, expectedResult));
             final MessageBus messageBus = testEnvironment.getPropertyAsType(TestEnvironmentProperty.MOCK, MessageBus.class);
-            final SimpleTestResponse testResponse = testResponse(testRequest.getCorrelationId());
-            messageBus.send(testResponse);
+            messageBus.subscribeRaw(SimpleTestRequest.class, processingContext -> {
+                final SimpleTestResponse testResponse = testResponse(testRequest);
+                final CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();
+                messageBus.send(testResponse, correlationId);
+            });
+            final ResponseFuture responseFuture = messageFunction.request(testRequest);
+            responseFuture.then((testResponse, exception) -> testEnvironment.setProperty(RESULT, expectedResult));
             return null;
         });
     }
@@ -128,9 +118,9 @@ public final class TestMessageFunctionActionBuilder {
     public static TestMessageFunctionActionBuilder aFollowUpActionExecutingOnlyOnceIsAddedBeforeRequest() {
         return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
             final SimpleTestRequest testRequest = SimpleTestRequest.testRequest();
-            final ResponseFuture<TestResponse> request = messageFunction.request(testRequest);
+            final ResponseFuture request = messageFunction.request(testRequest);
 
-            request.then((response, wasSuccessful, exception) -> {
+            request.then((response, exception) -> {
                 if (!testEnvironment.has(RESULT)) {
                     if (exception != null) {
                         testEnvironment.setProperty(RESULT, exception);
@@ -149,34 +139,17 @@ public final class TestMessageFunctionActionBuilder {
         return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
             final SimpleTestRequest testRequest = testRequest();
             testEnvironment.setProperty(TEST_OBJECT, testRequest);
-            final ResponseFuture<TestResponse> responseFuture = messageFunction.request(testRequest);
-            responseFuture.then((testResponse, wasSuccessful, exception) -> {
+            final ResponseFuture responseFuture = messageFunction.request(testRequest);
+            responseFuture.then((testResponse, exception) -> {
                 testEnvironment.setProperty(EXCEPTION, exception);
             });
             return null;
         });
     }
 
-    public static TestMessageFunctionActionBuilder aFollowUpActionWithExceptionIsAddedBeforeSend() {
-        return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
-            final SimpleTestRequest testRequest = testRequest();
-            final String expectedExceptionMessage = "Expected exception message.";
-            testEnvironment.setProperty(EXPECTED_EXCEPTION_MESSAGE, expectedExceptionMessage);
-            final ResponseFuture<TestResponse> responseFuture = messageFunction.request(testRequest);
-            try {
-                responseFuture.then((testResponse, wasSuccessful, exception) -> {
-                    throw new RuntimeException(expectedExceptionMessage);
-                });
-            } catch (final Exception e) {
-                testEnvironment.setProperty(EXCEPTION, e);
-            }
-            return null;
-        });
-    }
-
     public static TestMessageFunctionActionBuilder aRequestIsSendThatCausesADeliveryFailedMessage() {
         return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
-            final ResponseFuture<TestResponse> responseFuture = messageFunction.request(SimpleTestRequest.testRequest());
+            final ResponseFuture responseFuture = messageFunction.request(SimpleTestRequest.testRequest());
             try {
                 responseFuture.get();
             } catch (final Exception e) {
@@ -192,7 +165,7 @@ public final class TestMessageFunctionActionBuilder {
             final SimpleTestRequest testRequest = testRequest();
             final long expectedTimeout = MILLISECONDS.toMillis(100);
             testEnvironment.setProperty(EXPECTED_RESULT, expectedTimeout);
-            final ResponseFuture<TestResponse> responseFuture = messageFunction.request(testRequest);
+            final ResponseFuture responseFuture = messageFunction.request(testRequest);
             final long timeoutStart = System.currentTimeMillis();
             try {
                 responseFuture.get(100, MILLISECONDS);
@@ -218,8 +191,8 @@ public final class TestMessageFunctionActionBuilder {
     private static TestMessageFunctionActionBuilder callCancelXTimes(final int cancelCalls) {
         return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
             final SimpleTestRequest testRequest = SimpleTestRequest.testRequest();
-            final ResponseFuture<TestResponse> responseFuture = messageFunction.request(testRequest);
-            responseFuture.then((testResponse, wasSuccessful, exception) -> {
+            final ResponseFuture responseFuture = messageFunction.request(testRequest);
+            responseFuture.then((testResponse, exception) -> {
                 throw new RuntimeException("This FollowUpActionShouldNotBeCalled");
             });
             for (int i = 0; i < cancelCalls; i++) {
@@ -227,7 +200,7 @@ public final class TestMessageFunctionActionBuilder {
                 testEnvironment.addToListProperty(CANCEL_RESULTS, cancelResult);
             }
             final MessageBus messageBus = testEnvironment.getPropertyAsType(MOCK, MessageBus.class);
-            messageBus.send(testResponse(testRequest.getCorrelationId()));
+            messageBus.send(testResponse(testRequest));
             return responseFuture;
         });
     }
@@ -235,13 +208,16 @@ public final class TestMessageFunctionActionBuilder {
     public static TestMessageFunctionActionBuilder theFutureIsFulfilledAndThenCancelled() {
         return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
             final SimpleTestRequest testRequest = SimpleTestRequest.testRequest();
-            final ResponseFuture<TestResponse> responseFuture = messageFunction.request(testRequest);
             final MessageBus messageBus = testEnvironment.getPropertyAsType(MOCK, MessageBus.class);
-            final SimpleTestResponse response = testResponse(testRequest.getCorrelationId());
-            messageBus.send(response);
+            messageBus.subscribeRaw(SimpleTestRequest.class, processingContext -> {
+                final SimpleTestResponse response = testResponse(testRequest);
+                final CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();
+                messageBus.send(response, correlationId);
+            });
+            final ResponseFuture responseFuture = messageFunction.request(testRequest);
             try {
                 MILLISECONDS.sleep(10);
-            } catch (InterruptedException e) {
+            } catch (final InterruptedException e) {
                 testEnvironment.setProperty(EXCEPTION, e);
             }
             final boolean cancelResult = responseFuture.cancel(true);
@@ -253,18 +229,18 @@ public final class TestMessageFunctionActionBuilder {
     public static TestMessageFunctionActionBuilder aResponseToACancelledRequestDoesNotExecuteFollowUpAction() {
         return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
             final SimpleTestRequest testRequest = SimpleTestRequest.testRequest();
-            final ResponseFuture<TestResponse> responseFuture = messageFunction.request(testRequest);
-            responseFuture.then((testResponse, wasSuccessful, exception) -> {
+            final ResponseFuture responseFuture = messageFunction.request(testRequest);
+            responseFuture.then((testResponse, exception) -> {
                 throw new RuntimeException("This FollowUpActionShouldNotBeCalled");
             });
             final boolean cancelResult = responseFuture.cancel(true);
             testEnvironment.addToListProperty(CANCEL_RESULTS, cancelResult);
             final MessageBus messageBus = testEnvironment.getPropertyAsType(MOCK, MessageBus.class);
-            final SimpleTestResponse response = testResponse(testRequest.getCorrelationId());
+            final SimpleTestResponse response = testResponse(testRequest);
             messageBus.send(response);
             try {
                 MILLISECONDS.sleep(10);
-            } catch (InterruptedException e) {
+            } catch (final InterruptedException e) {
                 testEnvironment.setProperty(EXCEPTION, e);
             }
             return responseFuture;
@@ -274,7 +250,7 @@ public final class TestMessageFunctionActionBuilder {
     public static TestMessageFunctionActionBuilder theResultOfACancelledRequestIsTaken() {
         return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
             final SimpleTestRequest testRequest = SimpleTestRequest.testRequest();
-            final ResponseFuture<TestResponse> responseFuture = messageFunction.request(testRequest);
+            final ResponseFuture responseFuture = messageFunction.request(testRequest);
             responseFuture.cancel(true);
             try {
                 responseFuture.get();
@@ -288,7 +264,7 @@ public final class TestMessageFunctionActionBuilder {
     public static TestMessageFunctionActionBuilder aRequestsIsCancelledWhileOtherThreadsWait() {
         return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
             final SimpleTestRequest testRequest = SimpleTestRequest.testRequest();
-            final ResponseFuture<TestResponse> responseFuture = messageFunction.request(testRequest);
+            final ResponseFuture responseFuture = messageFunction.request(testRequest);
             final Semaphore waitingSemaphoreGet = new Semaphore(0);
             final Semaphore waitingSemaphoreGetTimeout = new Semaphore(0);
             new Thread(() -> {
@@ -345,10 +321,10 @@ public final class TestMessageFunctionActionBuilder {
     public static TestMessageFunctionActionBuilder aFollowUpActionIsAddedToACancelledFuture() {
         return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
             final SimpleTestRequest testRequest = SimpleTestRequest.testRequest();
-            final ResponseFuture<TestResponse> responseFuture = messageFunction.request(testRequest);
+            final ResponseFuture responseFuture = messageFunction.request(testRequest);
             responseFuture.cancel(true);
             try {
-                responseFuture.then((response, wasSuccessful, exception) -> {
+                responseFuture.then((response, exception) -> {
                     throw new UnsupportedOperationException();
                 });
             } catch (final Exception e) {
@@ -358,23 +334,8 @@ public final class TestMessageFunctionActionBuilder {
         });
     }
 
-
-    public TestAction<MessageFunction<TestRequest, TestResponse>> build() {
+    public TestAction<MessageFunction> build() {
         return testAction;
     }
 
-    @RequiredArgsConstructor(access = PRIVATE)
-    private static final class ExpectedResponseSubscriber<T> implements Consumer<T> {
-        private final List<ExpectedRequestResponsePair> expectedRequestResponsePairs;
-        private final MessageBus messageBus;
-
-        @Override
-        public void accept(final T o) {
-            for (final ExpectedRequestResponsePair expectedResponsePair : expectedRequestResponsePairs) {
-                if (o.equals(expectedResponsePair.request)) {
-                    messageBus.send(expectedResponsePair.response);
-                }
-            }
-        }
-    }
 }

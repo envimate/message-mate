@@ -21,7 +21,7 @@
 
 package com.envimate.messageMate.soonToBeExternal;
 
-import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
+import com.envimate.messageMate.identification.CorrelationId;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

@@ -21,47 +21,24 @@
 
 package com.envimate.messageMate.messageFunction;
 
-import com.envimate.messageMate.messageFunction.building.Step2ResponseTypMessageFunctionBuilder;
-import com.envimate.messageMate.messageFunction.building.Step3MessageFunctionBuilder;
+import com.envimate.messageMate.messageBus.MessageBus;
 
 /**
  * The {@code MessageFunctionBuilder} class provides a fluent interface for defining a new {@code MessageFunction}.
  *
  * @see <a href="https://github.com/envimate/message-mate#message-function">Message Mate Documentation</a>
  */
-public class MessageFunctionBuilder {
+public final class MessageFunctionBuilder {
 
     /**
-     * Factory method for creating a new {@code MessageFunctionBuilder}.
+     * Factory method for creating a new {@code MessageFunction}.
      *
-     * @return a new {@code MessageFunctionBuilder}
+     * @param messageBus the messageBus to use
+     * @return a new {@code MessageFunction}
      */
-    public static MessageFunctionBuilder aMessageFunction() {
-        return new MessageFunctionBuilder();
+    public static MessageFunction aMessageFunction(final MessageBus messageBus) {
+        return MessageFunctionImpl.messageFunction(messageBus);
     }
 
-    /**
-     * Sets the superclass for all requests.
-     *
-     * @param requestClass the request superclass
-     * @param <R> the supertype of the requests
-     * @return a {@code MessageFunctionBuilder} instance expecting the next configuration step
-     */
-    public <R> Step2ResponseTypMessageFunctionBuilder<R> forRequestType(final Class<R> requestClass) {
-        return new Step2ResponseTypMessageFunctionBuilderImpl<>(requestClass);
-    }
-
-    private static class Step2ResponseTypMessageFunctionBuilderImpl<R> implements Step2ResponseTypMessageFunctionBuilder<R> {
-        private final Class<R> requestClass;
-
-        Step2ResponseTypMessageFunctionBuilderImpl(final Class<R> requestClass) {
-            this.requestClass = requestClass;
-        }
-
-        @Override
-        public <S> Step3MessageFunctionBuilder<R, S> forResponseType(final Class<S> responseClass) {
-            return new GenerifiedMessageFunctionMessageFunctionBuilder<>(requestClass, responseClass);
-        }
-    }
 
 }

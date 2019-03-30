@@ -20,7 +20,7 @@ package com.envimate.messageMate.soonToBeExternal.building;
  * under the License.
  */
 
-import com.envimate.messageMate.soonToBeExternal.Caller;
+import com.envimate.messageMate.useCaseAdapter.Caller;
 import com.envimate.messageMate.soonToBeExternal.usecaseInvoking.UseCaseInvoker;
 
 import java.util.function.BiConsumer;

@@ -22,7 +22,8 @@
 package com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen;
 
 import com.envimate.messageMate.channel.ProcessingContext;
-import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
+import com.envimate.messageMate.identification.CorrelationId;
+import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
 import com.envimate.messageMate.shared.subscriber.TestSubscriber;
@@ -34,9 +35,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RECEIVERS;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.INITIAL_SUBSCRIBER;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.SEND_CORRELATION_ID;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.assertEquals;
 import static lombok.AccessLevel.PRIVATE;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -177,12 +178,35 @@ public final class PipeChannelMessageBusSharedTestValidations {
         assertThat(list, containsInAnyOrder(expectedFilter.toArray()));
     }
 
-    public static void assertSendReceivedAndExpectedCorrelationIdAreEqual(final TestEnvironment testEnvironment,
-                                                                          final ProcessingContext<?> result) {
-        final CorrelationId sendCorrelationId = testEnvironment.getPropertyAsType(SEND_CORRELATION_ID, CorrelationId.class);
+    public static void assertTheMessageToHaveTheSameMessageIdAndAMatchingGeneratedCorrelationId(final TestEnvironment testEnvironment,
+                                                                                                final ProcessingContext<?> result) {
+        final MessageId messageId = testEnvironment.getPropertyAsType(SEND_MESSAGE_ID, MessageId.class);
+        final MessageId receivedMessageId = result.getMessageId();
+        assertThat(messageId, notNullValue());
+        assertThat(receivedMessageId, equalTo(messageId));
+
+        final CorrelationId correlationIdForAnswer = result.generateCorrelationIdForAnswer();
+        assertTrue(correlationIdForAnswer.matches(messageId));
+    }
+
+    public static void assertTheCorrelationIdToBeSetWhenReceived(final TestEnvironment testEnvironment,
+                                                                 final ProcessingContext<?> result) {
+        final MessageId messageId = testEnvironment.getPropertyAsType(SEND_MESSAGE_ID, MessageId.class);
+        final MessageId receivedMessageId = result.getMessageId();
+        assertThat(messageId, notNullValue());
+        assertThat(receivedMessageId, equalTo(messageId));
+
+        final CorrelationId expectedCorrelationId = testEnvironment.getPropertyAsType(EXPECTED_CORRELATION_ID, CorrelationId.class);
+        final CorrelationId correlationId = result.getCorrelationId();
+        assertThat(correlationId, equalTo(expectedCorrelationId));
+    }
+
+    public static void assertMessageIdAndCorrelationIdsMatch(final TestEnvironment testEnvironment,
+                                                             final ProcessingContext<?> result) {
+        final MessageId messageId = testEnvironment.getPropertyAsType(SEND_MESSAGE_ID, MessageId.class);
         final CorrelationId receivedCorrelationId = result.getCorrelationId();
-        assertThat(sendCorrelationId, notNullValue());
-        assertEquals(sendCorrelationId, receivedCorrelationId);
+        assertThat(messageId, notNullValue());
+        assertTrue(receivedCorrelationId.matches(messageId));
         if (testEnvironment.has(EXPECTED_RESULT)) {
             final CorrelationId expectedCorId = testEnvironment.getPropertyAsType(EXPECTED_RESULT, CorrelationId.class);
             assertEquals(expectedCorId, receivedCorrelationId);

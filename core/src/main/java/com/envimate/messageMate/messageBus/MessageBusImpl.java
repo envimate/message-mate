@@ -25,13 +25,14 @@ import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.filtering.FilterActions;
+import com.envimate.messageMate.identification.CorrelationId;
+import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener;
 import com.envimate.messageMate.messageBus.internal.MessageBusStatusInformationAdapter;
 import com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategy;
 import com.envimate.messageMate.messageBus.internal.correlationIds.CorrelationBasedSubscriptions;
 import com.envimate.messageMate.messageBus.internal.exception.ExceptionListenerHandler;
 import com.envimate.messageMate.messageBus.internal.statistics.MessageBusStatisticsCollector;
-import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
 import com.envimate.messageMate.subscribing.ConsumerSubscriber;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
@@ -67,13 +68,18 @@ final class MessageBusImpl implements MessageBus {
     }
 
     @Override
-    public CorrelationId send(final Object message) {
+    public MessageId send(final Object message) {
         return acceptingChannel.send(message);
     }
 
     @Override
-    public CorrelationId send(final Object message, final CorrelationId correlationId) {
+    public MessageId send(final Object message, final CorrelationId correlationId) {
         return acceptingChannel.send(message, correlationId);
+    }
+
+    @Override
+    public MessageId send(final ProcessingContext<Object> processingContext) {
+        return acceptingChannel.send(processingContext);
     }
 
     @Override
@@ -163,6 +169,12 @@ final class MessageBusImpl implements MessageBus {
     public <T> SubscriptionId onException(final List<Class<? extends T>> messageClasses,
                                           final MessageBusExceptionListener<? extends T> exceptionListener) {
         return exceptionListenerHandler.register(messageClasses, exceptionListener);
+    }
+
+    @Override
+    public SubscriptionId onException(final CorrelationId correlationId,
+                                      final MessageBusExceptionListener<Object> exceptionListener) {
+        return exceptionListenerHandler.register(correlationId, exceptionListener);
     }
 
     @Override

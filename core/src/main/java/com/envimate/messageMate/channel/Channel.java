@@ -24,8 +24,9 @@ package com.envimate.messageMate.channel;
 import com.envimate.messageMate.channel.action.Action;
 import com.envimate.messageMate.exceptions.AlreadyClosedException;
 import com.envimate.messageMate.filtering.Filter;
+import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.internal.autoclosable.NoErrorAutoClosable;
-import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
+import com.envimate.messageMate.identification.CorrelationId;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -55,20 +56,20 @@ public interface Channel<T> extends NoErrorAutoClosable {
      * Send the given message over this {@code Channel}.
      *
      * @param message the message to be sent
-     * @return the {@code CorrelationId} of the send message
+     * @return the {@code MessageId} of the send message
      * @throws AlreadyClosedException if the {@code Channel} is already closed
      */
-    CorrelationId send(T message);
+    MessageId send(T message);
 
     /**
      * Send the given message over this {@code Channel} with the given {@code CorrelationId}.
      *
      * @param message       the message to be sent
      * @param correlationId the {@code CorrelationId} of the message
-     * @return the {@code CorrelationId} of the send message
+     * @return the {@code MessageId} of the send message
      * @throws AlreadyClosedException if the {@code Channel} is already closed
      */
-    CorrelationId send(T message, CorrelationId correlationId);
+    MessageId send(T message, CorrelationId correlationId);
 
     /**
      * Send the given processingContext object over this {@code Channel}.
@@ -79,9 +80,10 @@ public interface Channel<T> extends NoErrorAutoClosable {
      * object of the previous {@code Channel} directly.</p>
      *
      * @param processingContext the {@code ProcessingContext} to be sent
+     * @return the {@code ProcessingContext's} {@code MessageId}
      * @throws AlreadyClosedException if the {@code Channel} is already closed
      */
-    CorrelationId send(ProcessingContext<T> processingContext);
+    MessageId send(ProcessingContext<T> processingContext);
 
     /**
      * Adds the {@code Filter} to the list of pre {@code Filter}.

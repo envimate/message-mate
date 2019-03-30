@@ -21,7 +21,6 @@
 
 package com.envimate.messageMate.messageFunction;
 
-import com.envimate.messageMate.messageFunction.givenWhenThen.Given;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.CancellationException;
@@ -32,12 +31,13 @@ import static com.envimate.messageMate.messageFunction.givenWhenThen.TestMessage
 import static com.envimate.messageMate.messageFunction.givenWhenThen.TestMessageFunctionSetupBuilder.aMessageFunction;
 import static com.envimate.messageMate.messageFunction.givenWhenThen.TestMessageFunctionValidationBuilder.*;
 
+//TODO: check fulfilled for onError of response
 public class MessageFunctionSpecs {
 
     @Test
     public void testMessageFunction_obtainsResponseForRequest() {
         given(aMessageFunction()
-                .definedWithARequestResponseMapping())
+                .withTheRequestAnsweredByACorrelatedResponse())
                 .when(aRequestIsSend())
                 .then(expectTheResponseToBeReceived());
     }
@@ -45,42 +45,19 @@ public class MessageFunctionSpecs {
     @Test
     public void testMessageFunction_canDifferentiateBetweenDifferentResponses() {
         given(aMessageFunction()
-                .definedWithARequestResponseMapping())
+                .withTheRequestAnsweredByACorrelatedResponse())
                 .when(severalRequestsAreSend())
                 .then(expectCorrectResponseReceivedForEachRequest());
     }
 
     @Test
-    public void testMessageFunction_canAcceptDifferentResponses() {
+    public void testMessageFunction_fullFillsOnlyForCorrectResponse() {
         given(aMessageFunction()
                 .acceptingTwoDifferentResponsesForTheTestRequest())
                 .when(twoRequestsAreSendThatWithOneOfEachResponsesAnswered())
-                .then(expectCorrectResponseReceivedForEachRequest());
+                .then(expectCorrectTheResponseToBeReceived());
     }
 
-    @Test
-    public void testMessageFunction_canAcceptErrorResponse() {
-        given(aMessageFunction()
-                .acceptingErrorResponses())
-                .when(aRequestResultingInErrorIsSend())
-                .then(expectTheErrorResponseToBeReceived());
-    }
-
-    @Test
-    public void testMessageFunction_canAcceptGeneralErrorResponse() {
-        given(aMessageFunction()
-                .acceptingGeneralErrorResponses())
-                .when(aRequestResultingInErrorIsSend())
-                .then(expectTheErrorResponseToBeReceived());
-    }
-
-    @Test
-    public void testMessageFunction_canSetConditionForGeneralErrorResponse() {
-        given(aMessageFunction()
-                .acceptingGeneralErrorResponsesWithCondition())
-                .when(aMatchingAndOneNotMatchingGeneralErrorResponseIsSend())
-                .then(expectTheErrorResponseToBeReceived());
-    }
 
     @Test
     public void testMessageFunction_futureIsOnlyFulfilledOnce_forRedundantMessage() {
@@ -107,14 +84,6 @@ public class MessageFunctionSpecs {
     }
 
     @Test
-    public void testMessageFunction_futureIsOnlyFulfilledOnce_forGeneralErrorMessage() {
-        given(aMessageFunction()
-                .withAGeneralErrorResponseSendTwice())
-                .when(aFollowUpActionExecutingOnlyOnceIsAddedBeforeRequest())
-                .then(expectTheFutureToBeFulFilledOnlyOnce());
-    }
-
-    @Test
     public void testMessageFunction_executesFollowUpWhenFuturesIsFulfilled() {
         given(aMessageFunction()
                 .definedWithAnUnansweredResponse())
@@ -132,7 +101,7 @@ public class MessageFunctionSpecs {
 
     @Test
     public void testMessageFunction_futuresFinishesWhenDeliveryFailedMessageIsReceived() {
-        Given.given(aMessageFunction()
+        given(aMessageFunction()
                 .definedWithResponseThrowingAnException())
                 .when(aRequestIsSendThatCausesADeliveryFailedMessage())
                 .then(expectAFutureToBeFinishedWithException(ExecutionException.class));
@@ -206,7 +175,7 @@ public class MessageFunctionSpecs {
     @Test
     public void testMessageFunction_addingAFollowUpActionToACancelledFutureFails() {
         given(aMessageFunction()
-                .definedWithARequestResponseMapping())
+                .withTheRequestAnsweredByACorrelatedResponse())
                 .when(aFollowUpActionIsAddedToACancelledFuture())
                 .then(expectAExceptionToBeThrownOfType(CancellationException.class));
     }

@@ -22,7 +22,6 @@
 package com.envimate.messageMate.messageFunction.givenWhenThen;
 
 import com.envimate.messageMate.messageFunction.ResponseFuture;
-import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
 import com.envimate.messageMate.messageFunction.testResponses.ErrorTestResponse;
 import com.envimate.messageMate.messageFunction.testResponses.RequestResponseFuturePair;
 import com.envimate.messageMate.messageFunction.testResponses.TestRequest;
@@ -56,24 +55,28 @@ public final class TestMessageFunctionValidationBuilder {
     public static TestMessageFunctionValidationBuilder expectTheResponseToBeReceived() {
         return new TestMessageFunctionValidationBuilder(testEnvironment -> {
             ensureNoExceptionThrown(testEnvironment);
-            final ResponseFuture<?> responseFuture = testEnvironment.getPropertyAsType(RESULT, ResponseFuture.class);
+            final ResponseFuture responseFuture = testEnvironment.getPropertyAsType(RESULT, ResponseFuture.class);
             final TestRequest testRequest = testEnvironment.getPropertyAsType(TEST_OBJECT, TestRequest.class);
             assertResponseForRequest(responseFuture, testRequest);
         });
     }
 
-    private static void assertResponseForRequest(ResponseFuture<?> responseFuture, TestRequest testRequest) {
+    public static TestMessageFunctionValidationBuilder expectCorrectTheResponseToBeReceived() {
+        return expectTheResponseToBeReceived();
+    }
+
+    private static void assertResponseForRequest(final ResponseFuture responseFuture, final TestRequest testRequest) {
         assertTrue(responseFuture.wasSuccessful());
         try {
             final Object response = responseFuture.get();
             if (response instanceof TestResponse) {
                 final TestResponse testResponse = (TestResponse) response;
-                final CorrelationId expectedCorrelationId = testRequest.getCorrelationId();
-                assertThat(testResponse.getCorrelationId(), equalTo(expectedCorrelationId));
+                final Object request = testResponse.getCorrelatedRequest();
+                assertThat(request, equalTo(testRequest));
             } else {
                 fail("Unexpected Result in validation found.");
             }
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (final InterruptedException | ExecutionException e) {
             fail(e);
         }
     }
@@ -81,40 +84,15 @@ public final class TestMessageFunctionValidationBuilder {
     public static TestMessageFunctionValidationBuilder expectCorrectResponseReceivedForEachRequest() {
         return new TestMessageFunctionValidationBuilder(testEnvironment -> {
             ensureNoExceptionThrown(testEnvironment);
-            @SuppressWarnings("unchecked") final List<RequestResponseFuturePair> requestResponseFuturePairs = (List<RequestResponseFuturePair>) testEnvironment.getProperty(RESULT);
-            for (RequestResponseFuturePair requestResponseFuturePair : requestResponseFuturePairs) {
-                final ResponseFuture<TestResponse> responseFuture = requestResponseFuturePair.getResponseFuture();
+            @SuppressWarnings("unchecked")
+            final List<RequestResponseFuturePair> requestResponseFuturePairs = (List<RequestResponseFuturePair>) testEnvironment.getProperty(RESULT);
+            for (final RequestResponseFuturePair requestResponseFuturePair : requestResponseFuturePairs) {
+                final ResponseFuture responseFuture = requestResponseFuturePair.getResponseFuture();
                 final TestRequest testRequest = requestResponseFuturePair.getTestRequest();
                 assertResponseForRequest(responseFuture, testRequest);
             }
         });
     }
-
-    public static TestMessageFunctionValidationBuilder expectTheErrorResponseToBeReceived() {
-        return new TestMessageFunctionValidationBuilder(testEnvironment -> {
-            ensureNoExceptionThrown(testEnvironment);
-            final ResponseFuture<?> responseFuture = testEnvironment.getPropertyAsType(RESULT, ResponseFuture.class);
-            final TestRequest testRequest = testEnvironment.getPropertyAsType(TEST_OBJECT, TestRequest.class);
-            assertErrorResponse(responseFuture, testRequest);
-        });
-    }
-
-    private static void assertErrorResponse(ResponseFuture<?> responseFuture, TestRequest testRequest) {
-        assertFalse(responseFuture.wasSuccessful());
-        try {
-            final Object response = responseFuture.get();
-            if (response instanceof ErrorTestResponse) {
-                final ErrorTestResponse errorTestResponse = (ErrorTestResponse) response;
-                final CorrelationId expectedCorrelationId = testRequest.getCorrelationId();
-                assertThat(errorTestResponse.getCorrelationId(), equalTo(expectedCorrelationId));
-            } else {
-                fail("Unexpected Result in validation found.");
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            fail(e);
-        }
-    }
-
 
     public static TestMessageFunctionValidationBuilder expectTheFollowUpToBeExecuted() {
         return new TestMessageFunctionValidationBuilder(testEnvironment -> {
@@ -135,7 +113,7 @@ public final class TestMessageFunctionValidationBuilder {
         });
     }
 
-    public static TestMessageFunctionValidationBuilder expectAExceptionToBeThrownOfType(Class<?> expectedClass) {
+    public static TestMessageFunctionValidationBuilder expectAExceptionToBeThrownOfType(final Class<?> expectedClass) {
         return new TestMessageFunctionValidationBuilder(testEnvironment -> {
             final Exception exception = testEnvironment.getPropertyAsType(EXCEPTION, Exception.class);
             assertEquals(exception.getClass(), expectedClass);
@@ -146,11 +124,11 @@ public final class TestMessageFunctionValidationBuilder {
         });
     }
 
-    public static TestMessageFunctionValidationBuilder expectAFutureToBeFinishedWithException(Class<?> expectedClass) {
+    public static TestMessageFunctionValidationBuilder expectAFutureToBeFinishedWithException(final Class<?> expectedClass) {
         return new TestMessageFunctionValidationBuilder(testEnvironment -> {
             final Exception exception = testEnvironment.getPropertyAsType(EXCEPTION, Exception.class);
             assertEquals(exception.getClass(), expectedClass);
-            final ResponseFuture<?> responseFuture = testEnvironment.getPropertyAsType(RESULT, ResponseFuture.class);
+            final ResponseFuture responseFuture = testEnvironment.getPropertyAsType(RESULT, ResponseFuture.class);
             assertTrue(responseFuture.isDone());
             assertFalse(responseFuture.wasSuccessful());
             assertFalse(responseFuture.isCancelled());
@@ -159,7 +137,7 @@ public final class TestMessageFunctionValidationBuilder {
             assertFalse(responseFuture.isCancelled());
             try {
                 responseFuture.get();
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 if (!(e instanceof ExecutionException)) {
                     fail("Unexpected Exception.", e);
                 }
@@ -181,7 +159,7 @@ public final class TestMessageFunctionValidationBuilder {
     public static TestMessageFunctionValidationBuilder expectTheRequestToBeCancelledAndNoFollowUpActionToBeExecuted() {
         return new TestMessageFunctionValidationBuilder(testEnvironment -> {
             ensureNoExceptionThrown(testEnvironment);
-            final ResponseFuture<?> responseFuture = testEnvironment.getPropertyAsType(RESULT, ResponseFuture.class);
+            final ResponseFuture responseFuture = testEnvironment.getPropertyAsType(RESULT, ResponseFuture.class);
             assertTrue(responseFuture.isCancelled());
             assertTrue(responseFuture.isDone());
             assertFalse(responseFuture.wasSuccessful());
@@ -192,7 +170,7 @@ public final class TestMessageFunctionValidationBuilder {
     public static TestMessageFunctionValidationBuilder expectAllCancellationsToHaveReturnedTheSameResult() {
         return new TestMessageFunctionValidationBuilder(testEnvironment -> {
             ensureNoExceptionThrown(testEnvironment);
-            final ResponseFuture<?> responseFuture = testEnvironment.getPropertyAsType(RESULT, ResponseFuture.class);
+            final ResponseFuture responseFuture = testEnvironment.getPropertyAsType(RESULT, ResponseFuture.class);
             assertCancellationRequestsSucceeded(testEnvironment);
             assertTrue(responseFuture.isCancelled());
             assertTrue(responseFuture.isDone());
@@ -204,7 +182,7 @@ public final class TestMessageFunctionValidationBuilder {
     public static TestMessageFunctionValidationBuilder expectTheCancellationToFailed() {
         return new TestMessageFunctionValidationBuilder(testEnvironment -> {
             ensureNoExceptionThrown(testEnvironment);
-            final ResponseFuture<?> responseFuture = testEnvironment.getPropertyAsType(RESULT, ResponseFuture.class);
+            final ResponseFuture responseFuture = testEnvironment.getPropertyAsType(RESULT, ResponseFuture.class);
             final Boolean cancelResults = testEnvironment.getPropertyAsType(CANCEL_RESULTS, Boolean.class);
             assertFalse(cancelResults);
             assertFalse(responseFuture.isCancelled());
@@ -214,20 +192,20 @@ public final class TestMessageFunctionValidationBuilder {
     }
 
     @SuppressWarnings("unchecked")
-    private static void assertCancellationRequestsSucceeded(TestEnvironment testEnvironment) {
+    private static void assertCancellationRequestsSucceeded(final TestEnvironment testEnvironment) {
         final List<Boolean> cancelResults = (List<Boolean>) testEnvironment.getProperty(CANCEL_RESULTS);
         for (final Boolean cancelResult : cancelResults) {
             assertTrue(cancelResult);
         }
     }
 
-    private static void assertFutureAllowsNotGettingValue(ResponseFuture<?> responseFuture) {
+    private static void assertFutureAllowsNotGettingValue(final ResponseFuture responseFuture) {
         boolean cancellationExceptionThrownForGet = false;
         try {
             responseFuture.get();
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (final InterruptedException | ExecutionException e) {
             fail(e);
-        } catch (CancellationException e) {
+        } catch (final CancellationException e) {
             cancellationExceptionThrownForGet = true;
         }
         assertTrue(cancellationExceptionThrownForGet);
@@ -236,9 +214,9 @@ public final class TestMessageFunctionValidationBuilder {
         boolean cancellationExceptionThrownForGetWithTimeout = false;
         try {
             responseFuture.get(1000, SECONDS);
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+        } catch (final InterruptedException | ExecutionException | TimeoutException e) {
             fail(e);
-        } catch (CancellationException e) {
+        } catch (final CancellationException e) {
             cancellationExceptionThrownForGetWithTimeout = true;
         }
         assertTrue(cancellationExceptionThrownForGetWithTimeout);
@@ -247,7 +225,7 @@ public final class TestMessageFunctionValidationBuilder {
     public static TestMessageFunctionValidationBuilder expectTheFutureToBeFulFilledOnlyOnce() {
         return new TestMessageFunctionValidationBuilder(testEnvironment -> {
             ensureNoExceptionThrown(testEnvironment);
-            Object result = testEnvironment.getProperty(RESULT);
+            final Object result = testEnvironment.getProperty(RESULT);
             if (result instanceof Exception) {
                 assertResultOfClass(testEnvironment, TestException.class);
             } else {

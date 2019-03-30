@@ -22,10 +22,10 @@
 package com.envimate.messageMate.internal.pipe.givenWhenThen;
 
 import com.envimate.messageMate.filtering.Filter;
+import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.internal.pipe.Pipe;
 import com.envimate.messageMate.internal.pipe.PipeStatusInformation;
 import com.envimate.messageMate.internal.pipe.statistics.PipeStatistics;
-import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
@@ -88,7 +88,7 @@ public final class PipeTestActions implements PipeMessageBusSutActions {
     }
 
     @Override
-    public CorrelationId send(final TestMessage message) {
+    public MessageId send(final TestMessage message) {
         pipe.send(message);
         return null;
     }

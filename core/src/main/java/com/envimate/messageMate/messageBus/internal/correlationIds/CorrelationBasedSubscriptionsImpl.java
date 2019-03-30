@@ -1,7 +1,7 @@
 package com.envimate.messageMate.messageBus.internal.correlationIds;
 
 import com.envimate.messageMate.channel.ProcessingContext;
-import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
+import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.RequiredArgsConstructor;
@@ -63,6 +63,10 @@ public final class CorrelationBasedSubscriptionsImpl implements CorrelationBased
 
     @Override
     public List<Subscriber<ProcessingContext<Object>>> getSubscribersFor(final CorrelationId correlationId) {
-        return correlationBasedSubscriber.getOrDefault(correlationId, emptyList());
+        if (correlationId == null) {
+            return emptyList();
+        } else {
+            return correlationBasedSubscriber.getOrDefault(correlationId, emptyList());
+        }
     }
 }

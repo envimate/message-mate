@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageFunction.internal.responseMatching;
+package com.envimate.messageMate.messageFunction.internal;
 
 import com.envimate.messageMate.messageFunction.ResponseFuture;
 import com.envimate.messageMate.messageFunction.followup.FollowUpAction;
@@ -29,33 +29,37 @@ import lombok.RequiredArgsConstructor;
 import java.util.concurrent.*;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public final class ExpectedResponseFuture<S> implements ResponseFuture<S> {
+public final class ExpectedResponseFuture implements ResponseFuture {
     private final CountDownLatch countDownLatch = new CountDownLatch(1);
     private volatile boolean isCancelled;
-    private volatile S response;
+    private volatile Object response;
     private volatile boolean successful;
-    private volatile FollowUpAction<S> followUpAction;
+    private volatile FollowUpAction followUpAction;
     private volatile Exception thrownException;
 
-    public static <S> ExpectedResponseFuture<S> expectedResponseFuture() {
-        return new ExpectedResponseFuture<>();
+    public static ExpectedResponseFuture expectedResponseFuture() {
+        return new ExpectedResponseFuture();
     }
 
-    public synchronized void fullFill(final S response, final boolean successful) {
-        this.response = response;
-        this.successful = successful;
-        countDownLatch.countDown();
-        if (followUpAction != null) {
-            followUpAction.apply(response, successful, null);
+    public synchronized void fullFill(final Object response) {
+        if (!isCancelled()) {
+            this.response = response;
+            this.successful = true;
+            countDownLatch.countDown();
+            if (followUpAction != null) {
+                followUpAction.apply(response, null);
+            }
         }
     }
 
     public void fullFillWithException(final Exception e) {
-        this.thrownException = e;
-        this.successful = false;
-        countDownLatch.countDown();
-        if (followUpAction != null) {
-            followUpAction.apply(null, this.successful, e);
+        if (!isCancelled()) {
+            this.thrownException = e;
+            this.successful = false;
+            countDownLatch.countDown();
+            if (followUpAction != null) {
+                followUpAction.apply(null, e);
+            }
         }
     }
 
@@ -92,7 +96,7 @@ public final class ExpectedResponseFuture<S> implements ResponseFuture<S> {
     }
 
     @Override
-    public S get() throws InterruptedException, ExecutionException {
+    public Object get() throws InterruptedException, ExecutionException {
         if (!isDone()) {
             countDownLatch.await();
             //if threads is woken up with countDown in "cancel", then it should be handled as Interrupt;
@@ -110,7 +114,7 @@ public final class ExpectedResponseFuture<S> implements ResponseFuture<S> {
     }
 
     @Override
-    public S get(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+    public Object get(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         if (!isDone()) {
             if (!countDownLatch.await(timeout, unit)) {
                 throw new TimeoutException("Response future timed out");
@@ -132,7 +136,7 @@ public final class ExpectedResponseFuture<S> implements ResponseFuture<S> {
     }
 
     @Override
-    public synchronized void then(final FollowUpAction<S> followUpAction) {
+    public synchronized void then(final FollowUpAction followUpAction) {
         if (this.followUpAction != null) {
             throw new UnsupportedOperationException("Then can only be called once.");
         } else {
@@ -141,7 +145,7 @@ public final class ExpectedResponseFuture<S> implements ResponseFuture<S> {
                 if (isCancelled()) {
                     throw new CancellationException();
                 } else {
-                    followUpAction.apply(this.response, wasSuccessful(), this.thrownException);
+                    followUpAction.apply(this.response, this.thrownException);
                 }
             }
         }

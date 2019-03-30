@@ -21,21 +21,20 @@
 
 package com.envimate.messageMate.messageFunction.testResponses;
 
-import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
 import lombok.RequiredArgsConstructor;
 
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
 public final class AlternativTestResponse implements TestResponse {
-    private final CorrelationId correlationId;
+    private final Object request;
 
-    public static AlternativTestResponse alternativTestResponse(final CorrelationId correlationId) {
-        return new AlternativTestResponse(correlationId);
+    public static AlternativTestResponse alternativTestResponse(final Object request) {
+        return new AlternativTestResponse(request);
     }
 
     @Override
-    public CorrelationId getCorrelationId() {
-        return correlationId;
+    public Object getCorrelatedRequest() {
+        return request;
     }
 }

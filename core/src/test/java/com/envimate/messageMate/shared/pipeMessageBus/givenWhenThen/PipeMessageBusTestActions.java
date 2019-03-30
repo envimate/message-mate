@@ -21,9 +21,10 @@
 
 package com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen;
 
+import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.internal.pipe.statistics.PipeStatistics;
 import com.envimate.messageMate.messageBus.MessageBus;
-import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
+import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
@@ -52,13 +53,13 @@ import static lombok.AccessLevel.PRIVATE;
 @RequiredArgsConstructor(access = PRIVATE)
 public final class PipeMessageBusTestActions {
 
-    public static CorrelationId sendASingleMessage(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
+    public static MessageId sendASingleMessage(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
         final TestMessageOfInterest message = TestMessageOfInterest.messageOfInterest();
         testEnvironment.setProperty(SINGLE_SEND_MESSAGE, message);
         return sutActions.send(message);
     }
 
-    public static CorrelationId sendASingleMessage(final MessageBus messageBus, final CorrelationId correlationId,
+    public static MessageId sendASingleMessage(final MessageBus messageBus, final CorrelationId correlationId,
                                                    final TestEnvironment testEnvironment) {
         final TestMessageOfInterest message = TestMessageOfInterest.messageOfInterest();
         testEnvironment.setProperty(SINGLE_SEND_MESSAGE, message);

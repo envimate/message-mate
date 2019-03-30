@@ -24,9 +24,10 @@ package com.envimate.messageMate.messageBus;
 import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.exceptions.AlreadyClosedException;
 import com.envimate.messageMate.filtering.Filter;
+import com.envimate.messageMate.identification.CorrelationId;
+import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.internal.autoclosable.NoErrorAutoClosable;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener;
-import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 
@@ -46,20 +47,29 @@ public interface MessageBus extends NoErrorAutoClosable {
      * Sends the message on the {@code MessageBus}
      *
      * @param message the message to send
-     * @return the {@code CorrelationId} of the send message
+     * @return the {@code MessageId} of the send message
      * @throws AlreadyClosedException if {@code MessageBus} already closed
      */
-    CorrelationId send(Object message);
+    MessageId send(Object message);
 
     /**
-     * Sends the message on the {@code MessageBus}
+     * Sends the message on the {@code MessageBus} with the given {@code CorrelationId}.
      *
      * @param message       the message to send
      * @param correlationId the {@code CorrelationId} for the given message
-     * @return the {@code CorrelationId} of the send message
+     * @return the {@code MessageId} of the send message
      * @throws AlreadyClosedException if {@code MessageBus} already closed
      */
-    CorrelationId send(Object message, CorrelationId correlationId);
+    MessageId send(Object message, CorrelationId correlationId);
+
+    /**
+     * Sends the {@code ProcessingContext} on the {@code MessageBus}.
+     *
+     * @param processingContext the {@code ProcessingContext} to send
+     * @return the {@code MessageId} of the send message
+     * @throws AlreadyClosedException if {@code MessageBus} already closed
+     */
+    MessageId send(ProcessingContext<Object> processingContext);
 
     /**
      * Adds the given {@code Consumer} wrapped in a {@code Subscriber} object.
@@ -178,6 +188,15 @@ public interface MessageBus extends NoErrorAutoClosable {
      */
     <T> SubscriptionId onException(List<Class<? extends T>> messageClasses,
                                    MessageBusExceptionListener<? extends T> exceptionListener);
+
+    /**
+     * Adds a dynamic exception listener for the messages matching the {@code CorrelationId}.
+     *
+     * @param correlationId     the {@code CorrelationId} to match
+     * @param exceptionListener the exception listener
+     * @return a {@code SubscriptionId} identifying exception listener
+     */
+    SubscriptionId onException(CorrelationId correlationId, MessageBusExceptionListener<Object> exceptionListener);
 
     /**
      * Removes all exceptionListener with the given {@code SubscriptionId}.

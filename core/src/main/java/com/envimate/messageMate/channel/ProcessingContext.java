@@ -22,7 +22,8 @@
 package com.envimate.messageMate.channel;
 
 import com.envimate.messageMate.channel.action.Action;
-import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
+import com.envimate.messageMate.identification.CorrelationId;
+import com.envimate.messageMate.identification.MessageId;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,6 +31,9 @@ import lombok.ToString;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static com.envimate.messageMate.identification.CorrelationId.correlationIdFor;
+import static com.envimate.messageMate.identification.MessageId.newUniqueMessageId;
 
 /**
  * Message specific root object for all information related to the processing of a message.
@@ -58,7 +62,11 @@ import java.util.Map;
 public final class ProcessingContext<T> {
     @Getter
     private final Map<Object, Object> contextMetaData;
-
+    @Getter
+    private final MessageId messageId;
+    @Getter
+    @Setter
+    private CorrelationId correlationId;
     @Getter
     @Setter
     private T payload;
@@ -71,14 +79,14 @@ public final class ProcessingContext<T> {
     @Setter
     private ChannelProcessingFrame<T> currentProcessingFrame;
 
-    @Getter
-    @Setter
-    private CorrelationId correlationId;
 
-    private ProcessingContext(final Map<Object, Object> contextMetaData, final T payload,
+    private ProcessingContext(final MessageId messageId,
+                              final CorrelationId correlationId,
+                              final T payload,
+                              final Map<Object, Object> contextMetaData,
                               final ChannelProcessingFrame<T> initialProcessingFrame,
-                              final ChannelProcessingFrame<T> currentProcessingFrame,
-                              final CorrelationId correlationId) {
+                              final ChannelProcessingFrame<T> currentProcessingFrame) {
+        this.messageId = messageId;
         this.contextMetaData = contextMetaData;
         this.payload = payload;
         this.initialProcessingFrame = initialProcessingFrame;
@@ -95,8 +103,8 @@ public final class ProcessingContext<T> {
      */
     public static <T> ProcessingContext<T> processingContext(final T payload) {
         final Map<Object, Object> contextMetaData = new HashMap<>();
-        final CorrelationId corId = CorrelationId.newUniqueId();
-        return new ProcessingContext<>(contextMetaData, payload, null, null, corId);
+        final MessageId messageId = newUniqueMessageId();
+        return new ProcessingContext<>(messageId, null, payload, contextMetaData, null, null);
     }
 
     /**
@@ -109,7 +117,24 @@ public final class ProcessingContext<T> {
      */
     public static <T> ProcessingContext<T> processingContext(final T payload, final CorrelationId correlationId) {
         final Map<Object, Object> metaData = new HashMap<>();
-        return new ProcessingContext<>(metaData, payload, null, null, correlationId);
+        final MessageId messageId = newUniqueMessageId();
+        return new ProcessingContext<>(messageId, correlationId, payload, metaData, null, null);
+    }
+
+    /**
+     * Factory method to create a new {@code ProcessingContext} for a given payload and a {@code MessageId}, {@code CorrelationId}
+     * combination.
+     *
+     * @param payload       the message to envelope
+     * @param messageId     the {@code MessageId} of the message
+     * @param correlationId the {@code CorrelationId} to be used
+     * @param <T>           the type of the message
+     * @return a new {@code ProcessingContext} object
+     */
+    public static <T> ProcessingContext<T> processingContext(final T payload, final MessageId messageId,
+                                                             final CorrelationId correlationId) {
+        final Map<Object, Object> metaData = new HashMap<>();
+        return new ProcessingContext<>(messageId, correlationId, payload, metaData, null, null);
     }
 
     /**
@@ -121,8 +146,8 @@ public final class ProcessingContext<T> {
      * @return a new {@code ProcessingContext} object
      */
     public static <T> ProcessingContext<T> processingContext(final T payload, final Map<Object, Object> contextMetaData) {
-        final CorrelationId corId = CorrelationId.newUniqueId();
-        return new ProcessingContext<>(contextMetaData, payload, null, null, corId);
+        final MessageId messageId = newUniqueMessageId();
+        return new ProcessingContext<>(messageId, null, payload, contextMetaData, null, null);
     }
 
     /**
@@ -153,5 +178,15 @@ public final class ProcessingContext<T> {
      */
     public void changeAction(final Action<T> action) {
         currentProcessingFrame.setAction(action);
+    }
+
+
+    /**
+     * Creates a {@code CorrelationId} matching the current {@code ProcessingContext's}{@code MessageId}.
+     *
+     * @return a new, related {@code CorrelationId}
+     */
+    public CorrelationId generateCorrelationIdForAnswer() {
+        return correlationIdFor(messageId);
     }
 }

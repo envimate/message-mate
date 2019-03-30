@@ -29,29 +29,14 @@ import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
 public final class UseCaseResponseFutureImpl implements UseCaseResponseFuture {
-    private final ResponseFuture<UseCaseCallResponse> responseFuture;
+    private final ResponseFuture responseFuture;
 
-    public static UseCaseResponseFutureImpl useCaseResponseFuture(final ResponseFuture<UseCaseCallResponse> responseFuture) {
+    public static UseCaseResponseFutureImpl useCaseResponseFuture(final ResponseFuture responseFuture) {
         return new UseCaseResponseFutureImpl(responseFuture);
     }
 
     @Override
-    public void then(final FollowUpAction<Object> followUpAction) {
-        responseFuture.then((response, wasSuccessful, deliveryException) -> {
-            final Exception exception;
-            if (response != null && response.getException() != null) {
-                exception = response.getException();
-            } else {
-                exception = deliveryException;
-            }
-            final boolean wasSuccessfull = exception != null;
-            final Object returnValue;
-            if (response != null) {
-                returnValue = response.getReturnValue();
-            } else {
-                returnValue = null;
-            }
-            followUpAction.apply(returnValue, wasSuccessful, exception);
-        });
+    public void then(final FollowUpAction followUpAction) {
+        responseFuture.then(followUpAction);
     }
 }

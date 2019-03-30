@@ -21,15 +21,17 @@
 
 package com.envimate.messageMate.soonToBeExternal;
 
-import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
+import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.messageFunction.MessageFunction;
 import com.envimate.messageMate.messageFunction.ResponseFuture;
+import com.envimate.messageMate.useCaseAdapter.Caller;
+import com.envimate.messageMate.useCaseAdapter.EventToUseCaseMapping;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Map;
 import java.util.function.Function;
 
-import static com.envimate.messageMate.messageFunction.correlation.CorrelationId.newUniqueId;
+import static com.envimate.messageMate.identification.CorrelationId.newUniqueCorrelationId;
 import static com.envimate.messageMate.soonToBeExternal.UseCaseCallRequest.useCaseCallRequest;
 import static com.envimate.messageMate.soonToBeExternal.UseCaseResponseFutureImpl.useCaseResponseFuture;
 import static lombok.AccessLevel.PACKAGE;
@@ -38,7 +40,7 @@ import static lombok.AccessLevel.PACKAGE;
 public final class EventToUseCaseDispatcherImpl implements EventToUseCaseDispatcher {
     private final Function<Class, Object> instantiator;
     private final Map<Class<?>, EventToUseCaseMapping> eventToUseCaseMappings;
-    private final MessageFunction<UseCaseCallRequest, UseCaseCallResponse> messageFunction;
+    private final MessageFunction messageFunction;
 
     @Override
     public EventFactory eventFactoryFor(final Class<?> eventType) {
@@ -52,9 +54,9 @@ public final class EventToUseCaseDispatcherImpl implements EventToUseCaseDispatc
             final EventToUseCaseMapping mapping = eventToUseCaseMappings.get(eventClass);
             final Caller caller = mapping.caller;
             final Object useCase = instantiator.apply(mapping.useCaseClass);
-            final CorrelationId correlationId = newUniqueId();
+            final CorrelationId correlationId = newUniqueCorrelationId();
             final UseCaseCallRequest request = useCaseCallRequest(useCase, event, caller, correlationId);
-            final ResponseFuture<UseCaseCallResponse> responseFuture = messageFunction.request(request);
+            final ResponseFuture responseFuture = messageFunction.request(request);
             return useCaseResponseFuture(responseFuture);
         } else {
             throw new NoUseCaseKnownForEventException(event);

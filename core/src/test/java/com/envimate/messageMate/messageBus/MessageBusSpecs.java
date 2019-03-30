@@ -169,13 +169,13 @@ public interface MessageBusSpecs {
                 .then(expectAllRemainingSubscribersToStillBeSubscribed());
     }
 
-    //CorrelationId
+    //MessageId and CorrelationId
     @Test
-    default void testMessageBus_sendCorrelationIdEqualsToReceived(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+    default void testMessageBus_sendMessageHasConstantMessageIdAndCanGenerateMatchingCorrelationId(final MessageBusTestConfig messageBusTestConfig) throws Exception {
         given(aConfiguredMessageBus(messageBusTestConfig)
                 .withASingleRawSubscriber())
                 .when(aSingleMessageIsSend())
-                .then(expectSendAndReceivedCorrelationIdsToMatch());
+                .then(expectTheMessageToHaveTheSameMessageIdAndAMatchingGeneratedCorrelationId());
     }
 
     @Test
@@ -183,7 +183,15 @@ public interface MessageBusSpecs {
         given(aConfiguredMessageBus(messageBusTestConfig)
                 .withASingleRawSubscriber())
                 .when(aMessageWithCorrelationIdIsSend())
-                .then(expectSendAndReceivedCorrelationIdsToMatch());
+                .then(expectTheCorrelationIdToBeSetWhenReceived());
+    }
+
+    @Test
+    default void testMessageBus_canSendProcessingContextWithAMessageId(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withASingleRawSubscriber())
+                .when(aMessageWithCorrelationIdIsSend())
+                .then(expectTheMessageToHaveTheSameMessageIdAndAMatchingGeneratedCorrelationId());
     }
 
     @Test
@@ -461,6 +469,33 @@ public interface MessageBusSpecs {
                 .then(expectTheExceptionHandled(TestException.class));
     }
 
+    @Test
+    default void testMessageBus_dynamicCorrelationIdBasedExceptionListenerCanBeAdded_forExceptionInFilter(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withAnExceptionThrowingFilter()
+                .withADynamicCorrelationIdBasedExceptionListener())
+                .when(aMessageWithCorrelationIdIsSend())
+                .then(expectTheExceptionHandled(TestException.class));
+    }
+
+    @Test
+    default void testMessageBus_dynamicCorrelationIdBasedExceptionListenerCanBeAdded_forExceptionInSubscriber(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withAnExceptionThrowingSubscriber()
+                .withADynamicCorrelationIdBasedExceptionListener())
+                .when(aMessageWithCorrelationIdIsSend())
+                .then(expectTheExceptionHandled(TestException.class));
+    }
+    //TODO: two handler for same class/corId
+    @Test
+    default void testMessageBus_dynamicCorrelationIdBasedErrorListenerCanBeRemoved(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withAnExceptionThrowingSubscriber()
+                .withTwoDynamicCorrelationBasedExceptionListener())
+                .when(theDynamicExceptionHandlerToBeRemoved()
+                        .andThen(aMessageWithCorrelationIdIsSend()))
+                .then(expectTheExceptionHandled(TestException.class));
+    }
 
     //await
     @Test

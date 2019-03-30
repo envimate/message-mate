@@ -32,8 +32,9 @@ import com.envimate.messageMate.channel.internal.filtering.PostFilterActions;
 import com.envimate.messageMate.channel.internal.statistics.ChannelStatisticsCollector;
 import com.envimate.messageMate.channel.statistics.ChannelStatistics;
 import com.envimate.messageMate.filtering.Filter;
+import com.envimate.messageMate.identification.CorrelationId;
+import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.internal.pipe.Pipe;
-import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -86,22 +87,22 @@ final class ChannelImpl<T> implements Channel<T> {
     }
 
     @Override
-    public CorrelationId send(final T message) {
+    public MessageId send(final T message) {
         final ProcessingContext<T> processingContext = ProcessingContext.processingContext(message);
         return send(processingContext);
     }
 
     @Override
-    public CorrelationId send(final T message, final CorrelationId correlationId) {
+    public MessageId send(final T message, final CorrelationId correlationId) {
         final ProcessingContext<T> processingContext = ProcessingContext.processingContext(message, correlationId);
         return send(processingContext);
     }
 
     @Override
-    public CorrelationId send(final ProcessingContext<T> processingContext) {
+    public MessageId send(final ProcessingContext<T> processingContext) {
         advanceChannelProcessingFrameHistory(processingContext);
         acceptingPipe.send(processingContext);
-        return processingContext.getCorrelationId();
+        return processingContext.getMessageId();
     }
 
     private void advanceChannelProcessingFrameHistory(final ProcessingContext<T> processingContext) {

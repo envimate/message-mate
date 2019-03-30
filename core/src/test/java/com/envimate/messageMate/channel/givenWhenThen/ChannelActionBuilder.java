@@ -26,7 +26,8 @@ import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.channel.action.Subscription;
 import com.envimate.messageMate.channel.statistics.ChannelStatistics;
 import com.envimate.messageMate.filtering.Filter;
-import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
+import com.envimate.messageMate.identification.CorrelationId;
+import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.qcec.shared.TestAction;
 import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
 import com.envimate.messageMate.shared.subscriber.TestSubscriber;
@@ -45,7 +46,8 @@ import static com.envimate.messageMate.channel.givenWhenThen.FilterPosition.*;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.AsynchronousSendingTestUtils.sendMessagesBeforeShutdownAsynchronously;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.AsynchronousSendingTestUtils.sendValidMessagesAsynchronously;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.SEND_CORRELATION_ID;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.EXPECTED_CORRELATION_ID;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.SEND_MESSAGE_ID;
 import static com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber.testSubscriber;
 import static com.envimate.messageMate.shared.testMessages.TestMessageOfInterest.messageOfInterest;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -64,26 +66,20 @@ public final class ChannelActionBuilder {
 
     public static ChannelActionBuilder aMessageIsSend() {
         return anAction((channel, testEnvironment) -> {
-            final ProcessingContext<TestMessage> sendProcessingFrame = sendMessage(channel, DEFAULT_TEST_MESSAGE);
-            testEnvironment.setProperty(EXPECTED_RESULT, sendProcessingFrame);
-            return null;
-        });
-    }
-
-    public static ChannelActionBuilder aMessageWithoutCorrelationIdIsSend() {
-        return anAction((channel, testEnvironment) -> {
-            final CorrelationId correlationId = channel.send(DEFAULT_TEST_MESSAGE);
-            testEnvironment.setProperty(SEND_CORRELATION_ID, correlationId);
+            final ProcessingContext<TestMessage> processingContext = sendMessage(channel, DEFAULT_TEST_MESSAGE);
+            final MessageId messageId = processingContext.getMessageId();
+            testEnvironment.setProperty(SEND_MESSAGE_ID, messageId);
+            testEnvironment.setProperty(EXPECTED_RESULT, processingContext);
             return null;
         });
     }
 
     public static ChannelActionBuilder aMessageWithCorrelationIdIsSend() {
         return anAction((channel, testEnvironment) -> {
-            final CorrelationId expectedCorrelationId = CorrelationId.newUniqueId();
-            testEnvironment.setProperty(EXPECTED_RESULT, expectedCorrelationId);
-            final CorrelationId sendCorrelationId = channel.send(DEFAULT_TEST_MESSAGE, expectedCorrelationId);
-            testEnvironment.setProperty(SEND_CORRELATION_ID, sendCorrelationId);
+            final CorrelationId expectedCorrelationId = CorrelationId.newUniqueCorrelationId();
+            testEnvironment.setProperty(EXPECTED_CORRELATION_ID, expectedCorrelationId);
+            final MessageId messageId = channel.send(DEFAULT_TEST_MESSAGE, expectedCorrelationId);
+            testEnvironment.setProperty(SEND_MESSAGE_ID, messageId);
             return null;
         });
     }

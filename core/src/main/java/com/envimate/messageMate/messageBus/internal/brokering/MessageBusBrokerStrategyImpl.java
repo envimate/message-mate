@@ -27,7 +27,6 @@ import com.envimate.messageMate.channel.action.Action;
 import com.envimate.messageMate.channel.action.Subscription;
 import com.envimate.messageMate.messageBus.channelCreating.MessageBusChannelFactory;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionHandler;
-import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.Getter;

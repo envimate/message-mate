@@ -1,10 +1,8 @@
-package com.envimate.messageMate.soonToBeExternal.neww;
+package com.envimate.messageMate.useCaseAdapter;
 
 import com.envimate.messageMate.channel.ProcessingContext;
+import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.messageBus.MessageBus;
-import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
-import com.envimate.messageMate.soonToBeExternal.Caller;
-import com.envimate.messageMate.soonToBeExternal.EventToUseCaseMapping;
 import com.envimate.messageMate.subscribing.AcceptingBehavior;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;

@@ -24,9 +24,10 @@ package com.envimate.messageMate.messageBus;
 import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.channel.action.Consume;
+import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategy;
 import com.envimate.messageMate.messageBus.internal.correlationIds.CorrelationBasedSubscriptions;
-import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
+import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.RequiredArgsConstructor;
 
@@ -39,24 +40,37 @@ import static lombok.AccessLevel.PRIVATE;
 @RequiredArgsConstructor(access = PRIVATE)
 public final class MessageBusConsumeAction {
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     public static Consume<Object> messageBusConsumeAction(final MessageBusBrokerStrategy brokerStrategy,
                                                           final CorrelationBasedSubscriptions correlationBasedSubscriptions) {
         return consumeMessage(objectProcessingContext -> {
             final Object message = objectProcessingContext.getPayload();
-            final CorrelationId correlationId = objectProcessingContext.getCorrelationId();
-            if(message != null) {
-                final Class<?> messageClass = message.getClass();
-                final Set<Channel<?>> channels = brokerStrategy.getDeliveringChannelsFor(messageClass);
-                for (final Channel<?> channel : channels) {
-                    final ProcessingContext tProcessingContext = ProcessingContext.processingContext(message, correlationId);
-                    channel.send(tProcessingContext);
-                }
+            if (message != null) {
+                deliveryToClassBasedSubscriber(objectProcessingContext, brokerStrategy);
             }
-            final List<Subscriber<ProcessingContext<Object>>> corIdSubscribers = correlationBasedSubscriptions.getSubscribersFor(correlationId);
-            for (final Subscriber<ProcessingContext<Object>> correlationSubscriber : corIdSubscribers) {
-                correlationSubscriber.accept(objectProcessingContext);
-            }
+            deliveryBasedOnCorrelationId(objectProcessingContext, correlationBasedSubscriptions);
         });
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static void deliveryToClassBasedSubscriber(final ProcessingContext<Object> processingContext,
+                                                       final MessageBusBrokerStrategy brokerStrategy) {
+        final CorrelationId correlationId = processingContext.getCorrelationId();
+        final MessageId messageId = processingContext.getMessageId();
+        final Object message = processingContext.getPayload();
+        final Class<?> messageClass = message.getClass();
+        final Set<Channel<?>> channels = brokerStrategy.getDeliveringChannelsFor(messageClass);
+        for (final Channel<?> channel : channels) {
+            final ProcessingContext tProcessingContext = ProcessingContext.processingContext(message, messageId, correlationId);
+            channel.send(tProcessingContext);
+        }
+    }
+
+    private static void deliveryBasedOnCorrelationId(final ProcessingContext<Object> objectProcessingContext,
+                                                     final CorrelationBasedSubscriptions correlationBasedSubscriptions) {
+        final CorrelationId correlationId = objectProcessingContext.getCorrelationId();
+        final List<Subscriber<ProcessingContext<Object>>> corIdSubscribers = correlationBasedSubscriptions.getSubscribersFor(correlationId);
+        for (final Subscriber<ProcessingContext<Object>> correlationSubscriber : corIdSubscribers) {
+            correlationSubscriber.accept(objectProcessingContext);
+        }
     }
 }

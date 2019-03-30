@@ -56,14 +56,14 @@ public final class UseCaseConnectorBuilder implements UseCaseConnectorStep1Build
     }
 
     public UseCaseConnector using(final MessageBus messageBus) {
-        final MessageFunction<UseCaseRequest, UseCaseResponse> messageFunction = aMessageFunction()
+        /*final MessageFunction<UseCaseRequest, UseCaseResponse> messageFunction = aMessageFunction()
                 .forRequestType(UseCaseRequest.class)
                 .forResponseType(UseCaseResponse.class)
                 .with(UseCaseRequest.class).answeredBy(UseCaseResponse.class)
                 .obtainingCorrelationIdsOfRequestsWith(UseCaseRequest::getCorrelationId)
                 .obtainingCorrelationIdsOfResponsesWith(UseCaseResponse::getCorrelationId)
                 .usingMessageBus(messageBus)
-                .build();
-        return new UseCaseConnectorImpl(messageBus, useCaseMap, messageFunction);
+                .build();*/
+        return new UseCaseConnectorImpl(messageBus, useCaseMap, null);
     }
 }

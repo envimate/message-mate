@@ -21,9 +21,6 @@
 
 package com.envimate.messageMate.messageFunction.testResponses;
 
-import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
-
 public interface TestRequest {
 
-    CorrelationId getCorrelationId();
 }

@@ -34,9 +34,9 @@ public final class RequestResponseFuturePair {
     private final TestRequest testRequest;
 
     @Getter
-    private final ResponseFuture<TestResponse> responseFuture;
+    private final ResponseFuture responseFuture;
 
-    public static RequestResponseFuturePair requestResponseFuturePair(final TestRequest testRequest, final ResponseFuture<TestResponse> responseFuture) {
+    public static RequestResponseFuturePair requestResponseFuturePair(final TestRequest testRequest, final ResponseFuture responseFuture) {
         return new RequestResponseFuturePair(testRequest, responseFuture);
     }
 

@@ -1,4 +1,4 @@
-package com.envimate.messageMate.soonToBeExternal;
+package com.envimate.messageMate.useCaseAdapter;
 
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;

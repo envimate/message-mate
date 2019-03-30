@@ -333,11 +333,11 @@ public interface ChannelSpecs {
 
     //correlationId
     @Test
-    default void testChannel_returnsSameCorrelationIdOnSendAsTheOneDelivered(final ChannelTestConfig channelTestConfig) {
+    default void testChannel_sendMessageHasConstantMessageIdAndCanGenerateMatchingCorrelationId(final ChannelTestConfig channelTestConfig) {
         given(aConfiguredChannel(channelTestConfig)
                 .withDefaultActionConsume())
-                .when(aMessageWithoutCorrelationIdIsSend())
-                .then(expectSendAndReceivedCorrelationIdsToMatch());
+                .when(aMessageIsSend())
+                .then(expectTheMessageToHaveTheSameMessageIdAndAMatchingGeneratedCorrelationId());
     }
 
     @Test
@@ -345,7 +345,7 @@ public interface ChannelSpecs {
         given(aConfiguredChannel(channelTestConfig)
                 .withDefaultActionConsume())
                 .when(aMessageWithCorrelationIdIsSend())
-                .then(expectSendAndReceivedCorrelationIdsToMatch());
+                .then(expectTheCorrelationIdToBeSetWhenReceived());
     }
 
     //metadata

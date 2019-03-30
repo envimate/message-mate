@@ -40,9 +40,9 @@ public class Then {
     private final TestMessageFunctionActionBuilder testMessageFunctionActionBuilder;
 
     public void then(final TestMessageFunctionValidationBuilder testMessageFunctionValidationBuilder) {
-        final MessageFunction<TestRequest, TestResponse> messageFunction = testMessageFunctionSetupBuilder.build();
+        final MessageFunction messageFunction = testMessageFunctionSetupBuilder.build();
         final TestEnvironment testEnvironment = testMessageFunctionSetupBuilder.getTestEnvironment();
-        final TestAction<MessageFunction<TestRequest, TestResponse>> testAction = testMessageFunctionActionBuilder.build();
+        final TestAction<MessageFunction> testAction = testMessageFunctionActionBuilder.build();
         try {
             final Object result = testAction.execute(messageFunction, testEnvironment);
             if (result != null) {

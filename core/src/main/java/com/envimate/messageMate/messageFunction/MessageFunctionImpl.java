@@ -21,81 +21,127 @@
 
 package com.envimate.messageMate.messageFunction;
 
+import com.envimate.messageMate.channel.ProcessingContext;
+import com.envimate.messageMate.identification.CorrelationId;
+import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.messageBus.MessageBus;
-import com.envimate.messageMate.messageFunction.internal.requestResponseRelation.RequestResponseRelationMap;
-import com.envimate.messageMate.messageFunction.internal.responseHandling.ResponseHandlingSubscriber;
-import com.envimate.messageMate.messageFunction.internal.responseMatching.ExpectedResponse;
-import com.envimate.messageMate.messageFunction.internal.responseMatching.ResponseMatcher;
+import com.envimate.messageMate.messageFunction.internal.ExpectedResponseFuture;
 import com.envimate.messageMate.subscribing.SubscriptionId;
+import lombok.Getter;
 import lombok.NonNull;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import static com.envimate.messageMate.channel.ProcessingContext.processingContext;
+import static com.envimate.messageMate.identification.CorrelationId.correlationIdFor;
+import static com.envimate.messageMate.identification.MessageId.newUniqueMessageId;
+import static com.envimate.messageMate.messageFunction.internal.ExpectedResponseFuture.expectedResponseFuture;
 
-final class MessageFunctionImpl<R, S> implements MessageFunction<R, S> {
+final class MessageFunctionImpl implements MessageFunction {
     private final MessageBus messageBus;
-    private final ResponseHandlingSubscriber responseHandlingSubscriber;
-    private final RequestResponseRelationMap<R, S> requestResponseRelationMap;
-    private boolean closed;
+    private volatile boolean closed;
 
-    private MessageFunctionImpl(@NonNull final MessageBus messageBus,
-                                @NonNull final ResponseHandlingSubscriber responseHandlingSubscriber,
-                                @NonNull final RequestResponseRelationMap<R, S> requestResponseRelationMap) {
+    private MessageFunctionImpl(@NonNull final MessageBus messageBus) {
         this.messageBus = messageBus;
-        this.responseHandlingSubscriber = responseHandlingSubscriber;
-        this.requestResponseRelationMap = requestResponseRelationMap;
-        final Set<Class<?>> responseClassToSubscribe = requestResponseRelationMap.getAllPossibleResponseClasses();
-        for (final Class<?> aClass : responseClassToSubscribe) {
-            @SuppressWarnings("unchecked")
-            final Class<Object> castedClass = (Class) aClass;
-            messageBus.subscribe(castedClass, responseHandlingSubscriber);
-        }
-
     }
 
-    static <R, S> MessageFunctionImpl<R, S> messageFunction(
-            @NonNull final MessageBus messageBus,
-            @NonNull final ResponseHandlingSubscriber responseHandlingSubscriber,
-            @NonNull final RequestResponseRelationMap<R, S> requestResponseRelationMap) {
-        return new MessageFunctionImpl<>(messageBus, responseHandlingSubscriber, requestResponseRelationMap);
+    static MessageFunctionImpl messageFunction(@NonNull final MessageBus messageBus) {
+        return new MessageFunctionImpl(messageBus);
     }
 
+    //TODO: fullfill future once
+    //TODO: unsubscribe when finished
     @Override
-    public ResponseFuture<S> request(final R request) {
+    public ResponseFuture request(final Object request) {
         if (closed) {
-            return null;
+            return null; //TODO: throw error
         }
-        final List<ResponseMatcher> responseMatchers = requestResponseRelationMap.responseMatchers(request);
-        final ExpectedResponse<S> expectedResponse = ExpectedResponse.forRequest(request, responseMatchers);
-        responseHandlingSubscriber.addResponseMatcher(expectedResponse);
-        registerErrorListener(request, expectedResponse);
-        messageBus.send(request);
-        final ResponseFuture<S> responseFuture = expectedResponse.getAssociatedFuture();
-        return responseFuture;
+        final RequestHandle requestHandle = new RequestHandle(messageBus);
+        requestHandle.send(request);
+        return requestHandle.getResponseFuture();
     }
 
-    private void registerErrorListener(final R request, final ExpectedResponse<S> expectedResponse) {
-        final Set<Class<?>> classesToListenForErrorsOn = requestResponseRelationMap.getAllPossibleResponseClasses();
-        final LinkedList<Class<?>> classes = new LinkedList<>(classesToListenForErrorsOn);
-        classes.add(request.getClass());
-        final SubscriptionId subscriptionId = messageBus.onException(classes, (t, e) -> {
-            synchronized (expectedResponse) {
-                if (!expectedResponse.isDone()) {
-                    if (expectedResponse.matchesRequest(t) || expectedResponse.matchesResponse(t)) {
-                        expectedResponse.fulfillFutureWithException(e);
-                    }
-                }
-            }
-        });
-        expectedResponse.addCleanUp(() -> messageBus.unregisterExceptionListener(subscriptionId));
-    }
 
     //No automatic cancel right now
     @Override
     public void close() {
         closed = true;
-        final SubscriptionId subscriptionId = responseHandlingSubscriber.getSubscriptionId();
-        messageBus.unsubcribe(subscriptionId);
+    }
+
+    private final class RequestHandle {
+        @Getter
+        private final ExpectedResponseFuture responseFuture;
+        private final MessageBus messageBus;
+        private final SubscriptionContainer subscriptionContainer;
+        private volatile boolean alreadyFinishedOrCancelled;
+
+        public RequestHandle(final MessageBus messageBus) {
+            this.messageBus = messageBus;
+            this.responseFuture = expectedResponseFuture();
+            this.subscriptionContainer = new SubscriptionContainer();
+        }
+
+        public synchronized void send(final Object request) {
+            final MessageId messageId = newUniqueMessageId();
+            final CorrelationId correlationId = correlationIdFor(messageId);
+            final SubscriptionId answerSubscriptionId = messageBus.subscribe(correlationId, processingContext -> {
+                fulFillFuture(processingContext);
+                subscriptionContainer.unsubscribe(messageBus);
+            });
+            final SubscriptionId errorSubscriptionId1 = messageBus.onException(correlationId, (o, e) -> {
+                fulFillFuture(e);
+                subscriptionContainer.unsubscribe(messageBus);
+            });
+            final SubscriptionId errorSubsciptionId2 = messageBus.onException(request.getClass(), (o, e) -> {
+                if (o == request) {
+                    fulFillFuture(e);
+                    subscriptionContainer.unsubscribe(messageBus);
+                }
+            });
+            subscriptionContainer.setSubscriptionIds(answerSubscriptionId, errorSubscriptionId1, errorSubsciptionId2);
+
+            final ProcessingContext<Object> processingContext = processingContext(request, messageId, null);
+            messageBus.send(processingContext);
+        }
+
+        private synchronized void fulFillFuture(final ProcessingContext<Object> processingContext) {
+            if (alreadyFinishedOrCancelled) {
+                return;
+            }
+            alreadyFinishedOrCancelled = true;
+            final Object payload = processingContext.getPayload();
+            responseFuture.fullFill(payload);
+        }
+
+        private synchronized void fulFillFuture(final Exception exception) {
+            if (alreadyFinishedOrCancelled) {
+                return;
+            }
+            alreadyFinishedOrCancelled = true;
+            responseFuture.fullFillWithException(exception);
+        }
+    }
+
+    private final class SubscriptionContainer {
+        private volatile SubscriptionId answerSubscriptionId;
+        private volatile SubscriptionId errorSubscriptionId1;
+        private volatile SubscriptionId errorSubscriptionId2;
+
+        public void setSubscriptionIds(final SubscriptionId answerSubscriptionId, final SubscriptionId errorSubscriptionId1,
+                                       final SubscriptionId errorSubscriptionId2) {
+            this.answerSubscriptionId = answerSubscriptionId;
+            this.errorSubscriptionId1 = errorSubscriptionId1;
+            this.errorSubscriptionId2 = errorSubscriptionId2;
+        }
+
+        public void unsubscribe(final MessageBus messageBus) {
+            if (answerSubscriptionId != null) {
+                messageBus.unsubcribe(answerSubscriptionId);
+            }
+            if (errorSubscriptionId1 != null) {
+                messageBus.unregisterExceptionListener(errorSubscriptionId1);
+            }
+            if (errorSubscriptionId2 != null) {
+                messageBus.unregisterExceptionListener(errorSubscriptionId2);
+            }
+        }
     }
 }

@@ -34,13 +34,13 @@ import static com.envimate.messageMate.useCaseConnecting.UseCaseRequest.useCaseR
 import static com.envimate.messageMate.useCaseConnecting.subscribing.UseCaseInvokingSubscriber.useCaseInvokingSubscriber;
 
 public final class UseCaseConnectorImpl implements UseCaseConnector {
-    private final MessageFunction<UseCaseRequest, UseCaseResponse> messageFunction;
+    private final MessageFunction messageFunction;
     private final UseCaseInvokingSubscriber useCaseInvokingSubscriber;
     private boolean closed;
 
     UseCaseConnectorImpl(final MessageBus messageBus,
                          final Map<Class<?>, UseCase> useCaseMap,
-                         final MessageFunction<UseCaseRequest, UseCaseResponse> messageFunction) {
+                         final MessageFunction messageFunction) {
         this.messageFunction = messageFunction;
         this.useCaseInvokingSubscriber = useCaseInvokingSubscriber(messageBus, useCaseMap);
     }
@@ -51,13 +51,12 @@ public final class UseCaseConnectorImpl implements UseCaseConnector {
             throw new IllegalStateException(UseCaseConnector.class.getSimpleName() + " is already closed.");
         }
         final UseCaseRequest useCaseRequest = useCaseRequest(request);
-        final ResponseFuture<UseCaseResponse> responseFuture = messageFunction.request(useCaseRequest);
-        responseFuture.then((useCaseResponse, wasSuccessful, exception) -> {
+        final ResponseFuture responseFuture = messageFunction.request(useCaseRequest);
+        responseFuture.then((useCaseResponse, exception) -> {
             if (exception != null) {
                 onResponseCallback.accept(exception);
             } else {
-                final Object response = useCaseResponse.getResponse();
-                onResponseCallback.accept(response);
+                onResponseCallback.accept(useCaseResponse);
             }
         });
     }

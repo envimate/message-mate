@@ -25,7 +25,6 @@ import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.channel.ProcessingContext;
 
 import java.util.List;
-import java.util.function.BiConsumer;
 
 public interface MessageBusExceptionHandler {
 
@@ -35,8 +34,9 @@ public interface MessageBusExceptionHandler {
 
     void handleFilterException(ProcessingContext<?> message, Exception e, Channel<?> channel);
 
+    @SuppressWarnings("unchecked")
     default <T> void callTemporaryExceptionListener(final ProcessingContext<T> message, final Exception e,
-                                                    final List<BiConsumer<T, Exception>> listener) {
+                                                    final List<MessageBusExceptionListener> listener) {
         final T payload = message.getPayload();
         listener.forEach(l -> l.accept(payload, e));
     }

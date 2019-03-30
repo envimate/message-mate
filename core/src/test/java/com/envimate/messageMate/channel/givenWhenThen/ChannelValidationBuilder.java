@@ -41,8 +41,7 @@ import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestProperti
 import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestValidations.*;
 import static com.envimate.messageMate.channel.givenWhenThen.ProcessingFrameHistoryMatcher.aProcessingFrameHistory;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestValidations.assertExpectedReceiverReceivedAllMessages;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestValidations.assertSendReceivedAndExpectedCorrelationIdAreEqual;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestValidations.*;
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.*;
 import static lombok.AccessLevel.PRIVATE;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -250,12 +249,19 @@ public final class ChannelValidationBuilder {
         return aValidation(SharedTestValidations::assertNoExceptionThrown);
     }
 
-
-    public static ChannelValidationBuilder expectSendAndReceivedCorrelationIdsToMatch() {
+    public static ChannelValidationBuilder expectTheMessageToHaveTheSameMessageIdAndAMatchingGeneratedCorrelationId() {
         return aValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
             final ProcessingContext<?> result = testEnvironment.getPropertyAsType(RESULT, ProcessingContext.class);
-            assertSendReceivedAndExpectedCorrelationIdAreEqual(testEnvironment, result);
+            assertTheMessageToHaveTheSameMessageIdAndAMatchingGeneratedCorrelationId(testEnvironment, result);
+        });
+    }
+
+    public static ChannelValidationBuilder expectTheCorrelationIdToBeSetWhenReceived() {
+        return aValidation(testEnvironment -> {
+            assertNoExceptionThrown(testEnvironment);
+            final ProcessingContext<?> result = testEnvironment.getPropertyAsType(RESULT, ProcessingContext.class);
+            assertTheCorrelationIdToBeSetWhenReceived(testEnvironment, result);
         });
     }
 

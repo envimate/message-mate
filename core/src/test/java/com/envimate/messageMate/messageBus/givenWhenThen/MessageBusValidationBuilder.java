@@ -23,8 +23,8 @@ package com.envimate.messageMate.messageBus.givenWhenThen;
 
 
 import com.envimate.messageMate.channel.ProcessingContext;
+import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.messageBus.MessageBus;
-import com.envimate.messageMate.messageFunction.correlation.CorrelationId;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.qcec.shared.TestValidation;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
@@ -41,6 +41,7 @@ import java.util.Map;
 
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActions.messageBusTestActions;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.EXPECTED_CORRELATION_ID;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.SINGLE_SEND_MESSAGE;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestValidations.*;
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.*;
@@ -94,11 +95,28 @@ public final class MessageBusValidationBuilder {
         });
     }
 
+
+    public static MessageBusValidationBuilder expectTheMessageToHaveTheSameMessageIdAndAMatchingGeneratedCorrelationId() {
+        return asValidation(testEnvironment -> {
+            assertNoExceptionThrown(testEnvironment);
+            final ProcessingContext<?> result = getOnlyMessageFromSingleReceiver(testEnvironment);
+            assertTheMessageToHaveTheSameMessageIdAndAMatchingGeneratedCorrelationId(testEnvironment, result);
+        });
+    }
+
+    public static MessageBusValidationBuilder expectTheCorrelationIdToBeSetWhenReceived() {
+        return asValidation(testEnvironment -> {
+            assertNoExceptionThrown(testEnvironment);
+            final ProcessingContext<?> result = getOnlyMessageFromSingleReceiver(testEnvironment);
+            assertTheCorrelationIdToBeSetWhenReceived(testEnvironment, result);
+        });
+    }
+
     public static MessageBusValidationBuilder expectSendAndReceivedCorrelationIdsToMatch() {
         return asValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
             final ProcessingContext<TestMessageOfInterest> result = getOnlyMessageOfSingleReceiver(testEnvironment);
-            assertSendReceivedAndExpectedCorrelationIdAreEqual(testEnvironment, result);
+            assertMessageIdAndCorrelationIdsMatch(testEnvironment, result);
         });
     }
 
@@ -212,6 +230,7 @@ public final class MessageBusValidationBuilder {
         });
     }
 
+    //TODO: why not called anymore?
     public static MessageBusValidationBuilder expectTheDynamicHandlerToNotBeCalled() {
         return asValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
@@ -233,7 +252,7 @@ public final class MessageBusValidationBuilder {
             final List<ProcessingContext<Object>> receivedMessages = receiver.getReceivedMessages();
             assertEquals(receivedMessages.size(), 1);
             final ProcessingContext<Object> processingContext = receivedMessages.get(0);
-            final CorrelationId expectedCorrelationId = testEnvironment.getPropertyAsType(MessageBusTestProperties.CORRELATION_ID, CorrelationId.class);
+            final CorrelationId expectedCorrelationId = testEnvironment.getPropertyAsType(EXPECTED_CORRELATION_ID, CorrelationId.class);
             assertEquals(processingContext.getCorrelationId(), expectedCorrelationId);
             assertEquals(processingContext.getPayload(), expectedResult);
         }
@@ -252,6 +271,13 @@ public final class MessageBusValidationBuilder {
     private static MessageBus getMessageBus(final TestEnvironment testEnvironment) {
         final MessageBus messageBus = testEnvironment.getPropertyAsType(SUT, MessageBus.class);
         return messageBus;
+    }
+
+    private static ProcessingContext<?> getOnlyMessageFromSingleReceiver(final TestEnvironment testEnvironment) {
+        final TestSubscriber<?> testSubscriber = testEnvironment.getPropertyAsType(EXPECTED_RECEIVERS, TestSubscriber.class);
+        final List<?> receivedMessages = testSubscriber.getReceivedMessages();
+        assertThat(receivedMessages.size(), equalTo(1));
+        return (ProcessingContext<?>) receivedMessages.get(0);
     }
 
     public MessageBusValidationBuilder and(final MessageBusValidationBuilder messageBusValidationBuilder) {

@@ -42,5 +42,6 @@ public final class PipeChannelMessageBusSharedTestProperties {
     public static final String SLEEP_BETWEEN_EXECUTION_STEPS = "SLEEP_BETWEEN_EXECUTION_STEPS";
     public static final String SLEEP_AFTER_EXECUTION = "SLEEP_AFTER_EXECUTION";
     public static final String USED_SUBSCRIPTION_ID = "USED_SUBSCRIPTION_ID";
-    public static final String SEND_CORRELATION_ID = "SEND_CORRELATION_ID";
+    public static final String SEND_MESSAGE_ID = "SEND_MESSAGE_ID";
+    public static final String EXPECTED_CORRELATION_ID = "EXPECTED_CORRELATION_ID";
 }
