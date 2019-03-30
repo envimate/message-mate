@@ -1,8 +1,8 @@
 package com.envimate.messageMate.soonToBeExternal.building;
 
-import com.envimate.messageMate.soonToBeExternal.neww.UseCaseAdapter;
-import com.envimate.messageMate.soonToBeExternal.neww.UseCaseInstantiator;
 import com.envimate.messageMate.soonToBeExternal.usecaseCreating.UseCaseFactory;
+import com.envimate.messageMate.useCaseAdapter.UseCaseAdapter;
+import com.envimate.messageMate.useCaseAdapter.UseCaseInstantiator;
 
 import static com.envimate.messageMate.soonToBeExternal.usecaseCreating.ZeroArgumentsConstructorUseCaseFactory.zeroArgumentsConstructorUseCaseFactory;
 

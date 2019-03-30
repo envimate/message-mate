@@ -21,6 +21,6 @@
 
 package com.envimate.messageMate.soonToBeExternal.building;
 
-public interface EventToUseCaseDispatcherStep3Builder<T> extends EventToUseCaseDispatcherStepInvokingUseCaseStepBuilder,
+public interface EventToUseCaseDispatcherStep3Builder extends EventToUseCaseDispatcherStepInvokingUseCaseStepBuilder,
         EventToUseCaseDispatcherStepInstantiationBuilder {
 }

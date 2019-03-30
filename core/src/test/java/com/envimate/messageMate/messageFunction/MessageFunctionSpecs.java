@@ -32,6 +32,7 @@ import static com.envimate.messageMate.messageFunction.givenWhenThen.TestMessage
 import static com.envimate.messageMate.messageFunction.givenWhenThen.TestMessageFunctionValidationBuilder.*;
 
 //TODO: check fulfilled for onError of response
+//TODO: check for null as response
 public class MessageFunctionSpecs {
 
     @Test
