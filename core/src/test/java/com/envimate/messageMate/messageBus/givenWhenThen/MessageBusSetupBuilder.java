@@ -48,7 +48,7 @@ import java.util.List;
 import static com.envimate.messageMate.channel.action.Subscription.subscription;
 import static com.envimate.messageMate.identification.CorrelationId.newUniqueCorrelationId;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActions.messageBusTestActions;
-import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler.allExceptionHandlingTestExceptionHandler;
+import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler.allExceptionAsResultHandlingTestExceptionHandler;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler.allExceptionIgnoringExceptionHandler;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.CORRELATION_SUBSCRIPTION_ID;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RECEIVERS;
@@ -216,7 +216,7 @@ public final class MessageBusSetupBuilder {
     }
 
     public MessageBusSetupBuilder withACustomExceptionHandler() {
-        messageBusBuilder.withExceptionHandler(allExceptionHandlingTestExceptionHandler(testEnvironment));
+        messageBusBuilder.withExceptionHandler(allExceptionAsResultHandlingTestExceptionHandler(testEnvironment));
         return this;
     }
 

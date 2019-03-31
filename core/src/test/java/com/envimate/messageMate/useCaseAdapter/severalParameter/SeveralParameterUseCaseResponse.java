@@ -15,5 +15,7 @@ public class SeveralParameterUseCaseResponse {
     private final Object objectParameter;
     @Getter
     private final int intParameter;
+    @Getter
+    private final Boolean booleanParameter;
 
 }

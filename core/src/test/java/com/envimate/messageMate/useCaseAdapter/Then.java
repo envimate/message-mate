@@ -24,7 +24,7 @@ public class Then {
             testEnvironment.setProperty(EXCEPTION, e);
         }
         try {
-            MILLISECONDS.sleep(10);
+            MILLISECONDS.sleep(20);
         } catch (InterruptedException e) {
             testEnvironment.setProperty(EXCEPTION, e);
         }

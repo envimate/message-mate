@@ -3,10 +3,13 @@ package com.envimate.messageMate.useCaseAdapter;
 import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusBuilder;
+import com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
-import com.envimate.messageMate.soonToBeExternal.building.UseCaseAdapterInstantiationBuilder;
-import com.envimate.messageMate.soonToBeExternal.building.UseCaseAdapterStep1Builder;
-import com.envimate.messageMate.soonToBeExternal.building.UseCaseAdapterStep3Builder;
+import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterInstantiationBuilder;
+import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterStep1Builder;
+import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterStep3Builder;
+import com.envimate.messageMate.useCaseAdapter.severalParameter.SeveralParameterUseCaseRequest;
+import com.envimate.messageMate.useCaseAdapter.usecaseInstantiating.UseCaseInstantiator;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -16,13 +19,13 @@ import static com.envimate.messageMate.internal.pipe.configuration.AsynchronousC
 import static com.envimate.messageMate.messageBus.MessageBusBuilder.aMessageBus;
 import static com.envimate.messageMate.messageBus.MessageBusType.ASYNCHRONOUS;
 import static com.envimate.messageMate.qcec.shared.TestEnvironment.emptyTestEnvironment;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.MOCK;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.SUT;
+import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
 
 public final class UseCaseAdapterSetupBuilder {
     private final TestUseCase testUseCase;
     private final TestEnvironment testEnvironment;
     private final UseCaseAdapterStep1Builder useCaseAdapterBuilder;
+    private final MessageBusBuilder messageBusBuilder = aMessageBus();
     private Function<UseCaseAdapterStep1Builder, UseCaseAdapter> instantiationFunction;
 
     public UseCaseAdapterSetupBuilder(final TestUseCase testUseCase) {
@@ -39,9 +42,10 @@ public final class UseCaseAdapterSetupBuilder {
     public UseCaseAdapterSetupBuilder invokingTheUseCaseUsingTheSingleUseCaseMethod() {
         final Class<?> useCaseClass = testUseCase.getUseCaseClass();
         final Class<?> eventClass = testUseCase.getUseCaseEvent();
-        useCaseAdapterBuilder.invokingUseCase(useCaseClass)
-                .forEvent(eventClass)
-                .callingTheSingleUseCaseMethod();
+        final UseCaseAdapterStep3Builder<?, ?> mappingBuilder = useCaseAdapterBuilder.invokingUseCase(useCaseClass)
+                .forEvent(eventClass);
+        testUseCase.defineCustomMapping(mappingBuilder);
+        mappingBuilder.callingTheSingleUseCaseMethod();
         return this;
     }
 
@@ -50,7 +54,35 @@ public final class UseCaseAdapterSetupBuilder {
         final Class<?> eventClass = testUseCase.getUseCaseEvent();
         final UseCaseAdapterStep3Builder<?, ?> callingBuilder = useCaseAdapterBuilder.invokingUseCase(useCaseClass)
                 .forEvent(eventClass);
-        testUseCase.defineParameterMapping(callingBuilder);
+        testUseCase.useCustomInvocationLogic(callingBuilder);
+        return this;
+    }
+
+    public UseCaseAdapterSetupBuilder invokingTheUseCaseUsingAMappingMissingAParameter() {
+        final Class<?> useCaseClass = testUseCase.getUseCaseClass();
+        final Class<?> eventClass = testUseCase.getUseCaseEvent();
+        useCaseAdapterBuilder.invokingUseCase(useCaseClass)
+                .forEvent(eventClass)
+                .mappingEventToParameter(String.class, o -> ((SeveralParameterUseCaseRequest) o).stringParameter)
+                .mappingEventToParameter(Object.class, o -> ((SeveralParameterUseCaseRequest) o).objectParameter)
+                .mappingEventToParameter(int.class, o -> ((SeveralParameterUseCaseRequest) o).intParameter)
+                .callingTheSingleUseCaseMethod();
+        messageBusBuilder.withExceptionHandler(MessageBusTestExceptionHandler.allExceptionHandlingTestExceptionHandler(testEnvironment, EXCEPTION));
+        return this;
+    }
+
+    public UseCaseAdapterSetupBuilder invokingTheUseCaseUsingARedundantMappingMissingAParameter() {
+        final Class<?> useCaseClass = testUseCase.getUseCaseClass();
+        final Class<?> eventClass = testUseCase.getUseCaseEvent();
+        try {
+            useCaseAdapterBuilder.invokingUseCase(useCaseClass)
+                    .forEvent(eventClass)
+                    .mappingEventToParameter(String.class, o -> ((SeveralParameterUseCaseRequest) o).stringParameter)
+                    .mappingEventToParameter(String.class, o -> ((SeveralParameterUseCaseRequest) o).stringParameter)
+                    .callingTheSingleUseCaseMethod();
+        } catch (final Exception e) {
+            testEnvironment.setProperty(EXCEPTION, e);
+        }
         return this;
     }
 
@@ -69,8 +101,7 @@ public final class UseCaseAdapterSetupBuilder {
         final UseCaseAdapter useCaseAdapter = instantiationFunction.apply(useCaseAdapterBuilder);
         testEnvironment.setProperty(SUT, useCaseAdapter);
         final AsynchronousConfiguration asynchronousConfiguration = constantPoolSizeAsynchronousPipeConfiguration(3);
-        final MessageBusBuilder messageBusBuilder = aMessageBus()
-                .forType(ASYNCHRONOUS)
+        messageBusBuilder.forType(ASYNCHRONOUS)
                 .withAsynchronousConfiguration(asynchronousConfiguration);
         final Consumer<MessageBusBuilder> messageBusEnhancer = testUseCase.getMessageBusEnhancer();
         messageBusEnhancer.accept(messageBusBuilder);

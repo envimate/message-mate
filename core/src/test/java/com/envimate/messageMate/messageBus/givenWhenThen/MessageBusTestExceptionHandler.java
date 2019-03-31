@@ -25,17 +25,20 @@ import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionHandler;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
-import com.envimate.messageMate.shared.subscriber.TestException;
+import com.envimate.messageMate.qcec.shared.TestEnvironmentProperty;
 import lombok.RequiredArgsConstructor;
 
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXCEPTION;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
 public final class MessageBusTestExceptionHandler {
 
-    public static MessageBusExceptionHandler allExceptionHandlingTestExceptionHandler(final TestEnvironment testEnvironment) {
+    public static MessageBusExceptionHandler allExceptionAsResultHandlingTestExceptionHandler(final TestEnvironment testEnvironment) {
+        return allExceptionHandlingTestExceptionHandler(testEnvironment, RESULT);
+    }
+
+    public static MessageBusExceptionHandler allExceptionHandlingTestExceptionHandler(final TestEnvironment testEnvironment, final TestEnvironmentProperty exceptionProperty) {
         return new MessageBusExceptionHandler() {
             @Override
             public boolean shouldDeliveryChannelErrorBeHandledAndDeliveryAborted(final ProcessingContext<?> message, final Exception e, final Channel<?> channel) {
@@ -44,17 +47,17 @@ public final class MessageBusTestExceptionHandler {
 
             @Override
             public void handleDeliveryChannelException(final ProcessingContext<?> message, final Exception e, final Channel<?> channel) {
-                testEnvironment.setProperty(RESULT, e);
+                testEnvironment.setProperty(exceptionProperty, e);
             }
 
             @Override
             public void handleFilterException(final ProcessingContext<?> message, final Exception e, final Channel<?> channel) {
-                testEnvironment.setProperty(RESULT, e);
+                testEnvironment.setProperty(exceptionProperty, e);
             }
         };
     }
 
-    public static  MessageBusExceptionHandler allExceptionIgnoringExceptionHandler() {
+    public static MessageBusExceptionHandler allExceptionIgnoringExceptionHandler() {
         return new MessageBusExceptionHandler() {
             @Override
             public boolean shouldDeliveryChannelErrorBeHandledAndDeliveryAborted(final ProcessingContext<?> message, final Exception e, final Channel<?> channel) {

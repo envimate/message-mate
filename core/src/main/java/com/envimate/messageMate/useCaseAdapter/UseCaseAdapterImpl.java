@@ -1,6 +1,8 @@
 package com.envimate.messageMate.useCaseAdapter;
 
 import com.envimate.messageMate.messageBus.MessageBus;
+import com.envimate.messageMate.useCaseAdapter.usecaseInstantiating.UseCaseInstantiator;
+import com.envimate.messageMate.useCaseAdapter.usecaseInvoking.UseCaseCallingInformation;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -15,21 +17,21 @@ import static lombok.AccessLevel.PRIVATE;
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = PRIVATE)
 public final class UseCaseAdapterImpl implements UseCaseAdapter {
-    private final List<UseCaseInvocationInformation> useCaseInvocationInformations;
+    private final List<UseCaseCallingInformation> useCaseCallingInformations;
     private final UseCaseInstantiator useCaseInstantiator;
 
-    public static UseCaseAdapter useCaseAdapterImpl(final List<UseCaseInvocationInformation> useCaseInvocationInformations,
+    public static UseCaseAdapter useCaseAdapterImpl(final List<UseCaseCallingInformation> useCaseCallingInformations,
                                                     final UseCaseInstantiator useCaseInstantiator) {
-        ensureNotNull(useCaseInvocationInformations, "useCaseInvocationInformations");
+        ensureNotNull(useCaseCallingInformations, "useCaseCallingInformations");
         ensureNotNull(useCaseInstantiator, "useCaseInstantiator");
-        return new UseCaseAdapterImpl(useCaseInvocationInformations, useCaseInstantiator);
+        return new UseCaseAdapterImpl(useCaseCallingInformations, useCaseInstantiator);
     }
 
     @Override
     public void attachTo(final MessageBus messageBus) {
-        useCaseInvocationInformations.forEach(mapping -> {
-            final UseCaseRequestExecutingSubscriber useCaseRequestSubscriber = (UseCaseRequestExecutingSubscriber) useCaseRequestExecutingSubscriber(messageBus, mapping, useCaseInstantiator);
-            messageBus.subscribeRaw(mapping.eventClass, useCaseRequestSubscriber);
+        useCaseCallingInformations.forEach(callingInformation -> {
+            final UseCaseRequestExecutingSubscriber useCaseRequestSubscriber = (UseCaseRequestExecutingSubscriber) useCaseRequestExecutingSubscriber(messageBus, callingInformation, useCaseInstantiator);
+            messageBus.subscribeRaw(callingInformation.getEventClass(), useCaseRequestSubscriber);
         });
     }
 }

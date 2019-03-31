@@ -9,5 +9,6 @@ public class SeveralParameterUseCaseRequest {
     public final String stringParameter;
     public final Object objectParameter;
     public final int intParameter;
+    public final Boolean booleanParameter;
 
 }

@@ -3,7 +3,7 @@ package com.envimate.messageMate.useCaseAdapter;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusBuilder;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
-import com.envimate.messageMate.soonToBeExternal.building.UseCaseAdapterStep3Builder;
+import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterStep3Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -26,6 +26,8 @@ public final class TestUseCase {
     private final Supplier<Object> instantiationFunction;
     @Getter
     private final Consumer<UseCaseAdapterStep3Builder<?, ?>> parameterMapping;
+    @Getter
+    private final Consumer<UseCaseAdapterStep3Builder<?, ?>> customCallingLogic;
 
     private final Function<TestEnvironment, Object> requestObjectSupplier;
     @Getter
@@ -38,12 +40,13 @@ public final class TestUseCase {
                                           final Class<?> useCaseEvent,
                                           final BiConsumer<MessageBus, TestEnvironment> messageBusSetup,
                                           final Supplier<Object> instantiationFunction,
-                                          final Consumer<UseCaseAdapterStep3Builder<?, ?>> parameterMapping,
+                                          final Consumer<UseCaseAdapterStep3Builder<?, ?>> customCallingLogic,
                                           final Object requestObject,
                                           final Object expectedResult) {
         final Function<TestEnvironment, Object> requestObjectSupplier = testEnvironment -> requestObject;
         final Function<TestEnvironment, Object> expectedResultSupplier = testEnvironment -> expectedResult;
-        return testUseCase(useCaseClass, useCaseEvent, messageBusSetup, instantiationFunction, parameterMapping, requestObjectSupplier, expectedResultSupplier);
+        return testUseCase(useCaseClass, useCaseEvent, messageBusSetup, instantiationFunction, customCallingLogic,
+                requestObjectSupplier, expectedResultSupplier);
     }
 
     public static TestUseCase testUseCase(final Class<?> useCaseClass,
@@ -51,24 +54,55 @@ public final class TestUseCase {
                                           final BiConsumer<MessageBus, TestEnvironment> messageBusSetup,
                                           final Supplier<Object> instantiationFunction,
                                           final Consumer<UseCaseAdapterStep3Builder<?, ?>> parameterMapping,
+                                          final Consumer<UseCaseAdapterStep3Builder<?, ?>> customCallingLogic,
+                                          final Object requestObject,
+                                          final Object expectedResult) {
+        final Function<TestEnvironment, Object> requestObjectSupplier = testEnvironment -> requestObject;
+        final Function<TestEnvironment, Object> expectedResultSupplier = testEnvironment -> expectedResult;
+        final Consumer<MessageBusBuilder> messageBusEnhancer = messageBusBuilder -> {
+        };
+        return testUseCase(useCaseClass, useCaseEvent, messageBusSetup, instantiationFunction, parameterMapping,
+                customCallingLogic, requestObjectSupplier, expectedResultSupplier, messageBusEnhancer);
+    }
+
+    public static TestUseCase testUseCase(final Class<?> useCaseClass,
+                                          final Class<?> useCaseEvent,
+                                          final BiConsumer<MessageBus, TestEnvironment> messageBusSetup,
+                                          final Supplier<Object> instantiationFunction,
+                                          final Consumer<UseCaseAdapterStep3Builder<?, ?>> customCallingLogic,
                                           final Object requestObject,
                                           final Object expectedResult,
                                           final Consumer<MessageBusBuilder> messageBusEnhancer) {
         final Function<TestEnvironment, Object> requestObjectSupplier = testEnvironment -> requestObject;
         final Function<TestEnvironment, Object> expectedResultSupplier = testEnvironment -> expectedResult;
-        return testUseCase(useCaseClass, useCaseEvent, messageBusSetup, instantiationFunction, parameterMapping, requestObjectSupplier, expectedResultSupplier, messageBusEnhancer);
+        return testUseCase(useCaseClass, useCaseEvent, messageBusSetup, instantiationFunction, customCallingLogic,
+                requestObjectSupplier, expectedResultSupplier, messageBusEnhancer);
     }
 
     public static TestUseCase testUseCase(final Class<?> useCaseClass,
                                           final Class<?> useCaseEvent,
                                           final BiConsumer<MessageBus, TestEnvironment> messageBusSetup,
                                           final Supplier<Object> instantiationFunction,
-                                          final Consumer<UseCaseAdapterStep3Builder<?, ?>> parameterMapping,
+                                          final Consumer<UseCaseAdapterStep3Builder<?, ?>> customCallingLogic,
                                           final Function<TestEnvironment, Object> requestObjectSupplier,
                                           final Function<TestEnvironment, Object> expectedResultSupplier) {
         final Consumer<MessageBusBuilder> messageBusEnhancer = messageBusBuilder -> {
         };
-        return testUseCase(useCaseClass, useCaseEvent, messageBusSetup, instantiationFunction, parameterMapping, requestObjectSupplier, expectedResultSupplier, messageBusEnhancer);
+        return testUseCase(useCaseClass, useCaseEvent, messageBusSetup, instantiationFunction, customCallingLogic, requestObjectSupplier, expectedResultSupplier, messageBusEnhancer);
+    }
+
+    public static TestUseCase testUseCase(final Class<?> useCaseClass,
+                                          final Class<?> useCaseEvent,
+                                          final BiConsumer<MessageBus, TestEnvironment> messageBusSetup,
+                                          final Supplier<Object> instantiationFunction,
+                                          final Consumer<UseCaseAdapterStep3Builder<?, ?>> customCallingLogic,
+                                          final Function<TestEnvironment, Object> requestObjectSupplier,
+                                          final Function<TestEnvironment, Object> expectedResultSupplier,
+                                          final Consumer<MessageBusBuilder> messageBusEnhancer) {
+        final Consumer<UseCaseAdapterStep3Builder<?, ?>> parameterMapping = mappingBuilder -> {
+        };
+        return new TestUseCase(useCaseClass, useCaseEvent, messageBusSetup, instantiationFunction, parameterMapping,
+                customCallingLogic, requestObjectSupplier, expectedResultSupplier, messageBusEnhancer);
     }
 
     public static TestUseCase testUseCase(final Class<?> useCaseClass,
@@ -76,10 +110,12 @@ public final class TestUseCase {
                                           final BiConsumer<MessageBus, TestEnvironment> messageBusSetup,
                                           final Supplier<Object> instantiationFunction,
                                           final Consumer<UseCaseAdapterStep3Builder<?, ?>> parameterMapping,
+                                          final Consumer<UseCaseAdapterStep3Builder<?, ?>> customCallingLogic,
                                           final Function<TestEnvironment, Object> requestObjectSupplier,
                                           final Function<TestEnvironment, Object> expectedResultSupplier,
                                           final Consumer<MessageBusBuilder> messageBusEnhancer) {
-        return new TestUseCase(useCaseClass, useCaseEvent, messageBusSetup, instantiationFunction, parameterMapping, requestObjectSupplier, expectedResultSupplier, messageBusEnhancer);
+        return new TestUseCase(useCaseClass, useCaseEvent, messageBusSetup, instantiationFunction, parameterMapping,
+                customCallingLogic, requestObjectSupplier, expectedResultSupplier, messageBusEnhancer);
     }
 
     public void performNecessaryResultSubscriptionsOn(final MessageBus messageBus, final TestEnvironment testEnvironment) {
@@ -94,7 +130,11 @@ public final class TestUseCase {
         return expectedResultSupplier.apply(testEnvironment);
     }
 
-    public void defineParameterMapping(final UseCaseAdapterStep3Builder<?, ?> callingBuilder) {
-        parameterMapping.accept(callingBuilder);
+    public void useCustomInvocationLogic(final UseCaseAdapterStep3Builder<?, ?> callingBuilder) {
+        customCallingLogic.accept(callingBuilder);
+    }
+
+    public void defineCustomMapping(UseCaseAdapterStep3Builder<?, ?> mappingBuilder) {
+        parameterMapping.accept(mappingBuilder);
     }
 }

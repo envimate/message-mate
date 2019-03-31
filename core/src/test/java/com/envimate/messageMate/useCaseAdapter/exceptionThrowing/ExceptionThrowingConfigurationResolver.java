@@ -8,8 +8,8 @@ import com.envimate.messageMate.messageBus.exception.MessageBusExceptionHandler;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.config.AbstractTestConfigProvider;
 import com.envimate.messageMate.shared.subscriber.TestException;
-import com.envimate.messageMate.soonToBeExternal.building.UseCaseAdapterStep3Builder;
 import com.envimate.messageMate.useCaseAdapter.TestUseCase;
+import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterStep3Builder;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;

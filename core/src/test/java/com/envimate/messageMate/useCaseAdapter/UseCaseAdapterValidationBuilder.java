@@ -44,6 +44,12 @@ public final class UseCaseAdapterValidationBuilder {
         });
     }
 
+    public static UseCaseAdapterValidationBuilder expectAExceptionOfType(final Class<?> expectedExceptionClass) {
+        return asValidation((testUseCase, testEnvironment) -> {
+            assertExceptionThrownOfType(testEnvironment, expectedExceptionClass);
+        });
+    }
+
     public UseCaseAdapterTestValidation build() {
         return testValidation;
     }
