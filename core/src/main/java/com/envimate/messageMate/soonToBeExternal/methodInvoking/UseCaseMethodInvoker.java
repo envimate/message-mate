@@ -21,10 +21,8 @@
 
 package com.envimate.messageMate.soonToBeExternal.methodInvoking;
 
-import java.util.List;
-
 public interface UseCaseMethodInvoker {
 
-    Object invoke(Object useCase, Object event, List<Object> parameter);
+    Object invoke(Object useCase, Object event, ParameterValueMappings parameterValueMappings);
 
 }

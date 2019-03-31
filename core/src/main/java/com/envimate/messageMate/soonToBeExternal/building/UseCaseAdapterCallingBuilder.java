@@ -20,40 +20,39 @@ package com.envimate.messageMate.soonToBeExternal.building;
  * under the License.
  */
 
-import com.envimate.messageMate.useCaseAdapter.Caller;
 import com.envimate.messageMate.soonToBeExternal.usecaseInvoking.UseCaseInvoker;
+import com.envimate.messageMate.useCaseAdapter.Caller;
 
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
 import static com.envimate.messageMate.soonToBeExternal.usecaseInvoking.ClassBasedUseCaseInvokerImpl.classBasedUseCaseInvoker;
-import static java.util.Arrays.asList;
 import static java.util.Optional.empty;
 import static java.util.Optional.ofNullable;
 
-public interface EventToUseCaseDispatcherStepCallingBuilder<USECASE, EVENT> {
+public interface UseCaseAdapterCallingBuilder<USECASE, EVENT> {
 
-    default EventToUseCaseDispatcherStep3Builder calling(final BiFunction<USECASE, EVENT, Object> caller) {
+    default UseCaseAdapterStep1Builder calling(final BiFunction<USECASE, EVENT, Object> caller) {
         return callingBy((useCase, event) -> {
             final Object returnValue = caller.apply(useCase, event);
             return ofNullable(returnValue);
         });
     }
 
-    default EventToUseCaseDispatcherStep3Builder callingVoid(final BiConsumer<USECASE, EVENT> caller) {
+    default UseCaseAdapterStep1Builder callingVoid(final BiConsumer<USECASE, EVENT> caller) {
         return callingBy((usecase, event) -> {
             caller.accept(usecase, event);
             return empty();
         });
     }
 
-    default EventToUseCaseDispatcherStep3Builder callingTheSingleUseCaseMethod() {
+    default UseCaseAdapterStep1Builder callingTheSingleUseCaseMethod() {
         return callingBy((usecase, event) -> {
             final UseCaseInvoker invoker = classBasedUseCaseInvoker(usecase.getClass());
-            final Object returnValue = invoker.getInvocationInformation().getMethodInvoker().invoke(usecase, event, asList(event)); // TODO
+            final Object returnValue = invoker.getInvocationInformation().getMethodInvoker().invoke(usecase, event, null); // TODO
             return ofNullable(returnValue);
         });
     }
 
-    EventToUseCaseDispatcherStep3Builder callingBy(Caller<USECASE, EVENT> caller);
+    UseCaseAdapterStep1Builder callingBy(Caller<USECASE, EVENT> caller);
 }

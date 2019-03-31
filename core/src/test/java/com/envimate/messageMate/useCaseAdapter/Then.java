@@ -1,13 +1,10 @@
 package com.envimate.messageMate.useCaseAdapter;
 
-import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.qcec.shared.TestAction;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
-import com.envimate.messageMate.qcec.shared.TestValidation;
 import lombok.RequiredArgsConstructor;
 
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXCEPTION;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.MOCK;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static lombok.AccessLevel.PACKAGE;
 
@@ -17,11 +14,12 @@ public class Then {
     private final UseCaseAdapterActionBuilder actionBuilder;
 
     public void then(final UseCaseAdapterValidationBuilder validationBuilder) {
-        final TestEnvironment testEnvironment = setupBuilder.build();
-        final TestAction<MessageBus> testAction = actionBuilder.build();
-        final MessageBus messageBus = testEnvironment.getPropertyAsType(MOCK, MessageBus.class);
+        final UseCaseAdapterSetup setup = setupBuilder.build();
+        final TestEnvironment testEnvironment = setup.getTestEnvironment();
+        final TestAction<TestUseCase> testAction = actionBuilder.build();
+        final TestUseCase testUseCase = setup.getTestUseCase();
         try {
-            testAction.execute(messageBus, testEnvironment);
+            testAction.execute(testUseCase, testEnvironment);
         } catch (Exception e) {
             testEnvironment.setProperty(EXCEPTION, e);
         }
@@ -30,7 +28,7 @@ public class Then {
         } catch (InterruptedException e) {
             testEnvironment.setProperty(EXCEPTION, e);
         }
-        final TestValidation validation = validationBuilder.build();
-        validation.validate(testEnvironment);
+        final UseCaseAdapterValidationBuilder.UseCaseAdapterTestValidation validation = validationBuilder.build();
+        validation.validate(testUseCase, testEnvironment);
     }
 }

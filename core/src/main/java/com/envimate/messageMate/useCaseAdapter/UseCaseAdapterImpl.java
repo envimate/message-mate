@@ -15,19 +15,19 @@ import static lombok.AccessLevel.PRIVATE;
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = PRIVATE)
 public final class UseCaseAdapterImpl implements UseCaseAdapter {
-    private final List<EventToUseCaseMapping> eventToUseCaseMappings;
+    private final List<UseCaseInvocationInformation> useCaseInvocationInformations;
     private final UseCaseInstantiator useCaseInstantiator;
 
-    public static UseCaseAdapter useCaseAdapterImpl(final List<EventToUseCaseMapping> eventToUseCaseMappings,
+    public static UseCaseAdapter useCaseAdapterImpl(final List<UseCaseInvocationInformation> useCaseInvocationInformations,
                                                     final UseCaseInstantiator useCaseInstantiator) {
-        ensureNotNull(eventToUseCaseMappings, "eventToUseCaseMappings");
+        ensureNotNull(useCaseInvocationInformations, "useCaseInvocationInformations");
         ensureNotNull(useCaseInstantiator, "useCaseInstantiator");
-        return new UseCaseAdapterImpl(eventToUseCaseMappings, useCaseInstantiator);
+        return new UseCaseAdapterImpl(useCaseInvocationInformations, useCaseInstantiator);
     }
 
     @Override
     public void attachTo(final MessageBus messageBus) {
-        eventToUseCaseMappings.forEach(mapping -> {
+        useCaseInvocationInformations.forEach(mapping -> {
             final UseCaseRequestExecutingSubscriber useCaseRequestSubscriber = (UseCaseRequestExecutingSubscriber) useCaseRequestExecutingSubscriber(messageBus, mapping, useCaseInstantiator);
             messageBus.subscribeRaw(mapping.eventClass, useCaseRequestSubscriber);
         });

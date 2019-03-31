@@ -25,8 +25,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Arrays;
 
 import static com.envimate.messageMate.soonToBeExternal.methodInvoking.MethodInvocationException.methodInvocationException;
 import static lombok.AccessLevel.PRIVATE;
@@ -40,14 +39,17 @@ public final class SinglePublicUseCaseMethodInvokerImpl implements UseCaseMethod
     }
 
     @Override
-    public Object invoke(final Object useCase, final Object event, final List<Object> parameter) {
+    public Object invoke(final Object useCase, final Object event, final ParameterValueMappings parameterValueMappings) {
         try {
             if (useCaseMethod.getParameters().length == 0) {
                 return useCaseMethod.invoke(useCase);
-            } else if(useCaseMethod.getParameters().length == 1) {
+            } else if (useCaseMethod.getParameters().length == 1) {
                 return useCaseMethod.invoke(useCase, event);
             } else {
-                throw new UnsupportedOperationException(); // TODO
+                final Class<?>[] parameterTypes = useCaseMethod.getParameterTypes();
+                final Object[] parameters = Arrays.stream(parameterTypes)
+                        .map(parameterType -> parameterValueMappings.getParameterValue(parameterType, event)).toArray();
+                return useCaseMethod.invoke(useCase, parameters);
             }
         } catch (final IllegalAccessException e) {
             final Class<?> useCaseClass = useCase.getClass();

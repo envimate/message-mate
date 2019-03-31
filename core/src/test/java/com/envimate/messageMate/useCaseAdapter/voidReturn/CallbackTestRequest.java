@@ -1,4 +1,4 @@
-package com.envimate.messageMate.useCaseAdapter.useCases.noReturnValue;
+package com.envimate.messageMate.useCaseAdapter.voidReturn;
 
 import lombok.RequiredArgsConstructor;
 
@@ -10,7 +10,7 @@ import static lombok.AccessLevel.PRIVATE;
 public final class CallbackTestRequest {
     private final Consumer<Object> callback;
 
-    private static CallbackTestRequest callbackTestRequest(final Consumer<Object> callback) {
+    public static CallbackTestRequest callbackTestRequest(final Consumer<Object> callback) {
         return new CallbackTestRequest(callback);
     }
 

@@ -7,7 +7,7 @@ import com.envimate.messageMate.useCaseAdapter.UseCaseInstantiator;
 import static com.envimate.messageMate.soonToBeExternal.usecaseCreating.ZeroArgumentsConstructorUseCaseFactory.zeroArgumentsConstructorUseCaseFactory;
 
 // TODO mit guice
-public interface EventToUseCaseDispatcherStepInstantiationBuilder {
+public interface UseCaseAdapterInstantiationBuilder {
 
     default UseCaseAdapter obtainingUseCaseInstancesUsingTheZeroArgumentConstructor() {
         return obtainingUseCaseInstancesUsing(new UseCaseInstantiator() {

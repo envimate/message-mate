@@ -41,6 +41,13 @@ public final class TestEnvironment {
         setProperty(property.name(), o);
     }
 
+    public void setPropertyIfNotSet(final TestEnvironmentProperty property, final Object o) {
+        if (has(property)) {
+            throw new IllegalArgumentException("Property " + property + " already set.");
+        }
+        setProperty(property.name(), o);
+    }
+
     public void setProperty(final String property, final Object o) {
         definedPropertiesMap.put(property, o);
     }

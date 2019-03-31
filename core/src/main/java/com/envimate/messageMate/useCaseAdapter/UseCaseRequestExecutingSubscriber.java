@@ -20,19 +20,20 @@ import static lombok.AccessLevel.PRIVATE;
 @RequiredArgsConstructor(access = PRIVATE)
 final class UseCaseRequestExecutingSubscriber<T> implements Subscriber<ProcessingContext<T>> {
     private final MessageBus messageBus;
-    private final EventToUseCaseMapping mapping;
+    private final UseCaseInvocationInformation mapping;
     private final UseCaseInstantiator useCaseInstantiator;
     private final SubscriptionId subscriptionId = newUniqueId();
 
     public static <T> Subscriber<ProcessingContext<T>> useCaseRequestExecutingSubscriber(final MessageBus messageBus,
-                                                                      final EventToUseCaseMapping mapping,
-                                                                      final UseCaseInstantiator useCaseInstantiator) {
+                                                                                         final UseCaseInvocationInformation mapping,
+                                                                                         final UseCaseInstantiator useCaseInstantiator) {
         ensureNotNull(messageBus, "messageBus");
         ensureNotNull(mapping, "mapping");
         ensureNotNull(useCaseInstantiator, "useCaseInstantiator");
         return new UseCaseRequestExecutingSubscriber<>(messageBus, mapping, useCaseInstantiator);
     }
 
+    //TODO: think about Error when CorrelationId == null by messageBus
     @Override
     public AcceptingBehavior accept(final ProcessingContext<T> processingContext) {
         final Caller caller = mapping.caller;
@@ -40,7 +41,7 @@ final class UseCaseRequestExecutingSubscriber<T> implements Subscriber<Processin
         final Object useCase = useCaseInstantiator.instantiate(useCaseClass);
         final T event = processingContext.getPayload();
         final Object returnValue = caller.call(useCase, event).orElse(null);
-        final CorrelationId correlationId = processingContext.getCorrelationId();
+        final CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();
         messageBus.send(returnValue, correlationId);
         return MESSAGE_ACCEPTED;
     }

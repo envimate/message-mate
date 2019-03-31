@@ -1,3 +1,4 @@
+package com.envimate.messageMate.soonToBeExternal.building;
 /*
  * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
  *
@@ -19,7 +20,7 @@
  * under the License.
  */
 
-package com.envimate.messageMate.soonToBeExternal.building;
+public interface UseCaseAdapterStep4Builder<USECASE, EVENT> extends UseCaseAdapterCallingBuilder<USECASE, EVENT>,
+        UseCaseAdapterAddParameterValueExtractionBuilder<USECASE, EVENT> {
 
-public interface EventToUseCaseDispatcherStep1Builder extends EventToUseCaseDispatcherStepInvokingUseCaseStepBuilder {
 }

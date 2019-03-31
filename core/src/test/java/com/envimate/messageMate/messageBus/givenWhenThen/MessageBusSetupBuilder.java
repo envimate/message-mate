@@ -224,7 +224,7 @@ public final class MessageBusSetupBuilder {
         messageBusBuilder.withExceptionHandler(allExceptionIgnoringExceptionHandler());
         setupActions.add((messageBus, testEnvironment) -> {
             final SubscriptionId subscriptionId = messageBus.onException(TestMessageOfInterest.class, (m, e) -> {
-                this.testEnvironment.setProperty(RESULT, e);
+                this.testEnvironment.setPropertyIfNotSet(RESULT, e);
             });
             this.testEnvironment.setProperty(USED_SUBSCRIPTION_ID, subscriptionId);
         });

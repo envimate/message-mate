@@ -1,4 +1,4 @@
-package com.envimate.messageMate.useCaseAdapter.useCases.singleObjectParameter;
+package com.envimate.messageMate.useCaseAdapter.singleObjectParameter;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

@@ -1,6 +1,6 @@
-package com.envimate.messageMate.useCaseAdapter.useCases.noReturnValue;
+package com.envimate.messageMate.useCaseAdapter.voidReturn;
 
-public class NoReturnValueUseCase {
+public class VoidReturnUseCase {
 
     public void useCaseMethod(final CallbackTestRequest callbackTestRequest) {
         callbackTestRequest.invokeCallback();

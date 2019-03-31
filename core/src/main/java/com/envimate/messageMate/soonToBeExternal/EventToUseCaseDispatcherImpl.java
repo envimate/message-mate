@@ -25,7 +25,7 @@ import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.messageFunction.MessageFunction;
 import com.envimate.messageMate.messageFunction.ResponseFuture;
 import com.envimate.messageMate.useCaseAdapter.Caller;
-import com.envimate.messageMate.useCaseAdapter.EventToUseCaseMapping;
+import com.envimate.messageMate.useCaseAdapter.UseCaseInvocationInformation;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Map;
@@ -39,7 +39,7 @@ import static lombok.AccessLevel.PACKAGE;
 @RequiredArgsConstructor(access = PACKAGE)
 public final class EventToUseCaseDispatcherImpl implements EventToUseCaseDispatcher {
     private final Function<Class, Object> instantiator;
-    private final Map<Class<?>, EventToUseCaseMapping> eventToUseCaseMappings;
+    private final Map<Class<?>, UseCaseInvocationInformation> eventToUseCaseMappings;
     private final MessageFunction messageFunction;
 
     @Override
@@ -51,7 +51,7 @@ public final class EventToUseCaseDispatcherImpl implements EventToUseCaseDispatc
     public UseCaseResponseFuture dispatch(final Object event) {
         final Class<?> eventClass = event.getClass();
         if (eventToUseCaseMappings.containsKey(eventClass)) {
-            final EventToUseCaseMapping mapping = eventToUseCaseMappings.get(eventClass);
+            final UseCaseInvocationInformation mapping = eventToUseCaseMappings.get(eventClass);
             final Caller caller = mapping.caller;
             final Object useCase = instantiator.apply(mapping.useCaseClass);
             final CorrelationId correlationId = newUniqueCorrelationId();
