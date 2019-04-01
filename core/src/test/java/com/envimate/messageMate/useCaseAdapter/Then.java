@@ -1,10 +1,12 @@
 package com.envimate.messageMate.useCaseAdapter;
 
+import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.qcec.shared.TestAction;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import lombok.RequiredArgsConstructor;
 
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXCEPTION;
+import static com.envimate.messageMate.useCaseAdapter.UseCaseAdapterTestProperties.EVENT_TYPE;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static lombok.AccessLevel.PACKAGE;
 
@@ -18,6 +20,8 @@ public class Then {
         final TestEnvironment testEnvironment = setup.getTestEnvironment();
         final TestAction<TestUseCase> testAction = actionBuilder.build();
         final TestUseCase testUseCase = setup.getTestUseCase();
+        final EventType eventType = testUseCase.getEventType();
+        testEnvironment.setPropertyIfNotSet(EVENT_TYPE, eventType);
         try {
             testAction.execute(testUseCase, testEnvironment);
         } catch (Exception e) {

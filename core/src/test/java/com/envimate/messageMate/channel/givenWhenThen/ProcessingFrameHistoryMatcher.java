@@ -23,10 +23,10 @@ package com.envimate.messageMate.channel.givenWhenThen;
 
 import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.channel.ChannelProcessingFrame;
-import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.channel.action.Action;
 import com.envimate.messageMate.channel.action.Call;
 import com.envimate.messageMate.channel.action.Return;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import lombok.RequiredArgsConstructor;
 

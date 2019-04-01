@@ -1,5 +1,6 @@
 package com.envimate.messageMate.useCaseAdapter.usecaseInvoking;
 
+import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.useCaseAdapter.methodInvoking.ParameterValueMappings;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -12,24 +13,24 @@ import static lombok.AccessLevel.PRIVATE;
 @ToString
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = PRIVATE)
-public final class UseCaseCallingInformation<USECASE, EVENT> {
+public final class UseCaseCallingInformation<USECASE> {
     @Getter
     private final Class<USECASE> useCaseClass;
     @Getter
-    private final Class<EVENT> eventClass;
+    private final EventType eventType;
     @Getter
-    private final Caller<USECASE, EVENT> caller;
+    private final Caller<USECASE, Object> caller;
     @Getter
     private final ParameterValueMappings parameterValueMappings;
 
-    public static <USECASE, EVENT> UseCaseCallingInformation<USECASE, EVENT> useCaseInvocationInformation(
+    public static <USECASE> UseCaseCallingInformation<USECASE> useCaseInvocationInformation(
             final Class<USECASE> useCaseClass,
-            final Class<EVENT> eventClass,
-            final Caller<USECASE, EVENT> caller,
+            final EventType eventType,
+            final Caller<USECASE, Object> caller,
             final ParameterValueMappings parameterValueMappings) {
         ensureNotNull(useCaseClass, "useCaseClass");
-        ensureNotNull(eventClass, "eventClass");
+        ensureNotNull(eventType, "eventType");
         ensureNotNull(caller, "caller");
-        return new UseCaseCallingInformation<>(useCaseClass, eventClass, caller, parameterValueMappings);
+        return new UseCaseCallingInformation<>(useCaseClass, eventType, caller, parameterValueMappings);
     }
 }

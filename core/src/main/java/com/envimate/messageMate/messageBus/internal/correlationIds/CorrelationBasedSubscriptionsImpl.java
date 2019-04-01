@@ -1,7 +1,7 @@
 package com.envimate.messageMate.messageBus.internal.correlationIds;
 
-import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.identification.CorrelationId;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.RequiredArgsConstructor;

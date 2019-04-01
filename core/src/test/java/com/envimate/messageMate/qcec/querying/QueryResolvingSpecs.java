@@ -23,14 +23,12 @@ package com.envimate.messageMate.qcec.querying;
 
 import com.envimate.messageMate.qcec.querying.config.TestQueryResolver;
 import com.envimate.messageMate.qcec.shared.testQueries.SpecificQuery;
-import com.envimate.messageMate.qcec.shared.testQueries.SuperclassTestQuery;
 import com.envimate.messageMate.qcec.shared.testQueries.TestQuery;
 import org.junit.jupiter.api.Test;
 
 import static com.envimate.messageMate.qcec.querying.givenWhenThen.Given.given;
 import static com.envimate.messageMate.qcec.querying.givenWhenThen.QueryActionBuilder.*;
 import static com.envimate.messageMate.qcec.querying.givenWhenThen.QueryValidationBuilder.*;
-import static com.envimate.messageMate.qcec.shared.testQueries.SubclassingTestQuery.aSubclassingQuery;
 
 public interface QueryResolvingSpecs {
 
@@ -69,6 +67,7 @@ public interface QueryResolvingSpecs {
                 .expect(theCorrectResult());
     }
 
+    /*TODO:
     @Test
     default void testQueryResolver_queryIsDeliveredToAllSuperClasses(final TestQueryResolver aQueryResolver) {
         final int expectedResult = 5;
@@ -79,6 +78,7 @@ public interface QueryResolvingSpecs {
                 .when(theQueryIsExecuted(aSubclassingQuery()))
                 .expect(theResult(expectedResult));
     }
+    */
 
     @Test
     default void testQueryResolver_queryCanBeStoppedEarly(final TestQueryResolver aQueryResolver) {

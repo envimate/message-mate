@@ -32,16 +32,16 @@ import static com.envimate.messageMate.useCaseAdapter.usecaseInvoking.ClassBased
 import static java.util.Optional.empty;
 import static java.util.Optional.ofNullable;
 
-public interface UseCaseAdapterCallingBuilder<USECASE, EVENT> {
+public interface UseCaseAdapterCallingBuilder<USECASE> {
 
-    default UseCaseAdapterStep1Builder calling(final BiFunction<USECASE, EVENT, Object> caller) {
+    default UseCaseAdapterStep1Builder calling(final BiFunction<USECASE, Object, Object> caller) {
         return callingBy((useCase, event, parameterValueMappings) -> {
             final Object returnValue = caller.apply(useCase, event);
             return ofNullable(returnValue);
         });
     }
 
-    default UseCaseAdapterStep1Builder callingVoid(final BiConsumer<USECASE, EVENT> caller) {
+    default UseCaseAdapterStep1Builder callingVoid(final BiConsumer<USECASE, Object> caller) {
         return callingBy((usecase, event, parameterValueMappings) -> {
             caller.accept(usecase, event);
             return empty();
@@ -58,5 +58,5 @@ public interface UseCaseAdapterCallingBuilder<USECASE, EVENT> {
         });
     }
 
-    UseCaseAdapterStep1Builder callingBy(Caller<USECASE, EVENT> caller);
+    UseCaseAdapterStep1Builder callingBy(Caller<USECASE, Object> caller);
 }

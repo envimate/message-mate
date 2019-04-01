@@ -21,7 +21,9 @@
 
 package com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen;
 
+import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
+import com.envimate.messageMate.shared.TestEventType;
 import com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber;
 import com.envimate.messageMate.shared.subscriber.TestSubscriber;
 import com.envimate.messageMate.shared.testMessages.InvalidTestMessage;
@@ -37,6 +39,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.EVENT_TYPE;
+import static com.envimate.messageMate.shared.TestEventType.testEventType;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
 import static com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber.blockingTestSubscriber;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -65,11 +69,33 @@ public final class AsynchronousSendingTestUtils {
                 sutActions::send, testEnvironment, true);
     }
 
+    public static void sendInvalidMessagesAsynchronously(final TestEnvironment testEnvironment,
+                                                         final Consumer<TestMessage> sutSend,
+                                                         final int numberOfSender,
+                                                         final int numberOfMessagesPerSender) {
+        sendXMessagesAsynchronously(numberOfSender, TestMessageFactory.testMessageFactoryForInvalidMessages(numberOfMessagesPerSender),
+                sutSend, testEnvironment, true);
+    }
+
+    public static void sendInvalidMessagesAsynchronously(final Consumer<TestMessage> sendConsumer,
+                                                         final TestEnvironment testEnvironment,
+                                                         final int numberOfSender, final int numberOfMessagesPerSender) {
+        sendXMessagesAsynchronously(numberOfSender, TestMessageFactory.testMessageFactoryForInvalidMessages(numberOfMessagesPerSender),
+                sendConsumer, testEnvironment, true);
+    }
+
     public static void sendMixtureOfValidAndInvalidMessagesAsynchronously(final PipeMessageBusSutActions sutActions,
                                                                           final TestEnvironment testEnvironment,
                                                                           final int numberOfSender, final int numberOfMessagesPerSender) {
         sendXMessagesAsynchronously(numberOfSender, TestMessageFactory.testMessageFactoryForRandomValidOrInvalidTestMessages(numberOfMessagesPerSender, testEnvironment),
                 sutActions::send, testEnvironment, true);
+    }
+
+    public static void sendMixtureOfValidAndInvalidMessagesAsynchronously(final Consumer<TestMessage> sutSend,
+                                                                          final TestEnvironment testEnvironment,
+                                                                          final int numberOfSender, final int numberOfMessagesPerSender) {
+        sendXMessagesAsynchronously(numberOfSender, TestMessageFactory.testMessageFactoryForRandomValidOrInvalidTestMessages(numberOfMessagesPerSender, testEnvironment),
+                sutSend, testEnvironment, true);
     }
 
     public static void sendMessagesBeforeAndAfterShutdownAsynchronously(final PipeMessageBusSutActions sutActions,
@@ -95,6 +121,36 @@ public final class AsynchronousSendingTestUtils {
             final TestMessageOfInterest message = TestMessageOfInterest.messageOfInterest();
             testEnvironment.addToListProperty(MESSAGES_SEND, message);
             sutActions.send(message);
+        }
+    }
+
+    public static void sendMessagesBeforeAndAfterShutdownAsynchronously(final BiConsumer<EventType, Subscriber<Object>> subscriberConsumer,
+                                                                        final BiConsumer<EventType, Object> sendConsumer,
+                                                                        final Consumer<Boolean> closeConsumer,
+                                                                        final TestEnvironment testEnvironment,
+                                                                        final int numberOfMessagesBeforeShutdown,
+                                                                        final int numberOfMessagesAfterShutdown,
+                                                                        final boolean finishRemainingTask) {
+        final Semaphore semaphore = new Semaphore(0);
+        final TestSubscriber<Object> subscriber = blockingTestSubscriber(semaphore);
+
+        final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+        subscriberConsumer.accept(eventType, subscriber);
+        testEnvironment.setProperty(SINGLE_RECEIVER, subscriber);
+
+        final TestMessageFactory messageFactory = TestMessageFactory.testMessageFactoryForValidMessages(1, testEnvironment);
+        sendXMessagesAsynchronously(numberOfMessagesBeforeShutdown, messageFactory, testMessage -> sendConsumer.accept(eventType, testMessage), testEnvironment, false);
+        try {
+            MILLISECONDS.sleep(100);
+        } catch (final InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        closeConsumer.accept(finishRemainingTask);
+        semaphore.release(1000);
+        for (int i = 0; i < numberOfMessagesAfterShutdown; i++) {
+            final TestMessageOfInterest message = TestMessageOfInterest.messageOfInterest();
+            testEnvironment.addToListProperty(MESSAGES_SEND, message);
+            sendConsumer.accept(eventType, message);
         }
     }
 
@@ -134,7 +190,40 @@ public final class AsynchronousSendingTestUtils {
         semaphore.release(1337);
     }
 
-    private static void sendXMessagesAsynchronously(final int numberOfSender, final MessageFactory messageFactory,
+    public static void sendMessagesBeforeShutdownAsynchronously(final BiConsumer<EventType, Subscriber<Object>> subscriberConsumer,
+                                                                final BiConsumer<EventType, TestMessage> sendConsumer,
+                                                                final Consumer<Boolean> closeConsumer,
+                                                                final TestEnvironment testEnvironment,
+                                                                final int numberOfSenders,
+                                                                final int numberOfMessages) {
+        final Semaphore semaphore = new Semaphore(0);
+        testEnvironment.setProperty(EXECUTION_END_SEMAPHORE, semaphore);
+        final BlockingTestSubscriber<Object> subscriber = blockingTestSubscriber(semaphore);
+        final EventType eventType = TestEventType.testEventType();
+        subscriberConsumer.accept(eventType, subscriber);
+        testEnvironment.setProperty(SINGLE_RECEIVER, subscriber);
+
+        final ExecutorService executorService = Executors.newFixedThreadPool(numberOfSenders);
+        for (int i = 0; i < numberOfSenders; i++) {
+            executorService.execute(() -> {
+                for (int j = 0; j < numberOfMessages; j++) {
+                    final TestMessageOfInterest message = TestMessageOfInterest.messageOfInterest();
+                    testEnvironment.addToListProperty(MESSAGES_SEND, message);
+                    sendConsumer.accept(eventType, message);
+                }
+            });
+        }
+        try {
+            MILLISECONDS.sleep(20);
+        } catch (final InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        closeConsumer.accept(false);
+        semaphore.release(1337);
+    }
+
+    private static void sendXMessagesAsynchronously(final int numberOfSender,
+                                                    final MessageFactory messageFactory,
                                                     final Consumer<TestMessage> sutSend,
                                                     final TestEnvironment testEnvironment, final boolean expectCleanShutdown) {
         if (numberOfSender <= 0) {

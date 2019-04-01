@@ -20,7 +20,7 @@ package com.envimate.messageMate.useCaseAdapter.building;
  * under the License.
  */
 
-public interface UseCaseAdapterStep4Builder<USECASE, EVENT> extends UseCaseAdapterCallingBuilder<USECASE, EVENT>,
-        UseCaseAdapterAddParameterValueExtractionBuilder<USECASE, EVENT> {
+public interface UseCaseAdapterStep4Builder<USECASE> extends UseCaseAdapterCallingBuilder<USECASE>,
+        UseCaseAdapterAddParameterValueExtractionBuilder<USECASE> {
 
 }

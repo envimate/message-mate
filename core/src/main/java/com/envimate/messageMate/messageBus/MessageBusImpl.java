@@ -22,7 +22,6 @@
 package com.envimate.messageMate.messageBus;
 
 import com.envimate.messageMate.channel.Channel;
-import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.filtering.FilterActions;
 import com.envimate.messageMate.identification.CorrelationId;
@@ -33,6 +32,7 @@ import com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerSt
 import com.envimate.messageMate.messageBus.internal.correlationIds.CorrelationBasedSubscriptions;
 import com.envimate.messageMate.messageBus.internal.exception.ExceptionListenerHandler;
 import com.envimate.messageMate.messageBus.internal.statistics.MessageBusStatisticsCollector;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.subscribing.ConsumerSubscriber;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
@@ -68,41 +68,55 @@ final class MessageBusImpl implements MessageBus {
     }
 
     @Override
-    public MessageId send(final Object message) {
-        return acceptingChannel.send(message);
-    }
-
-    @Override
-    public MessageId send(final Object message, final CorrelationId correlationId) {
-        return acceptingChannel.send(message, correlationId);
-    }
-
-    @Override
     public MessageId send(final ProcessingContext<Object> processingContext) {
         return acceptingChannel.send(processingContext);
     }
 
     @Override
-    public <T> SubscriptionId subscribe(final Class<T> messageClass, final Consumer<T> consumer) {
-        final ConsumerSubscriber<T> subscriber = consumerSubscriber(consumer);
-        return subscribe(messageClass, subscriber);
+    public MessageId send(String eventType, Object object) {
+        final EventType eventTypeObject = EventType.eventTypeFromString(eventType);
+        return send(eventTypeObject, object);
     }
 
     @Override
-    public <T> SubscriptionId subscribe(final Class<T> messageClass, final Subscriber<T> subscriber) {
-        brokerStrategy.addSubscriber(messageClass, subscriber);
+    public MessageId send(EventType eventType, Object object) {
+        final ProcessingContext<Object> processingContext = ProcessingContext.processingContext(eventType, object);
+        return send(processingContext);
+    }
+
+    @Override
+    public MessageId send(String eventType, Object object, CorrelationId correlationId) {
+        final EventType eventTypeObject = EventType.eventTypeFromString(eventType);
+        return send(eventTypeObject, object, correlationId);
+    }
+
+    @Override
+    public MessageId send(EventType eventType, Object object, CorrelationId correlationId) {
+        final ProcessingContext<Object> processingContext = ProcessingContext.processingContext(eventType, object, correlationId);
+        return send(processingContext);
+    }
+
+    @Override
+    public SubscriptionId subscribe(EventType eventType, Consumer<Object> consumer) {
+        final ConsumerSubscriber<Object> subscriber = consumerSubscriber(consumer);
+        return subscribe(eventType, subscriber);
+    }
+
+    @Override
+    public SubscriptionId subscribe(EventType eventType, Subscriber<Object> subscriber) {
+        brokerStrategy.addSubscriber(eventType, subscriber);
         return subscriber.getSubscriptionId();
     }
 
     @Override
-    public <T> SubscriptionId subscribeRaw(final Class<T> messageClass, final Consumer<ProcessingContext<T>> consumer) {
-        final ConsumerSubscriber<ProcessingContext<T>> subscriber = consumerSubscriber(consumer);
-        return subscribeRaw(messageClass, subscriber);
+    public SubscriptionId subscribeRaw(EventType eventType, Consumer<ProcessingContext<Object>> consumer) {
+        final ConsumerSubscriber<ProcessingContext<Object>> subscriber = consumerSubscriber(consumer);
+        return subscribeRaw(eventType, subscriber);
     }
 
     @Override
-    public <T> SubscriptionId subscribeRaw(final Class<T> messageClass, final Subscriber<ProcessingContext<T>> subscriber) {
-        brokerStrategy.addRawSubscriber(messageClass, subscriber);
+    public SubscriptionId subscribeRaw(EventType eventType, Subscriber<ProcessingContext<Object>> subscriber) {
+        brokerStrategy.addRawSubscriber(eventType, subscriber);
         return subscriber.getSubscriptionId();
     }
 
@@ -161,14 +175,8 @@ final class MessageBusImpl implements MessageBus {
     }
 
     @Override
-    public <T> SubscriptionId onException(final Class<T> messageClass, final MessageBusExceptionListener<T> exceptionListener) {
-        return exceptionListenerHandler.register(messageClass, exceptionListener);
-    }
-
-    @Override
-    public <T> SubscriptionId onException(final List<Class<? extends T>> messageClasses,
-                                          final MessageBusExceptionListener<? extends T> exceptionListener) {
-        return exceptionListenerHandler.register(messageClasses, exceptionListener);
+    public SubscriptionId onException(EventType eventType, MessageBusExceptionListener<Object> exceptionListener) {
+        return exceptionListenerHandler.register(eventType, exceptionListener);
     }
 
     @Override

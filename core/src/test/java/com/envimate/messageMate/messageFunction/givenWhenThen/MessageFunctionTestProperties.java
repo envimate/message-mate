@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
-public class MessageFunctionTestProperties {
-
-    public static String CANCEL_RESULTS = "CANCEL_RESULTS";
+public final class MessageFunctionTestProperties {
+    public final static String EVENT_TYPE = "EVENT_TYPE";
+    public final static String CANCEL_RESULTS = "CANCEL_RESULTS";
 }

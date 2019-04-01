@@ -1,190 +1,201 @@
-/*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
- *
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-
 package com.envimate.messageMate.messageBus.givenWhenThen;
 
-import com.envimate.messageMate.filtering.Filter;
-import com.envimate.messageMate.identification.MessageId;
-import com.envimate.messageMate.internal.pipe.statistics.PipeStatistics;
-import com.envimate.messageMate.messageBus.MessageBus;
-import com.envimate.messageMate.messageBus.MessageBusStatusInformation;
-import com.envimate.messageMate.messageBus.statistics.MessageBusStatistics;
 import com.envimate.messageMate.identification.CorrelationId;
+import com.envimate.messageMate.identification.MessageId;
+import com.envimate.messageMate.messageBus.EventType;
+import com.envimate.messageMate.messageBus.MessageBus;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
-import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
+import com.envimate.messageMate.shared.TestEventType;
+import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.AsynchronousSendingTestUtils;
+import com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber;
+import com.envimate.messageMate.shared.subscriber.ExceptionThrowingTestSubscriber;
+import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
+import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
-import lombok.RequiredArgsConstructor;
 
-import java.math.BigInteger;
-import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
-import static lombok.AccessLevel.PRIVATE;
+import static com.envimate.messageMate.identification.CorrelationId.newUniqueCorrelationId;
+import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.EVENT_TYPE;
+import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RECEIVERS;
+import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
+import static com.envimate.messageMate.shared.TestEventType.testEventType;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
+import static com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber.blockingTestSubscriber;
+import static com.envimate.messageMate.shared.subscriber.ExceptionThrowingTestSubscriber.exceptionThrowingTestSubscriber;
+import static com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber.testSubscriber;
+import static com.envimate.messageMate.shared.testMessages.TestMessageOfInterest.messageOfInterest;
 
-@RequiredArgsConstructor(access = PRIVATE)
-public final class MessageBusTestActions implements PipeMessageBusSutActions {
-    private final MessageBus messageBus;
+public class MessageBusTestActions {
 
-    public static MessageBusTestActions messageBusTestActions(final MessageBus messageBus) {
-        return new MessageBusTestActions(messageBus);
+    public static void sendASingleMessage(final MessageBus messageBus, final TestEnvironment testEnvironment) {
+        final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+        sendASingleMessage(messageBus, testEnvironment, eventType);
     }
 
-    @Override
-    public boolean isClosed(final TestEnvironment testEnvironment) {
-        return messageBus.isClosed();
+    public static void sendASingleMessage(final MessageBus messageBus, final TestEnvironment testEnvironment, final EventType eventType) {
+        final TestMessageOfInterest message = messageOfInterest();
+        testEnvironment.setProperty(SINGLE_SEND_MESSAGE, message);
+        final MessageId messageId = messageBus.send(eventType, message);
+        testEnvironment.setProperty(SEND_MESSAGE_ID, messageId);
     }
 
-    @Override
-    public List<?> getFilter(final TestEnvironment testEnvironment) {
-        return messageBus.getFilter();
+    public static void sendTheMessage(final MessageBus messageBus, final TestEnvironment testEnvironment, final Object message) {
+        final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+        testEnvironment.setProperty(SINGLE_SEND_MESSAGE, message);
+        final MessageId messageId = messageBus.send(eventType, message);
+        testEnvironment.setProperty(SEND_MESSAGE_ID, messageId);
     }
 
-    @Override
-    public <R> void subscribe(final Class<R> messageClass, final Subscriber<R> subscriber) {
-        messageBus.subscribe(messageClass, subscriber);
+    public static void sendAMessageWithCorrelationId(final MessageBus messageBus, final TestEnvironment testEnvironment) {
+        final CorrelationId correlationId = testEnvironment.getPropertyOrSetDefault(EXPECTED_CORRELATION_ID, newUniqueCorrelationId());
+        testEnvironment.setProperty(EXPECTED_RESULT, correlationId);
+
+        final TestMessageOfInterest message = messageOfInterest();
+        testEnvironment.setProperty(SINGLE_SEND_MESSAGE, message);
+
+        final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+        final MessageId messageId = messageBus.send(eventType, message, correlationId);
+        testEnvironment.setProperty(SEND_MESSAGE_ID, messageId);
     }
 
-    @Override
-    public void close(final boolean finishRemainingTasks) {
-        messageBus.close(finishRemainingTasks);
-    }
 
-    @Override
-    public boolean awaitTermination(final int timeout, final TimeUnit timeUnit) throws InterruptedException {
-        return messageBus.awaitTermination(timeout, timeUnit);
-    }
-
-    @Override
-    public List<?> getFilter() {
-        return messageBus.getFilter();
-    }
-
-    @Override
-    public void unsubscribe(final SubscriptionId subscriptionId) {
-        messageBus.unsubcribe(subscriptionId);
-    }
-
-    @Override
-    public MessageId send(final TestMessage message) {
-        return messageBus.send(message);
-    }
-
-    @Override
-    public PipeStatistics getMessageStatistics() {
-        throw new UnsupportedOperationException();
-    }
-
-    public MessageBusStatistics getMessageStatistics_real() {
-        final MessageBusStatusInformation statusInformation = messageBus.getStatusInformation();
-        return statusInformation.getCurrentMessageStatistics();
-    }
-
-    public void queryTheNumberOfAcceptedMessages(final TestEnvironment testEnvironment) {
-        queryMessageStatistics(testEnvironment, MessageBusStatistics::getAcceptedMessages);
-    }
-
-    public void queryTheNumberOfAcceptedMessagesAsynchronously(final TestEnvironment testEnvironment) {
-        final Semaphore semaphore = new Semaphore(0);
-        new Thread(() -> {
-            queryMessageStatistics(testEnvironment, MessageBusStatistics::getAcceptedMessages);
-            semaphore.release();
-        }).start();
-        try {
-            semaphore.acquire();
-        } catch (final InterruptedException e) {
-            //not necessary to do anything here
+    public static void sendSeveralMessages(final MessageBus messageBus, final TestEnvironment testEnvironment, final int numberOfMessages) {
+        final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+        final List<TestMessageOfInterest> messages = new LinkedList<>();
+        for (int i = 0; i < numberOfMessages; i++) {
+            final TestMessageOfInterest message = TestMessageOfInterest.messageOfInterest();
+            messageBus.send(eventType, message);
+            messages.add(message);
         }
+        testEnvironment.setProperty(MESSAGES_SEND_OF_INTEREST, messages);
     }
 
-    public void queryTheNumberOfQueuedMessages(final TestEnvironment testEnvironment) {
-        queryMessageStatistics(testEnvironment, MessageBusStatistics::getQueuedMessages);
+    public static void sendMessagesAsynchronously(final MessageBus messageBus,
+                                                  final TestEnvironment testEnvironment,
+                                                  final int numberOfSenders,
+                                                  final int numberOfMessages,
+                                                  final boolean expectCleanShutdown) {
+        final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, TestEventType.testEventType());
+        final Consumer<TestMessage> sendConsumer = testMessage -> messageBus.send(eventType, testMessage);
+        AsynchronousSendingTestUtils.sendValidMessagesAsynchronously(sendConsumer, testEnvironment, numberOfSenders, numberOfMessages, expectCleanShutdown);
     }
 
-    public void queryTheNumberOfSuccessfulDeliveredMessages(final TestEnvironment testEnvironment) {
-        queryMessageStatistics(testEnvironment, MessageBusStatistics::getSuccessfulMessages);
+    public static void sendInvalidMessagesAsynchronously(final MessageBus messageBus,
+                                                         final TestEnvironment testEnvironment,
+                                                         final int numberOfSenders,
+                                                         final int numberOfMessages) {
+        final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, TestEventType.testEventType());
+        final Consumer<TestMessage> sendConsumer = testMessage -> messageBus.send(eventType, testMessage);
+        AsynchronousSendingTestUtils.sendInvalidMessagesAsynchronously(sendConsumer, testEnvironment, numberOfSenders, numberOfMessages);
     }
 
-    public void queryTheNumberOfFailedDeliveredMessages(final TestEnvironment testEnvironment) {
-        queryMessageStatistics(testEnvironment, MessageBusStatistics::getFailedMessages);
+    public static void sendInvalidAndInvalidMessagesAsynchronously(final MessageBus messageBus,
+                                                                   final TestEnvironment testEnvironment,
+                                                                   final int numberOfSenders,
+                                                                   final int numberOfMessages) {
+        final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, TestEventType.testEventType());
+        final Consumer<TestMessage> sendConsumer = testMessage -> messageBus.send(eventType, testMessage);
+        AsynchronousSendingTestUtils.sendMixtureOfValidAndInvalidMessagesAsynchronously(sendConsumer, testEnvironment, numberOfSenders, numberOfMessages);
     }
 
-    public void queryTheNumberOfBlockedMessages(final TestEnvironment testEnvironment) {
-        queryMessageStatistics(testEnvironment, MessageBusStatistics::getBlockedMessages);
+    public static void addASingleSubscriber(final MessageBus messageBus, final TestEnvironment testEnvironment) {
+        final EventType eventType = TestEventType.testEventType();
+        testEnvironment.setPropertyIfNotSet(EVENT_TYPE, eventType);
+        addASingleSubscriber(messageBus, testEnvironment, eventType);
     }
 
-    public void queryTheNumberOfForgottenMessages(final TestEnvironment testEnvironment) {
-        queryMessageStatistics(testEnvironment, MessageBusStatistics::getForgottenMessages);
+    public static void addASingleSubscriber(final MessageBus messageBus, final TestEnvironment testEnvironment, final EventType eventType) {
+        final SimpleTestSubscriber<Object> subscriber = testSubscriber();
+        addASingleSubscriber(messageBus, testEnvironment, eventType, subscriber);
     }
 
-    public void queryTheTimestampOfTheMessageStatistics(final TestEnvironment testEnvironment) {
-        final MessageBusStatistics messageBusStatistics = getMessageStatistics_real();
-        final Date timestamp = messageBusStatistics.getTimestamp();
-        testEnvironment.setProperty(RESULT, timestamp);
+    public static void addASingleSubscriber(final MessageBus messageBus, final TestEnvironment testEnvironment, final EventType eventType,
+                                            final Subscriber<Object> subscriber) {
+        messageBus.subscribe(eventType, subscriber);
+        testEnvironment.addToListProperty(EXPECTED_RECEIVERS, subscriber);
+        testEnvironment.addToListProperty(INITIAL_SUBSCRIBER, subscriber);
     }
 
-    private void queryMessageStatistics(final TestEnvironment testEnvironment,
-                                        final MessageBusStatisticsQuery query) {
-        final MessageBusStatistics messageBusStatistics = getMessageStatistics_real();
-        final BigInteger statistic = query.query(messageBusStatistics);
-        final long longValueExact = statistic.longValueExact();
-        testEnvironment.setProperty(RESULT, longValueExact);
+    public static void withSeveralSubscriber(final MessageBus messageBus, final TestEnvironment testEnvironment, final int numberOfSubscribers) {
+        final EventType eventType = TestEventType.testEventType();
+        for (int i = 0; i < numberOfSubscribers; i++) {
+            addASingleSubscriber(messageBus, testEnvironment, eventType);
+        }
+        testEnvironment.setPropertyIfNotSet(EVENT_TYPE, eventType);
     }
 
-    @Override
-    public Object removeAFilter() {
-        final List<Filter<Object>> filters = messageBus.getFilter();
-        final int indexToRemove = (int) (Math.random() * filters.size());
-        final Filter<Object> filter = filters.get(indexToRemove);
-        messageBus.remove(filter);
-        return filter;
+
+    public static void addASingleRawSubscriber(final MessageBus messageBus, final TestEnvironment testEnvironment) {
+        final EventType eventType = TestEventType.testEventType();
+        testEnvironment.setPropertyIfNotSet(EVENT_TYPE, eventType);
+        addASingleRawSubscriber(messageBus, testEnvironment, eventType);
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public void addFilter(final Filter<?> filter) {
-        final Filter<Object> objectFilter = (Filter<Object>) filter;
-        messageBus.add(objectFilter);
+    public static void addASingleRawSubscriber(final MessageBus messageBus, final TestEnvironment testEnvironment, final EventType eventType) {
+        final SimpleTestSubscriber<ProcessingContext<Object>> subscriber = testSubscriber();
+        messageBus.subscribeRaw(eventType, subscriber);
+        testEnvironment.addToListProperty(EXPECTED_RECEIVERS, subscriber);
+        testEnvironment.addToListProperty(INITIAL_SUBSCRIBER, subscriber);
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public void addFilter(final Filter<?> filter, final int position) {
-        final Filter<Object> objectFilter = (Filter<Object>) filter;
-        messageBus.add(objectFilter, position);
+    public static void addASubscriberThatBlocksWhenAccepting(final MessageBus messageBus, final TestEnvironment testEnvironment) {
+        final EventType eventType = TestEventType.testEventType();
+        testEnvironment.setPropertyIfNotSet(EVENT_TYPE, eventType);
+        final Semaphore semaphore = new Semaphore(0);
+        final BlockingTestSubscriber<Object> subscriber = blockingTestSubscriber(semaphore);
+        addASingleSubscriber(messageBus, testEnvironment, eventType, subscriber);
+        testEnvironment.setProperty(EXECUTION_END_SEMAPHORE, semaphore);
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public List<Subscriber<?>> getAllSubscribers() {
-        final MessageBusStatusInformation statusInformation = messageBus.getStatusInformation();
-        final List<Subscriber<?>> allSubscribers = statusInformation.getAllSubscribers();
-        return allSubscribers;
+    public static void addAErrorThrowingSubscriber(final MessageBus messageBus, final TestEnvironment testEnvironment) {
+        final EventType eventType = TestEventType.testEventType();
+        testEnvironment.setPropertyIfNotSet(EVENT_TYPE, eventType);
+        final ExceptionThrowingTestSubscriber<Object> subscriber = exceptionThrowingTestSubscriber();
+        messageBus.subscribe(eventType, subscriber);
     }
 
-    private interface MessageBusStatisticsQuery {
-        BigInteger query(MessageBusStatistics messageBusStatistics);
+    public static void sendMessagesBeforeShutdownAsynchronously(final MessageBus messageBus, final TestEnvironment testEnvironment,
+                                                                final int numberOfSenders, final int numberOfMessages) {
+        final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, TestEventType.testEventType());
+        final BiConsumer<EventType, Subscriber<Object>> subscriberConsumer = (e, subscriber) -> messageBus.subscribe(eventType, subscriber);
+        final BiConsumer<EventType, TestMessage> sendConsumer = (e, testMessage) -> messageBus.send(eventType, testMessage);
+        final Consumer<Boolean> closeConsumer = finishRemainingTasks -> messageBus.close(false);
+        AsynchronousSendingTestUtils.sendMessagesBeforeShutdownAsynchronously(subscriberConsumer, sendConsumer, closeConsumer, testEnvironment, numberOfSenders, numberOfMessages);
+    }
+
+    public static void sendMessagesBeforeAndAfterShutdownAsynchronously(final MessageBus messageBus, final TestEnvironment testEnvironment,
+                                                                        final int numberOfSender, final boolean finishRemainingTasks) {
+        final BiConsumer<EventType, Subscriber<Object>> subscriberConsumer = (e, subscriber) -> messageBus.subscribe(e, subscriber);
+        final BiConsumer<EventType, Object> sendConsumer = (e, testMessage) -> messageBus.send(e, testMessage);
+        final Consumer<Boolean> closeConsumer = b -> messageBus.close(b);
+        AsynchronousSendingTestUtils.sendMessagesBeforeAndAfterShutdownAsynchronously(subscriberConsumer, sendConsumer, closeConsumer,
+                testEnvironment, numberOfSender, 0, finishRemainingTasks);
+    }
+
+    public static void addDynamicErrorListenerForEventType(final MessageBus messageBus, final TestEnvironment testEnvironment) {
+        final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+        final SubscriptionId subscriptionId = messageBus.onException(eventType, (m, e) -> {
+            testEnvironment.setPropertyIfNotSet(RESULT, e);
+        });
+        testEnvironment.setProperty(USED_SUBSCRIPTION_ID, subscriptionId);
+    }
+
+    public static void addTwoDynamicErrorListenerForEventType_whereTheFirstWillBeRemoved(final MessageBus messageBus, final TestEnvironment testEnvironment) {
+        final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+        final SubscriptionId subscriptionId = messageBus.onException(eventType, (m, e) -> {
+            throw new RuntimeException("Should not be called");
+        });
+        testEnvironment.setProperty(USED_SUBSCRIPTION_ID, subscriptionId);
+        messageBus.onException(eventType, (m, e) -> {
+            testEnvironment.setPropertyIfNotSet(RESULT, e);
+        });
     }
 }

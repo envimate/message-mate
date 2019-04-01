@@ -21,9 +21,9 @@
 
 package com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen;
 
-import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.identification.MessageId;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
 import com.envimate.messageMate.shared.subscriber.TestSubscriber;

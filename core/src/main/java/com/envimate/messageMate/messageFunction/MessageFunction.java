@@ -22,6 +22,7 @@
 package com.envimate.messageMate.messageFunction;
 
 import com.envimate.messageMate.internal.autoclosable.NoErrorAutoClosable;
+import com.envimate.messageMate.messageBus.EventType;
 
 /**
  * {@code MessageFunctions} simplify the execution of request-reply based communications over an asynchronous {@code MessageBus}.
@@ -39,7 +40,7 @@ public interface MessageFunction extends NoErrorAutoClosable {
      * @param request the request to send
      * @return a {@code ResponseFuture} that can be queried for the result
      */
-    ResponseFuture request(Object request);
+    ResponseFuture request(EventType eventType, Object request);
 
     /**
      * Closes the {@code MessageFunction}. This does not cancel any pending {@code ResponseFutures}.

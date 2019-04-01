@@ -22,17 +22,15 @@
 package com.envimate.messageMate.messageBus;
 
 import com.envimate.messageMate.channel.Channel;
-import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.channel.action.Consume;
-import com.envimate.messageMate.identification.MessageId;
+import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategy;
 import com.envimate.messageMate.messageBus.internal.correlationIds.CorrelationBasedSubscriptions;
-import com.envimate.messageMate.identification.CorrelationId;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
-import java.util.Set;
 
 import static com.envimate.messageMate.channel.action.Consume.consumeMessage;
 import static lombok.AccessLevel.PRIVATE;
@@ -54,15 +52,10 @@ public final class MessageBusConsumeAction {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static void deliveryToClassBasedSubscriber(final ProcessingContext<Object> processingContext,
                                                        final MessageBusBrokerStrategy brokerStrategy) {
-        final CorrelationId correlationId = processingContext.getCorrelationId();
-        final MessageId messageId = processingContext.getMessageId();
         final Object message = processingContext.getPayload();
-        final Class<?> messageClass = message.getClass();
-        final Set<Channel<?>> channels = brokerStrategy.getDeliveringChannelsFor(messageClass);
-        for (final Channel<?> channel : channels) {
-            final ProcessingContext tProcessingContext = ProcessingContext.processingContext(message, messageId, correlationId);
-            channel.send(tProcessingContext);
-        }
+        final EventType eventType = processingContext.getEventType();
+        final Channel<Object> channel = brokerStrategy.getDeliveringChannelFor(eventType);
+        channel.send(processingContext);
     }
 
     private static void deliveryBasedOnCorrelationId(final ProcessingContext<Object> objectProcessingContext,

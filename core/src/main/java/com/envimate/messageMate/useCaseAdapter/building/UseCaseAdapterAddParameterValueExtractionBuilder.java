@@ -2,7 +2,7 @@ package com.envimate.messageMate.useCaseAdapter.building;
 
 import java.util.function.Function;
 
-public interface UseCaseAdapterAddParameterValueExtractionBuilder<USECASE, EVENT> {
+public interface UseCaseAdapterAddParameterValueExtractionBuilder<USECASE> {
 
-    <PARAM> UseCaseAdapterStep3Builder<USECASE, EVENT> mappingEventToParameter(Class<PARAM> paramClass, Function<EVENT, Object> mapping);
+    <PARAM> UseCaseAdapterStep3Builder<USECASE> mappingEventToParameter(Class<PARAM> paramClass, Function<Object, Object> mapping);
 }

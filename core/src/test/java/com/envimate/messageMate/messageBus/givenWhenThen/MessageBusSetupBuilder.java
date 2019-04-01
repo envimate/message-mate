@@ -23,31 +23,30 @@ package com.envimate.messageMate.messageBus.givenWhenThen;
 
 import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.channel.ChannelBuilder;
-import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration;
+import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusBuilder;
 import com.envimate.messageMate.messageBus.MessageBusType;
 import com.envimate.messageMate.messageBus.channelCreating.MessageBusChannelFactory;
 import com.envimate.messageMate.messageBus.config.MessageBusTestConfig;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionHandler;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.SetupAction;
 import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
-import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.RequiredArgsConstructor;
 
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 import static com.envimate.messageMate.channel.action.Subscription.subscription;
 import static com.envimate.messageMate.identification.CorrelationId.newUniqueCorrelationId;
-import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActions.messageBusTestActions;
+import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActionsOld.messageBusTestActions;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler.allExceptionAsResultHandlingTestExceptionHandler;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler.allExceptionIgnoringExceptionHandler;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.CORRELATION_SUBSCRIPTION_ID;
@@ -70,17 +69,6 @@ public final class MessageBusSetupBuilder {
                 .configuredWith(testConfig);
     }
 
-    public static <T> void addASingleRawSubscriber(final TestEnvironment testEnvironment, final Class<T> clazz) {
-        final SimpleTestSubscriber<ProcessingContext<T>> subscriber = testSubscriber();
-        final MessageBus messageBus = testEnvironment.getPropertyAsType(SUT, MessageBus.class);
-        messageBus.subscribeRaw(clazz, subscriber);
-        if (testEnvironment.has(EXPECTED_RECEIVERS)) {
-            testEnvironment.addToListProperty(EXPECTED_RECEIVERS, subscriber);
-        } else {
-            testEnvironment.setProperty(EXPECTED_RECEIVERS, subscriber);
-        }
-    }
-
     private MessageBusSetupBuilder configuredWith(final MessageBusTestConfig testConfig) {
         final MessageBusType type = testConfig.getType();
         final AsynchronousConfiguration asynchronousConfiguration = testConfig.getAsynchronousConfiguration();
@@ -101,11 +89,10 @@ public final class MessageBusSetupBuilder {
         }
     }
 
-    public <T> MessageBusSetupBuilder withASubscriberForTyp(final Class<T> messageClass) {
-        setupActions.add((messageBus, executionContext) -> {
-            final SimpleTestSubscriber<T> subscriber = SimpleTestSubscriber.testSubscriber();
-            messageBus.subscribe(messageClass, subscriber);
-            executionContext.addToListProperty(EXPECTED_RECEIVERS, subscriber);
+    public <T> MessageBusSetupBuilder withASubscriberForTyp(final EventType eventType) {
+        setupActions.add((messageBus, testEnvironment) -> {
+            final Subscriber<Object> subscriber = SimpleTestSubscriber.testSubscriber();
+            MessageBusTestActions.addASingleSubscriber(messageBus, testEnvironment, eventType, subscriber);
         });
         return this;
     }
@@ -113,15 +100,11 @@ public final class MessageBusSetupBuilder {
     public MessageBusSetupBuilder withACustomChannelFactory() {
         messageBusBuilder.withAChannelFactory(new MessageBusChannelFactory() {
             @Override
-            public <T> Channel<?> createChannel(final Class<T> tClass, final Subscriber<?> subscriber, final MessageBusExceptionHandler exceptionHandler) {
-                final Channel<T> channel = ChannelBuilder.aChannel(tClass)
+            public Channel<Object> createChannel(final EventType eventType, final Subscriber<?> subscriber, final MessageBusExceptionHandler exceptionHandler) {
+                final Channel<Object> channel = ChannelBuilder.aChannel(Object.class)
                         .withDefaultAction(subscription())
                         .build();
-                if (testEnvironment.has(EXPECTED_RESULT)) {
-                    throw new IllegalStateException();
-                } else {
-                    testEnvironment.setProperty(EXPECTED_RESULT, channel);
-                }
+                testEnvironment.setPropertyIfNotSet(EXPECTED_RESULT, channel);
                 return channel;
             }
         });
@@ -133,17 +116,19 @@ public final class MessageBusSetupBuilder {
     }
 
     public MessageBusSetupBuilder withASingleSubscriber() {
-        setupActions.add((t, testEnvironment) -> addASingleSubscriber(sutActions(t), testEnvironment));
+        setupActions.add((t, testEnvironment) -> {
+            MessageBusTestActions.addASingleSubscriber(t, testEnvironment);
+        });
         return this;
     }
 
     public MessageBusSetupBuilder withASingleRawSubscriber() {
-        setupActions.add((t, testEnvironment) -> addASingleRawSubscriber(testEnvironment, TestMessageOfInterest.class));
+        setupActions.add((t, testEnvironment) -> MessageBusTestActions.addASingleRawSubscriber(t, testEnvironment));
         return this;
     }
 
-    public <T> MessageBusSetupBuilder withARawSubscriberForType(final Class<T> clazz) {
-        setupActions.add((t, testEnvironment) -> addASingleRawSubscriber(testEnvironment, clazz));
+    public <T> MessageBusSetupBuilder withARawSubscriberForType(final EventType eventType) {
+        setupActions.add((t, testEnvironment) -> MessageBusTestActions.addASingleRawSubscriber(t, testEnvironment, eventType));
         return this;
     }
 
@@ -165,8 +150,8 @@ public final class MessageBusSetupBuilder {
         return this;
     }
 
-    public MessageBusSetupBuilder withSeveralSubscriber(final int numberOfReceivers) {
-        setupActions.add((t, testEnvironment) -> addSeveralSubscriber(sutActions(t), testEnvironment, numberOfReceivers));
+    public MessageBusSetupBuilder withSeveralSubscriber(final int numberOfSubscribers) {
+        setupActions.add((t, testEnvironment) -> MessageBusTestActions.withSeveralSubscriber(t, testEnvironment, numberOfSubscribers));
         return this;
     }
 
@@ -201,7 +186,7 @@ public final class MessageBusSetupBuilder {
     }
 
     public MessageBusSetupBuilder withASubscriberThatBlocksWhenAccepting() {
-        setupActions.add((t, testEnvironment) -> addASubscriberThatBlocksWhenAccepting(sutActions(t), testEnvironment));
+        setupActions.add((t, testEnvironment) -> MessageBusTestActions.addASubscriberThatBlocksWhenAccepting(t, testEnvironment));
         return this;
     }
 
@@ -211,7 +196,7 @@ public final class MessageBusSetupBuilder {
     }
 
     public MessageBusSetupBuilder withAnExceptionThrowingSubscriber() {
-        setupActions.add((t, testEnvironment) -> addAnExceptionThrowingSubscriber(sutActions(t), testEnvironment));
+        setupActions.add((t, testEnvironment) -> MessageBusTestActions.addAErrorThrowingSubscriber(t, testEnvironment));
         return this;
     }
 
@@ -220,47 +205,25 @@ public final class MessageBusSetupBuilder {
         return this;
     }
 
-    public MessageBusSetupBuilder withADynamicExceptionListener() {
+    public MessageBusSetupBuilder withADynamicExceptionListenerForEventType() {
         messageBusBuilder.withExceptionHandler(allExceptionIgnoringExceptionHandler());
         setupActions.add((messageBus, testEnvironment) -> {
-            final SubscriptionId subscriptionId = messageBus.onException(TestMessageOfInterest.class, (m, e) -> {
-                this.testEnvironment.setPropertyIfNotSet(RESULT, e);
-            });
-            this.testEnvironment.setProperty(USED_SUBSCRIPTION_ID, subscriptionId);
+            MessageBusTestActions.addDynamicErrorListenerForEventType(messageBus, testEnvironment);
         });
         return this;
     }
 
-    public MessageBusSetupBuilder withTwoDynamicExceptionListener() {
+    public MessageBusSetupBuilder withTwoDynamicExceptionListenerForEventType() {
         messageBusBuilder.withExceptionHandler(allExceptionIgnoringExceptionHandler());
         setupActions.add((messageBus, testEnvironment) -> {
-
-            final SubscriptionId subscriptionId = messageBus.onException(TestMessageOfInterest.class, (m, e) -> {
-                throw new RuntimeException("Should not be called");
-            });
-            this.testEnvironment.setProperty(USED_SUBSCRIPTION_ID, subscriptionId);
-
-            messageBus.onException(TestMessageOfInterest.class, (m, e) -> {
-                this.testEnvironment.setProperty(RESULT, e);
-            });
+            MessageBusTestActions.addTwoDynamicErrorListenerForEventType_whereTheFirstWillBeRemoved(messageBus, testEnvironment);
         });
         return this;
     }
 
     public MessageBusSetupBuilder withADynamicErrorListenerAndAnErrorThrowingExceptionHandler() {
-        setupActions.add((messageBus, testEnvironment1) -> {
-            messageBus.onException(TestMessageOfInterest.class, (m, e) -> testEnvironment.setProperty(RESULT, e));
-        });
-        return this;
-    }
-
-    public MessageBusSetupBuilder withADynamicExceptionListenerForSeveralClasses() {
-        messageBusBuilder.withExceptionHandler(allExceptionIgnoringExceptionHandler());
-        final List<Class<?>> errorClasses = Arrays.asList(TestMessageOfInterest.class, Object.class);
         setupActions.add((messageBus, testEnvironment) -> {
-            messageBus.onException(errorClasses, (m, e) -> {
-                this.testEnvironment.setProperty(RESULT, e);
-            });
+            MessageBusTestActions.addDynamicErrorListenerForEventType(messageBus, testEnvironment);
         });
         return this;
     }

@@ -55,7 +55,7 @@ public interface MessageBusStatusInformation {
      *
      * @return map of classes and their {@code Subscribers}
      */
-    Map<Class<?>, List<Subscriber<?>>> getSubscribersPerType();
+    Map<EventType, List<Subscriber<?>>> getSubscribersPerType();
 
     /**
      * Returns the class-specific {@code Channel} for the given class or {@code null} if the class has not yet been
@@ -65,5 +65,5 @@ public interface MessageBusStatusInformation {
      * @param <T>          the type of the class
      * @return the {@code Channel} of the class or {@code null}
      */
-    <T> Channel<T> getChannelFor(Class<T> messageClass);
+    Channel<Object> getChannelFor(EventType eventType);
 }

@@ -22,27 +22,26 @@
 package com.envimate.messageMate.messageBus.internal.brokering;
 
 import com.envimate.messageMate.channel.Channel;
-import com.envimate.messageMate.channel.ProcessingContext;
+import com.envimate.messageMate.messageBus.EventType;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public interface MessageBusBrokerStrategy {
 
-    Set<Channel<?>> getDeliveringChannelsFor(Class<?> messageClass);
+    Channel<Object> getDeliveringChannelFor(EventType eventType);
 
-    <T> void addSubscriber(Class<T> tClass, Subscriber<T> subscriber);
+    void addSubscriber(EventType eventType, Subscriber<Object> subscriber);
 
-    <T> void addRawSubscriber(Class<T> tClass, Subscriber<ProcessingContext<T>> subscriber);
+    void addRawSubscriber(EventType eventType, Subscriber<ProcessingContext<Object>> subscriber);
 
     void removeSubscriber(SubscriptionId subscriptionId);
 
     List<Subscriber<?>> getAllSubscribers();
 
-    Map<Class<?>, List<Subscriber<?>>> getSubscribersPerType();
+    Map<EventType, List<Subscriber<?>>> getSubscribersPerType();
 
-    Channel<?> getClassSpecificChannel(Class<?> messageClass);
 }

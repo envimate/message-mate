@@ -32,6 +32,7 @@ import com.envimate.messageMate.internal.pipe.PipeBuilder;
 import com.envimate.messageMate.internal.pipe.PipeType;
 import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration;
 import com.envimate.messageMate.internal.pipe.error.PipeErrorHandler;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 
 import static com.envimate.messageMate.channel.ChannelImpl.channel;
 import static com.envimate.messageMate.channel.ChannelType.SYNCHRONOUS;

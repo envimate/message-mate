@@ -21,8 +21,7 @@
 
 package com.envimate.messageMate.channel.action;
 
-import com.envimate.messageMate.channel.ProcessingContext;
-import com.envimate.messageMate.channel.action.Action;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 
 /**
  * {@code ActionHandler} are responsible to handle the execution of the final {@code Action} of a {@code Channel}.

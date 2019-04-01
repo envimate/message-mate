@@ -1,5 +1,6 @@
 package com.envimate.messageMate.useCaseAdapter.voidReturn;
 
+import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.config.AbstractTestConfigProvider;
@@ -20,7 +21,7 @@ import static com.envimate.messageMate.useCaseAdapter.voidReturn.CallbackTestReq
 public class VoidReturnConfigurationResolver extends AbstractTestConfigProvider {
 
     public static final Class<?> USE_CASE_CLASS = VoidReturnUseCase.class;
-    public static final Class<?> EventClass = CallbackTestRequest.class;
+    public static final EventType EVENT_TYPE = EventType.eventTypeFromString("ExceptionThrowingUseCase");
 
     @Override
     protected Class<?> forConfigClass() {
@@ -41,7 +42,7 @@ public class VoidReturnConfigurationResolver extends AbstractTestConfigProvider 
             return testRequest;
         };
         final Supplier<Object> instantiationFunction = VoidReturnUseCase::new;
-        final Consumer<UseCaseAdapterStep3Builder<?, ?>> parameterMapping = callingBuilder -> {
+        final Consumer<UseCaseAdapterStep3Builder<?>> parameterMapping = callingBuilder -> {
             callingBuilder.calling((useCaseInstance, event) -> {
                 final VoidReturnUseCase useCase = (VoidReturnUseCase) useCaseInstance;
                 final CallbackTestRequest callbackTestRequest = (CallbackTestRequest) event;
@@ -56,6 +57,6 @@ public class VoidReturnConfigurationResolver extends AbstractTestConfigProvider 
                 return testEnvironment.getProperty(EXPECTED_RESULT);
             }
         };
-        return testUseCase(USE_CASE_CLASS, EventClass, messageBusSetup, instantiationFunction, parameterMapping, requestObjectFunction, expectedResultSupploer);
+        return testUseCase(USE_CASE_CLASS, EVENT_TYPE, messageBusSetup, instantiationFunction, parameterMapping, requestObjectFunction, expectedResultSupploer);
     }
 }

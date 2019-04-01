@@ -22,6 +22,7 @@
 package com.envimate.messageMate.messageBus.channelCreating;
 
 import com.envimate.messageMate.channel.Channel;
+import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionHandler;
 import com.envimate.messageMate.messageBus.internal.exception.DelegatingChannelExceptionHandler;
 import com.envimate.messageMate.subscribing.Subscriber;
@@ -50,11 +51,10 @@ public final class SynchronousMessageBusChannelFactory implements MessageBusChan
     }
 
     @Override
-    public <T> Channel<?> createChannel(final Class<T> tClass, final Subscriber<?> subscriber,
-                                        final MessageBusExceptionHandler messageBusExceptionHandler) {
-        final DelegatingChannelExceptionHandler<T> delegatingChannelExceptionHandler =
+    public Channel<Object> createChannel(final EventType eventType, final Subscriber<?> subscriber, final MessageBusExceptionHandler messageBusExceptionHandler) {
+        final DelegatingChannelExceptionHandler<Object> delegatingChannelExceptionHandler =
                 delegatingChannelExceptionHandlerForDeliveryChannel(messageBusExceptionHandler);
-        final Channel<T> channel = aChannel(tClass)
+        final Channel<Object> channel = aChannel(Object.class)
                 .withDefaultAction(subscription())
                 .withChannelExceptionHandler(delegatingChannelExceptionHandler)
                 .build();

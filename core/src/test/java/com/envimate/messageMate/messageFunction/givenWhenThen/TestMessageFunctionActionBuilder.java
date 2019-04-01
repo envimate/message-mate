@@ -23,6 +23,7 @@ package com.envimate.messageMate.messageFunction.givenWhenThen;
 
 
 import com.envimate.messageMate.identification.CorrelationId;
+import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageFunction.MessageFunction;
 import com.envimate.messageMate.messageFunction.ResponseFuture;
@@ -39,13 +40,15 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Consumer;
 
+import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.EVENT_TYPE;
 import static com.envimate.messageMate.messageFunction.givenWhenThen.MessageFunctionTestProperties.CANCEL_RESULTS;
 import static com.envimate.messageMate.messageFunction.testResponses.RequestResponseFuturePair.requestResponseFuturePair;
 import static com.envimate.messageMate.messageFunction.testResponses.SimpleTestRequest.testRequest;
 import static com.envimate.messageMate.messageFunction.testResponses.SimpleTestResponse.testResponse;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
+import static com.envimate.messageMate.shared.TestEventType.differentTestEventType;
+import static com.envimate.messageMate.shared.TestEventType.testEventType;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static lombok.AccessLevel.PRIVATE;
@@ -56,19 +59,21 @@ public final class TestMessageFunctionActionBuilder {
 
     public static TestMessageFunctionActionBuilder aRequestIsSend() {
         return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             final SimpleTestRequest testRequest = testRequest();
             testEnvironment.setProperty(TEST_OBJECT, testRequest);
-            return messageFunction.request(testRequest);
+            return messageFunction.request(eventType, testRequest);
         });
     }
 
     public static TestMessageFunctionActionBuilder severalRequestsAreSend() {
         return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             final List<RequestResponseFuturePair> requestResponsePairs = new LinkedList<>();
             final int numberOfRequests = 5;
             for (int i = 0; i < numberOfRequests; i++) {
                 final SimpleTestRequest testRequest = testRequest();
-                final ResponseFuture responseFuture = messageFunction.request(testRequest);
+                final ResponseFuture responseFuture = messageFunction.request(eventType, testRequest);
                 final RequestResponseFuturePair requestResponseFuturePair = requestResponseFuturePair(testRequest, responseFuture);
                 requestResponsePairs.add(requestResponseFuturePair);
             }
@@ -78,22 +83,24 @@ public final class TestMessageFunctionActionBuilder {
 
     public static TestMessageFunctionActionBuilder twoRequestsAreSendThatWithOneOfEachResponsesAnswered() {
         return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
-
             final MessageBus messageBus = testEnvironment.getPropertyAsType(MOCK, MessageBus.class);
-            messageBus.subscribeRaw(TestRequest.class, processingContext -> {
+
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+            final EventType answerEventType = differentTestEventType();
+            messageBus.subscribeRaw(eventType, processingContext -> {
                 final CorrelationId wrongCorrelationId = CorrelationId.newUniqueCorrelationId();
                 final SimpleTestResponse wrongResponse = testResponse(null);
-                messageBus.send(wrongResponse, wrongCorrelationId);
+                messageBus.send(answerEventType, wrongResponse, wrongCorrelationId);
 
                 final CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();
-                final TestRequest payload = processingContext.getPayload();
+                final TestRequest payload = (TestRequest) processingContext.getPayload();
                 final SimpleTestResponse testResponse = testResponse(payload);
-                messageBus.send(testResponse, correlationId);
+                messageBus.send(answerEventType, testResponse, correlationId);
             });
 
             final SimpleTestRequest testRequest = testRequest();
             testEnvironment.setProperty(TEST_OBJECT, testRequest);
-            return messageFunction.request(testRequest);
+            return messageFunction.request(eventType, testRequest);
         });
     }
 
@@ -104,12 +111,14 @@ public final class TestMessageFunctionActionBuilder {
             final String expectedResult = "success";
             testEnvironment.setProperty(EXPECTED_RESULT, expectedResult);
             final MessageBus messageBus = testEnvironment.getPropertyAsType(TestEnvironmentProperty.MOCK, MessageBus.class);
-            messageBus.subscribeRaw(SimpleTestRequest.class, processingContext -> {
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+            messageBus.subscribeRaw(eventType, processingContext -> {
                 final SimpleTestResponse testResponse = testResponse(testRequest);
                 final CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();
-                messageBus.send(testResponse, correlationId);
+                final EventType answerEventType = differentTestEventType();
+                messageBus.send(answerEventType, testResponse, correlationId);
             });
-            final ResponseFuture responseFuture = messageFunction.request(testRequest);
+            final ResponseFuture responseFuture = messageFunction.request(eventType, testRequest);
             responseFuture.then((testResponse, exception) -> testEnvironment.setProperty(RESULT, expectedResult));
             return null;
         });
@@ -118,7 +127,8 @@ public final class TestMessageFunctionActionBuilder {
     public static TestMessageFunctionActionBuilder aFollowUpActionExecutingOnlyOnceIsAddedBeforeRequest() {
         return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
             final SimpleTestRequest testRequest = SimpleTestRequest.testRequest();
-            final ResponseFuture request = messageFunction.request(testRequest);
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+            final ResponseFuture request = messageFunction.request(eventType, testRequest);
 
             request.then((response, exception) -> {
                 if (!testEnvironment.has(RESULT)) {
@@ -139,7 +149,8 @@ public final class TestMessageFunctionActionBuilder {
         return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
             final SimpleTestRequest testRequest = testRequest();
             testEnvironment.setProperty(TEST_OBJECT, testRequest);
-            final ResponseFuture responseFuture = messageFunction.request(testRequest);
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+            final ResponseFuture responseFuture = messageFunction.request(eventType, testRequest);
             responseFuture.then((testResponse, exception) -> {
                 testEnvironment.setProperty(EXCEPTION, exception);
             });
@@ -149,7 +160,9 @@ public final class TestMessageFunctionActionBuilder {
 
     public static TestMessageFunctionActionBuilder aRequestIsSendThatCausesADeliveryFailedMessage() {
         return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
-            final ResponseFuture responseFuture = messageFunction.request(SimpleTestRequest.testRequest());
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+            final SimpleTestRequest request = SimpleTestRequest.testRequest();
+            final ResponseFuture responseFuture = messageFunction.request(eventType, request);
             try {
                 responseFuture.get();
             } catch (final Exception e) {
@@ -165,7 +178,8 @@ public final class TestMessageFunctionActionBuilder {
             final SimpleTestRequest testRequest = testRequest();
             final long expectedTimeout = MILLISECONDS.toMillis(100);
             testEnvironment.setProperty(EXPECTED_RESULT, expectedTimeout);
-            final ResponseFuture responseFuture = messageFunction.request(testRequest);
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+            final ResponseFuture responseFuture = messageFunction.request(eventType, testRequest);
             final long timeoutStart = System.currentTimeMillis();
             try {
                 responseFuture.get(100, MILLISECONDS);
@@ -191,7 +205,8 @@ public final class TestMessageFunctionActionBuilder {
     private static TestMessageFunctionActionBuilder callCancelXTimes(final int cancelCalls) {
         return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
             final SimpleTestRequest testRequest = SimpleTestRequest.testRequest();
-            final ResponseFuture responseFuture = messageFunction.request(testRequest);
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+            final ResponseFuture responseFuture = messageFunction.request(eventType, testRequest);
             responseFuture.then((testResponse, exception) -> {
                 throw new RuntimeException("This FollowUpActionShouldNotBeCalled");
             });
@@ -200,7 +215,7 @@ public final class TestMessageFunctionActionBuilder {
                 testEnvironment.addToListProperty(CANCEL_RESULTS, cancelResult);
             }
             final MessageBus messageBus = testEnvironment.getPropertyAsType(MOCK, MessageBus.class);
-            messageBus.send(testResponse(testRequest));
+            messageBus.send(eventType, testResponse(testRequest));
             return responseFuture;
         });
     }
@@ -209,12 +224,14 @@ public final class TestMessageFunctionActionBuilder {
         return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
             final SimpleTestRequest testRequest = SimpleTestRequest.testRequest();
             final MessageBus messageBus = testEnvironment.getPropertyAsType(MOCK, MessageBus.class);
-            messageBus.subscribeRaw(SimpleTestRequest.class, processingContext -> {
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+            messageBus.subscribeRaw(eventType, processingContext -> {
                 final SimpleTestResponse response = testResponse(testRequest);
                 final CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();
-                messageBus.send(response, correlationId);
+                final EventType answerEventType = differentTestEventType();
+                messageBus.send(answerEventType, response, correlationId);
             });
-            final ResponseFuture responseFuture = messageFunction.request(testRequest);
+            final ResponseFuture responseFuture = messageFunction.request(eventType, testRequest);
             try {
                 MILLISECONDS.sleep(10);
             } catch (final InterruptedException e) {
@@ -229,7 +246,8 @@ public final class TestMessageFunctionActionBuilder {
     public static TestMessageFunctionActionBuilder aResponseToACancelledRequestDoesNotExecuteFollowUpAction() {
         return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
             final SimpleTestRequest testRequest = SimpleTestRequest.testRequest();
-            final ResponseFuture responseFuture = messageFunction.request(testRequest);
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+            final ResponseFuture responseFuture = messageFunction.request(eventType, testRequest);
             responseFuture.then((testResponse, exception) -> {
                 throw new RuntimeException("This FollowUpActionShouldNotBeCalled");
             });
@@ -237,7 +255,8 @@ public final class TestMessageFunctionActionBuilder {
             testEnvironment.addToListProperty(CANCEL_RESULTS, cancelResult);
             final MessageBus messageBus = testEnvironment.getPropertyAsType(MOCK, MessageBus.class);
             final SimpleTestResponse response = testResponse(testRequest);
-            messageBus.send(response);
+            final EventType answerEventType = differentTestEventType();
+            messageBus.send(answerEventType, response);
             try {
                 MILLISECONDS.sleep(10);
             } catch (final InterruptedException e) {
@@ -250,7 +269,8 @@ public final class TestMessageFunctionActionBuilder {
     public static TestMessageFunctionActionBuilder theResultOfACancelledRequestIsTaken() {
         return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
             final SimpleTestRequest testRequest = SimpleTestRequest.testRequest();
-            final ResponseFuture responseFuture = messageFunction.request(testRequest);
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+            final ResponseFuture responseFuture = messageFunction.request(eventType, testRequest);
             responseFuture.cancel(true);
             try {
                 responseFuture.get();
@@ -264,7 +284,8 @@ public final class TestMessageFunctionActionBuilder {
     public static TestMessageFunctionActionBuilder aRequestsIsCancelledWhileOtherThreadsWait() {
         return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
             final SimpleTestRequest testRequest = SimpleTestRequest.testRequest();
-            final ResponseFuture responseFuture = messageFunction.request(testRequest);
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+            final ResponseFuture responseFuture = messageFunction.request(eventType, testRequest);
             final Semaphore waitingSemaphoreGet = new Semaphore(0);
             final Semaphore waitingSemaphoreGetTimeout = new Semaphore(0);
             new Thread(() -> {
@@ -321,7 +342,8 @@ public final class TestMessageFunctionActionBuilder {
     public static TestMessageFunctionActionBuilder aFollowUpActionIsAddedToACancelledFuture() {
         return new TestMessageFunctionActionBuilder((messageFunction, testEnvironment) -> {
             final SimpleTestRequest testRequest = SimpleTestRequest.testRequest();
-            final ResponseFuture responseFuture = messageFunction.request(testRequest);
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+            final ResponseFuture responseFuture = messageFunction.request(eventType, testRequest);
             responseFuture.cancel(true);
             try {
                 responseFuture.then((response, exception) -> {

@@ -1,6 +1,8 @@
 package com.envimate.messageMate.useCaseAdapter;
 
 import com.envimate.messageMate.messageBus.MessageBus;
+import com.envimate.messageMate.processingContext.ProcessingContext;
+import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.useCaseAdapter.usecaseInstantiating.UseCaseInstantiator;
 import com.envimate.messageMate.useCaseAdapter.usecaseInvoking.UseCaseCallingInformation;
 import lombok.EqualsAndHashCode;
@@ -30,8 +32,8 @@ public final class UseCaseAdapterImpl implements UseCaseAdapter {
     @Override
     public void attachTo(final MessageBus messageBus) {
         useCaseCallingInformations.forEach(callingInformation -> {
-            final UseCaseRequestExecutingSubscriber useCaseRequestSubscriber = (UseCaseRequestExecutingSubscriber) useCaseRequestExecutingSubscriber(messageBus, callingInformation, useCaseInstantiator);
-            messageBus.subscribeRaw(callingInformation.getEventClass(), useCaseRequestSubscriber);
+            final Subscriber<ProcessingContext<Object>> useCaseRequestSubscriber = useCaseRequestExecutingSubscriber(messageBus, callingInformation, useCaseInstantiator);
+            messageBus.subscribeRaw(callingInformation.getEventType(), useCaseRequestSubscriber);
         });
     }
 }

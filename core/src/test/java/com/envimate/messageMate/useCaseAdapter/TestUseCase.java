@@ -1,5 +1,6 @@
 package com.envimate.messageMate.useCaseAdapter;
 
+import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusBuilder;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
@@ -19,15 +20,15 @@ public final class TestUseCase {
     @Getter
     private final Class<?> useCaseClass;
     @Getter
-    private final Class<?> useCaseEvent;
+    private final EventType eventType;
     @Getter
     private final BiConsumer<MessageBus, TestEnvironment> messageBusSetup;
     @Getter
     private final Supplier<Object> instantiationFunction;
     @Getter
-    private final Consumer<UseCaseAdapterStep3Builder<?, ?>> parameterMapping;
+    private final Consumer<UseCaseAdapterStep3Builder<?>> parameterMapping;
     @Getter
-    private final Consumer<UseCaseAdapterStep3Builder<?, ?>> customCallingLogic;
+    private final Consumer<UseCaseAdapterStep3Builder<?>> customCallingLogic;
 
     private final Function<TestEnvironment, Object> requestObjectSupplier;
     @Getter
@@ -37,84 +38,84 @@ public final class TestUseCase {
     private final Consumer<MessageBusBuilder> messageBusEnhancer;
 
     public static TestUseCase testUseCase(final Class<?> useCaseClass,
-                                          final Class<?> useCaseEvent,
+                                          final EventType eventType,
                                           final BiConsumer<MessageBus, TestEnvironment> messageBusSetup,
                                           final Supplier<Object> instantiationFunction,
-                                          final Consumer<UseCaseAdapterStep3Builder<?, ?>> customCallingLogic,
+                                          final Consumer<UseCaseAdapterStep3Builder<?>> customCallingLogic,
                                           final Object requestObject,
                                           final Object expectedResult) {
         final Function<TestEnvironment, Object> requestObjectSupplier = testEnvironment -> requestObject;
         final Function<TestEnvironment, Object> expectedResultSupplier = testEnvironment -> expectedResult;
-        return testUseCase(useCaseClass, useCaseEvent, messageBusSetup, instantiationFunction, customCallingLogic,
+        return testUseCase(useCaseClass, eventType, messageBusSetup, instantiationFunction, customCallingLogic,
                 requestObjectSupplier, expectedResultSupplier);
     }
 
     public static TestUseCase testUseCase(final Class<?> useCaseClass,
-                                          final Class<?> useCaseEvent,
+                                          final EventType eventType,
                                           final BiConsumer<MessageBus, TestEnvironment> messageBusSetup,
                                           final Supplier<Object> instantiationFunction,
-                                          final Consumer<UseCaseAdapterStep3Builder<?, ?>> parameterMapping,
-                                          final Consumer<UseCaseAdapterStep3Builder<?, ?>> customCallingLogic,
+                                          final Consumer<UseCaseAdapterStep3Builder<?>> parameterMapping,
+                                          final Consumer<UseCaseAdapterStep3Builder<?>> customCallingLogic,
                                           final Object requestObject,
                                           final Object expectedResult) {
         final Function<TestEnvironment, Object> requestObjectSupplier = testEnvironment -> requestObject;
         final Function<TestEnvironment, Object> expectedResultSupplier = testEnvironment -> expectedResult;
         final Consumer<MessageBusBuilder> messageBusEnhancer = messageBusBuilder -> {
         };
-        return testUseCase(useCaseClass, useCaseEvent, messageBusSetup, instantiationFunction, parameterMapping,
+        return testUseCase(useCaseClass, eventType, messageBusSetup, instantiationFunction, parameterMapping,
                 customCallingLogic, requestObjectSupplier, expectedResultSupplier, messageBusEnhancer);
     }
 
     public static TestUseCase testUseCase(final Class<?> useCaseClass,
-                                          final Class<?> useCaseEvent,
+                                          final EventType eventType,
                                           final BiConsumer<MessageBus, TestEnvironment> messageBusSetup,
                                           final Supplier<Object> instantiationFunction,
-                                          final Consumer<UseCaseAdapterStep3Builder<?, ?>> customCallingLogic,
+                                          final Consumer<UseCaseAdapterStep3Builder<?>> customCallingLogic,
                                           final Object requestObject,
                                           final Object expectedResult,
                                           final Consumer<MessageBusBuilder> messageBusEnhancer) {
         final Function<TestEnvironment, Object> requestObjectSupplier = testEnvironment -> requestObject;
         final Function<TestEnvironment, Object> expectedResultSupplier = testEnvironment -> expectedResult;
-        return testUseCase(useCaseClass, useCaseEvent, messageBusSetup, instantiationFunction, customCallingLogic,
+        return testUseCase(useCaseClass, eventType, messageBusSetup, instantiationFunction, customCallingLogic,
                 requestObjectSupplier, expectedResultSupplier, messageBusEnhancer);
     }
 
     public static TestUseCase testUseCase(final Class<?> useCaseClass,
-                                          final Class<?> useCaseEvent,
+                                          final EventType eventType,
                                           final BiConsumer<MessageBus, TestEnvironment> messageBusSetup,
                                           final Supplier<Object> instantiationFunction,
-                                          final Consumer<UseCaseAdapterStep3Builder<?, ?>> customCallingLogic,
+                                          final Consumer<UseCaseAdapterStep3Builder<?>> customCallingLogic,
                                           final Function<TestEnvironment, Object> requestObjectSupplier,
                                           final Function<TestEnvironment, Object> expectedResultSupplier) {
         final Consumer<MessageBusBuilder> messageBusEnhancer = messageBusBuilder -> {
         };
-        return testUseCase(useCaseClass, useCaseEvent, messageBusSetup, instantiationFunction, customCallingLogic, requestObjectSupplier, expectedResultSupplier, messageBusEnhancer);
+        return testUseCase(useCaseClass, eventType, messageBusSetup, instantiationFunction, customCallingLogic, requestObjectSupplier, expectedResultSupplier, messageBusEnhancer);
     }
 
     public static TestUseCase testUseCase(final Class<?> useCaseClass,
-                                          final Class<?> useCaseEvent,
+                                          final EventType eventType,
                                           final BiConsumer<MessageBus, TestEnvironment> messageBusSetup,
                                           final Supplier<Object> instantiationFunction,
-                                          final Consumer<UseCaseAdapterStep3Builder<?, ?>> customCallingLogic,
+                                          final Consumer<UseCaseAdapterStep3Builder<?>> customCallingLogic,
                                           final Function<TestEnvironment, Object> requestObjectSupplier,
                                           final Function<TestEnvironment, Object> expectedResultSupplier,
                                           final Consumer<MessageBusBuilder> messageBusEnhancer) {
-        final Consumer<UseCaseAdapterStep3Builder<?, ?>> parameterMapping = mappingBuilder -> {
+        final Consumer<UseCaseAdapterStep3Builder<?>> parameterMapping = mappingBuilder -> {
         };
-        return new TestUseCase(useCaseClass, useCaseEvent, messageBusSetup, instantiationFunction, parameterMapping,
+        return new TestUseCase(useCaseClass, eventType, messageBusSetup, instantiationFunction, parameterMapping,
                 customCallingLogic, requestObjectSupplier, expectedResultSupplier, messageBusEnhancer);
     }
 
     public static TestUseCase testUseCase(final Class<?> useCaseClass,
-                                          final Class<?> useCaseEvent,
+                                          final EventType eventType,
                                           final BiConsumer<MessageBus, TestEnvironment> messageBusSetup,
                                           final Supplier<Object> instantiationFunction,
-                                          final Consumer<UseCaseAdapterStep3Builder<?, ?>> parameterMapping,
-                                          final Consumer<UseCaseAdapterStep3Builder<?, ?>> customCallingLogic,
+                                          final Consumer<UseCaseAdapterStep3Builder<?>> parameterMapping,
+                                          final Consumer<UseCaseAdapterStep3Builder<?>> customCallingLogic,
                                           final Function<TestEnvironment, Object> requestObjectSupplier,
                                           final Function<TestEnvironment, Object> expectedResultSupplier,
                                           final Consumer<MessageBusBuilder> messageBusEnhancer) {
-        return new TestUseCase(useCaseClass, useCaseEvent, messageBusSetup, instantiationFunction, parameterMapping,
+        return new TestUseCase(useCaseClass, eventType, messageBusSetup, instantiationFunction, parameterMapping,
                 customCallingLogic, requestObjectSupplier, expectedResultSupplier, messageBusEnhancer);
     }
 
@@ -130,11 +131,11 @@ public final class TestUseCase {
         return expectedResultSupplier.apply(testEnvironment);
     }
 
-    public void useCustomInvocationLogic(final UseCaseAdapterStep3Builder<?, ?> callingBuilder) {
+    public void useCustomInvocationLogic(final UseCaseAdapterStep3Builder<?> callingBuilder) {
         customCallingLogic.accept(callingBuilder);
     }
 
-    public void defineCustomMapping(UseCaseAdapterStep3Builder<?, ?> mappingBuilder) {
+    public void defineCustomMapping(UseCaseAdapterStep3Builder<?> mappingBuilder) {
         parameterMapping.accept(mappingBuilder);
     }
 }

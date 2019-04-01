@@ -1,5 +1,6 @@
 package com.envimate.messageMate.useCaseAdapter.singleObjectParameterButDifferentToEvent;
 
+import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.config.AbstractTestConfigProvider;
@@ -12,11 +13,12 @@ import java.util.function.Supplier;
 
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
 import static com.envimate.messageMate.useCaseAdapter.TestUseCase.testUseCase;
+import static com.envimate.messageMate.useCaseAdapter.UseCaseInvokingResponseEventType.USE_CASE_RESPONSE_EVENT_TYPE;
 import static com.envimate.messageMate.useCaseAdapter.singleObjectParameterButDifferentToEvent.SingleObjectParameterButDifferentToEventParameterEvent.singleObjectParameterButDifferentToEvent;
 
 public class SingleObjectParameterButDifferentToEventConfigurationResolver extends AbstractTestConfigProvider {
     private static final Class<SingleObjectParameterButDifferentToEventParameterUseCase> USE_CASE_CLASS = SingleObjectParameterButDifferentToEventParameterUseCase.class;
-    private static final Class<SingleObjectParameterButDifferentToEventParameterEvent> EVENT_CLASS = SingleObjectParameterButDifferentToEventParameterEvent.class;
+    private static final EventType EVENT_TYPE = EventType.eventTypeFromString("SingleObjectParameterButDifferentToEventParameterUseCase");
 
     @Override
     protected Class<?> forConfigClass() {
@@ -27,14 +29,14 @@ public class SingleObjectParameterButDifferentToEventConfigurationResolver exten
     protected Object testConfig() {
         final String expectedResponse = "expected Response";
         final BiConsumer<MessageBus, TestEnvironment> messageBusSetup = (messageBus, testEnvironment) -> {
-            messageBus.subscribe(String.class, s -> testEnvironment.setPropertyIfNotSet(RESULT, s));
+            messageBus.subscribe(USE_CASE_RESPONSE_EVENT_TYPE, s -> testEnvironment.setPropertyIfNotSet(RESULT, s));
         };
         final Object requestObject = singleObjectParameterButDifferentToEvent(expectedResponse);
         final Supplier<Object> instantiationFunction = SingleObjectParameterButDifferentToEventParameterUseCase::new;
-        final Consumer<UseCaseAdapterStep3Builder<?, ?>> parameterMapping = callingBuilder -> {
+        final Consumer<UseCaseAdapterStep3Builder<?>> parameterMapping = callingBuilder -> {
             callingBuilder.mappingEventToParameter(String.class, o -> ((SingleObjectParameterButDifferentToEventParameterEvent) o).getMessage());
         };
-        final Consumer<UseCaseAdapterStep3Builder<?, ?>> customCallingLogic = callingBuilder -> {
+        final Consumer<UseCaseAdapterStep3Builder<?>> customCallingLogic = callingBuilder -> {
             callingBuilder.calling((useCaseInstance, event) -> {
                 final SingleObjectParameterButDifferentToEventParameterUseCase useCase = (SingleObjectParameterButDifferentToEventParameterUseCase) useCaseInstance;
                 final SingleObjectParameterButDifferentToEventParameterEvent parameterEvent = (SingleObjectParameterButDifferentToEventParameterEvent) event;
@@ -43,6 +45,6 @@ public class SingleObjectParameterButDifferentToEventConfigurationResolver exten
                 return stringReturnValue;
             });
         };
-        return testUseCase(USE_CASE_CLASS, EVENT_CLASS, messageBusSetup, instantiationFunction, parameterMapping, customCallingLogic, requestObject, expectedResponse);
+        return testUseCase(USE_CASE_CLASS, EVENT_TYPE, messageBusSetup, instantiationFunction, parameterMapping, customCallingLogic, requestObject, expectedResponse);
     }
 }

@@ -22,10 +22,11 @@
 package com.envimate.messageMate.messageBus.internal;
 
 import com.envimate.messageMate.channel.Channel;
+import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.messageBus.MessageBusStatusInformation;
 import com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategy;
-import com.envimate.messageMate.messageBus.statistics.MessageBusStatistics;
 import com.envimate.messageMate.messageBus.internal.statistics.MessageBusStatisticsCollector;
+import com.envimate.messageMate.messageBus.statistics.MessageBusStatistics;
 import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -58,14 +59,13 @@ public final class MessageBusStatusInformationAdapter implements MessageBusStatu
     }
 
     @Override
-    public Map<Class<?>, List<Subscriber<?>>> getSubscribersPerType() {
-        return brokerStrategy.getSubscribersPerType();
+    public Channel<Object> getChannelFor(EventType eventType) {
+        return brokerStrategy.getDeliveringChannelFor(eventType);
     }
 
     @Override
-    public <T> Channel<T> getChannelFor(final Class<T> messageClass) {
-        @SuppressWarnings("unchecked")
-        final Channel<T> channel = (Channel<T>) brokerStrategy.getClassSpecificChannel(messageClass);
-        return channel;
+    public Map<EventType, List<Subscriber<?>>> getSubscribersPerType() {
+        return brokerStrategy.getSubscribersPerType();
     }
+
 }

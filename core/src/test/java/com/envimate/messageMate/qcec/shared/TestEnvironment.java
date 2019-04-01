@@ -42,10 +42,27 @@ public final class TestEnvironment {
     }
 
     public void setPropertyIfNotSet(final TestEnvironmentProperty property, final Object o) {
+        setPropertyIfNotSet(property.name(), o);
+    }
+
+    public void setPropertyIfNotSet(final String property, final Object o) {
         if (has(property)) {
             throw new IllegalArgumentException("Property " + property + " already set.");
         }
-        setProperty(property.name(), o);
+        setProperty(property, o);
+    }
+
+    public <T> T getPropertyOrSetDefault(final TestEnvironmentProperty property, final T defaultValue) {
+        return getPropertyOrSetDefault(property.name(), defaultValue);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T getPropertyOrSetDefault(final String property, final T defaultValue) {
+        if (!has(property)) {
+            setProperty(property, defaultValue);
+        }
+        final Class<?> aClass = defaultValue.getClass();
+        return (T) getPropertyAsType(property, aClass);
     }
 
     public void setProperty(final String property, final Object o) {

@@ -5,6 +5,6 @@ import com.envimate.messageMate.useCaseAdapter.UseCaseAdapterSpecs;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(SingleObjectParameterButDifferentToEventConfigurationResolver.class)
-public class SingleEventParameterUseCaseAdapterSpecs implements UseCaseAdapterSpecs {
+public class SingleObjectParameterButDifferentToEventUseCaseAdapterSpecs implements UseCaseAdapterSpecs {
 
 }

@@ -32,14 +32,13 @@ import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusAction
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusSetupBuilder.aConfiguredMessageBus;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusValidationBuilder.expectResultToBe;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusValidationBuilder.expectXMessagesToBeDelivered;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @ExtendWith(AsynchronousDeliveryMessageBusConfigurationResolver.class)
 public class AsynchronousDeliveryMessageBusSpecs implements MessageBusSpecs {
 
 
     @Test
-    public void testMessageBus_queryingNumberOfQueuedMessages_alwaysReturnsZero(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+    public void testMessageBus_queryingNumberOfQueuedMessages(final MessageBusTestConfig messageBusTestConfig) throws Exception {
         final int expectedQueuedMessages = 5;
         final int messagesSendParallel = MessageBusTestConfig.ASYNCHRONOUS_DELIVERY_POOL_SIZE + expectedQueuedMessages;
         given(aConfiguredMessageBus(messageBusTestConfig)

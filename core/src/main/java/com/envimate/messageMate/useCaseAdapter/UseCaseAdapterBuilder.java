@@ -1,5 +1,6 @@
 package com.envimate.messageMate.useCaseAdapter;
 
+import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterStep1Builder;
 import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterStep2Builder;
 import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterStep3Builder;
@@ -30,8 +31,8 @@ public class UseCaseAdapterBuilder implements UseCaseAdapterStep1Builder {
         return new UseCaseAdapterStep2Builder<USECASE>() {
 
             @Override
-            public <EVENT> UseCaseAdapterStep3Builder<USECASE, EVENT> forEvent(Class<EVENT> eventClass) {
-                return new MappingBuilder<>(UseCaseAdapterBuilder.this, useCaseClass, eventClass);
+            public UseCaseAdapterStep3Builder<USECASE> forType(EventType eventType) {
+                return new MappingBuilder<>(UseCaseAdapterBuilder.this, useCaseClass, eventType);
             }
 
         };
@@ -44,22 +45,22 @@ public class UseCaseAdapterBuilder implements UseCaseAdapterStep1Builder {
     }
 
     @RequiredArgsConstructor(access = PRIVATE)
-    private final class MappingBuilder<USECASE, EVENT> implements UseCaseAdapterStep3Builder<USECASE, EVENT> {
+    private final class MappingBuilder<USECASE> implements UseCaseAdapterStep3Builder<USECASE> {
         private final ParameterValueMappings parameterValueMappings = emptyParameterValueMappings();
         private final UseCaseAdapterBuilder wrappingBuilder;
         private final Class<USECASE> useCaseClass;
-        private final Class<EVENT> eventClass;
+        private final EventType eventType;
 
 
         @Override
-        public <PARAM> UseCaseAdapterStep3Builder<USECASE, EVENT> mappingEventToParameter(Class<PARAM> paramClass, Function<EVENT, Object> mapping) {
-            parameterValueMappings.registerMapping(paramClass, event -> mapping.apply((EVENT) event));
+        public <PARAM> UseCaseAdapterStep3Builder<USECASE> mappingEventToParameter(Class<PARAM> paramClass, Function<Object, Object> mapping) {
+            parameterValueMappings.registerMapping(paramClass, event -> mapping.apply(event));
             return this;
         }
 
         @Override
-        public UseCaseAdapterStep1Builder callingBy(Caller<USECASE, EVENT> caller) {
-            final UseCaseCallingInformation<USECASE, EVENT> invocationInformation = useCaseInvocationInformation(useCaseClass, eventClass, caller, parameterValueMappings);
+        public UseCaseAdapterStep1Builder callingBy(Caller<USECASE, Object> caller) {
+            final UseCaseCallingInformation<USECASE> invocationInformation = useCaseInvocationInformation(useCaseClass, eventType, caller, parameterValueMappings);
             wrappingBuilder.useCaseCallingInformations.add(invocationInformation);
             return wrappingBuilder;
         }

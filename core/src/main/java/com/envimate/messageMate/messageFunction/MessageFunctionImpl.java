@@ -21,19 +21,20 @@
 
 package com.envimate.messageMate.messageFunction;
 
-import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.identification.MessageId;
+import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageFunction.internal.ExpectedResponseFuture;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.Getter;
 import lombok.NonNull;
 
-import static com.envimate.messageMate.channel.ProcessingContext.processingContext;
 import static com.envimate.messageMate.identification.CorrelationId.correlationIdFor;
 import static com.envimate.messageMate.identification.MessageId.newUniqueMessageId;
 import static com.envimate.messageMate.messageFunction.internal.ExpectedResponseFuture.expectedResponseFuture;
+import static com.envimate.messageMate.processingContext.ProcessingContext.processingContext;
 
 final class MessageFunctionImpl implements MessageFunction {
     private final MessageBus messageBus;
@@ -47,15 +48,15 @@ final class MessageFunctionImpl implements MessageFunction {
         return new MessageFunctionImpl(messageBus);
     }
 
-    //TODO: fullfill future once
     //TODO: unsubscribe when finished
     @Override
-    public ResponseFuture request(final Object request) {
+    public ResponseFuture request(final EventType eventType, final Object request) {
         if (closed) {
             return null; //TODO: throw error
         }
         final RequestHandle requestHandle = new RequestHandle(messageBus);
-        requestHandle.send(request);
+        //TODO: try catch + fulfillWithError, so that exception does not occur for synchronous + throwing MBExceptionHandler
+        requestHandle.send(eventType, request);
         return requestHandle.getResponseFuture();
     }
 
@@ -79,7 +80,7 @@ final class MessageFunctionImpl implements MessageFunction {
             this.subscriptionContainer = new SubscriptionContainer();
         }
 
-        public synchronized void send(final Object request) {
+        public synchronized void send(final EventType eventType, final Object request) {
             final MessageId messageId = newUniqueMessageId();
             final CorrelationId correlationId = correlationIdFor(messageId);
             final SubscriptionId answerSubscriptionId = messageBus.subscribe(correlationId, processingContext -> {
@@ -90,7 +91,7 @@ final class MessageFunctionImpl implements MessageFunction {
                 fulFillFuture(e);
                 subscriptionContainer.unsubscribe(messageBus);
             });
-            final SubscriptionId errorSubsciptionId2 = messageBus.onException(request.getClass(), (o, e) -> {
+            final SubscriptionId errorSubsciptionId2 = messageBus.onException(eventType, (o, e) -> {
                 if (o == request) {
                     fulFillFuture(e);
                     subscriptionContainer.unsubscribe(messageBus);
@@ -98,8 +99,14 @@ final class MessageFunctionImpl implements MessageFunction {
             });
             subscriptionContainer.setSubscriptionIds(answerSubscriptionId, errorSubscriptionId1, errorSubsciptionId2);
 
-            final ProcessingContext<Object> processingContext = processingContext(request, messageId, null);
-            messageBus.send(processingContext);
+            final ProcessingContext<Object> processingContext = processingContext(eventType, request, messageId);
+            try {
+                messageBus.send(processingContext);
+            } catch (final Exception e) {
+                //TODO: test for this case
+                fulFillFuture(e);
+                subscriptionContainer.unsubscribe(messageBus);
+            }
         }
 
         private synchronized void fulFillFuture(final ProcessingContext<Object> processingContext) {

@@ -21,23 +21,21 @@
 
 package com.envimate.messageMate.messageBus.internal.exception;
 
-import com.envimate.messageMate.channel.ProcessingContext;
-import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener;
 import com.envimate.messageMate.identification.CorrelationId;
+import com.envimate.messageMate.messageBus.EventType;
+import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 
 import java.util.List;
 
 public interface ExceptionListenerHandler {
 
-    <T> SubscriptionId register(Class<T> messageClass, MessageBusExceptionListener<T> exceptionListener);
-
-    <T> SubscriptionId register(List<Class<? extends T>> messageClasses,
-                                MessageBusExceptionListener<? extends T> exceptionListener);
+    SubscriptionId register(EventType eventType, MessageBusExceptionListener<Object> exceptionListener);
 
     SubscriptionId register(CorrelationId correlationId, MessageBusExceptionListener<Object> exceptionListener);
 
-     List<MessageBusExceptionListener> listenerFor(ProcessingContext<?> processingContext);
+    List<MessageBusExceptionListener> listenerFor(ProcessingContext<?> processingContext);
 
 
     void unregister(SubscriptionId subscriptionId);

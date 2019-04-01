@@ -1,5 +1,6 @@
 package com.envimate.messageMate.useCaseAdapter;
 
+import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageFunction.MessageFunction;
 import com.envimate.messageMate.messageFunction.MessageFunctionBuilder;
@@ -9,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.MOCK;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
+import static com.envimate.messageMate.shared.TestEventType.testEventType;
+import static com.envimate.messageMate.useCaseAdapter.UseCaseAdapterTestProperties.EVENT_TYPE;
 import static com.envimate.messageMate.useCaseAdapter.UseCaseAdapterTestProperties.MESSAGE_FUNCTION_USED;
 import static lombok.AccessLevel.PRIVATE;
 
@@ -26,7 +29,8 @@ public final class UseCaseAdapterActionBuilder {
             final MessageBus messageBus = testEnvironment.getPropertyAsType(MOCK, MessageBus.class);
             testUseCase.performNecessaryResultSubscriptionsOn(messageBus, testEnvironment);
             final Object requestObject = testUseCase.getRequestObjectSupplier(testEnvironment);
-            messageBus.send(requestObject);
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+            messageBus.send(eventType, requestObject);
             return null;
         });
     }
@@ -37,7 +41,8 @@ public final class UseCaseAdapterActionBuilder {
             final MessageBus messageBus = testEnvironment.getPropertyAsType(MOCK, MessageBus.class);
             final Object requestObject = testUseCase.getRequestObjectSupplier(testEnvironment);
             final MessageFunction messageFunction = MessageFunctionBuilder.aMessageFunction(messageBus);
-            final ResponseFuture responseFuture = messageFunction.request(requestObject);
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+            final ResponseFuture responseFuture = messageFunction.request(eventType, requestObject);
             testEnvironment.setProperty(RESULT, responseFuture);
             return null;
         });

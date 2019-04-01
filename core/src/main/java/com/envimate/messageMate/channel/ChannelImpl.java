@@ -35,6 +35,7 @@ import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.internal.pipe.Pipe;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;

@@ -22,7 +22,7 @@
 package com.envimate.messageMate.channel.action;
 
 import com.envimate.messageMate.channel.ChannelProcessingFrame;
-import com.envimate.messageMate.channel.ProcessingContext;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 import lombok.RequiredArgsConstructor;
 
 import static lombok.AccessLevel.PRIVATE;

@@ -21,7 +21,7 @@
 
 package com.envimate.messageMate.channel.action;
 
-import com.envimate.messageMate.channel.ProcessingContext;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.subscribing.AcceptingBehavior;
 import com.envimate.messageMate.subscribing.ConsumerSubscriber;
 import com.envimate.messageMate.subscribing.Subscriber;

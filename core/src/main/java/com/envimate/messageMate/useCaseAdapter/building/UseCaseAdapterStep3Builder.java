@@ -21,6 +21,6 @@
 
 package com.envimate.messageMate.useCaseAdapter.building;
 
-public interface UseCaseAdapterStep3Builder<USECASE, EVENT> extends UseCaseAdapterCallingBuilder<USECASE, EVENT>,
-        UseCaseAdapterAddParameterValueExtractionBuilder<USECASE, EVENT> {
+public interface UseCaseAdapterStep3Builder<USECASE> extends UseCaseAdapterCallingBuilder<USECASE>,
+        UseCaseAdapterAddParameterValueExtractionBuilder<USECASE> {
 }

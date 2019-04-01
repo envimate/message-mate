@@ -22,9 +22,10 @@
 package com.envimate.messageMate.messageBus.givenWhenThen;
 
 
-import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.identification.CorrelationId;
+import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.qcec.shared.TestValidation;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
@@ -39,7 +40,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActions.messageBusTestActions;
+import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActionsOld.messageBusTestActions;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.EXPECTED_CORRELATION_ID;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.SINGLE_SEND_MESSAGE;
@@ -171,11 +172,11 @@ public final class MessageBusValidationBuilder {
         });
     }
 
-    public static MessageBusValidationBuilder expectSubscriberOfType(final int expectedNumberOfSubscribers, final Class<?> messageClass) {
+    public static MessageBusValidationBuilder expectSubscriberOfType(final int expectedNumberOfSubscribers, final EventType eventType) {
         return asValidation(testEnvironment -> {
             @SuppressWarnings("unchecked")
-            final Map<Object, List<Subscriber<Object>>> resultMap = (Map<Object, List<Subscriber<Object>>>) testEnvironment.getProperty(RESULT);
-            final List<Subscriber<Object>> subscribersForType = resultMap.get(messageClass);
+            final Map<EventType, List<Subscriber<?>>> resultMap = (Map<EventType, List<Subscriber<?>>>) testEnvironment.getProperty(RESULT);
+            final List<Subscriber<?>> subscribersForType = resultMap.get(eventType);
             assertThat(subscribersForType.size(), equalTo(expectedNumberOfSubscribers));
         });
     }
@@ -274,7 +275,9 @@ public final class MessageBusValidationBuilder {
     }
 
     private static ProcessingContext<?> getOnlyMessageFromSingleReceiver(final TestEnvironment testEnvironment) {
-        final TestSubscriber<?> testSubscriber = testEnvironment.getPropertyAsType(EXPECTED_RECEIVERS, TestSubscriber.class);
+        final List<TestSubscriber<Object>> testSubscribers = (List<TestSubscriber<Object>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
+        assertThat(testSubscribers.size(), equalTo(1));
+        final TestSubscriber<?> testSubscriber = testSubscribers.get(0);
         final List<?> receivedMessages = testSubscriber.getReceivedMessages();
         assertThat(receivedMessages.size(), equalTo(1));
         return (ProcessingContext<?>) receivedMessages.get(0);

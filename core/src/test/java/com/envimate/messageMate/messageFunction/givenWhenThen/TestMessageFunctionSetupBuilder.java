@@ -22,12 +22,12 @@
 package com.envimate.messageMate.messageFunction.givenWhenThen;
 
 import com.envimate.messageMate.identification.CorrelationId;
+import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusBuilder;
 import com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler;
 import com.envimate.messageMate.messageFunction.MessageFunction;
 import com.envimate.messageMate.messageFunction.MessageFunctionBuilder;
-import com.envimate.messageMate.messageFunction.testResponses.ErrorTestResponse;
 import com.envimate.messageMate.messageFunction.testResponses.SimpleTestRequest;
 import com.envimate.messageMate.messageFunction.testResponses.SimpleTestResponse;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
@@ -40,9 +40,11 @@ import java.util.function.Consumer;
 
 import static com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration.constantPoolSizeAsynchronousPipeConfiguration;
 import static com.envimate.messageMate.messageBus.MessageBusType.ASYNCHRONOUS;
-import static com.envimate.messageMate.messageFunction.testResponses.ErrorTestResponse.errorTestResponse;
+import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.EVENT_TYPE;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RESULT;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.MOCK;
+import static com.envimate.messageMate.shared.TestEventType.differentTestEventType;
+import static com.envimate.messageMate.shared.TestEventType.testEventType;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
@@ -58,12 +60,16 @@ public final class TestMessageFunctionSetupBuilder {
     }
 
     public TestMessageFunctionSetupBuilder withTheRequestAnsweredByACorrelatedResponse() {
-        setupActions.add(messageBus -> messageBus.subscribeRaw(SimpleTestRequest.class, processingContext -> {
-            final CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();
-            final SimpleTestRequest request = processingContext.getPayload();
-            final SimpleTestResponse simpleTestResponse = SimpleTestResponse.testResponse(request);
-            messageBus.send(simpleTestResponse, correlationId);
-        }));
+        setupActions.add(messageBus -> {
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+            messageBus.subscribeRaw(eventType, processingContext -> {
+                final CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();
+                final SimpleTestRequest request = (SimpleTestRequest) processingContext.getPayload();
+                final SimpleTestResponse simpleTestResponse = SimpleTestResponse.testResponse(request);
+                final EventType differentTestEventType = differentTestEventType();
+                messageBus.send(differentTestEventType, simpleTestResponse, correlationId);
+            });
+        });
         return this;
     }
 
@@ -72,57 +78,71 @@ public final class TestMessageFunctionSetupBuilder {
     }
 
     public TestMessageFunctionSetupBuilder definedWithAnUnansweredResponse() {
-        setupActions.add(messageBus -> messageBus.subscribe(SimpleTestRequest.class, simpleTestRequest -> {
-        }));
         return this;
     }
 
     public TestMessageFunctionSetupBuilder definedWithResponseThrowingAnException() {
         messageBusBuilder.withExceptionHandler(MessageBusTestExceptionHandler.allExceptionIgnoringExceptionHandler());
-        setupActions.add(messageBus -> messageBus.subscribe(SimpleTestRequest.class, simpleTestRequest -> {
-            throw new RuntimeException("Expected exception in subcriber");
-        }));
+        setupActions.add(messageBus -> {
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+            messageBus.subscribe(eventType, simpleTestRequest -> {
+                throw new RuntimeException("Expected exception in subcriber");
+            });
+        });
         return this;
     }
 
     public TestMessageFunctionSetupBuilder withFulfillingResponseSendTwice() {
-        setupActions.add(messageBus -> messageBus.subscribeRaw(SimpleTestRequest.class, processingContext -> {
-            final CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();
-            final SimpleTestRequest request = processingContext.getPayload();
-            final SimpleTestResponse simpleTestResponse = SimpleTestResponse.testResponse(request);
-            testEnvironment.setProperty(EXPECTED_RESULT, simpleTestResponse);
-            messageBus.send(simpleTestResponse, correlationId);
-            messageBus.send(simpleTestResponse, correlationId);
-        }));
+        setupActions.add(messageBus -> {
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+            messageBus.subscribeRaw(eventType, processingContext -> {
+                final CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();
+                final SimpleTestRequest request = (SimpleTestRequest) processingContext.getPayload();
+                final SimpleTestResponse simpleTestResponse = SimpleTestResponse.testResponse(request);
+                testEnvironment.setProperty(EXPECTED_RESULT, simpleTestResponse);
+                final EventType answerEventType = differentTestEventType();
+                messageBus.send(answerEventType, simpleTestResponse, correlationId);
+                messageBus.send(answerEventType, simpleTestResponse, correlationId);
+            });
+        });
         return this;
     }
 
     public TestMessageFunctionSetupBuilder withRequestAnsweredByResponseThenByException() {
         messageBusBuilder.withExceptionHandler(MessageBusTestExceptionHandler.allExceptionIgnoringExceptionHandler());
-        setupActions.add(messageBus -> messageBus.subscribeRaw(SimpleTestRequest.class, processingContext -> {
-            final CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();
-            final SimpleTestRequest request = processingContext.getPayload();
-            final SimpleTestResponse simpleTestResponse = SimpleTestResponse.testResponse(request);
-            messageBus.send(simpleTestResponse, correlationId);
-            testEnvironment.setProperty(EXPECTED_RESULT, simpleTestResponse);
-            throw new TestException();
-        }));
+        setupActions.add(messageBus -> {
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+            messageBus.subscribeRaw(eventType, processingContext -> {
+                final CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();
+                final SimpleTestRequest request = (SimpleTestRequest) processingContext.getPayload();
+                final SimpleTestResponse simpleTestResponse = SimpleTestResponse.testResponse(request);
+                final EventType answerEventType = differentTestEventType();
+                messageBus.send(answerEventType, simpleTestResponse, correlationId);
+                testEnvironment.setProperty(EXPECTED_RESULT, simpleTestResponse);
+                throw new TestException();
+            });
+        });
         return this;
     }
 
     public TestMessageFunctionSetupBuilder withRequestAnsweredByExceptionThenByMessage() {
         messageBusBuilder.withExceptionHandler(MessageBusTestExceptionHandler.allExceptionIgnoringExceptionHandler());
-        setupActions.add(messageBus -> messageBus.subscribeRaw(SimpleTestRequest.class, processingContext -> {
-            try {
-                throw new TestException();
-            } finally {
-                final CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();
-                final SimpleTestRequest request = processingContext.getPayload();
-                final SimpleTestResponse simpleTestResponse = SimpleTestResponse.testResponse(request);
-                messageBus.send(simpleTestResponse, correlationId);
-                testEnvironment.setProperty(EXPECTED_RESULT, simpleTestResponse);
-            }
-        }));
+        setupActions.add(messageBus -> {
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+            messageBus.subscribeRaw(eventType, processingContext -> {
+                try {
+                    throw new TestException();
+                } finally {
+                    final CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();
+                    final SimpleTestRequest request = (SimpleTestRequest) processingContext.getPayload();
+                    final SimpleTestResponse simpleTestResponse = SimpleTestResponse.testResponse(request);
+
+                    final EventType answerEventType = differentTestEventType();
+                    messageBus.send(answerEventType, simpleTestResponse, correlationId);
+                    testEnvironment.setProperty(EXPECTED_RESULT, simpleTestResponse);
+                }
+            });
+        });
         return this;
     }
 

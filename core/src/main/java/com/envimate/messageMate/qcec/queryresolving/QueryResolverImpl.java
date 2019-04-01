@@ -21,12 +21,15 @@
 
 package com.envimate.messageMate.qcec.queryresolving;
 
+import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.subscribing.PreemptiveSubscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 
 import java.util.Optional;
 import java.util.function.Consumer;
+
+import static com.envimate.messageMate.qcec.EventTypeMapper.eventTypeFor;
 
 public class QueryResolverImpl implements QueryResolver {
     private final MessageBus messageBus;
@@ -37,25 +40,30 @@ public class QueryResolverImpl implements QueryResolver {
 
     @Override
     public <T extends Query<?>> SubscriptionId answer(final Class<T> queryClass, final Consumer<T> responder) {
-        final PreemptiveSubscriber<T> subscriber = PreemptiveSubscriber.preemptiveSubscriber(t -> {
-            responder.accept(t);
-            final boolean continueDelivery = !t.finished();
+        final PreemptiveSubscriber<Object> subscriber = PreemptiveSubscriber.preemptiveSubscriber(t -> {
+            final T query = (T) t;
+            responder.accept(query);
+            final boolean continueDelivery = !query.finished();
             return continueDelivery;
         });
-        messageBus.subscribe(queryClass, subscriber);
+        final EventType eventType = eventTypeFor(queryClass);
+        messageBus.subscribe(eventType, subscriber);
         final SubscriptionId subscriptionId = subscriber.getSubscriptionId();
         return subscriptionId;
     }
 
+
     @Override
     public <R> Optional<R> query(final Query<R> query) {
-        messageBus.send(query);
+        final EventType eventType = eventTypeFor(query);
+        messageBus.send(eventType, query);
         return Optional.ofNullable(query.result());
     }
 
     @Override
     public <R> R queryRequired(final Query<R> query) {
-        messageBus.send(query);
+        final EventType eventType = eventTypeFor(query);
+        messageBus.send(eventType, query);
         return Optional
                 .ofNullable(query.result())
                 .orElseThrow(() -> new UnsupportedOperationException("Expected a query result for query " + query));

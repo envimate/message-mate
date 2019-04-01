@@ -22,16 +22,13 @@
 package com.envimate.messageMate.messageBus.internal.exception;
 
 import com.envimate.messageMate.channel.Channel;
-import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionHandler;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 import lombok.RequiredArgsConstructor;
 
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 
-import static java.util.Collections.emptyList;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)

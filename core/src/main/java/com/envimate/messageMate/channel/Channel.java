@@ -24,9 +24,10 @@ package com.envimate.messageMate.channel;
 import com.envimate.messageMate.channel.action.Action;
 import com.envimate.messageMate.exceptions.AlreadyClosedException;
 import com.envimate.messageMate.filtering.Filter;
+import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.internal.autoclosable.NoErrorAutoClosable;
-import com.envimate.messageMate.identification.CorrelationId;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;

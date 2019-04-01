@@ -22,9 +22,9 @@
 package com.envimate.messageMate.messageBus.internal.exception;
 
 import com.envimate.messageMate.channel.Channel;
-import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.channel.exception.ChannelExceptionHandler;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionHandler;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 

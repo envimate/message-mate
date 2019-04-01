@@ -21,7 +21,7 @@
 
 package com.envimate.messageMate.channel.exception;
 
-import com.envimate.messageMate.channel.ProcessingContext;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 
 /**
  * Whenever an exception is thrown within a {@code Filter} or the final {@code Action}, the {@code ChannelExceptionHandler} is

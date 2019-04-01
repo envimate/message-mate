@@ -22,9 +22,9 @@
 package com.envimate.messageMate.channel.givenWhenThen;
 
 import com.envimate.messageMate.channel.Channel;
-import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.channel.action.*;
 import com.envimate.messageMate.filtering.Filter;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.qcec.shared.TestEnvironmentProperty;
 import com.envimate.messageMate.qcec.shared.TestValidation;

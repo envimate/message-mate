@@ -21,7 +21,7 @@
 
 package com.envimate.messageMate.channel.action;
 
-import com.envimate.messageMate.channel.ProcessingContext;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;

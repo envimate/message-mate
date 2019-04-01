@@ -22,7 +22,7 @@
 package com.envimate.messageMate.messageBus.exception;
 
 import com.envimate.messageMate.channel.Channel;
-import com.envimate.messageMate.channel.ProcessingContext;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 
 import java.util.List;
 

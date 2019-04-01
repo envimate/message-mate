@@ -21,12 +21,14 @@
 
 package com.envimate.messageMate.qcec.eventBus;
 
+import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.RequiredArgsConstructor;
 
 import java.util.function.Consumer;
 
+import static com.envimate.messageMate.qcec.EventTypeMapper.eventTypeFor;
 import static lombok.AccessLevel.PACKAGE;
 
 @RequiredArgsConstructor(access = PACKAGE)
@@ -35,12 +37,14 @@ public class EventBusImpl implements EventBus {
 
     @Override
     public void publish(final Object event) {
-        messageBus.send(event);
+        final EventType eventType = eventTypeFor(event);
+        messageBus.send(eventType, event);
     }
 
     @Override
     public <T> SubscriptionId reactTo(final Class<T> tClass, final Consumer<T> consumer) {
-        return messageBus.subscribe(tClass, consumer);
+        final EventType eventType = eventTypeFor(tClass);
+        return messageBus.subscribe(eventType, o -> consumer.accept((T) o));
     }
 
     @Override

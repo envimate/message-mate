@@ -1,6 +1,7 @@
 package com.envimate.messageMate.useCaseAdapter;
 
 import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration;
+import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusBuilder;
 import com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler;
@@ -41,9 +42,9 @@ public final class UseCaseAdapterSetupBuilder {
 
     public UseCaseAdapterSetupBuilder invokingTheUseCaseUsingTheSingleUseCaseMethod() {
         final Class<?> useCaseClass = testUseCase.getUseCaseClass();
-        final Class<?> eventClass = testUseCase.getUseCaseEvent();
-        final UseCaseAdapterStep3Builder<?, ?> mappingBuilder = useCaseAdapterBuilder.invokingUseCase(useCaseClass)
-                .forEvent(eventClass);
+        final EventType eventType = testUseCase.getEventType();
+        final UseCaseAdapterStep3Builder<?> mappingBuilder = useCaseAdapterBuilder.invokingUseCase(useCaseClass)
+                .forType(eventType);
         testUseCase.defineCustomMapping(mappingBuilder);
         mappingBuilder.callingTheSingleUseCaseMethod();
         return this;
@@ -51,18 +52,18 @@ public final class UseCaseAdapterSetupBuilder {
 
     public UseCaseAdapterSetupBuilder invokingTheUseCaseUsingTheDefinedMapping() {
         final Class<?> useCaseClass = testUseCase.getUseCaseClass();
-        final Class<?> eventClass = testUseCase.getUseCaseEvent();
-        final UseCaseAdapterStep3Builder<?, ?> callingBuilder = useCaseAdapterBuilder.invokingUseCase(useCaseClass)
-                .forEvent(eventClass);
+        final EventType eventType = testUseCase.getEventType();
+        final UseCaseAdapterStep3Builder<?> callingBuilder = useCaseAdapterBuilder.invokingUseCase(useCaseClass)
+                .forType(eventType);
         testUseCase.useCustomInvocationLogic(callingBuilder);
         return this;
     }
 
     public UseCaseAdapterSetupBuilder invokingTheUseCaseUsingAMappingMissingAParameter() {
         final Class<?> useCaseClass = testUseCase.getUseCaseClass();
-        final Class<?> eventClass = testUseCase.getUseCaseEvent();
+        final EventType eventType = testUseCase.getEventType();
         useCaseAdapterBuilder.invokingUseCase(useCaseClass)
-                .forEvent(eventClass)
+                .forType(eventType)
                 .mappingEventToParameter(String.class, o -> ((SeveralParameterUseCaseRequest) o).stringParameter)
                 .mappingEventToParameter(Object.class, o -> ((SeveralParameterUseCaseRequest) o).objectParameter)
                 .mappingEventToParameter(int.class, o -> ((SeveralParameterUseCaseRequest) o).intParameter)
@@ -73,10 +74,10 @@ public final class UseCaseAdapterSetupBuilder {
 
     public UseCaseAdapterSetupBuilder invokingTheUseCaseUsingARedundantMappingMissingAParameter() {
         final Class<?> useCaseClass = testUseCase.getUseCaseClass();
-        final Class<?> eventClass = testUseCase.getUseCaseEvent();
+        final EventType eventType = testUseCase.getEventType();
         try {
             useCaseAdapterBuilder.invokingUseCase(useCaseClass)
-                    .forEvent(eventClass)
+                    .forType(eventType)
                     .mappingEventToParameter(String.class, o -> ((SeveralParameterUseCaseRequest) o).stringParameter)
                     .mappingEventToParameter(String.class, o -> ((SeveralParameterUseCaseRequest) o).stringParameter)
                     .callingTheSingleUseCaseMethod();

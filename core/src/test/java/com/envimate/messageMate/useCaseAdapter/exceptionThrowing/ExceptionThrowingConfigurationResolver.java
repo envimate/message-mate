@@ -1,10 +1,11 @@
 package com.envimate.messageMate.useCaseAdapter.exceptionThrowing;
 
 import com.envimate.messageMate.channel.Channel;
-import com.envimate.messageMate.channel.ProcessingContext;
+import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusBuilder;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionHandler;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.config.AbstractTestConfigProvider;
 import com.envimate.messageMate.shared.subscriber.TestException;
@@ -21,7 +22,7 @@ import static com.envimate.messageMate.useCaseAdapter.TestUseCase.testUseCase;
 public class ExceptionThrowingConfigurationResolver extends AbstractTestConfigProvider {
 
     public static final Class<?> USE_CASE_CLASS = ExceptionThrowingUseCase.class;
-    public static final Class<?> EventClass = ExceptionThrowingRequest.class;
+    public static final EventType EVENT_TYPE = EventType.eventTypeFromString("ExceptionThrowingUseCase");
 
     @Override
     protected Class<?> forConfigClass() {
@@ -32,14 +33,14 @@ public class ExceptionThrowingConfigurationResolver extends AbstractTestConfigPr
     @Override
     protected Object testConfig() {
         final BiConsumer<MessageBus, TestEnvironment> messageBusSetup = (messageBus, testEnvironment) -> {
-            messageBus.onException(ExceptionThrowingRequest.class, (request, e) -> {
+            messageBus.onException(EVENT_TYPE, (request, e) -> {
                 testEnvironment.setPropertyIfNotSet(RESULT, e);
             });
         };
         final TestException expectedResult = new TestException();
         final Object requestObject = new ExceptionThrowingRequest(expectedResult);
         final Supplier<Object> instantiationFunction = ExceptionThrowingUseCase::new;
-        final Consumer<UseCaseAdapterStep3Builder<?, ?>> parameterMapping = callingBuilder -> {
+        final Consumer<UseCaseAdapterStep3Builder<?>> parameterMapping = callingBuilder -> {
             callingBuilder.callingVoid((useCaseInstance, event) -> {
                 final ExceptionThrowingUseCase useCase = (ExceptionThrowingUseCase) useCaseInstance;
                 final ExceptionThrowingRequest request = (ExceptionThrowingRequest) event;
@@ -72,6 +73,6 @@ public class ExceptionThrowingConfigurationResolver extends AbstractTestConfigPr
                 }
             });
         };
-        return testUseCase(USE_CASE_CLASS, EventClass, messageBusSetup, instantiationFunction, parameterMapping, requestObject, expectedResult, messageBusEnhancer);
+        return testUseCase(USE_CASE_CLASS, EVENT_TYPE, messageBusSetup, instantiationFunction, parameterMapping, requestObject, expectedResult, messageBusEnhancer);
     }
 }

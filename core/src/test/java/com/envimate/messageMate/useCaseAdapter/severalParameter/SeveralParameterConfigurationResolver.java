@@ -1,5 +1,6 @@
 package com.envimate.messageMate.useCaseAdapter.severalParameter;
 
+import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.config.AbstractTestConfigProvider;
@@ -12,11 +13,12 @@ import java.util.function.Supplier;
 
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
 import static com.envimate.messageMate.useCaseAdapter.TestUseCase.testUseCase;
+import static com.envimate.messageMate.useCaseAdapter.UseCaseInvokingResponseEventType.USE_CASE_RESPONSE_EVENT_TYPE;
 
 public class SeveralParameterConfigurationResolver extends AbstractTestConfigProvider {
 
     public static final Class<?> USE_CASE_CLASS = SeveralParameterUseCase.class;
-    public static final Class<?> EventClass = SeveralParameterUseCaseRequest.class;
+    public static final EventType EVENT_TYPE = EventType.eventTypeFromString("SeveralParameterUseCase");
 
     @Override
     protected Class<?> forConfigClass() {
@@ -26,27 +28,27 @@ public class SeveralParameterConfigurationResolver extends AbstractTestConfigPro
     @Override
     protected Object testConfig() {
         final BiConsumer<MessageBus, TestEnvironment> messageBusSetup = (messageBus, testEnvironment) -> {
-            messageBus.subscribe(SeveralParameterUseCaseResponse.class, severalParameterUseCaseResponse -> {
+            messageBus.subscribe(USE_CASE_RESPONSE_EVENT_TYPE, severalParameterUseCaseResponse -> {
                 testEnvironment.setPropertyIfNotSet(RESULT, severalParameterUseCaseResponse);
             });
         };
         final SeveralParameterUseCaseRequest requestObject = new SeveralParameterUseCaseRequest("1", new Object(), 5, true);
         final SeveralParameterUseCaseResponse expectedResult = createExpectedResponse(requestObject);
         final Supplier<Object> instantiationFunction = SeveralParameterUseCase::new;
-        final Consumer<UseCaseAdapterStep3Builder<?, ?>> parameterMapping = callingBuilder -> {
+        final Consumer<UseCaseAdapterStep3Builder<?>> parameterMapping = callingBuilder -> {
             callingBuilder.mappingEventToParameter(String.class, o -> ((SeveralParameterUseCaseRequest) o).stringParameter);
             callingBuilder.mappingEventToParameter(Object.class, o -> ((SeveralParameterUseCaseRequest) o).objectParameter);
             callingBuilder.mappingEventToParameter(int.class, o -> ((SeveralParameterUseCaseRequest) o).intParameter);
             callingBuilder.mappingEventToParameter(Boolean.class, o -> ((SeveralParameterUseCaseRequest) o).booleanParameter);
         };
-        final Consumer<UseCaseAdapterStep3Builder<?, ?>> customCallingLogic = callingBuilder -> {
+        final Consumer<UseCaseAdapterStep3Builder<?>> customCallingLogic = callingBuilder -> {
             callingBuilder.calling((useCaseInstance, event) -> {
                 final SeveralParameterUseCase useCase = (SeveralParameterUseCase) useCaseInstance;
                 final SeveralParameterUseCaseRequest request = (SeveralParameterUseCaseRequest) event;
                 return useCase.useCaseMethod(request.stringParameter, request.objectParameter, request.intParameter, request.booleanParameter);
             });
         };
-        return testUseCase(USE_CASE_CLASS, EventClass, messageBusSetup, instantiationFunction, parameterMapping, customCallingLogic, requestObject, expectedResult);
+        return testUseCase(USE_CASE_CLASS, EVENT_TYPE, messageBusSetup, instantiationFunction, parameterMapping, customCallingLogic, requestObject, expectedResult);
     }
 
     private SeveralParameterUseCaseResponse createExpectedResponse(SeveralParameterUseCaseRequest requestObject) {

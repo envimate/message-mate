@@ -27,7 +27,6 @@ import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfigur
 import com.envimate.messageMate.messageBus.channelCreating.MessageBusChannelFactory;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionHandler;
 import com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategy;
-import com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategyImpl;
 import com.envimate.messageMate.messageBus.internal.correlationIds.CorrelationBasedSubscriptions;
 import com.envimate.messageMate.messageBus.internal.correlationIds.CorrelationBasedSubscriptionsImpl;
 import com.envimate.messageMate.messageBus.internal.exception.DelegatingChannelExceptionHandler;
@@ -39,7 +38,7 @@ import static com.envimate.messageMate.messageBus.MessageBusConsumeAction.messag
 import static com.envimate.messageMate.messageBus.MessageBusType.SYNCHRONOUS;
 import static com.envimate.messageMate.messageBus.channelCreating.SynchronousMessageBusChannelFactory.synchronousMessageBusChannelFactory;
 import static com.envimate.messageMate.messageBus.exception.ErrorThrowingMessageBusExceptionHandler.errorThrowingMessageBusExceptionHandler;
-import static com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategyImpl.messageBusBrokerStrategy;
+import static com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategyImpl.messageBusBrokerStrategyImpl2;
 import static com.envimate.messageMate.messageBus.internal.correlationIds.CorrelationBasedSubscriptionsImpl.correlationBasedSubscriptions;
 import static com.envimate.messageMate.messageBus.internal.exception.DelegatingChannelExceptionHandler.delegatingChannelExceptionHandlerForAcceptingChannel;
 import static com.envimate.messageMate.messageBus.internal.exception.ErrorListenerDelegatingMessageBusExceptionHandler.errorListenerDelegatingMessageBusExceptionHandler;
@@ -124,15 +123,15 @@ public final class MessageBusBuilder {
     public MessageBus build() {
         final ExceptionListenerHandlerImpl errorListenerHandler = errorListenerHandler();
         final MessageBusExceptionHandler exceptionHandler = createExceptionHandler(errorListenerHandler);
-        final MessageBusBrokerStrategyImpl brokerStrategy = createBrokerStrategy(exceptionHandler);
+        final MessageBusBrokerStrategy brokerStrategy = createBrokerStrategy(exceptionHandler);
         final CorrelationBasedSubscriptionsImpl corSubscriptions = correlationBasedSubscriptions();
         final Channel<Object> acceptingChannel = createAcceptingChannel(brokerStrategy, exceptionHandler, corSubscriptions);
         return new MessageBusImpl(acceptingChannel, brokerStrategy, corSubscriptions, errorListenerHandler);
     }
 
-    private MessageBusBrokerStrategyImpl createBrokerStrategy(final MessageBusExceptionHandler exceptionHandler) {
+    private MessageBusBrokerStrategy createBrokerStrategy(final MessageBusExceptionHandler exceptionHandler) {
         final MessageBusChannelFactory channelFactory = createChannelFactory();
-        return messageBusBrokerStrategy(channelFactory, exceptionHandler);
+        return messageBusBrokerStrategyImpl2(channelFactory, exceptionHandler);
     }
 
     private MessageBusExceptionHandler createExceptionHandler(final ExceptionListenerHandlerImpl errorListenerHandler) {

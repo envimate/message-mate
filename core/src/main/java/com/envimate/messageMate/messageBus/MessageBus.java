@@ -21,13 +21,13 @@
 
 package com.envimate.messageMate.messageBus;
 
-import com.envimate.messageMate.channel.ProcessingContext;
 import com.envimate.messageMate.exceptions.AlreadyClosedException;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.internal.autoclosable.NoErrorAutoClosable;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 
@@ -41,26 +41,16 @@ import java.util.function.Consumer;
  *
  * @see <a href="https://github.com/envimate/message-mate#messagebus">Message Mate Documentation</a>
  */
+//TODO: dynamic exceptionHandler access to PC statt message
 public interface MessageBus extends NoErrorAutoClosable {
 
-    /**
-     * Sends the message on the {@code MessageBus}
-     *
-     * @param message the message to send
-     * @return the {@code MessageId} of the send message
-     * @throws AlreadyClosedException if {@code MessageBus} already closed
-     */
-    MessageId send(Object message);
+    MessageId send(String eventType, Object object);
 
-    /**
-     * Sends the message on the {@code MessageBus} with the given {@code CorrelationId}.
-     *
-     * @param message       the message to send
-     * @param correlationId the {@code CorrelationId} for the given message
-     * @return the {@code MessageId} of the send message
-     * @throws AlreadyClosedException if {@code MessageBus} already closed
-     */
-    MessageId send(Object message, CorrelationId correlationId);
+    MessageId send(EventType eventType, Object object);
+
+    MessageId send(EventType eventType, Object object, CorrelationId correlationId);
+
+    MessageId send(String eventType, Object object, CorrelationId correlationId);
 
     /**
      * Sends the {@code ProcessingContext} on the {@code MessageBus}.
@@ -71,46 +61,13 @@ public interface MessageBus extends NoErrorAutoClosable {
      */
     MessageId send(ProcessingContext<Object> processingContext);
 
-    /**
-     * Adds the given {@code Consumer} wrapped in a {@code Subscriber} object.
-     *
-     * @param messageClass the class of interest
-     * @param consumer     the consumer as {@code Subscriber}
-     * @param <T>          the type of the message and the {@code consumer}
-     * @return the {@code SubscriptionId} of the created {@code Subscriber}
-     */
-    <T> SubscriptionId subscribe(Class<T> messageClass, Consumer<T> consumer);
+    SubscriptionId subscribe(EventType eventType, Consumer<Object> consumer);
 
-    /**
-     * Adds the given {@code Subscriber}.
-     *
-     * @param messageClass the class of interest
-     * @param subscriber   the {@code Subscriber} to add
-     * @param <T>          the type of the message and the {@code Subscriber}
-     * @return the {@code SubscriptionId} of the {@code Subscriber}
-     */
-    <T> SubscriptionId subscribe(Class<T> messageClass, Subscriber<T> subscriber);
+    SubscriptionId subscribe(EventType eventType, Subscriber<Object> subscriber);
 
+    SubscriptionId subscribeRaw(EventType eventType, Consumer<ProcessingContext<Object>> consumer);
 
-    /**
-     * Adds the given {@code Consumer} wrapped in a {@code Subscriber} object with access to the {@code ProcessingContext} object.
-     *
-     * @param messageClass the class of interest
-     * @param consumer     the consumer as {@code Subscriber}
-     * @param <T>          the type of the message and the {@code consumer}
-     * @return the {@code SubscriptionId} of the created {@code Subscriber}
-     */
-    <T> SubscriptionId subscribeRaw(Class<T> messageClass, Consumer<ProcessingContext<T>> consumer);
-
-    /**
-     * Adds the given {@code Subscriber} with access to the {@code ProcessingContext} object.
-     *
-     * @param messageClass the class of interest
-     * @param subscriber   the {@code Subscriber} to add
-     * @param <T>          the type of the message and the {@code Subscriber}
-     * @return the {@code SubscriptionId} of the {@code Subscriber}
-     */
-    <T> SubscriptionId subscribeRaw(Class<T> messageClass, Subscriber<ProcessingContext<T>> subscriber);
+    SubscriptionId subscribeRaw(EventType eventType, Subscriber<ProcessingContext<Object>> subscriber);
 
     /**
      * Adds the given {@code Consumer} wrapped in a {@code Subscriber} object for all messages with a matching
@@ -168,26 +125,8 @@ public interface MessageBus extends NoErrorAutoClosable {
      */
     void remove(Filter<Object> filter);
 
-    /**
-     * Adds a dynamic exception listener for the given message class.
-     *
-     * @param messageClass      the class of the message the listener should be called on
-     * @param exceptionListener the exception listener
-     * @param <T>               the type of the exception class
-     * @return a {@code SubscriptionId} identifying the exception listener
-     */
-    <T> SubscriptionId onException(Class<T> messageClass, MessageBusExceptionListener<T> exceptionListener);
 
-    /**
-     * Adds a dynamic exception listener for the all classes contained in the list.
-     *
-     * @param messageClasses    list of classes of messages the listener should be called on
-     * @param exceptionListener the exception listener
-     * @param <T>               the type of the exception class
-     * @return a {@code SubscriptionId} identifying exception listener
-     */
-    <T> SubscriptionId onException(List<Class<? extends T>> messageClasses,
-                                   MessageBusExceptionListener<? extends T> exceptionListener);
+    SubscriptionId onException(EventType eventType, MessageBusExceptionListener<Object> exceptionListener);
 
     /**
      * Adds a dynamic exception listener for the messages matching the {@code CorrelationId}.
