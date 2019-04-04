@@ -38,7 +38,6 @@ final class UseCaseRequestExecutingSubscriber implements Subscriber<ProcessingCo
         return new UseCaseRequestExecutingSubscriber(messageBus, useCaseCallingInformation, useCaseInstantiator);
     }
 
-    //TODO: think about Error when CorrelationId == null by messageBus
     @Override
     public AcceptingBehavior accept(final ProcessingContext<Object> processingContext) {
         final Caller caller = useCaseCallingInformation.getCaller();
@@ -46,7 +45,8 @@ final class UseCaseRequestExecutingSubscriber implements Subscriber<ProcessingCo
         final Object useCase = useCaseInstantiator.instantiate(useCaseClass);
         final Object event = processingContext.getPayload();
         final ParameterValueMappings parameterValueMappings = useCaseCallingInformation.getParameterValueMappings();
-        final Object returnValue = caller.call(useCase, event, parameterValueMappings).orElse(null);
+        @SuppressWarnings("unchecked")
+        final Object returnValue = caller.call(useCase, event, parameterValueMappings);
         final CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();
         messageBus.send(USE_CASE_RESPONSE_EVENT_TYPE, returnValue, correlationId);
         return MESSAGE_ACCEPTED;

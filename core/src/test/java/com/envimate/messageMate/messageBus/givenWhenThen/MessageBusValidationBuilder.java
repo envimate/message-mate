@@ -41,9 +41,9 @@ import java.util.List;
 import java.util.Map;
 
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActionsOld.messageBusTestActions;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.EXPECTED_CORRELATION_ID;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.SINGLE_SEND_MESSAGE;
+import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
+import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.SUT;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestValidations.*;
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.*;
 import static lombok.AccessLevel.PRIVATE;
@@ -198,6 +198,10 @@ public final class MessageBusValidationBuilder {
     }
 
 
+    public static MessageBusValidationBuilder expectNoException() {
+        return asValidation(testEnvironment -> assertNoExceptionThrown(testEnvironment));
+    }
+
     public static MessageBusValidationBuilder expectTheException(final Class<?> expectedExceptionClass) {
         return asValidation(testEnvironment -> assertExceptionThrownOfType(testEnvironment, expectedExceptionClass));
     }
@@ -209,9 +213,29 @@ public final class MessageBusValidationBuilder {
         });
     }
 
+    public static MessageBusValidationBuilder expectTheExceptionHandledAsFilterException(final Class<?> expectedExceptionClass) {
+        return asValidation(testEnvironment -> {
+            assertNoExceptionThrown(testEnvironment);
+            assertResultOfClass(testEnvironment, expectedExceptionClass);
+            assertPropertyTrue(testEnvironment, EXCEPTION_OCCURRED_INSIDE_FILTER);
+        });
+    }
+
+    public static MessageBusValidationBuilder expectTheExceptionHandledAsDeliverException(final Class<?> expectedExceptionClass) {
+        return asValidation(testEnvironment -> {
+            assertNoExceptionThrown(testEnvironment);
+            assertResultOfClass(testEnvironment, expectedExceptionClass);
+            assertPropertyTrue(testEnvironment, EXCEPTION_OCCURRED_DURING_DELIVERY);
+        });
+    }
+
+    public static MessageBusValidationBuilder expectTheExceptionHandledOnlyBeTheRemaining(final Class<?> expectedExceptionClass) {
+        return expectTheExceptionHandled(expectedExceptionClass);
+    }
+
     public static MessageBusValidationBuilder expectTheExceptionHandledAndTheErrorToBeThrown(final Class<?> expectedExceptionClass) {
         return asValidation(testEnvironment -> {
-            assertExceptionThrownOfType(testEnvironment, TestException.class);
+            assertExceptionThrownOfType(testEnvironment, TestException.class, RESULT);
             assertResultOfClass(testEnvironment, expectedExceptionClass);
         });
     }
@@ -228,14 +252,6 @@ public final class MessageBusValidationBuilder {
             assertNoExceptionThrown(testEnvironment);
             final PipeMessageBusSutActions sutActions = sutActions(testEnvironment);
             assertSutHasExpectedFilter(sutActions, testEnvironment);
-        });
-    }
-
-    //TODO: why not called anymore?
-    public static MessageBusValidationBuilder expectTheDynamicHandlerToNotBeCalled() {
-        return asValidation(testEnvironment -> {
-            assertNoExceptionThrown(testEnvironment);
-            assertNoResultSet(testEnvironment);
         });
     }
 

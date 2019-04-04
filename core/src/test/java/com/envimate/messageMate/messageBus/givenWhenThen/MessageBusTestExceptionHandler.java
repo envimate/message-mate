@@ -26,13 +26,18 @@ import com.envimate.messageMate.messageBus.exception.MessageBusExceptionHandler;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.qcec.shared.TestEnvironmentProperty;
+import com.envimate.messageMate.shared.subscriber.TestException;
 import lombok.RequiredArgsConstructor;
 
+import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXCEPTION;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.EXCEPTION_OCCURRED_DURING_DELIVERY;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.EXCEPTION_OCCURRED_INSIDE_FILTER;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
 public final class MessageBusTestExceptionHandler {
+    public final static String TEST_PROPERTY_TO_ENSURE_HANDLER_CALLED_ONCE = "TEST_PROPERTY_TO_ENSURE_HANDLER_CALLED_ONCE";
 
     public static MessageBusExceptionHandler allExceptionAsResultHandlingTestExceptionHandler(final TestEnvironment testEnvironment) {
         return allExceptionHandlingTestExceptionHandler(testEnvironment, RESULT);
@@ -47,12 +52,16 @@ public final class MessageBusTestExceptionHandler {
 
             @Override
             public void handleDeliveryChannelException(final ProcessingContext<?> message, final Exception e, final Channel<?> channel) {
-                testEnvironment.setProperty(exceptionProperty, e);
+                testEnvironment.setPropertyIfNotSet(TEST_PROPERTY_TO_ENSURE_HANDLER_CALLED_ONCE, true);
+                testEnvironment.setPropertyIfNotSet(exceptionProperty, e);
+                testEnvironment.setPropertyIfNotSet(EXCEPTION_OCCURRED_DURING_DELIVERY, true);
             }
 
             @Override
             public void handleFilterException(final ProcessingContext<?> message, final Exception e, final Channel<?> channel) {
-                testEnvironment.setProperty(exceptionProperty, e);
+                testEnvironment.setPropertyIfNotSet(TEST_PROPERTY_TO_ENSURE_HANDLER_CALLED_ONCE, true);
+                testEnvironment.setPropertyIfNotSet(exceptionProperty, e);
+                testEnvironment.setPropertyIfNotSet(EXCEPTION_OCCURRED_INSIDE_FILTER, true);
             }
         };
     }
@@ -70,6 +79,27 @@ public final class MessageBusTestExceptionHandler {
 
             @Override
             public void handleFilterException(final ProcessingContext<?> message, final Exception e, final Channel<?> channel) {
+            }
+        };
+    }
+
+    public static MessageBusExceptionHandler testExceptionAllowingExceptionHandler(final TestEnvironment testEnvironment) {
+        return new MessageBusExceptionHandler() {
+            @Override
+            public boolean shouldDeliveryChannelErrorBeHandledAndDeliveryAborted(final ProcessingContext<?> message, final Exception e, final Channel<?> channel) {
+                return !(e instanceof TestException);
+            }
+
+            @Override
+            public void handleDeliveryChannelException(final ProcessingContext<?> message, final Exception e, final Channel<?> channel) {
+                testEnvironment.setPropertyIfNotSet(TEST_PROPERTY_TO_ENSURE_HANDLER_CALLED_ONCE, true);
+                testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
+            }
+
+            @Override
+            public void handleFilterException(final ProcessingContext<?> message, final Exception e, final Channel<?> channel) {
+                testEnvironment.setPropertyIfNotSet(TEST_PROPERTY_TO_ENSURE_HANDLER_CALLED_ONCE, true);
+                testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
             }
         };
     }

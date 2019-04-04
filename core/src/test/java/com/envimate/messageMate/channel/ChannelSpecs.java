@@ -80,25 +80,25 @@ public interface ChannelSpecs {
     default void testChannel_failsForReturnWithoutACall(final ChannelTestConfig channelTestConfig) {
         given(aConfiguredChannel(channelTestConfig)
                 .withDefaultActionReturn()
-                .withAnExceptionCatchingHandler_inCaseOfAsynchronousExecution())
+                .withAnExceptionCatchingHandler())
                 .when(aMessageIsSend())
-                .then(expectAExceptionOfType(ReturnWithoutCallException.class));
+                .then(expectADeliveryExceptionOfType(ReturnWithoutCallException.class));
     }
 
     @Test
     default void testChannel_failsForCallAsFinalAction(final ChannelTestConfig channelTestConfig) {
         given(aConfiguredChannel(channelTestConfig)
                 .withDefaultActionCall()
-                .withAnExceptionCatchingHandler_inCaseOfAsynchronousExecution())
+                .withAnExceptionCatchingHandler())
                 .when(aMessageIsSend())
-                .then(expectAExceptionOfType(CallNotAllowedAsFinalChannelAction.class));
+                .then(expectADeliveryExceptionOfType(CallNotAllowedAsFinalChannelAction.class));
     }
 
     @Test
     default void testChannel_failsForUnknownAction(final ChannelTestConfig channelTestConfig) {
         given(aConfiguredChannel(channelTestConfig)
                 .withAnUnknownAction()
-                .withAnExceptionCatchingHandler_inCaseOfAsynchronousExecution())
+                .withAnExceptionCatchingHandler())
                 .when(aMessageIsSend())
                 .then(expectAExceptionOfType(NoHandlerForUnknownActionException.class));
     }
@@ -140,6 +140,16 @@ public interface ChannelSpecs {
                         .andThen(aProcessingContextObjectIsSend()))
                 .then(expectTheProcessingContextObjectToBeReceivedByAllSubscriber());
     }
+
+    //send
+    @Test
+    default void testChannel_canSendNull(final ChannelTestConfig channelTestConfig) {
+        given(aConfiguredChannel(channelTestConfig)
+                .withDefaultActionConsume())
+                .when(aMessageWithoutPayloadIsSend())
+                .then(expectTheMessageToBeConsumed());
+    }
+
 
     //filter
     @Test
@@ -470,7 +480,7 @@ public interface ChannelSpecs {
                 .withAnExceptionInFinalAction()
                 .withACustomErrorHandler())
                 .when(aMessageIsSend())
-                .then(expectTheExceptionCatched(TestException.class));
+                .then(expectTheDeliveryExceptionCatched(TestException.class));
     }
 
     @Test
@@ -479,7 +489,7 @@ public interface ChannelSpecs {
                 .withACustomErrorHandler()
                 .withAnErrorThrowingFilter())
                 .when(aMessageIsSend())
-                .then(expectTheExceptionCatched(TestException.class));
+                .then(expectTheFilterExceptionCatched(TestException.class));
     }
 
     @Test

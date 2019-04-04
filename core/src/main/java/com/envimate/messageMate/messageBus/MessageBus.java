@@ -42,6 +42,7 @@ import java.util.function.Consumer;
  * @see <a href="https://github.com/envimate/message-mate#messagebus">Message Mate Documentation</a>
  */
 //TODO: dynamic exceptionHandler access to PC statt message
+//TODO: error in event-channel does not count as failed in MB statistics
 public interface MessageBus extends NoErrorAutoClosable {
 
     MessageId send(String eventType, Object object);

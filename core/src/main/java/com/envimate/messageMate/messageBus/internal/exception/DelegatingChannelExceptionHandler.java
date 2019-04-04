@@ -23,6 +23,7 @@ package com.envimate.messageMate.messageBus.internal.exception;
 
 import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.channel.exception.ChannelExceptionHandler;
+import com.envimate.messageMate.internal.exceptions.BubbleUpWrappedException;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionHandler;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import lombok.RequiredArgsConstructor;
@@ -62,6 +63,11 @@ public final class DelegatingChannelExceptionHandler<T> implements ChannelExcept
     @Override
     public void handleFilterException(final ProcessingContext<T> message, final Exception e) {
         messageBusExceptionHandler.handleFilterException(message, e, channel);
+    }
+
+    @Override
+    public void handleBubbledUpException(final BubbleUpWrappedException e) {
+        throw e;
     }
 
     private interface DeliveryAbortDecision<T> {

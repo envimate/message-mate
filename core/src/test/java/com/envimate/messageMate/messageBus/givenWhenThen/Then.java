@@ -67,7 +67,7 @@ public class Then {
                 setupAction.execute(messageBus, testEnvironment);
             }
         } catch (final Exception e) {
-            testEnvironment.setProperty(EXCEPTION, e);
+            testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
         }
         return setup;
     }
@@ -87,7 +87,7 @@ public class Then {
                 MILLISECONDS.sleep(sleepDuration);
             }
         } catch (final Exception e) {
-            testEnvironment.setProperty(EXCEPTION, e);
+            testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
         }
         if (testEnvironment.has(EXECUTION_END_SEMAPHORE)) {
             final Semaphore blockingSemaphoreToReleaseAfterExecution = testEnvironment.getPropertyAsType(EXECUTION_END_SEMAPHORE, Semaphore.class);

@@ -21,6 +21,7 @@
 
 package com.envimate.messageMate.messageFunction;
 
+import com.envimate.messageMate.exceptions.AlreadyClosedException;
 import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.messageBus.EventType;
@@ -48,14 +49,12 @@ final class MessageFunctionImpl implements MessageFunction {
         return new MessageFunctionImpl(messageBus);
     }
 
-    //TODO: unsubscribe when finished
     @Override
     public ResponseFuture request(final EventType eventType, final Object request) {
         if (closed) {
-            return null; //TODO: throw error
+            throw new AlreadyClosedException();
         }
         final RequestHandle requestHandle = new RequestHandle(messageBus);
-        //TODO: try catch + fulfillWithError, so that exception does not occur for synchronous + throwing MBExceptionHandler
         requestHandle.send(eventType, request);
         return requestHandle.getResponseFuture();
     }
@@ -103,7 +102,6 @@ final class MessageFunctionImpl implements MessageFunction {
             try {
                 messageBus.send(processingContext);
             } catch (final Exception e) {
-                //TODO: test for this case
                 fulFillFuture(e);
                 subscriptionContainer.unsubscribe(messageBus);
             }

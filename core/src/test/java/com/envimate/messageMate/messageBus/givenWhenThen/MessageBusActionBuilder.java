@@ -73,6 +73,20 @@ public final class MessageBusActionBuilder {
         });
     }
 
+    public static MessageBusActionBuilder aMessageWithoutPayloadIsSend() {
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            MessageBusTestActions.sendTheMessageAsProcessingContext(messageBus, testEnvironment, null);
+            return null;
+        });
+    }
+
+    public static MessageBusActionBuilder aMessageWithoutEventType() {
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            MessageBusTestActions.sendTheMessageAsProcessingContext(messageBus, testEnvironment, null, null);
+            return null;
+        });
+    }
+
     public static MessageBusActionBuilder theMessageIsSend(final TestMessage message) {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
             MessageBusTestActions.sendTheMessage(messageBus, testEnvironment, message);

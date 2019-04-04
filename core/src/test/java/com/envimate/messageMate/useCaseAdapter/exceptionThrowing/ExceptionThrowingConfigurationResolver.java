@@ -29,7 +29,6 @@ public class ExceptionThrowingConfigurationResolver extends AbstractTestConfigPr
         return TestUseCase.class;
     }
 
-    //TODO: MB: exception in exceptionHandler
     @Override
     protected Object testConfig() {
         final BiConsumer<MessageBus, TestEnvironment> messageBusSetup = (messageBus, testEnvironment) -> {

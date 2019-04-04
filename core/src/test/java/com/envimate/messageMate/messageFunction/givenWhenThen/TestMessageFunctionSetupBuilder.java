@@ -34,9 +34,13 @@ import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.subscriber.TestException;
 import lombok.RequiredArgsConstructor;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration.constantPoolSizeAsynchronousPipeConfiguration;
 import static com.envimate.messageMate.messageBus.MessageBusType.ASYNCHRONOUS;
@@ -50,24 +54,33 @@ import static lombok.AccessLevel.PRIVATE;
 @RequiredArgsConstructor(access = PRIVATE)
 public final class TestMessageFunctionSetupBuilder {
     private final TestEnvironment testEnvironment = TestEnvironment.emptyTestEnvironment();
-    private final MessageBusBuilder messageBusBuilder = MessageBusBuilder.aMessageBus()
+    private final List<Consumer<MessageBus>> setupActions = new LinkedList<>();
+    private MessageBusBuilder messageBusBuilder = MessageBusBuilder.aMessageBus()
             .forType(ASYNCHRONOUS)
             .withAsynchronousConfiguration(constantPoolSizeAsynchronousPipeConfiguration(5));
-    private final List<Consumer<MessageBus>> setupActions = new LinkedList<>();
+    private Function<MessageBusBuilder, MessageBus> messageBusCreation = MessageBusBuilder::build;
 
     public static TestMessageFunctionSetupBuilder aMessageFunction() {
         return new TestMessageFunctionSetupBuilder();
     }
 
     public TestMessageFunctionSetupBuilder withTheRequestAnsweredByACorrelatedResponse() {
+        return answerWith(SimpleTestResponse::testResponse);
+    }
+
+    public TestMessageFunctionSetupBuilder withTheRequestAnsweredByANull() {
+        return answerWith(request -> null);
+    }
+
+    private TestMessageFunctionSetupBuilder answerWith(final Function<Object, Object> responseCreator) {
         setupActions.add(messageBus -> {
             final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             messageBus.subscribeRaw(eventType, processingContext -> {
                 final CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();
                 final SimpleTestRequest request = (SimpleTestRequest) processingContext.getPayload();
-                final SimpleTestResponse simpleTestResponse = SimpleTestResponse.testResponse(request);
+                final Object response = responseCreator.apply(request);
                 final EventType differentTestEventType = differentTestEventType();
-                messageBus.send(differentTestEventType, simpleTestResponse, correlationId);
+                messageBus.send(differentTestEventType, response, correlationId);
             });
         });
         return this;
@@ -146,14 +159,33 @@ public final class TestMessageFunctionSetupBuilder {
         return this;
     }
 
+    public TestMessageFunctionSetupBuilder throwingAnExceptionDuringSend() {
+        messageBusCreation = ignored -> MessageBusMock.createMessageBusMock();
+        return this;
+    }
+
     public TestEnvironment getTestEnvironment() {
         return testEnvironment;
     }
 
     public MessageFunction build() {
-        final MessageBus messageBus = messageBusBuilder.build();
+        final MessageBus messageBus = messageBusCreation.apply(messageBusBuilder);
         setupActions.forEach(f -> f.accept(messageBus));
         testEnvironment.setProperty(MOCK, messageBus);
         return MessageFunctionBuilder.aMessageFunction(messageBus);
+    }
+
+    private static class MessageBusMock {
+        public static MessageBus createMessageBusMock() {
+            return (MessageBus) Proxy.newProxyInstance(MessageBusMock.class.getClassLoader(), new Class[]{MessageBus.class}, new InvocationHandler() {
+                @Override
+                public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                    if (method.getName().equals("send")) {
+                        throw new TestException();
+                    }
+                    return null;
+                }
+            });
+        }
     }
 }

@@ -22,8 +22,10 @@
 package com.envimate.messageMate.shared.validations;
 
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
+import com.envimate.messageMate.qcec.shared.TestEnvironmentProperty;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -32,7 +34,7 @@ import static lombok.AccessLevel.PRIVATE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 @RequiredArgsConstructor(access = PRIVATE)
 public final class SharedTestValidations {
@@ -78,7 +80,11 @@ public final class SharedTestValidations {
     }
 
     public static void assertExceptionThrownOfType(final TestEnvironment testEnvironment, final Class<?> expectedExceptionClass) {
-        final Exception exception = testEnvironment.getPropertyAsType(EXCEPTION, Exception.class);
+        assertExceptionThrownOfType(testEnvironment, expectedExceptionClass, EXCEPTION);
+    }
+
+    public static void assertExceptionThrownOfType(final TestEnvironment testEnvironment, final Class<?> expectedExceptionClass, final TestEnvironmentProperty property) {
+        final Exception exception = testEnvironment.getPropertyAsType(property, Exception.class);
         assertThat(exception.getClass(), equalTo(expectedExceptionClass));
     }
 
@@ -92,6 +98,32 @@ public final class SharedTestValidations {
     public static void assertListOfSize(final TestEnvironment testEnvironment, final int expectedSize) {
         final List<?> list = testEnvironment.getPropertyAsType(RESULT, List.class);
         assertThat(list.size(), equalTo(expectedSize));
+    }
+
+    public static void assertPropertyTrue(final TestEnvironment testEnvironment, final TestEnvironmentProperty property) {
+        final String name = property.name();
+        assertPropertyTrue(testEnvironment, name);
+    }
+
+    public static void assertPropertyTrue(final TestEnvironment testEnvironment, final String property) {
+        final boolean condition = testEnvironment.getPropertyAsType(property, Boolean.class);
+        assertTrue(condition, "Expected property " + property + " to be true, but it was false.");
+    }
+
+    public static void assertPropertyFalseOrUnset(final TestEnvironment testEnvironment, final TestEnvironmentProperty property) {
+        final String name = property.name();
+        assertPropertyFalseOrUnset(testEnvironment, name);
+    }
+
+    public static void assertPropertyFalseOrUnset(final TestEnvironment testEnvironment, final String property) {
+        if (testEnvironment.has(property)) {
+            final boolean condition = testEnvironment.getPropertyAsType(property, Boolean.class);
+            assertFalse(condition, "Expected property " + property + " to be false, but it was true.");
+        }
+    }
+
+    public static void assertCollectionOfSize(final Collection collection, final int expectedSize) {
+        assertThat(collection.size(), equalTo(expectedSize));
     }
 
 }

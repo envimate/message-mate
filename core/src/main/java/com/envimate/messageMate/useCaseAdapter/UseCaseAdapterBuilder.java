@@ -26,6 +26,8 @@ public class UseCaseAdapterBuilder implements UseCaseAdapterStep1Builder {
         return new UseCaseAdapterBuilder();
     }
 
+    //TODO: registerUseCase + alles andere optional
+
     @Override
     public <USECASE> UseCaseAdapterStep2Builder<USECASE> invokingUseCase(final Class<USECASE> useCaseClass) {
         return new UseCaseAdapterStep2Builder<USECASE>() {
@@ -59,7 +61,7 @@ public class UseCaseAdapterBuilder implements UseCaseAdapterStep1Builder {
         }
 
         @Override
-        public UseCaseAdapterStep1Builder callingBy(Caller<USECASE, Object> caller) {
+        public UseCaseAdapterStep1Builder callingBy(Caller<USECASE> caller) {
             final UseCaseCallingInformation<USECASE> invocationInformation = useCaseInvocationInformation(useCaseClass, eventType, caller, parameterValueMappings);
             wrappingBuilder.useCaseCallingInformations.add(invocationInformation);
             return wrappingBuilder;

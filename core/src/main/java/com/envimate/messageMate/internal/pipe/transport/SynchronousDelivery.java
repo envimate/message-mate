@@ -21,9 +21,10 @@
 
 package com.envimate.messageMate.internal.pipe.transport;
 
-import com.envimate.messageMate.internal.pipe.excepions.NoSuitableSubscriberException;
+import com.envimate.messageMate.internal.exceptions.BubbleUpWrappedException;
 import com.envimate.messageMate.internal.pipe.error.PipeErrorHandler;
 import com.envimate.messageMate.internal.pipe.events.PipeEventListener;
+import com.envimate.messageMate.internal.pipe.excepions.NoSuitableSubscriberException;
 import com.envimate.messageMate.subscribing.AcceptingBehavior;
 import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.RequiredArgsConstructor;
@@ -72,12 +73,22 @@ public final class SynchronousDelivery<T> {
                 return true;
             }
         } catch (final Exception e) {
-            if (pipeErrorHandler.shouldErrorBeHandledAndDeliveryAborted(message, e)) {
-                eventListener.messageDeliveryFailed(message, e);
-                pipeErrorHandler.handleException(message, e);
-                return false;
+            if (e instanceof BubbleUpWrappedException) {
+                throw e;
             } else {
-                return true;
+                try {
+                    if (pipeErrorHandler.shouldErrorBeHandledAndDeliveryAborted(message, e)) {
+                        eventListener.messageDeliveryFailed(message, e);
+                        pipeErrorHandler.handleException(message, e);
+                        return false;
+                    } else {
+                        return true;
+                    }
+                } catch (final BubbleUpWrappedException bubbledException) {
+                    throw bubbledException;
+                } catch (final Exception rethrownException) {
+                    throw new BubbleUpWrappedException(rethrownException);
+                }
             }
         }
     }

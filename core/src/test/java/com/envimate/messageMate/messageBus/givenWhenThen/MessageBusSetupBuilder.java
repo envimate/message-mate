@@ -47,8 +47,7 @@ import java.util.List;
 import static com.envimate.messageMate.channel.action.Subscription.subscription;
 import static com.envimate.messageMate.identification.CorrelationId.newUniqueCorrelationId;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActionsOld.messageBusTestActions;
-import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler.allExceptionAsResultHandlingTestExceptionHandler;
-import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler.allExceptionIgnoringExceptionHandler;
+import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler.*;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.CORRELATION_SUBSCRIPTION_ID;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RECEIVERS;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
@@ -205,6 +204,11 @@ public final class MessageBusSetupBuilder {
         return this;
     }
 
+    public MessageBusSetupBuilder withACustomExceptionHandlerMarkingExceptionAsIgnored() {
+        messageBusBuilder.withExceptionHandler(testExceptionAllowingExceptionHandler(testEnvironment));
+        return this;
+    }
+
     public MessageBusSetupBuilder withADynamicExceptionListenerForEventType() {
         messageBusBuilder.withExceptionHandler(allExceptionIgnoringExceptionHandler());
         setupActions.add((messageBus, testEnvironment) -> {
@@ -225,6 +229,10 @@ public final class MessageBusSetupBuilder {
         setupActions.add((messageBus, testEnvironment) -> {
             MessageBusTestActions.addDynamicErrorListenerForEventType(messageBus, testEnvironment);
         });
+        return this;
+    }
+
+    public MessageBusSetupBuilder withAnErrorThrowingExceptionHandler() {
         return this;
     }
 

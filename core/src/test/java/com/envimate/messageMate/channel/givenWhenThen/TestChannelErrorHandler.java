@@ -24,16 +24,21 @@ package com.envimate.messageMate.channel.givenWhenThen;
 import com.envimate.messageMate.channel.exception.ChannelExceptionHandler;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
+import com.envimate.messageMate.qcec.shared.TestEnvironmentProperty;
 import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import lombok.RequiredArgsConstructor;
 
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXCEPTION;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.EXCEPTION_OCCURRED_DURING_DELIVERY;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.EXCEPTION_OCCURRED_INSIDE_FILTER;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
 public final class TestChannelErrorHandler {
+
+    private static final String TEST_PROPERTY_TO_ENSURE_HANDLER_CALLED_ONCE = "TEST_PROPERTY_TO_ENSURE_HANDLER_CALLED_ONCE";
 
     public static ChannelExceptionHandler<TestMessage> ignoringChannelExceptionHandler() {
         return new ChannelExceptionHandler<TestMessage>() {
@@ -44,36 +49,58 @@ public final class TestChannelErrorHandler {
 
             @Override
             public void handleSubscriberException(final ProcessingContext<TestMessage> message, final Exception e) {
-
             }
 
             @Override
             public void handleFilterException(final ProcessingContext<TestMessage> message, final Exception e) {
-
             }
         };
     }
 
     public static ChannelExceptionHandler<TestMessage> exceptionInResultStoringChannelExceptionHandler(final TestEnvironment testEnvironment) {
-        return new ChannelExceptionHandler<TestMessage>() {
-            @Override
-            public boolean shouldSubscriberErrorBeHandledAndDeliveryAborted(final ProcessingContext<TestMessage> message, final Exception e) {
-                return true;
-            }
-
-            @Override
-            public void handleSubscriberException(final ProcessingContext<TestMessage> message, final Exception e) {
-                testEnvironment.setProperty(RESULT, e);
-            }
-
-            @Override
-            public void handleFilterException(final ProcessingContext<TestMessage> message, final Exception e) {
-                testEnvironment.setProperty(RESULT, e);
-            }
-        };
+        return storingExceptionHandler(testEnvironment, RESULT);
     }
 
     public static ChannelExceptionHandler<TestMessage> catchingChannelExceptionHandler(final TestEnvironment testEnvironment) {
+        return storingExceptionHandler(testEnvironment, EXCEPTION);
+    }
+
+    public static ChannelExceptionHandler<TestMessage> testExceptionIgnoringChannelExceptionHandler(final TestEnvironment testEnvironment) {
+        return storingExceptionHandler(testEnvironment, EXCEPTION, TestException.class);
+    }
+
+    private static ChannelExceptionHandler<TestMessage> storingExceptionHandler(final TestEnvironment testEnvironment,
+                                                                                final TestEnvironmentProperty property,
+                                                                                final Class<?>... ignoredClasses) {
+        return new ChannelExceptionHandler<TestMessage>() {
+            @Override
+            public boolean shouldSubscriberErrorBeHandledAndDeliveryAborted(final ProcessingContext<TestMessage> message, final Exception e) {
+                for (final Class<?> ignoredClass : ignoredClasses) {
+                    if (e.getClass().equals(ignoredClass)) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            @Override
+            public void handleSubscriberException(final ProcessingContext<TestMessage> message, final Exception e) {
+                testEnvironment.setPropertyIfNotSet(TEST_PROPERTY_TO_ENSURE_HANDLER_CALLED_ONCE, true);
+                testEnvironment.setPropertyIfNotSet(property, e);
+                testEnvironment.setPropertyIfNotSet(EXCEPTION_OCCURRED_DURING_DELIVERY, true);
+            }
+
+            @Override
+            public void handleFilterException(final ProcessingContext<TestMessage> message, final Exception e) {
+                testEnvironment.setPropertyIfNotSet(TEST_PROPERTY_TO_ENSURE_HANDLER_CALLED_ONCE, true);
+                testEnvironment.setPropertyIfNotSet(property, e);
+                testEnvironment.setPropertyIfNotSet(EXCEPTION_OCCURRED_INSIDE_FILTER, true);
+            }
+        };
+    }
+
+
+    public static ChannelExceptionHandler<TestMessage> errorRethrowingExceptionHandler(final TestEnvironment testEnvironment) {
         return new ChannelExceptionHandler<TestMessage>() {
             @Override
             public boolean shouldSubscriberErrorBeHandledAndDeliveryAborted(final ProcessingContext<TestMessage> message, final Exception e) {
@@ -82,31 +109,16 @@ public final class TestChannelErrorHandler {
 
             @Override
             public void handleSubscriberException(final ProcessingContext<TestMessage> message, final Exception e) {
-                testEnvironment.setProperty(EXCEPTION, e);
+                testEnvironment.setPropertyIfNotSet(TEST_PROPERTY_TO_ENSURE_HANDLER_CALLED_ONCE, true);
+                testEnvironment.setPropertyIfNotSet(EXCEPTION_OCCURRED_DURING_DELIVERY, true);
+                throw (RuntimeException) e;
             }
 
             @Override
             public void handleFilterException(final ProcessingContext<TestMessage> message, final Exception e) {
-                testEnvironment.setProperty(EXCEPTION, e);
-            }
-        };
-    }
-
-    public static ChannelExceptionHandler<TestMessage> testExceptionIgnoringChannelExceptionHandler(final TestEnvironment testEnvironment) {
-        return new ChannelExceptionHandler<TestMessage>() {
-            @Override
-            public boolean shouldSubscriberErrorBeHandledAndDeliveryAborted(final ProcessingContext<TestMessage> message, final Exception e) {
-                return !(e instanceof TestException);
-            }
-
-            @Override
-            public void handleSubscriberException(final ProcessingContext<TestMessage> message, final Exception e) {
-                testEnvironment.setProperty(EXCEPTION, e);
-            }
-
-            @Override
-            public void handleFilterException(final ProcessingContext<TestMessage> message, final Exception e) {
-                testEnvironment.setProperty(EXCEPTION, e);
+                testEnvironment.setPropertyIfNotSet(TEST_PROPERTY_TO_ENSURE_HANDLER_CALLED_ONCE, true);
+                testEnvironment.setPropertyIfNotSet(EXCEPTION_OCCURRED_INSIDE_FILTER, true);
+                throw (RuntimeException) e;
             }
         };
     }

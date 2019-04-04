@@ -15,6 +15,7 @@ import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
+import lombok.RequiredArgsConstructor;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -32,8 +33,10 @@ import static com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber.
 import static com.envimate.messageMate.shared.subscriber.ExceptionThrowingTestSubscriber.exceptionThrowingTestSubscriber;
 import static com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber.testSubscriber;
 import static com.envimate.messageMate.shared.testMessages.TestMessageOfInterest.messageOfInterest;
+import static lombok.AccessLevel.PRIVATE;
 
-public class MessageBusTestActions {
+@RequiredArgsConstructor(access = PRIVATE)
+public final class MessageBusTestActions {
 
     public static void sendASingleMessage(final MessageBus messageBus, final TestEnvironment testEnvironment) {
         final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
@@ -104,6 +107,21 @@ public class MessageBusTestActions {
         final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, TestEventType.testEventType());
         final Consumer<TestMessage> sendConsumer = testMessage -> messageBus.send(eventType, testMessage);
         AsynchronousSendingTestUtils.sendMixtureOfValidAndInvalidMessagesAsynchronously(sendConsumer, testEnvironment, numberOfSenders, numberOfMessages);
+    }
+
+    public static void sendTheMessageAsProcessingContext(final MessageBus messageBus, final TestEnvironment testEnvironment, final Object message) {
+        final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+        sendTheMessageAsProcessingContext(messageBus, testEnvironment, message, eventType);
+    }
+
+    public static void sendTheMessageAsProcessingContext(final MessageBus messageBus,
+                                                         final TestEnvironment testEnvironment,
+                                                         final Object message,
+                                                         final EventType eventType) {
+        final ProcessingContext<Object> processingContext = ProcessingContext.processingContext(eventType, message);
+        testEnvironment.setProperty(SINGLE_SEND_MESSAGE, processingContext);
+        final MessageId messageId = messageBus.send(processingContext);
+        testEnvironment.setProperty(SEND_MESSAGE_ID, messageId);
     }
 
     public static void addASingleSubscriber(final MessageBus messageBus, final TestEnvironment testEnvironment) {

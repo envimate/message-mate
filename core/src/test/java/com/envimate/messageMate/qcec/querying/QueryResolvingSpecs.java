@@ -67,19 +67,6 @@ public interface QueryResolvingSpecs {
                 .expect(theCorrectResult());
     }
 
-    /*TODO:
-    @Test
-    default void testQueryResolver_queryIsDeliveredToAllSuperClasses(final TestQueryResolver aQueryResolver) {
-        final int expectedResult = 5;
-        final int invalidResponse = 1000;
-        given(aQueryResolver
-                .withASubscriber(SuperclassTestQuery.class, q -> q.reportMatch(expectedResult))
-                .withASubscriber(TestQuery.class, q -> q.setResult(invalidResponse)))
-                .when(theQueryIsExecuted(aSubclassingQuery()))
-                .expect(theResult(expectedResult));
-    }
-    */
-
     @Test
     default void testQueryResolver_queryCanBeStoppedEarly(final TestQueryResolver aQueryResolver) {
         final int expectedResult = 5;

@@ -41,18 +41,13 @@ public final class MessageBusConsumeAction {
     public static Consume<Object> messageBusConsumeAction(final MessageBusBrokerStrategy brokerStrategy,
                                                           final CorrelationBasedSubscriptions correlationBasedSubscriptions) {
         return consumeMessage(objectProcessingContext -> {
-            final Object message = objectProcessingContext.getPayload();
-            if (message != null) {
-                deliveryToClassBasedSubscriber(objectProcessingContext, brokerStrategy);
-            }
+            deliveryToEventTypeBasedSubscriber(objectProcessingContext, brokerStrategy);
             deliveryBasedOnCorrelationId(objectProcessingContext, correlationBasedSubscriptions);
         });
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private static void deliveryToClassBasedSubscriber(final ProcessingContext<Object> processingContext,
-                                                       final MessageBusBrokerStrategy brokerStrategy) {
-        final Object message = processingContext.getPayload();
+    private static void deliveryToEventTypeBasedSubscriber(final ProcessingContext<Object> processingContext,
+                                                           final MessageBusBrokerStrategy brokerStrategy) {
         final EventType eventType = processingContext.getEventType();
         final Channel<Object> channel = brokerStrategy.getDeliveringChannelFor(eventType);
         channel.send(processingContext);

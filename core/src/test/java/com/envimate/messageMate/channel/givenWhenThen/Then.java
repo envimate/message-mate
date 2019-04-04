@@ -60,7 +60,7 @@ public class Then {
                 MILLISECONDS.sleep(sleepDuration);
             }
         } catch (final Exception e) {
-            testEnvironment.setProperty(EXCEPTION, e);
+            testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
         }
         final TestValidation testValidation = channelValidationBuilder.build();
         testValidation.validate(testEnvironment);
@@ -73,7 +73,7 @@ public class Then {
             try {
                 MILLISECONDS.sleep(sleepDuration);
             } catch (final InterruptedException e) {
-                testEnvironment.setProperty(EXCEPTION, e);
+                testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
             }
         }
         channel.close(false);

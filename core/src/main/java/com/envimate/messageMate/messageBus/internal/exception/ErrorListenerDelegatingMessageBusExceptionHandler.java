@@ -22,6 +22,7 @@
 package com.envimate.messageMate.messageBus.internal.exception;
 
 import com.envimate.messageMate.channel.Channel;
+import com.envimate.messageMate.internal.exceptions.BubbleUpWrappedException;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionHandler;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener;
 import com.envimate.messageMate.processingContext.ProcessingContext;
@@ -47,30 +48,55 @@ public final class ErrorListenerDelegatingMessageBusExceptionHandler implements 
         return delegate.shouldDeliveryChannelErrorBeHandledAndDeliveryAborted(message, e, channel);
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public void handleDeliveryChannelException(final ProcessingContext<?> message, final Exception e, final Channel<?> channel) {
         try {
-            delegate.handleDeliveryChannelException(message, e, channel);
+            callDeliveryExceptionHandlerIfNotBubbleUpException(message, e, channel);
         } finally {
-            @SuppressWarnings("raw") final List listener = getListener(message);
-            delegate.callTemporaryExceptionListener(message, e, listener);
+            callTemporaryHandlerIfNotBubbleUpException(message, e, channel);
         }
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public void handleFilterException(final ProcessingContext<?> message, final Exception e, final Channel<?> channel) {
         try {
-            delegate.handleDeliveryChannelException(message, e, channel);
+            callFilterExceptionHandlerIfNotBubbleUpException(message, e, channel);
         } finally {
-            final List<MessageBusExceptionListener> listener = getListener(message);
-            delegate.callTemporaryExceptionListener(message, e, listener);
+            callTemporaryHandlerIfNotBubbleUpException(message, e, channel);
         }
     }
 
-    @SuppressWarnings("rawtypes")
     private List<MessageBusExceptionListener> getListener(final ProcessingContext<?> message) {
         return exceptionListenerHandler.listenerFor(message);
+    }
+
+    private void callDeliveryExceptionHandlerIfNotBubbleUpException(final ProcessingContext<?> message, final Exception e, final Channel<?> channel) {
+        if (e instanceof BubbleUpWrappedException) {
+            return;
+        }
+        try {
+            delegate.handleDeliveryChannelException(message, e, channel);
+        } catch (final Exception rethrownException) {
+            throw new BubbleUpWrappedException(rethrownException);
+        }
+    }
+
+    private void callFilterExceptionHandlerIfNotBubbleUpException(final ProcessingContext<?> message, final Exception e, final Channel<?> channel) {
+        if (e instanceof BubbleUpWrappedException) {
+            return;
+        }
+        try {
+            delegate.handleFilterException(message, e, channel);
+        } catch (final Exception rethrownException) {
+            throw new BubbleUpWrappedException(rethrownException);
+        }
+    }
+
+    private void callTemporaryHandlerIfNotBubbleUpException(final ProcessingContext<?> message, final Exception e, final Channel<?> channel) {
+        if (e instanceof BubbleUpWrappedException) {
+            return;
+        }
+        final List<MessageBusExceptionListener> listener = getListener(message);
+        delegate.callTemporaryExceptionListener(message, e, listener);
     }
 }

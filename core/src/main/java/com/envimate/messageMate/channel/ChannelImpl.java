@@ -34,6 +34,7 @@ import com.envimate.messageMate.channel.statistics.ChannelStatistics;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.identification.MessageId;
+import com.envimate.messageMate.internal.exceptions.BubbleUpWrappedException;
 import com.envimate.messageMate.internal.pipe.Pipe;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import lombok.RequiredArgsConstructor;
@@ -54,23 +55,25 @@ final class ChannelImpl<T> implements Channel<T> {
     private final Action<T> defaultAction;
     private final ActionHandlerSet<T> actionHandlerSet;
     private final ChannelStatisticsCollector statisticsCollector;
+    private final ChannelExceptionHandler<T> exceptionHandler;
 
     private ChannelImpl(final Pipe<ProcessingContext<T>> acceptingPipe, final Pipe<ProcessingContext<T>> preToProcessPipe,
                         final Pipe<ProcessingContext<T>> processToPostPipe, final Pipe<ProcessingContext<T>> afterPostPipe,
                         final Action<T> defaultAction, final ChannelEventListener<ProcessingContext<T>> eventListener,
                         final ChannelStatisticsCollector statisticsCollector,
                         final ActionHandlerSet<T> actionHandlerSet,
-                        final ChannelExceptionHandler<T> excHandler) {
+                        final ChannelExceptionHandler<T> exceptionHandler) {
         this.acceptingPipe = acceptingPipe;
         this.defaultAction = defaultAction;
         this.actionHandlerSet = actionHandlerSet;
         this.statisticsCollector = statisticsCollector;
+        this.exceptionHandler = exceptionHandler;
         this.preFilter = new CopyOnWriteArrayList<>();
         this.processFilter = new CopyOnWriteArrayList<>();
         this.postFilter = new CopyOnWriteArrayList<>();
-        acceptingPipe.subscribe(new AdvanceMessageUsingFilter(preFilter, preToProcessPipe, eventListener, excHandler));
-        preToProcessPipe.subscribe(new AdvanceMessageUsingFilter(processFilter, processToPostPipe, eventListener, excHandler));
-        processToPostPipe.subscribe(new AdvanceMessageUsingFilter(postFilter, afterPostPipe, eventListener, excHandler));
+        acceptingPipe.subscribe(new AdvanceMessageUsingFilter(preFilter, preToProcessPipe, eventListener, exceptionHandler));
+        preToProcessPipe.subscribe(new AdvanceMessageUsingFilter(processFilter, processToPostPipe, eventListener, exceptionHandler));
+        processToPostPipe.subscribe(new AdvanceMessageUsingFilter(postFilter, afterPostPipe, eventListener, exceptionHandler));
         afterPostPipe.subscribe(new ConsumerExecutingActionSetByFilterOrDefaultAction());
     }
 
@@ -101,9 +104,15 @@ final class ChannelImpl<T> implements Channel<T> {
 
     @Override
     public MessageId send(final ProcessingContext<T> processingContext) {
-        advanceChannelProcessingFrameHistory(processingContext);
-        acceptingPipe.send(processingContext);
-        return processingContext.getMessageId();
+        final MessageId messageId = processingContext.getMessageId();
+        try {
+            advanceChannelProcessingFrameHistory(processingContext);
+            acceptingPipe.send(processingContext);
+            return messageId;
+        } catch (BubbleUpWrappedException e) {
+            exceptionHandler.handleBubbledUpException(e);
+            return messageId;
+        }
     }
 
     private void advanceChannelProcessingFrameHistory(final ProcessingContext<T> processingContext) {
@@ -261,8 +270,18 @@ final class ChannelImpl<T> implements Channel<T> {
                     }
                 });
             } catch (final Exception e) {
-                eventListener.exceptionInFilter(preFilterprocessingContext, e);
-                exceptionHandler.handleFilterException(preFilterprocessingContext, e);
+                if (e instanceof BubbleUpWrappedException) {
+                    throw e;
+                } else {
+                    try {
+                        eventListener.exceptionInFilter(preFilterprocessingContext, e);
+                        exceptionHandler.handleFilterException(preFilterprocessingContext, e);
+                    } catch (final BubbleUpWrappedException bubbledException) {
+                        throw bubbledException;
+                    } catch (final Exception rethrownException) {
+                        throw new BubbleUpWrappedException(e);
+                    }
+                }
             }
         }
     }

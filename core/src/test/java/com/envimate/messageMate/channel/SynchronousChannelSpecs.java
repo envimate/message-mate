@@ -23,6 +23,7 @@ package com.envimate.messageMate.channel;
 
 import com.envimate.messageMate.channel.config.ChannelTestConfig;
 import com.envimate.messageMate.channel.config.SynchronousChannelConfigResolver;
+import com.envimate.messageMate.shared.subscriber.TestException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -58,6 +59,25 @@ public class SynchronousChannelSpecs implements ChannelSpecs {
                         .and(expectTheChannelToBeShutdown()));
     }
 
+    //errors
+    @Test
+    public void testMessageBus_exceptionHandlerIsCalledOnceEvenIfExceptionIsRethrown(final ChannelTestConfig channelTestConfig) {
+        given(aConfiguredChannel(channelTestConfig)
+                .withAnExceptionInFinalAction()
+                .withAnExceptionHandlerRethrowingExceptions())
+                .when(aMessageIsSend())
+                .then(expectADeliveryExceptionOfType(TestException.class));
+    }
+
+    @Test
+    public void testMessageBus_exceptionIsAlsoThrownBySendMethod(final ChannelTestConfig channelTestConfig) {
+        given(aConfiguredChannel(channelTestConfig)
+                .withAnExceptionInFinalAction()
+                .withAnExceptionHandlerRethrowingExceptions())
+                .when(aMessageIsSend())
+                .then(expectADeliveryExceptionOfType(TestException.class));
+    }
+
     //await
     @Test
     public void testChannel_awaitsWithoutFinishingTasks_succeedsDespiteNotFinished(final ChannelTestConfig channelTestConfig) {
@@ -68,4 +88,5 @@ public class SynchronousChannelSpecs implements ChannelSpecs {
                         .andThen(theShutdownIsAwaited()))
                 .then(expectTheShutdownToBeSucceededInTime());
     }
+
 }

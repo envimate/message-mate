@@ -21,6 +21,7 @@
 
 package com.envimate.messageMate.messageFunction;
 
+import com.envimate.messageMate.exceptions.AlreadyClosedException;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.CancellationException;
@@ -31,8 +32,6 @@ import static com.envimate.messageMate.messageFunction.givenWhenThen.TestMessage
 import static com.envimate.messageMate.messageFunction.givenWhenThen.TestMessageFunctionSetupBuilder.aMessageFunction;
 import static com.envimate.messageMate.messageFunction.givenWhenThen.TestMessageFunctionValidationBuilder.*;
 
-//TODO: check fulfilled for onError of response
-//TODO: check for null as response
 public class MessageFunctionSpecs {
 
     @Test
@@ -101,10 +100,10 @@ public class MessageFunctionSpecs {
     }
 
     @Test
-    public void testMessageFunction_futuresFinishesWhenDeliveryFailedMessageIsReceived() {
+    public void testMessageFunction_futuresFinishesWhenExceptionReceived() {
         given(aMessageFunction()
                 .definedWithResponseThrowingAnException())
-                .when(aRequestIsSendThatCausesADeliveryFailedMessage())
+                .when(aRequestIsSendThatCausesAnException())
                 .then(expectAFutureToBeFinishedWithException(ExecutionException.class));
     }
 
@@ -114,6 +113,14 @@ public class MessageFunctionSpecs {
                 .definedWithAnUnansweredResponse())
                 .when(forTheResponseIsWaitedASpecificTime())
                 .then(expectTheTimeoutToBeTriggered());
+    }
+
+    @Test
+    public void testMessageFunction_isFulFilledForNullResponse() {
+        given(aMessageFunction()
+                .withTheRequestAnsweredByANull())
+                .when(aRequestIsSend())
+                .then(expectNullReceived());
     }
 
     //cancelling
@@ -181,4 +188,33 @@ public class MessageFunctionSpecs {
                 .then(expectAExceptionToBeThrownOfType(CancellationException.class));
     }
 
+    //Closing
+    @Test
+    public void testMessageFunction_usingAClosedMessageFunctionFails() {
+        given(aMessageFunction()
+                .withTheRequestAnsweredByACorrelatedResponse())
+                .when(theMessageFunctionIsClosed()
+                        .andThen(aRequestIsSend()))
+                .then(expectAExceptionToBeThrownOfType(AlreadyClosedException.class));
+    }
+
+    //errors
+    @Test
+    public void testMessageFunction_errorOfMessageBusSendIsNotPropagatedToCallerOfMessageFunction() {
+        given(aMessageFunction()
+                .throwingAnExceptionDuringSend())
+                .when(aFollowUpExpectingExceptionBeforeSendIsAdded())
+                .then(expectTheExceptionToBeSetOnlyDuringByFuture());
+    }
+
+
+    //cleaning up
+    //TODO: allow for it + also for error case
+    /*@Test
+    public void testMessageFunction_unregistersAllSubscriber_whenFulfilled() {
+        given(aMessageFunction()
+                .withTheRequestAnsweredByACorrelatedResponse())
+                .when(aRequestIsSend())
+                .then(expectNoUnecssarySubscribersOnTheMessageBus());
+    }*/
 }

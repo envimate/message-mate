@@ -18,6 +18,16 @@ public final class EventType {
         return new EventType(cleaned);
     }
 
+    public static EventType eventTypeFromClass(final Class<?> aClass) {
+        final String name = aClass.getName();
+        return eventTypeFromString(name);
+    }
+
+    public static EventType eventTypeFromUseCase(final Class<?> useCaseClass) {
+        final String name = useCaseClass.getName();
+        return eventTypeFromString(name);
+    }
+
     public String stringValue() {
         return value;
     }

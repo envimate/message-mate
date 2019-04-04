@@ -74,6 +74,16 @@ public final class ChannelActionBuilder {
         });
     }
 
+    public static ChannelActionBuilder aMessageWithoutPayloadIsSend() {
+        return anAction((channel, testEnvironment) -> {
+            final ProcessingContext<TestMessage> processingContext = sendMessage(channel, null);
+            final MessageId messageId = processingContext.getMessageId();
+            testEnvironment.setProperty(SEND_MESSAGE_ID, messageId);
+            testEnvironment.setProperty(EXPECTED_RESULT, processingContext);
+            return null;
+        });
+    }
+
     public static ChannelActionBuilder aMessageWithCorrelationIdIsSend() {
         return anAction((channel, testEnvironment) -> {
             final CorrelationId expectedCorrelationId = CorrelationId.newUniqueCorrelationId();

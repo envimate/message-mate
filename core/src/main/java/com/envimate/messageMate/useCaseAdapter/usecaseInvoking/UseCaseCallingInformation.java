@@ -19,14 +19,14 @@ public final class UseCaseCallingInformation<USECASE> {
     @Getter
     private final EventType eventType;
     @Getter
-    private final Caller<USECASE, Object> caller;
+    private final Caller<USECASE> caller;
     @Getter
     private final ParameterValueMappings parameterValueMappings;
 
     public static <USECASE> UseCaseCallingInformation<USECASE> useCaseInvocationInformation(
             final Class<USECASE> useCaseClass,
             final EventType eventType,
-            final Caller<USECASE, Object> caller,
+            final Caller<USECASE> caller,
             final ParameterValueMappings parameterValueMappings) {
         ensureNotNull(useCaseClass, "useCaseClass");
         ensureNotNull(eventType, "eventType");

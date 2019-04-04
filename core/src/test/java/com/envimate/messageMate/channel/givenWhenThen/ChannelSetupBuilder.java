@@ -365,10 +365,20 @@ public final class ChannelSetupBuilder {
         return this;
     }
 
+    public ChannelSetupBuilder withAnExceptionHandlerRethrowingExceptions() {
+        channelBuilder.withChannelExceptionHandler(errorRethrowingExceptionHandler(testEnvironment));
+        return this;
+    }
+
     public ChannelSetupBuilder withAnExceptionCatchingHandler_inCaseOfAsynchronousExecution() {
         if (channelTestConfig.getType().equals(ChannelType.ASYNCHRONOUS)) {
             channelBuilder.withChannelExceptionHandler(catchingChannelExceptionHandler(testEnvironment));
         }
+        return this;
+    }
+
+    public ChannelSetupBuilder withAnExceptionCatchingHandler() {
+        channelBuilder.withChannelExceptionHandler(catchingChannelExceptionHandler(testEnvironment));
         return this;
     }
 

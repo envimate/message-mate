@@ -24,6 +24,7 @@ package com.envimate.messageMate.messageBus;
 
 import com.envimate.messageMate.exceptions.AlreadyClosedException;
 import com.envimate.messageMate.messageBus.config.MessageBusTestConfig;
+import com.envimate.messageMate.messageBus.exception.MissingEventTypeException;
 import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 import org.junit.jupiter.api.Test;
@@ -38,8 +39,6 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public interface MessageBusSpecs {
 
-    //TODO: test for null payload
-    //TODO: test for null eventType
     //Send and subscribe
     @Test
     default void testMessageBus_canSendAndReceiveASingleMessage(final MessageBusTestConfig messageBusTestConfig) throws Exception {
@@ -69,7 +68,6 @@ public interface MessageBusSpecs {
     }
 
 
-
     @Test
     default void testMessageBus_canSendAndReceiveMessagesAsynchronously(final MessageBusTestConfig messageBusTestConfig) throws Exception {
         given(aConfiguredMessageBus(messageBusTestConfig)
@@ -77,6 +75,22 @@ public interface MessageBusSpecs {
                 .when(severalMessagesAreSendAsynchronously(5, 10)
                         .andThen(aShortWaitIsDone(5, MILLISECONDS)))
                 .then(expectAllMessagesToBeReceivedByAllSubscribers());
+    }
+
+    @Test
+    default void testMessageBus_canSendAMessageWithoutPayload(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withASingleRawSubscriber())
+                .when(aMessageWithoutPayloadIsSend())
+                .then(expectTheMessageToBeReceived());
+    }
+
+    @Test
+    default void testMessageBus_throwsExceptionWhenEventTypeIsNotSet(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withASingleRawSubscriber())
+                .when(aMessageWithoutEventType())
+                .then(expectTheException(MissingEventTypeException.class));
     }
 
     //unsubscribe
@@ -253,10 +267,12 @@ public interface MessageBusSpecs {
     @Test
     default void testMessageBus_returnsCorrectNumberOfDeliveryFailedMessages(final MessageBusTestConfig messageBusTestConfig) throws Exception {
         given(aConfiguredMessageBus(messageBusTestConfig)
-                .withoutASubscriber())
+                .withAnExceptionThrowingSubscriber()
+                .withACustomExceptionHandlerMarkingExceptionAsIgnored())
                 .when(severalMessagesAreSendAsynchronously(3, 5)
                         .andThen(theNumberOfFailedMessagesIsQueried()))
                 .then(expectResultToBe(0));
+        //Is 0, because errors in event-type specific channels do not count for MB itself
     }
 
     @Test
@@ -338,7 +354,7 @@ public interface MessageBusSpecs {
                 .withAnExceptionThrowingFilter()
                 .withACustomExceptionHandler())
                 .when(aSingleMessageIsSend())
-                .then(expectTheExceptionHandled(TestException.class));
+                .then(expectTheExceptionHandledAsFilterException(TestException.class));
     }
 
     @Test
@@ -349,7 +365,7 @@ public interface MessageBusSpecs {
                 .when(aSubscriberIsAdded(eventType)
                         .andThen(anExceptionThrowingFilterIsAddedInChannelOf(eventType))
                         .andThen(aSingleMessageIsSend()))
-                .then(expectTheExceptionHandled(TestException.class));
+                .then(expectTheExceptionHandledAsFilterException(TestException.class));
     }
 
     @Test
@@ -358,17 +374,18 @@ public interface MessageBusSpecs {
                 .withACustomExceptionHandler())
                 .when(anExceptionThrowingSubscriberIsAdded()
                         .andThen(aSingleMessageIsSend()))
-                .then(expectTheExceptionHandled(TestException.class));
+                .then(expectTheExceptionHandledAsDeliverException(TestException.class));
     }
 
     @Test
     default void testMessageBus_customExceptionHandlerCanMarkExceptionAsNotDeliveryAborting(final MessageBusTestConfig messageBusTestConfig) throws Exception {
         given(aConfiguredMessageBus(messageBusTestConfig)
-                .withACustomExceptionHandler())
+                .withACustomExceptionHandlerMarkingExceptionAsIgnored())
                 .when(anExceptionThrowingSubscriberIsAdded()
                         .andThen(aSingleMessageIsSend()
                                 .andThen(theNumberOfSuccessfulMessagesIsQueried())))
-                .then(expectResultToBe(1));
+                .then(expectResultToBe(1)
+                        .and(expectNoException()));
     }
 
     //dynamic exception listener
@@ -417,7 +434,7 @@ public interface MessageBusSpecs {
                 .when(aMessageWithCorrelationIdIsSend())
                 .then(expectTheExceptionHandled(TestException.class));
     }
-    //TODO: two handler for same class/corId
+
     @Test
     default void testMessageBus_dynamicCorrelationIdBasedErrorListenerCanBeRemoved(final MessageBusTestConfig messageBusTestConfig) throws Exception {
         given(aConfiguredMessageBus(messageBusTestConfig)
@@ -425,7 +442,7 @@ public interface MessageBusSpecs {
                 .withTwoDynamicCorrelationBasedExceptionListener())
                 .when(theDynamicExceptionHandlerToBeRemoved()
                         .andThen(aMessageWithCorrelationIdIsSend()))
-                .then(expectTheExceptionHandled(TestException.class));
+                .then(expectTheExceptionHandledOnlyBeTheRemaining(TestException.class));
     }
 
     //await

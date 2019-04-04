@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-//TODO: add same listener twice: unregisterLookupMap bug + what about reusing ListenerInformation
 public class ExceptionListenerHandlerImpl implements ExceptionListenerHandler {
     private final Map<EventType, List<ListenerInformation>> eventTypeBasedListenerLookupMap = new ConcurrentHashMap<>();
     private final Map<CorrelationId, List<ListenerInformation>> correlationIdBasedListenerLookupMap = new ConcurrentHashMap<>();
@@ -46,7 +45,7 @@ public class ExceptionListenerHandlerImpl implements ExceptionListenerHandler {
     }
 
     @Override
-    public SubscriptionId register(final EventType eventType, final MessageBusExceptionListener<Object> exceptionListener) {
+    public synchronized SubscriptionId register(final EventType eventType, final MessageBusExceptionListener<Object> exceptionListener) {
         final ListenerInformation listenerInformation = new ListenerInformation(eventType, exceptionListener);
         storeListenerInformation(eventType, listenerInformation);
 
@@ -75,7 +74,7 @@ public class ExceptionListenerHandlerImpl implements ExceptionListenerHandler {
         }
     }
 
-    private void storeListenerInformation(CorrelationId correlationId, ListenerInformation listenerInformation) {
+    private void storeListenerInformation(final CorrelationId correlationId, final ListenerInformation listenerInformation) {
         if (correlationIdBasedListenerLookupMap.containsKey(correlationId)) {
             correlationIdBasedListenerLookupMap.get(correlationId).add(listenerInformation);
         } else {

@@ -2,48 +2,54 @@ package com.envimate.messageMate.useCaseAdapter;
 
 import org.junit.jupiter.api.Test;
 
+import static com.envimate.messageMate.useCaseAdapter.Given.given;
+import static com.envimate.messageMate.useCaseAdapter.UseCaseAdapterActionBuilder.theAssociatedEventIsSend;
+import static com.envimate.messageMate.useCaseAdapter.UseCaseAdapterSetupBuilder.aUseCaseAdapter;
+import static com.envimate.messageMate.useCaseAdapter.UseCaseAdapterValidationBuilder.expectTheResponseToBeReceivedByTheMessageFunction;
+import static com.envimate.messageMate.useCaseAdapter.UseCaseAdapterValidationBuilder.expectTheUseCaseToBeInvokedOnce;
 
+//TODO: ensure injector is called for each request again
 public interface UseCaseAdapterSpecs {
 
     @Test
     default void testUseCaseAdapter_canInvokeUseCaseUsingTheAutomaticMethod(final TestUseCase testUseCase) {
-        Given.given(UseCaseAdapterSetupBuilder.aUseCaseAdapter(testUseCase)
+        given(aUseCaseAdapter(testUseCase)
                 .invokingTheUseCaseUsingTheSingleUseCaseMethod())
-                .when(UseCaseAdapterActionBuilder.theAssociatedEventIsSend())
-                .then(UseCaseAdapterValidationBuilder.expectTheUseCaseToBeInvokedOnce());
+                .when(theAssociatedEventIsSend())
+                .then(expectTheUseCaseToBeInvokedOnce());
     }
 
     @Test
     default void testUseCaseAdapter_explicitMappingCanBeDefined(final TestUseCase testUseCase) {
-        Given.given(UseCaseAdapterSetupBuilder.aUseCaseAdapter(testUseCase)
+        given(aUseCaseAdapter(testUseCase)
                 .invokingTheUseCaseUsingTheDefinedMapping())
-                .when(UseCaseAdapterActionBuilder.theAssociatedEventIsSend())
-                .then(UseCaseAdapterValidationBuilder.expectTheUseCaseToBeInvokedOnce());
+                .when(theAssociatedEventIsSend())
+                .then(expectTheUseCaseToBeInvokedOnce());
     }
 
     @Test
     default void testUseCaseAdapter_canUseCustomInstantiation(final TestUseCase testUseCase) {
-        Given.given(UseCaseAdapterSetupBuilder.aUseCaseAdapter(testUseCase)
+        given(aUseCaseAdapter(testUseCase)
                 .invokingTheUseCaseUsingTheSingleUseCaseMethod()
                 .usingACustomInstantiationMechanism())
-                .when(UseCaseAdapterActionBuilder.theAssociatedEventIsSend())
-                .then(UseCaseAdapterValidationBuilder.expectTheUseCaseToBeInvokedOnce());
+                .when(theAssociatedEventIsSend())
+                .then(expectTheUseCaseToBeInvokedOnce());
     }
 
     @Test
     default void testUseCaseAdapter_canBeUsedInCombinationWithAMessageFunction(final TestUseCase testUseCase) {
-        Given.given(UseCaseAdapterSetupBuilder.aUseCaseAdapter(testUseCase)
+        given(aUseCaseAdapter(testUseCase)
                 .invokingTheUseCaseUsingTheSingleUseCaseMethod())
                 .when(UseCaseAdapterActionBuilder.theRequestIsExecutedUsingAMessageFunction())
-                .then(UseCaseAdapterValidationBuilder.expectTheResponseToBeReceivedByTheMessageFunction());
+                .then(expectTheResponseToBeReceivedByTheMessageFunction());
     }
 
     @Test
     default void testUseCaseAdapter_canAMessageFunctionAndACustomMapping(final TestUseCase testUseCase) {
-        Given.given(UseCaseAdapterSetupBuilder.aUseCaseAdapter(testUseCase)
+        given(aUseCaseAdapter(testUseCase)
                 .invokingTheUseCaseUsingTheDefinedMapping())
                 .when(UseCaseAdapterActionBuilder.theRequestIsExecutedUsingAMessageFunction())
-                .then(UseCaseAdapterValidationBuilder.expectTheResponseToBeReceivedByTheMessageFunction());
+                .then(expectTheResponseToBeReceivedByTheMessageFunction());
     }
 
 

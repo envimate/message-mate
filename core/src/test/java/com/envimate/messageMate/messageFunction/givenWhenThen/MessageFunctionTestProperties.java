@@ -8,4 +8,6 @@ import static lombok.AccessLevel.PRIVATE;
 public final class MessageFunctionTestProperties {
     public final static String EVENT_TYPE = "EVENT_TYPE";
     public final static String CANCEL_RESULTS = "CANCEL_RESULTS";
+    public final static String EXCEPTION_OCCURRED_DURING_SEND = "EXCEPTION_OCCURRED_DURING_SEND";
+    public final static String EXCEPTION_OCCURRED_DURING_FOLLOW_UP = "EXCEPTION_OCCURRED_DURING_FOLLOW_UP";
 }

@@ -21,14 +21,16 @@
 
 package com.envimate.messageMate.messageFunction.givenWhenThen;
 
+import com.envimate.messageMate.messageBus.MessageBus;
+import com.envimate.messageMate.messageBus.MessageBusStatusInformation;
 import com.envimate.messageMate.messageFunction.ResponseFuture;
-import com.envimate.messageMate.messageFunction.testResponses.ErrorTestResponse;
 import com.envimate.messageMate.messageFunction.testResponses.RequestResponseFuturePair;
 import com.envimate.messageMate.messageFunction.testResponses.TestRequest;
 import com.envimate.messageMate.messageFunction.testResponses.TestResponse;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.qcec.shared.TestValidation;
 import com.envimate.messageMate.shared.subscriber.TestException;
+import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -36,16 +38,15 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
-import static com.envimate.messageMate.messageFunction.givenWhenThen.MessageFunctionTestProperties.CANCEL_RESULTS;
+import static com.envimate.messageMate.messageFunction.givenWhenThen.MessageFunctionTestProperties.*;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
-import static com.envimate.messageMate.shared.validations.SharedTestValidations.assertResultAndExpectedResultAreEqual;
-import static com.envimate.messageMate.shared.validations.SharedTestValidations.assertResultOfClass;
+import static com.envimate.messageMate.shared.validations.SharedTestValidations.*;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static lombok.AccessLevel.PRIVATE;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.*;
 
 @RequiredArgsConstructor(access = PRIVATE)
@@ -233,6 +234,37 @@ public final class TestMessageFunctionValidationBuilder {
             }
         });
     }
+
+    public static TestMessageFunctionValidationBuilder expectTheExceptionToBeSetOnlyDuringByFuture() {
+        return new TestMessageFunctionValidationBuilder(testEnvironment -> {
+            expectAExceptionToBeThrownOfType(TestException.class);
+            assertPropertyFalseOrUnset(testEnvironment, EXCEPTION_OCCURRED_DURING_SEND);
+            assertPropertyTrue(testEnvironment, EXCEPTION_OCCURRED_DURING_FOLLOW_UP);
+        });
+    }
+
+    public static TestMessageFunctionValidationBuilder expectNoSubscribersOnTheMessageBus() {
+        return new TestMessageFunctionValidationBuilder(testEnvironment -> {
+            final MessageBus messageBus = testEnvironment.getPropertyAsType(MOCK, MessageBus.class);
+            final MessageBusStatusInformation statusInformation = messageBus.getStatusInformation();
+            final List<Subscriber<?>> allSubscribers = statusInformation.getAllSubscribers();
+            assertCollectionOfSize(allSubscribers, 0);
+        });
+    }
+
+    public static TestMessageFunctionValidationBuilder expectNullReceived() {
+        return new TestMessageFunctionValidationBuilder(testEnvironment -> {
+            ensureNoExceptionThrown(testEnvironment);
+            try {
+                final ResponseFuture responseFuture = testEnvironment.getPropertyAsType(RESULT, ResponseFuture.class);
+                final Object response = responseFuture.get();
+                assertThat(response, nullValue());
+            } catch (final InterruptedException | ExecutionException e) {
+                fail(e);
+            }
+        });
+    }
+
 
     private static void ensureNoExceptionThrown(final TestEnvironment testEnvironment) {
         if (testEnvironment.has(EXCEPTION)) {

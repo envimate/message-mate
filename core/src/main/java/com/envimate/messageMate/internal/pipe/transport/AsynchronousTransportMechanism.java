@@ -21,6 +21,7 @@
 
 package com.envimate.messageMate.internal.pipe.transport;
 
+import com.envimate.messageMate.internal.exceptions.BubbleUpWrappedException;
 import com.envimate.messageMate.internal.pipe.events.PipeEventListener;
 import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +47,11 @@ public final class AsynchronousTransportMechanism<T> implements TransportMechani
         try {
             threadPoolExecutor.execute(() -> {
                 eventListener.messageDequeued(message);
-                synchronousDelivery.deliver(message, subscribers);
+                try {
+                    synchronousDelivery.deliver(message, subscribers);
+                } catch (BubbleUpWrappedException e) {
+                    throw (RuntimeException) e.getCause();
+                }
             });
         } catch (final RejectedExecutionException e) {
             throw new PipeWaitingQueueIsFullException();

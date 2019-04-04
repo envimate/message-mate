@@ -29,22 +29,20 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
 import static com.envimate.messageMate.useCaseAdapter.usecaseInvoking.ClassBasedUseCaseInvokerImpl.classBasedUseCaseInvoker;
-import static java.util.Optional.empty;
-import static java.util.Optional.ofNullable;
 
 public interface UseCaseAdapterCallingBuilder<USECASE> {
 
     default UseCaseAdapterStep1Builder calling(final BiFunction<USECASE, Object, Object> caller) {
         return callingBy((useCase, event, parameterValueMappings) -> {
             final Object returnValue = caller.apply(useCase, event);
-            return ofNullable(returnValue);
+            return returnValue;
         });
     }
 
     default UseCaseAdapterStep1Builder callingVoid(final BiConsumer<USECASE, Object> caller) {
         return callingBy((usecase, event, parameterValueMappings) -> {
             caller.accept(usecase, event);
-            return empty();
+            return null;
         });
     }
 
@@ -53,10 +51,10 @@ public interface UseCaseAdapterCallingBuilder<USECASE> {
             final UseCaseInvoker invoker = classBasedUseCaseInvoker(usecase.getClass());
             final UseCaseInvocationInformation invocationInformation = invoker.getInvocationInformation();
             final UseCaseMethodInvoker methodInvoker = invocationInformation.getMethodInvoker();
-            final Object returnValue = methodInvoker.invoke(usecase, event, parameterValueMappings); // TODO
-            return ofNullable(returnValue);
+            final Object returnValue = methodInvoker.invoke(usecase, event, parameterValueMappings);
+            return returnValue;
         });
     }
 
-    UseCaseAdapterStep1Builder callingBy(Caller<USECASE, Object> caller);
+    UseCaseAdapterStep1Builder callingBy(Caller<USECASE> caller);
 }

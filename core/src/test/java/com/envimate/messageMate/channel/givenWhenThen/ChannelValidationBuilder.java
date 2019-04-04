@@ -41,6 +41,8 @@ import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestProperti
 import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestValidations.*;
 import static com.envimate.messageMate.channel.givenWhenThen.ProcessingFrameHistoryMatcher.aProcessingFrameHistory;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.EXCEPTION_OCCURRED_DURING_DELIVERY;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.EXCEPTION_OCCURRED_INSIDE_FILTER;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestValidations.*;
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.*;
 import static lombok.AccessLevel.PRIVATE;
@@ -127,6 +129,20 @@ public final class ChannelValidationBuilder {
         return aValidation(testEnvironment -> assertExceptionThrownOfType(testEnvironment, expectedExceptionClass));
     }
 
+    public static ChannelValidationBuilder expectAFilterExceptionOfType(final Class<?> expectedExceptionClass) {
+        return aValidation(testEnvironment -> {
+            assertExceptionThrownOfType(testEnvironment, expectedExceptionClass);
+            assertPropertyTrue(testEnvironment, EXCEPTION_OCCURRED_INSIDE_FILTER);
+        });
+    }
+
+    public static ChannelValidationBuilder expectADeliveryExceptionOfType(final Class<?> expectedExceptionClass) {
+        return aValidation(testEnvironment -> {
+            assertExceptionThrownOfType(testEnvironment, expectedExceptionClass);
+            assertPropertyTrue(testEnvironment, EXCEPTION_OCCURRED_DURING_DELIVERY);
+        });
+    }
+
     public static ChannelValidationBuilder expectTheChangedActionToBeExecuted() {
         return aValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
@@ -171,10 +187,19 @@ public final class ChannelValidationBuilder {
         });
     }
 
-    public static ChannelValidationBuilder expectTheExceptionCatched(final Class<?> expectedResultClass) {
+    public static ChannelValidationBuilder expectTheDeliveryExceptionCatched(final Class<?> expectedResultClass) {
         return aValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
             assertResultOfClass(testEnvironment, expectedResultClass);
+            assertPropertyTrue(testEnvironment, EXCEPTION_OCCURRED_DURING_DELIVERY);
+        });
+    }
+
+    public static ChannelValidationBuilder expectTheFilterExceptionCatched(final Class<?> expectedResultClass) {
+        return aValidation(testEnvironment -> {
+            assertNoExceptionThrown(testEnvironment);
+            assertResultOfClass(testEnvironment, expectedResultClass);
+            assertPropertyTrue(testEnvironment, EXCEPTION_OCCURRED_INSIDE_FILTER);
         });
     }
 

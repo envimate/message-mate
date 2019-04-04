@@ -21,6 +21,7 @@
 
 package com.envimate.messageMate.channel.exception;
 
+import com.envimate.messageMate.internal.exceptions.BubbleUpWrappedException;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 
 /**
@@ -58,4 +59,8 @@ public interface ChannelExceptionHandler<T> {
      * @param e       the thrown exception
      */
     void handleFilterException(ProcessingContext<T> message, Exception e);
+
+    default void handleBubbledUpException(BubbleUpWrappedException e) {
+        throw (RuntimeException) e.getCause();
+    }
 }

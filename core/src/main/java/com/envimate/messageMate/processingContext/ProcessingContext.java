@@ -109,9 +109,7 @@ public final class ProcessingContext<T> {
     public static <T> ProcessingContext<T> processingContext(final T payload) {
         final Map<Object, Object> contextMetaData = new HashMap<>();
         final MessageId messageId = newUniqueMessageId();
-        final String simpleName = payload.getClass().getSimpleName();
-        final EventType eventType = EventType.eventTypeFromString(simpleName);
-        return new ProcessingContext<>(eventType, messageId, null, payload, contextMetaData, null, null);
+        return new ProcessingContext<>(null, messageId, null, payload, contextMetaData, null, null);
     }
 
     public static <T> ProcessingContext<T> processingContext(final EventType eventType, final T payload) {
@@ -136,9 +134,7 @@ public final class ProcessingContext<T> {
     public static <T> ProcessingContext<T> processingContext(final T payload, final CorrelationId correlationId) {
         final Map<Object, Object> metaData = new HashMap<>();
         final MessageId messageId = newUniqueMessageId();
-        final String simpleName = payload.getClass().getSimpleName();
-        final EventType eventType = EventType.eventTypeFromString(simpleName);
-        return new ProcessingContext<>(eventType, messageId, correlationId, payload, metaData, null, null);
+        return new ProcessingContext<>(null, messageId, correlationId, payload, metaData, null, null);
     }
 
     /**
@@ -154,9 +150,7 @@ public final class ProcessingContext<T> {
     public static <T> ProcessingContext<T> processingContext(final T payload, final MessageId messageId,
                                                              final CorrelationId correlationId) {
         final Map<Object, Object> metaData = new HashMap<>();
-        final String simpleName = payload.getClass().getSimpleName();
-        final EventType eventType = EventType.eventTypeFromString(simpleName);
-        return new ProcessingContext<>(eventType, messageId, correlationId, payload, metaData, null, null);
+        return new ProcessingContext<>(null, messageId, correlationId, payload, metaData, null, null);
     }
 
     public static <T> ProcessingContext<T> processingContext(final EventType eventType, final T payload,
@@ -176,9 +170,7 @@ public final class ProcessingContext<T> {
      */
     public static <T> ProcessingContext<T> processingContext(final T payload, final Map<Object, Object> contextMetaData) {
         final MessageId messageId = newUniqueMessageId();
-        final String simpleName = payload.getClass().getSimpleName();
-        final EventType eventType = EventType.eventTypeFromString(simpleName);
-        return new ProcessingContext<>(eventType, messageId, null, payload, contextMetaData, null, null);
+        return new ProcessingContext<>(null, messageId, null, payload, contextMetaData, null, null);
     }
 
     /**

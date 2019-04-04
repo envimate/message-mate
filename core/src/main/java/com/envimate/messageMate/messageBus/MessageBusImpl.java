@@ -26,7 +26,9 @@ import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.filtering.FilterActions;
 import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.identification.MessageId;
+import com.envimate.messageMate.internal.exceptions.BubbleUpWrappedException;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener;
+import com.envimate.messageMate.messageBus.exception.MissingEventTypeException;
 import com.envimate.messageMate.messageBus.internal.MessageBusStatusInformationAdapter;
 import com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategy;
 import com.envimate.messageMate.messageBus.internal.correlationIds.CorrelationBasedSubscriptions;
@@ -68,54 +70,65 @@ final class MessageBusImpl implements MessageBus {
     }
 
     @Override
-    public MessageId send(final ProcessingContext<Object> processingContext) {
-        return acceptingChannel.send(processingContext);
-    }
-
-    @Override
-    public MessageId send(String eventType, Object object) {
+    public MessageId send(final String eventType, final Object object) {
         final EventType eventTypeObject = EventType.eventTypeFromString(eventType);
         return send(eventTypeObject, object);
     }
 
     @Override
-    public MessageId send(EventType eventType, Object object) {
+    public MessageId send(final EventType eventType, final Object object) {
         final ProcessingContext<Object> processingContext = ProcessingContext.processingContext(eventType, object);
         return send(processingContext);
     }
 
     @Override
-    public MessageId send(String eventType, Object object, CorrelationId correlationId) {
+    public MessageId send(final String eventType, final Object object, final CorrelationId correlationId) {
         final EventType eventTypeObject = EventType.eventTypeFromString(eventType);
         return send(eventTypeObject, object, correlationId);
     }
 
     @Override
-    public MessageId send(EventType eventType, Object object, CorrelationId correlationId) {
+    public MessageId send(final EventType eventType, final Object object, final CorrelationId correlationId) {
         final ProcessingContext<Object> processingContext = ProcessingContext.processingContext(eventType, object, correlationId);
         return send(processingContext);
     }
 
     @Override
-    public SubscriptionId subscribe(EventType eventType, Consumer<Object> consumer) {
+    public MessageId send(final ProcessingContext<Object> processingContext) {
+        ensureEventTypeIsSet(processingContext);
+        try {
+            return acceptingChannel.send(processingContext);
+        } catch (final BubbleUpWrappedException e) {
+            throw (RuntimeException) e.getCause();
+        }
+    }
+
+    private void ensureEventTypeIsSet(final ProcessingContext<Object> processingContext) {
+        if (processingContext.getEventType() == null) {
+            throw new MissingEventTypeException(processingContext);
+        }
+    }
+
+    @Override
+    public SubscriptionId subscribe(final EventType eventType, final Consumer<Object> consumer) {
         final ConsumerSubscriber<Object> subscriber = consumerSubscriber(consumer);
         return subscribe(eventType, subscriber);
     }
 
     @Override
-    public SubscriptionId subscribe(EventType eventType, Subscriber<Object> subscriber) {
+    public SubscriptionId subscribe(final EventType eventType, final Subscriber<Object> subscriber) {
         brokerStrategy.addSubscriber(eventType, subscriber);
         return subscriber.getSubscriptionId();
     }
 
     @Override
-    public SubscriptionId subscribeRaw(EventType eventType, Consumer<ProcessingContext<Object>> consumer) {
+    public SubscriptionId subscribeRaw(final EventType eventType, final Consumer<ProcessingContext<Object>> consumer) {
         final ConsumerSubscriber<ProcessingContext<Object>> subscriber = consumerSubscriber(consumer);
         return subscribeRaw(eventType, subscriber);
     }
 
     @Override
-    public SubscriptionId subscribeRaw(EventType eventType, Subscriber<ProcessingContext<Object>> subscriber) {
+    public SubscriptionId subscribeRaw(final EventType eventType, final Subscriber<ProcessingContext<Object>> subscriber) {
         brokerStrategy.addRawSubscriber(eventType, subscriber);
         return subscriber.getSubscriptionId();
     }
@@ -175,7 +188,7 @@ final class MessageBusImpl implements MessageBus {
     }
 
     @Override
-    public SubscriptionId onException(EventType eventType, MessageBusExceptionListener<Object> exceptionListener) {
+    public SubscriptionId onException(final EventType eventType, final MessageBusExceptionListener<Object> exceptionListener) {
         return exceptionListenerHandler.register(eventType, exceptionListener);
     }
 
