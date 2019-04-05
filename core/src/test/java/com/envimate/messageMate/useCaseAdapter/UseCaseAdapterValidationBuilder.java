@@ -6,8 +6,10 @@ import com.envimate.messageMate.qcec.shared.TestEnvironmentProperty;
 import lombok.RequiredArgsConstructor;
 
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.*;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static lombok.AccessLevel.PRIVATE;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -33,9 +35,9 @@ public final class UseCaseAdapterValidationBuilder {
             final Object expectedResult = testUseCase.getExpectedResult(testEnvironment);
             final ResponseFuture responseFuture = testEnvironment.getPropertyAsType(TestEnvironmentProperty.RESULT, ResponseFuture.class);
             try {
-                final Object result = responseFuture.get();
+                final Object result = responseFuture.get(10, MILLISECONDS);
                 assertEquals(result, expectedResult);
-            } catch (final InterruptedException e) {
+            } catch (final InterruptedException | TimeoutException e) {
                 fail(e);
             } catch (final ExecutionException e) {
                 final Throwable testException = e.getCause();

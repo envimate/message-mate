@@ -5,6 +5,7 @@ import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.config.AbstractTestConfigProvider;
 import com.envimate.messageMate.useCaseAdapter.TestUseCase;
+import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterDeserializationStep1Builder;
 import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterStep3Builder;
 
 import java.util.HashMap;
@@ -35,8 +36,20 @@ public class SingleEventParameterConfigurationResolver extends AbstractTestConfi
         final Map<String, Object> requestObject = new HashMap<>();
         requestObject.put("message", expectedResponse);
         final Supplier<Object> instantiationFunction = SingleEventParameterUseCase::new;
-        final Consumer<UseCaseAdapterStep3Builder<?>> parameterMapping = callingBuilder -> {
+        final Consumer<UseCaseAdapterDeserializationStep1Builder> deserializationEnhancer = deserializationStepBuilder -> {
+            deserializationStepBuilder.mappingRequestsToUseCaseParametersOfType(SingleParameterEvent.class)
+                    .using((targetType, map) -> SingleParameterEvent.testUseCaseRequest((String) map.get("message")));
         };
-        return testUseCase(USE_CASE_CLASS, EVENT_TYPE, messageBusSetup, instantiationFunction, parameterMapping, requestObject, expectedResponse);
+        Consumer<UseCaseAdapterStep3Builder<?>> customCallingLogic = useCaseAdapterStep3Builder -> {
+            useCaseAdapterStep3Builder.calling((useCase, map) -> {
+                final SingleEventParameterUseCase singleEventParameterUseCase = (SingleEventParameterUseCase) useCase;
+                final Map<String, Object> requestMap = (Map<String, Object>) map;
+                final String message = (String) requestMap.get("message");
+                final SingleParameterEvent request = SingleParameterEvent.testUseCaseRequest(message);
+                final String returnValue = singleEventParameterUseCase.useCaseMethod(request);
+                return returnValue;
+            });
+        };
+        return testUseCase(USE_CASE_CLASS, EVENT_TYPE, messageBusSetup, instantiationFunction, deserializationEnhancer, customCallingLogic, requestObject, expectedResponse);
     }
 }

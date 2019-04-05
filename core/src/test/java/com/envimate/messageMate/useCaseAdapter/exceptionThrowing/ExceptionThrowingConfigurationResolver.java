@@ -10,8 +10,11 @@ import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.config.AbstractTestConfigProvider;
 import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.useCaseAdapter.TestUseCase;
+import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterDeserializationStep1Builder;
 import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterStep3Builder;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -37,9 +40,21 @@ public class ExceptionThrowingConfigurationResolver extends AbstractTestConfigPr
             });
         };
         final TestException expectedResult = new TestException();
-        final Object requestObject = new ExceptionThrowingRequest(expectedResult);
+        final Map<String, Object> requestObject = new HashMap<>();
+        requestObject.put("exception", expectedResult);
         final Supplier<Object> instantiationFunction = ExceptionThrowingUseCase::new;
-        final Consumer<UseCaseAdapterStep3Builder<?>> parameterMapping = callingBuilder -> {
+        final Consumer<UseCaseAdapterDeserializationStep1Builder> deserializationEnhancer = deserializationStepBuilder -> {
+            deserializationStepBuilder.mappingRequestsToUseCaseParametersOfType(ExceptionThrowingRequest.class)
+                    .using((targetType, map) -> new ExceptionThrowingRequest((RuntimeException) map.get("exception")));
+        };
+        Consumer<UseCaseAdapterStep3Builder<?>> customCallingLogic = useCaseAdapterStep3Builder -> {
+            useCaseAdapterStep3Builder.callingVoid((useCase, map) -> {
+                final ExceptionThrowingUseCase exceptionthrowingusecase = (ExceptionThrowingUseCase) useCase;
+                final Map<String, Object> requestMap = (Map<String, Object>) map;
+                final RuntimeException exception = (RuntimeException) requestMap.get("exception");
+                final ExceptionThrowingRequest request = new ExceptionThrowingRequest(exception);
+                exceptionthrowingusecase.useCaseMethod(request);
+            });
         };
         final Consumer<MessageBusBuilder> messageBusEnhancer = messageBusBuilder -> {
             messageBusBuilder.withExceptionHandler(new MessageBusExceptionHandler() {
@@ -63,6 +78,6 @@ public class ExceptionThrowingConfigurationResolver extends AbstractTestConfigPr
                 }
             });
         };
-        return testUseCase(USE_CASE_CLASS, EVENT_TYPE, messageBusSetup, instantiationFunction, parameterMapping, requestObject, expectedResult, messageBusEnhancer);
+        return testUseCase(USE_CASE_CLASS, EVENT_TYPE, messageBusSetup, instantiationFunction, deserializationEnhancer, customCallingLogic, requestObject, expectedResult, messageBusEnhancer);
     }
 }

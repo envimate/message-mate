@@ -5,8 +5,11 @@ import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.config.AbstractTestConfigProvider;
 import com.envimate.messageMate.useCaseAdapter.TestUseCase;
+import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterDeserializationStep1Builder;
 import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterStep3Builder;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -30,11 +33,23 @@ public class PrimitiveReturnTypeConfigurationResolver extends AbstractTestConfig
         final BiConsumer<MessageBus, TestEnvironment> messageBusSetup = (messageBus, testEnvironment) -> {
             messageBus.subscribe(USE_CASE_RESPONSE_EVENT_TYPE, i -> testEnvironment.setPropertyIfNotSet(RESULT, i));
         };
+        final Map<String, Object> requestObject = new HashMap<>();
+        requestObject.put("int", expectedResponse);
         final Supplier<Object> instantiationFunction = PrimitiveReturnTypeUseCase::new;
-        final Consumer<UseCaseAdapterStep3Builder<?>> parameterMapping = callingBuilder -> {
+        final Consumer<UseCaseAdapterDeserializationStep1Builder> deserializationEnhancer = deserializationStepBuilder -> {
+            deserializationStepBuilder.mappingRequestsToUseCaseParametersOfType(PrimitiveReturnTypeRequest.class)
+                    .using((targetType, map) -> new PrimitiveReturnTypeRequest((int) map.get("int")));
         };
-        final Consumer<UseCaseAdapterStep3Builder<?>> customCallingLogic = callingBuilder -> {
+        Consumer<UseCaseAdapterStep3Builder<?>> customCallingLogic = useCaseAdapterStep3Builder -> {
+            useCaseAdapterStep3Builder.calling((useCase, map) -> {
+                final PrimitiveReturnTypeUseCase primitiveReturnTypeUseCase = (PrimitiveReturnTypeUseCase) useCase;
+                final Map<String, Object> requestMap = (Map<String, Object>) map;
+                final int intParameter = (int) requestMap.get("int");
+                final PrimitiveReturnTypeRequest request = new PrimitiveReturnTypeRequest(intParameter);
+                final int returnValue = primitiveReturnTypeUseCase.useCaseMethod(request);
+                return returnValue;
+            });
         };
-        return testUseCase(USE_CASE_CLASS, EVENT_TYPE, messageBusSetup, instantiationFunction, parameterMapping, customCallingLogic, expectedResponse, expectedResponse);
+        return testUseCase(USE_CASE_CLASS, EVENT_TYPE, messageBusSetup, instantiationFunction, deserializationEnhancer, customCallingLogic, requestObject, expectedResponse);
     }
 }

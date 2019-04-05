@@ -6,10 +6,10 @@ import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusBuilder;
 import com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
+import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterDeserializationStep1Builder;
 import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterInstantiationBuilder;
 import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterStep1Builder;
 import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterStep3Builder;
-import com.envimate.messageMate.useCaseAdapter.singleEventParameter.SingleParameterEvent;
 import com.envimate.messageMate.useCaseAdapter.usecaseInstantiating.UseCaseInstantiator;
 
 import java.util.function.Consumer;
@@ -21,14 +21,14 @@ import static com.envimate.messageMate.messageBus.MessageBusBuilder.aMessageBus;
 import static com.envimate.messageMate.messageBus.MessageBusType.ASYNCHRONOUS;
 import static com.envimate.messageMate.qcec.shared.TestEnvironment.emptyTestEnvironment;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
-import static com.envimate.messageMate.useCaseAdapter.singleEventParameter.SingleParameterEvent.testUseCaseRequest;
 
 public final class UseCaseAdapterSetupBuilder {
     private final TestUseCase testUseCase;
     private final TestEnvironment testEnvironment;
     private final UseCaseAdapterStep1Builder useCaseAdapterBuilder;
     private final MessageBusBuilder messageBusBuilder = aMessageBus();
-    private Function<UseCaseAdapterStep1Builder, UseCaseAdapter> instantiationFunction;
+    private Function<UseCaseAdapterStep1Builder, UseCaseAdapterDeserializationStep1Builder> instantiationFunction;
+    private UseCaseAdapter useCaseAdapter;
 
     public UseCaseAdapterSetupBuilder(final TestUseCase testUseCase) {
         this.testUseCase = testUseCase;
@@ -44,13 +44,12 @@ public final class UseCaseAdapterSetupBuilder {
     public UseCaseAdapterSetupBuilder invokingTheUseCaseUsingTheSingleUseCaseMethod() {
         final Class<?> useCaseClass = testUseCase.getUseCaseClass();
         final EventType eventType = testUseCase.getEventType();
-        final UseCaseAdapterStep3Builder<?> mappingBuilder = useCaseAdapterBuilder.invokingUseCase(useCaseClass)
-                .forType(eventType);
-        testUseCase.defineCustomMapping(mappingBuilder);
-        mappingBuilder.mappingRequestsToUseCaseParametersOfType(SingleParameterEvent.class).using((targetType, map) -> {
-            return testUseCaseRequest((String) map.get("message"));
-        });
-        mappingBuilder.throwAnExceptionByDefault().callingTheSingleUseCaseMethod();
+        final UseCaseAdapterStep1Builder useCaseInvokingBuilder = useCaseAdapterBuilder.invokingUseCase(useCaseClass)
+                .forType(eventType)
+                .callingTheSingleUseCaseMethod();
+        final UseCaseAdapterDeserializationStep1Builder deserializationBuilder = instantiationFunction.apply(useCaseInvokingBuilder);
+        testUseCase.defineDeserialization(deserializationBuilder);
+        useCaseAdapter = deserializationBuilder.throwAnExceptionByDefault();
         return this;
     }
 
@@ -60,6 +59,8 @@ public final class UseCaseAdapterSetupBuilder {
         final UseCaseAdapterStep3Builder<?> callingBuilder = useCaseAdapterBuilder.invokingUseCase(useCaseClass)
                 .forType(eventType);
         testUseCase.useCustomInvocationLogic(callingBuilder);
+        useCaseAdapter = useCaseAdapterBuilder.obtainingUseCaseInstancesUsingTheZeroArgumentConstructor()
+                .throwAnExceptionByDefault();
         return this;
     }
 
@@ -67,7 +68,7 @@ public final class UseCaseAdapterSetupBuilder {
         final Class<?> useCaseClass = testUseCase.getUseCaseClass();
         final EventType eventType = testUseCase.getEventType();
         useCaseAdapterBuilder.invokingUseCase(useCaseClass)
-                .forType(eventType).throwAnExceptionByDefault().callingTheSingleUseCaseMethod();
+                .forType(eventType).callingTheSingleUseCaseMethod();
         messageBusBuilder.withExceptionHandler(MessageBusTestExceptionHandler.allExceptionHandlingTestExceptionHandler(testEnvironment, EXCEPTION));
         return this;
     }
@@ -77,8 +78,7 @@ public final class UseCaseAdapterSetupBuilder {
         final EventType eventType = testUseCase.getEventType();
         try {
             useCaseAdapterBuilder.invokingUseCase(useCaseClass)
-                    .forType(eventType).throwAnExceptionByDefault()
-                    .callingTheSingleUseCaseMethod();
+                    .forType(eventType).callingTheSingleUseCaseMethod();
         } catch (final Exception e) {
             testEnvironment.setProperty(EXCEPTION, e);
         }
@@ -98,7 +98,6 @@ public final class UseCaseAdapterSetupBuilder {
     }
 
     public UseCaseAdapterSetup build() {
-        final UseCaseAdapter useCaseAdapter = instantiationFunction.apply(useCaseAdapterBuilder);
         testEnvironment.setProperty(SUT, useCaseAdapter);
         final AsynchronousConfiguration asynchronousConfiguration = constantPoolSizeAsynchronousPipeConfiguration(3);
         messageBusBuilder.forType(ASYNCHRONOUS)

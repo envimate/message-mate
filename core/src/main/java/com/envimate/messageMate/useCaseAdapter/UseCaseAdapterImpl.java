@@ -24,6 +24,7 @@ package com.envimate.messageMate.useCaseAdapter;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.subscribing.Subscriber;
+import com.envimate.messageMate.useCaseAdapter.mapping.RequestDeserializer;
 import com.envimate.messageMate.useCaseAdapter.usecaseInstantiating.UseCaseInstantiator;
 import com.envimate.messageMate.useCaseAdapter.usecaseInvoking.UseCaseCallingInformation;
 import lombok.EqualsAndHashCode;
@@ -43,19 +44,22 @@ import static lombok.AccessLevel.PRIVATE;
 public final class UseCaseAdapterImpl implements UseCaseAdapter {
     private final List<UseCaseCallingInformation> useCaseCallingInformations;
     private final UseCaseInstantiator useCaseInstantiator;
+    private final RequestDeserializer requestDeserializer;
 
     public static UseCaseAdapter useCaseAdapterImpl(final List<UseCaseCallingInformation> useCaseCallingInformations,
-                                                    final UseCaseInstantiator useCaseInstantiator) {
+                                                    final UseCaseInstantiator useCaseInstantiator,
+                                                    final RequestDeserializer requestDeserializer) {
         ensureNotNull(useCaseCallingInformations, "useCaseCallingInformations");
         ensureNotNull(useCaseInstantiator, "useCaseInstantiator");
-        return new UseCaseAdapterImpl(useCaseCallingInformations, useCaseInstantiator);
+        ensureNotNull(requestDeserializer, "requestDeserializer");
+        return new UseCaseAdapterImpl(useCaseCallingInformations, useCaseInstantiator, requestDeserializer);
     }
 
     @Override
     public void attachTo(final MessageBus messageBus) {
         useCaseCallingInformations.forEach(callingInformation -> {
             final Subscriber<ProcessingContext<Object>> useCaseRequestSubscriber =
-                    useCaseRequestExecutingSubscriber(messageBus, callingInformation, useCaseInstantiator);
+                    useCaseRequestExecutingSubscriber(messageBus, callingInformation, useCaseInstantiator, requestDeserializer);
             messageBus.subscribeRaw(callingInformation.getEventType(), useCaseRequestSubscriber);
         });
     }

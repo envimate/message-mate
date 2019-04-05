@@ -26,13 +26,10 @@ import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 import static com.envimate.messageMate.useCaseAdapter.methodInvoking.MethodInvocationException.methodInvocationException;
 import static java.util.Arrays.stream;
-import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
@@ -46,10 +43,9 @@ public final class SinglePublicUseCaseMethodInvokerImpl implements UseCaseMethod
     @Override
     public Object invoke(final Object useCase, final Object event, final RequestDeserializer requestDeserializer) {
         try {
-            System.out.println("invoker!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
             final Class<?>[] parameterTypes = useCaseMethod.getParameterTypes();
 
-            final Map<String, Object> map = (Map<String, Object>) event;
+            final Map<String, Object> map = (Map<String, Object>) event; //TODO: use good exception for ClassCastException + test
             final Object[] parameters = stream(parameterTypes)
                     .map(parameterType -> requestDeserializer.deserializeRequest(parameterType, map))
                     .toArray();

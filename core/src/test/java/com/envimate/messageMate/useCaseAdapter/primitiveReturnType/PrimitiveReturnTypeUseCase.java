@@ -2,7 +2,7 @@ package com.envimate.messageMate.useCaseAdapter.primitiveReturnType;
 
 public class PrimitiveReturnTypeUseCase {
 
-    public int useCaseMethod(final int input) {
-        return input;
+    public int useCaseMethod(final PrimitiveReturnTypeRequest input) {
+        return input.getValue();
     }
 }

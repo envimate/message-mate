@@ -21,9 +21,8 @@
 
 package com.envimate.messageMate.useCaseAdapter.building;
 
-import java.util.function.Function;
+import com.envimate.messageMate.useCaseAdapter.mapping.RequestMapper;
 
-public interface UseCaseAdapterAddParameterValueExtractionBuilder<U> {
-
-    <PARAM> UseCaseAdapterStep3Builder<U> mappingEventToParameter(Class<PARAM> paramClass, Function<Object, Object> mapping);
+public interface UseCaseAdapterDeserializationStep2Builder<T> {
+    UseCaseAdapterDeserializationStep1Builder using(RequestMapper<T> requestMapper);
 }

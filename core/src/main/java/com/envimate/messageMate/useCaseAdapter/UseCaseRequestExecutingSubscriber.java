@@ -49,26 +49,26 @@ final class UseCaseRequestExecutingSubscriber implements Subscriber<ProcessingCo
     private final MessageBus messageBus;
     private final UseCaseCallingInformation useCaseCallingInformation;
     private final UseCaseInstantiator useCaseInstantiator;
+    private final RequestDeserializer requestDeserializer;
     private final SubscriptionId subscriptionId = newUniqueId();
 
     public static UseCaseRequestExecutingSubscriber useCaseRequestExecutingSubscriber(
             final MessageBus messageBus,
             final UseCaseCallingInformation useCaseCallingInformation,
-            final UseCaseInstantiator useCaseInstantiator) {
+            final UseCaseInstantiator useCaseInstantiator,
+            final RequestDeserializer requestDeserializer) {
         ensureNotNull(messageBus, "messageBus");
         ensureNotNull(useCaseCallingInformation, "useCaseCallingInformation");
         ensureNotNull(useCaseInstantiator, "useCaseInstantiator");
-        return new UseCaseRequestExecutingSubscriber(messageBus, useCaseCallingInformation, useCaseInstantiator);
+        return new UseCaseRequestExecutingSubscriber(messageBus, useCaseCallingInformation, useCaseInstantiator, requestDeserializer);
     }
 
     @Override
     public AcceptingBehavior accept(final ProcessingContext<Object> processingContext) {
-        System.out.println("accept!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         final Caller caller = useCaseCallingInformation.getCaller();
         final Class<?> useCaseClass = useCaseCallingInformation.getUseCaseClass();
         final Object useCase = useCaseInstantiator.instantiate(useCaseClass);
         final Object event = processingContext.getPayload();
-        final RequestDeserializer requestDeserializer = useCaseCallingInformation.getRequestDeserializer();
         @SuppressWarnings("unchecked")
         final Object returnValue = caller.call(useCase, event, requestDeserializer);
         final CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();

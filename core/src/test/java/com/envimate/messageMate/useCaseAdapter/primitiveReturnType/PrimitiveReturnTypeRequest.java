@@ -1,4 +1,4 @@
-package com.envimate.messageMate.useCaseAdapter.exceptionThrowing;
+package com.envimate.messageMate.useCaseAdapter.primitiveReturnType;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import static lombok.AccessLevel.PACKAGE;
 
 @RequiredArgsConstructor(access = PACKAGE)
-public class ExceptionThrowingRequest {
+public final class PrimitiveReturnTypeRequest {
     @Getter
-    private final RuntimeException exceptionToThrow;
+    private final int value;
 }

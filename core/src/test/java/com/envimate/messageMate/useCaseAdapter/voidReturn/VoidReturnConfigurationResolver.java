@@ -5,8 +5,12 @@ import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.config.AbstractTestConfigProvider;
 import com.envimate.messageMate.useCaseAdapter.TestUseCase;
+import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterDeserializationStep1Builder;
 import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterStep3Builder;
+import com.envimate.messageMate.useCaseAdapter.singleEventParameter.SingleParameterEvent;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -16,7 +20,6 @@ import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPEC
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
 import static com.envimate.messageMate.useCaseAdapter.TestUseCase.testUseCase;
 import static com.envimate.messageMate.useCaseAdapter.UseCaseAdapterTestProperties.MESSAGE_FUNCTION_USED;
-import static com.envimate.messageMate.useCaseAdapter.voidReturn.CallbackTestRequest.callbackTestRequest;
 
 public class VoidReturnConfigurationResolver extends AbstractTestConfigProvider {
 
@@ -33,24 +36,38 @@ public class VoidReturnConfigurationResolver extends AbstractTestConfigProvider 
         final BiConsumer<MessageBus, TestEnvironment> messageBusSetup = (messageBus, testEnvironment) -> {
         };
         final Function<TestEnvironment, Object> requestObjectFunction = testEnvironment -> {
-            final CallbackTestRequest testRequest = callbackTestRequest(o -> {
+            final String expectedResponse = "expected Response";
+            testEnvironment.setProperty(EXPECTED_RESULT, expectedResponse);
+            final Consumer<Object> consumer = o -> {
                 if (!testEnvironment.getPropertyAsType(MESSAGE_FUNCTION_USED, Boolean.class)) {
-                    testEnvironment.setProperty(RESULT, o);
+                    testEnvironment.setProperty(RESULT, expectedResponse);
                 }
-            });
-            testEnvironment.setProperty(EXPECTED_RESULT, testRequest);
-            return testRequest;
+            };
+            final Map<String, Object> requestObject = new HashMap<>();
+            requestObject.put("consumer", consumer);
+            return requestObject;
         };
         final Supplier<Object> instantiationFunction = VoidReturnUseCase::new;
-        final Consumer<UseCaseAdapterStep3Builder<?>> parameterMapping = callingBuilder -> {
+        final Consumer<UseCaseAdapterDeserializationStep1Builder> deserializationEnhancer = deserializationStepBuilder -> {
+            deserializationStepBuilder.mappingRequestsToUseCaseParametersOfType(SingleParameterEvent.class)
+                    .using((targetType, map) -> SingleParameterEvent.testUseCaseRequest((String) map.get("message")));
         };
-        final Function<TestEnvironment, Object> expectedResultSupploer = testEnvironment -> {
+        Consumer<UseCaseAdapterStep3Builder<?>> customCallingLogic = useCaseAdapterStep3Builder -> {
+            useCaseAdapterStep3Builder.callingVoid((useCase, map) -> {
+                final VoidReturnUseCase voidReturnUseCase = (VoidReturnUseCase) useCase;
+                final Map<String, Object> requestMap = (Map<String, Object>) map;
+                final Consumer<Object> consumer = (Consumer<Object>) requestMap.get("consumer");
+                final CallbackTestRequest request = CallbackTestRequest.callbackTestRequest(consumer);
+                voidReturnUseCase.useCaseMethod(request);
+            });
+        };
+        final Function<TestEnvironment, Object> expectedResultSupplier = testEnvironment -> {
             if (testEnvironment.getPropertyAsType(MESSAGE_FUNCTION_USED, Boolean.class)) {
                 return null;
             } else {
                 return testEnvironment.getProperty(EXPECTED_RESULT);
             }
         };
-        return testUseCase(USE_CASE_CLASS, EVENT_TYPE, messageBusSetup, instantiationFunction, parameterMapping, requestObjectFunction, expectedResultSupploer);
+        return testUseCase(USE_CASE_CLASS, EVENT_TYPE, messageBusSetup, instantiationFunction, deserializationEnhancer, customCallingLogic, requestObjectFunction, expectedResultSupplier);
     }
 }

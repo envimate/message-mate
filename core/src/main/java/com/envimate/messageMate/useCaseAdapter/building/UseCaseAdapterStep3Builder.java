@@ -21,5 +21,5 @@
 
 package com.envimate.messageMate.useCaseAdapter.building;
 
-public interface UseCaseAdapterStep3Builder<USECASE> extends DeserializationStage<UseCaseAdapterCallingBuilder<USECASE>> {
+public interface UseCaseAdapterStep3Builder<USECASE> extends UseCaseAdapterCallingBuilder<USECASE> {
 }

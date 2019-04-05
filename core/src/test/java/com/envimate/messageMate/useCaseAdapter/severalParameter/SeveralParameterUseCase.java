@@ -2,8 +2,8 @@ package com.envimate.messageMate.useCaseAdapter.severalParameter;
 
 public class SeveralParameterUseCase {
 
-    public SeveralParameterUseCaseResponse useCaseMethod(final String stringParameter, final Object objectParameter,
-                                                         final int intParameter, final Boolean booleanParameter) {
-        return new SeveralParameterUseCaseResponse(stringParameter, objectParameter, intParameter, booleanParameter);
+    public SeveralParameterUseCaseResponse useCaseMethod(final SeveralParameterUseCaseRequest1 request1,
+                                                         final SeveralParameterUseCaseRequest2 request2) {
+        return new SeveralParameterUseCaseResponse(request1.intParameter, request1.booleanParameter, request2.objectParameter, request2.stringParameter);
     }
 }

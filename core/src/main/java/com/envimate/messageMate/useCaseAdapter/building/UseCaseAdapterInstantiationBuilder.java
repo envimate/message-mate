@@ -21,7 +21,6 @@
 
 package com.envimate.messageMate.useCaseAdapter.building;
 
-import com.envimate.messageMate.useCaseAdapter.UseCaseAdapter;
 import com.envimate.messageMate.useCaseAdapter.usecaseInstantiating.UseCaseFactory;
 import com.envimate.messageMate.useCaseAdapter.usecaseInstantiating.UseCaseInstantiator;
 
@@ -30,7 +29,7 @@ import static com.envimate.messageMate.useCaseAdapter.usecaseInstantiating.ZeroA
 // TODO mit guice
 public interface UseCaseAdapterInstantiationBuilder {
 
-    default UseCaseAdapter obtainingUseCaseInstancesUsingTheZeroArgumentConstructor() {
+    default UseCaseAdapterDeserializationStep1Builder obtainingUseCaseInstancesUsingTheZeroArgumentConstructor() {
         return obtainingUseCaseInstancesUsing(new UseCaseInstantiator() {
             @SuppressWarnings("unchecked") //TODO: double check
             @Override
@@ -42,5 +41,6 @@ public interface UseCaseAdapterInstantiationBuilder {
         });
     }
 
-    UseCaseAdapter obtainingUseCaseInstancesUsing(UseCaseInstantiator useCaseInstantiator);
+    UseCaseAdapterDeserializationStep1Builder obtainingUseCaseInstancesUsing(UseCaseInstantiator useCaseInstantiator);
+
 }

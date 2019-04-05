@@ -5,8 +5,11 @@ import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.config.AbstractTestConfigProvider;
 import com.envimate.messageMate.useCaseAdapter.TestUseCase;
+import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterDeserializationStep1Builder;
 import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterStep3Builder;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -36,11 +39,18 @@ public class NoParameterConfigurationResolver extends AbstractTestConfigProvider
                 }
             });
         };
-        final Object requestObject = new DummyUseCaseEvent();
+        final Map<String, Object> requestObject = new HashMap<>();
         final Supplier<Object> instantiationFunction = NoParameterUseCase::new;
-        final Consumer<UseCaseAdapterStep3Builder<?>> parameterMapping = callingBuilder -> {
+        final Consumer<UseCaseAdapterDeserializationStep1Builder> deserializationEnhancer = deserializationStepBuilder -> {
+        };
+        Consumer<UseCaseAdapterStep3Builder<?>> customCallingLogic = useCaseAdapterStep3Builder -> {
+            useCaseAdapterStep3Builder.calling((useCase, map) -> {
+                final NoParameterUseCase noParameterUseCase = (NoParameterUseCase) useCase;
+                final String returnValue = noParameterUseCase.useCaseMethod();
+                return returnValue;
+            });
         };
         final String expectedResult = NoParameterUseCase.NO_PARAMETER_USE_CASE_RETURN_VALUE;
-        return testUseCase(USE_CASE_CLASS, EVENT_TYPE, messageBusSetup, instantiationFunction, parameterMapping, requestObject, expectedResult);
+        return testUseCase(USE_CASE_CLASS, EVENT_TYPE, messageBusSetup, instantiationFunction, deserializationEnhancer, customCallingLogic, requestObject, expectedResult);
     }
 }
