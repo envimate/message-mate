@@ -68,10 +68,9 @@ public class UseCaseAdapterBuilder implements UseCaseAdapterStep1Builder, UseCas
     }
 
     @Override
-    public <T> UseCaseAdapterDeserializationStep2Builder<T> mappingRequestsToUseCaseParametersThat(BiPredicate<Class<T>, Map<String, Object>> filter) {
+    public <T> UseCaseAdapterDeserializationStep2Builder<T> mappingRequestsToUseCaseParametersThat(BiPredicate<Class<?>, Map<String, Object>> filter) {
         return requestMapper -> {
-            final BiPredicate<?, ?> ungenerifiedFilter = filter;
-            filterMapBuilder.put((BiPredicate<Class<?>, Map<String, Object>>) ungenerifiedFilter, requestMapper);
+            filterMapBuilder.put(filter, requestMapper);
             return this;
         };
     }

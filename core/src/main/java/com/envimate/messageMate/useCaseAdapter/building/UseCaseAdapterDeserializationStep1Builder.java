@@ -62,7 +62,7 @@ public interface UseCaseAdapterDeserializationStep1Builder {
      *               on the respective http request
      * @return the next step in the fluent builder
      */
-    <T> UseCaseAdapterDeserializationStep2Builder<T> mappingRequestsToUseCaseParametersThat(BiPredicate<Class<T>, Map<String, Object>> filter);
+    <T> UseCaseAdapterDeserializationStep2Builder<T> mappingRequestsToUseCaseParametersThat(BiPredicate<Class<?>, Map<String, Object>> filter);
 
     /**
      * Configures the default {@link RequestMapper} that will be used to deserialize a

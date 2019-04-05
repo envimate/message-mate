@@ -7,7 +7,6 @@ import com.envimate.messageMate.shared.config.AbstractTestConfigProvider;
 import com.envimate.messageMate.useCaseAdapter.TestUseCase;
 import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterDeserializationStep1Builder;
 import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterStep3Builder;
-import com.envimate.messageMate.useCaseAdapter.singleEventParameter.SingleParameterEvent;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -49,8 +48,8 @@ public class VoidReturnConfigurationResolver extends AbstractTestConfigProvider 
         };
         final Supplier<Object> instantiationFunction = VoidReturnUseCase::new;
         final Consumer<UseCaseAdapterDeserializationStep1Builder> deserializationEnhancer = deserializationStepBuilder -> {
-            deserializationStepBuilder.mappingRequestsToUseCaseParametersOfType(SingleParameterEvent.class)
-                    .using((targetType, map) -> SingleParameterEvent.testUseCaseRequest((String) map.get("message")));
+            deserializationStepBuilder.mappingRequestsToUseCaseParametersOfType(CallbackTestRequest.class)
+                    .using((targetType, map) -> CallbackTestRequest.callbackTestRequest((Consumer<Object>) map.get("consumer")));
         };
         Consumer<UseCaseAdapterStep3Builder<?>> customCallingLogic = useCaseAdapterStep3Builder -> {
             useCaseAdapterStep3Builder.callingVoid((useCase, map) -> {
