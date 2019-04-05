@@ -34,25 +34,25 @@ import static com.envimate.messageMate.useCaseAdapter.usecaseInvoking.ClassBased
 public interface UseCaseAdapterCallingBuilder<U> {
 
     default UseCaseAdapterStep1Builder calling(final BiFunction<U, Object, Object> caller) {
-        return callingBy((useCase, event, parameterValueMappings) -> {
+        return callingBy((useCase, event, requestDeserializer, responseSerializer) -> {
             final Object returnValue = caller.apply(useCase, event);
             return returnValue;
         });
     }
 
     default UseCaseAdapterStep1Builder callingVoid(final BiConsumer<U, Object> caller) {
-        return callingBy((usecase, event, parameterValueMappings) -> {
+        return callingBy((usecase, event, requestDeserializer, responseSerializer) -> {
             caller.accept(usecase, event);
             return null;
         });
     }
 
     default UseCaseAdapterStep1Builder callingTheSingleUseCaseMethod() {
-        return callingBy((usecase, event, parameterValueMappings) -> {
+        return callingBy((usecase, event, requestDeserializer, responseSerializer) -> {
             final UseCaseInvoker invoker = classBasedUseCaseInvoker(usecase.getClass());
             final UseCaseInvocationInformation invocationInformation = invoker.getInvocationInformation();
             final UseCaseMethodInvoker methodInvoker = invocationInformation.getMethodInvoker();
-            final Object returnValue = methodInvoker.invoke(usecase, event, parameterValueMappings);
+            final Object returnValue = methodInvoker.invoke(usecase, event, requestDeserializer, responseSerializer);
             return returnValue;
         });
     }

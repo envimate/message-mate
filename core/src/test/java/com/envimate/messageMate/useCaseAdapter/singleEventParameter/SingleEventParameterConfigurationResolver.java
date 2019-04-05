@@ -29,12 +29,14 @@ public class SingleEventParameterConfigurationResolver extends AbstractTestConfi
 
     @Override
     protected Object testConfig() {
-        final String expectedResponse = "expected Response";
+        final Map<String, Object> expectedResponse = new HashMap<>();
+        final String response = "expected Response";
+        expectedResponse.put("returnValue", response);
         final BiConsumer<MessageBus, TestEnvironment> messageBusSetup = (messageBus, testEnvironment) -> {
             messageBus.subscribe(USE_CASE_RESPONSE_EVENT_TYPE, s -> testEnvironment.setPropertyIfNotSet(RESULT, s));
         };
         final Map<String, Object> requestObject = new HashMap<>();
-        requestObject.put("message", expectedResponse);
+        requestObject.put("message", response);
         final Supplier<Object> instantiationFunction = SingleEventParameterUseCase::new;
         final Consumer<UseCaseAdapterDeserializationStep1Builder> deserializationEnhancer = deserializationStepBuilder -> {
             deserializationStepBuilder.mappingRequestsToUseCaseParametersOfType(SingleParameterEvent.class)

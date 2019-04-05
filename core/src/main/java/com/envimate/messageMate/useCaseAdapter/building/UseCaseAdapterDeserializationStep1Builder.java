@@ -21,7 +21,6 @@
 
 package com.envimate.messageMate.useCaseAdapter.building;
 
-import com.envimate.messageMate.useCaseAdapter.UseCaseAdapter;
 import com.envimate.messageMate.useCaseAdapter.mapping.RequestMapper;
 
 import java.util.Map;
@@ -50,7 +49,7 @@ public interface UseCaseAdapterDeserializationStep1Builder {
      *
      * @return the next step in the fluent builder
      */
-    default UseCaseAdapter throwAnExceptionByDefault() {
+    default SerializationStage throwAnExceptionByDefault() {
         return mappingRequestsToUseCaseParametersByDefaultUsing(failWithMessage("No request mapper found"));
     }
 
@@ -73,5 +72,5 @@ public interface UseCaseAdapterDeserializationStep1Builder {
      * @param mapper a {@link RequestMapper}
      * @return the next step in the fluent builder
      */
-    UseCaseAdapter mappingRequestsToUseCaseParametersByDefaultUsing(RequestMapper<Object> mapper);
+    SerializationStage mappingRequestsToUseCaseParametersByDefaultUsing(RequestMapper<Object> mapper);
 }

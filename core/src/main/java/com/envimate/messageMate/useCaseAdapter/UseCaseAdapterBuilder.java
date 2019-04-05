@@ -21,13 +21,11 @@
 
 package com.envimate.messageMate.useCaseAdapter;
 
-import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterDeserializationStep1Builder;
-import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterDeserializationStep2Builder;
-import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterStep1Builder;
-import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterStep2Builder;
+import com.envimate.messageMate.useCaseAdapter.building.*;
 import com.envimate.messageMate.useCaseAdapter.mapping.RequestDeserializer;
 import com.envimate.messageMate.useCaseAdapter.mapping.RequestMapper;
-import com.envimate.messageMate.useCaseAdapter.mapping.filtermap.FilterMap;
+import com.envimate.messageMate.useCaseAdapter.mapping.ResponseMapper;
+import com.envimate.messageMate.useCaseAdapter.mapping.ResponseSerializer;
 import com.envimate.messageMate.useCaseAdapter.mapping.filtermap.FilterMapBuilder;
 import com.envimate.messageMate.useCaseAdapter.usecaseInstantiating.UseCaseInstantiator;
 import com.envimate.messageMate.useCaseAdapter.usecaseInvoking.UseCaseCallingInformation;
@@ -36,14 +34,18 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 
 import static com.envimate.messageMate.useCaseAdapter.UseCaseAdapterImpl.useCaseAdapterImpl;
+import static com.envimate.messageMate.useCaseAdapter.mapping.RequestDeserializer.requestDeserializer;
+import static com.envimate.messageMate.useCaseAdapter.mapping.ResponseSerializer.responseSerializer;
 import static com.envimate.messageMate.useCaseAdapter.mapping.filtermap.FilterMapBuilder.filterMapBuilder;
 import static com.envimate.messageMate.useCaseAdapter.usecaseInvoking.UseCaseCallingInformation.useCaseInvocationInformation;
 
-public class UseCaseAdapterBuilder implements UseCaseAdapterStep1Builder, UseCaseAdapterDeserializationStep1Builder {
+public class UseCaseAdapterBuilder implements UseCaseAdapterStep1Builder, UseCaseAdapterDeserializationStep1Builder, SerializationStage {
     private final List<UseCaseCallingInformation> useCaseCallingInformationList = new LinkedList<>();
-    private final FilterMapBuilder<Class<?>, Map<String, Object>, RequestMapper<?>> filterMapBuilder = filterMapBuilder();
+    private final FilterMapBuilder<Class<?>, Map<String, Object>, RequestMapper<?>> deserializers = filterMapBuilder();
+    private final FilterMapBuilder<Object, Void, ResponseMapper<Object>> serializers = filterMapBuilder();
     private UseCaseInstantiator useCaseInstantiator;
 
     public static UseCaseAdapterStep1Builder anUseCaseAdapter() {
@@ -70,17 +72,31 @@ public class UseCaseAdapterBuilder implements UseCaseAdapterStep1Builder, UseCas
     @Override
     public <T> UseCaseAdapterDeserializationStep2Builder<T> mappingRequestsToUseCaseParametersThat(BiPredicate<Class<?>, Map<String, Object>> filter) {
         return requestMapper -> {
-            filterMapBuilder.put(filter, requestMapper);
+            deserializers.put(filter, requestMapper);
             return this;
         };
     }
 
     @Override
-    public UseCaseAdapter mappingRequestsToUseCaseParametersByDefaultUsing(final RequestMapper<Object> mapper) {
-        filterMapBuilder.setDefaultValue(mapper);
-        final FilterMap<Class<?>, Map<String, Object>, RequestMapper<?>> filterMap = filterMapBuilder.build();
-        final RequestDeserializer requestDeserializer = RequestDeserializer.requestDeserializer(filterMap);
-        return useCaseAdapterImpl(useCaseCallingInformationList, useCaseInstantiator, requestDeserializer);
+    public SerializationStage mappingRequestsToUseCaseParametersByDefaultUsing(final RequestMapper<Object> mapper) {
+        deserializers.setDefaultValue(mapper);
+        return this;
     }
 
+    @Override
+    public Using<SerializationStage, ResponseMapper<Object>> serializingResponseObjectsThat(final Predicate<Object> filter) {
+        return mapper -> {
+            final BiPredicate<Object, Void> biPredicate = (object, aVoid) -> filter.test(object); // TODO
+            serializers.put(biPredicate, mapper);
+            return this;
+        };
+    }
+
+    @Override
+    public UseCaseAdapter serializingResponseObjectsByDefaultUsing(final ResponseMapper<Object> mapper) {
+        serializers.setDefaultValue(mapper);
+        final RequestDeserializer requestDeserializer = requestDeserializer(deserializers.build());
+        final ResponseSerializer responseSerializer = responseSerializer(serializers.build());
+        return useCaseAdapterImpl(useCaseCallingInformationList, useCaseInstantiator, requestDeserializer, responseSerializer);
+    }
 }

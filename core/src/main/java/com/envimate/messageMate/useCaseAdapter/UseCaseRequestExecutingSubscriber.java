@@ -28,6 +28,7 @@ import com.envimate.messageMate.subscribing.AcceptingBehavior;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import com.envimate.messageMate.useCaseAdapter.mapping.RequestDeserializer;
+import com.envimate.messageMate.useCaseAdapter.mapping.ResponseSerializer;
 import com.envimate.messageMate.useCaseAdapter.usecaseInstantiating.UseCaseInstantiator;
 import com.envimate.messageMate.useCaseAdapter.usecaseInvoking.Caller;
 import com.envimate.messageMate.useCaseAdapter.usecaseInvoking.UseCaseCallingInformation;
@@ -50,17 +51,21 @@ final class UseCaseRequestExecutingSubscriber implements Subscriber<ProcessingCo
     private final UseCaseCallingInformation useCaseCallingInformation;
     private final UseCaseInstantiator useCaseInstantiator;
     private final RequestDeserializer requestDeserializer;
+    private final ResponseSerializer responseSerializer;
     private final SubscriptionId subscriptionId = newUniqueId();
 
     public static UseCaseRequestExecutingSubscriber useCaseRequestExecutingSubscriber(
             final MessageBus messageBus,
             final UseCaseCallingInformation useCaseCallingInformation,
             final UseCaseInstantiator useCaseInstantiator,
-            final RequestDeserializer requestDeserializer) {
+            final RequestDeserializer requestDeserializer,
+            final ResponseSerializer responseSerializer) {
         ensureNotNull(messageBus, "messageBus");
         ensureNotNull(useCaseCallingInformation, "useCaseCallingInformation");
         ensureNotNull(useCaseInstantiator, "useCaseInstantiator");
-        return new UseCaseRequestExecutingSubscriber(messageBus, useCaseCallingInformation, useCaseInstantiator, requestDeserializer);
+        ensureNotNull(requestDeserializer, "requestDeserializer");
+        ensureNotNull(responseSerializer, "responseSerializer");
+        return new UseCaseRequestExecutingSubscriber(messageBus, useCaseCallingInformation, useCaseInstantiator, requestDeserializer, responseSerializer);
     }
 
     @Override
@@ -70,7 +75,7 @@ final class UseCaseRequestExecutingSubscriber implements Subscriber<ProcessingCo
         final Object useCase = useCaseInstantiator.instantiate(useCaseClass);
         final Object event = processingContext.getPayload();
         @SuppressWarnings("unchecked")
-        final Object returnValue = caller.call(useCase, event, requestDeserializer);
+        final Object returnValue = caller.call(useCase, event, requestDeserializer, responseSerializer);
         final CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();
         messageBus.send(USE_CASE_RESPONSE_EVENT_TYPE, returnValue, correlationId);
         return MESSAGE_ACCEPTED;

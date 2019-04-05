@@ -25,6 +25,7 @@ import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.useCaseAdapter.mapping.RequestDeserializer;
+import com.envimate.messageMate.useCaseAdapter.mapping.ResponseSerializer;
 import com.envimate.messageMate.useCaseAdapter.usecaseInstantiating.UseCaseInstantiator;
 import com.envimate.messageMate.useCaseAdapter.usecaseInvoking.UseCaseCallingInformation;
 import lombok.EqualsAndHashCode;
@@ -45,21 +46,24 @@ public final class UseCaseAdapterImpl implements UseCaseAdapter {
     private final List<UseCaseCallingInformation> useCaseCallingInformations;
     private final UseCaseInstantiator useCaseInstantiator;
     private final RequestDeserializer requestDeserializer;
+    private final ResponseSerializer responseSerializer;
 
     public static UseCaseAdapter useCaseAdapterImpl(final List<UseCaseCallingInformation> useCaseCallingInformations,
                                                     final UseCaseInstantiator useCaseInstantiator,
-                                                    final RequestDeserializer requestDeserializer) {
+                                                    final RequestDeserializer requestDeserializer,
+                                                    final ResponseSerializer responseSerializer) {
         ensureNotNull(useCaseCallingInformations, "useCaseCallingInformations");
         ensureNotNull(useCaseInstantiator, "useCaseInstantiator");
         ensureNotNull(requestDeserializer, "requestDeserializer");
-        return new UseCaseAdapterImpl(useCaseCallingInformations, useCaseInstantiator, requestDeserializer);
+        ensureNotNull(responseSerializer, "responseSerializer");
+        return new UseCaseAdapterImpl(useCaseCallingInformations, useCaseInstantiator, requestDeserializer, responseSerializer);
     }
 
     @Override
     public void attachTo(final MessageBus messageBus) {
         useCaseCallingInformations.forEach(callingInformation -> {
             final Subscriber<ProcessingContext<Object>> useCaseRequestSubscriber =
-                    useCaseRequestExecutingSubscriber(messageBus, callingInformation, useCaseInstantiator, requestDeserializer);
+                    useCaseRequestExecutingSubscriber(messageBus, callingInformation, useCaseInstantiator, requestDeserializer, responseSerializer);
             messageBus.subscribeRaw(callingInformation.getEventType(), useCaseRequestSubscriber);
         });
     }

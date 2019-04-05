@@ -22,8 +22,9 @@
 package com.envimate.messageMate.useCaseAdapter.usecaseInvoking;
 
 import com.envimate.messageMate.useCaseAdapter.mapping.RequestDeserializer;
+import com.envimate.messageMate.useCaseAdapter.mapping.ResponseSerializer;
 
 @FunctionalInterface
 public interface Caller<U> {
-    Object call(U useCase, Object event, RequestDeserializer requestDeserializer);
+    Object call(U useCase, Object event, RequestDeserializer requestDeserializer, ResponseSerializer responseSerializer);
 }

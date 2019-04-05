@@ -12,6 +12,8 @@ import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterStep1Build
 import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterStep3Builder;
 import com.envimate.messageMate.useCaseAdapter.usecaseInstantiating.UseCaseInstantiator;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -49,7 +51,13 @@ public final class UseCaseAdapterSetupBuilder {
                 .callingTheSingleUseCaseMethod();
         final UseCaseAdapterDeserializationStep1Builder deserializationBuilder = instantiationFunction.apply(useCaseInvokingBuilder);
         testUseCase.defineDeserialization(deserializationBuilder);
-        useCaseAdapter = deserializationBuilder.throwAnExceptionByDefault();
+        useCaseAdapter = deserializationBuilder.throwAnExceptionByDefault()
+                .serializingResponseObjectsOfType(String.class).using(object -> {
+                    final Map<String, Object> map = new HashMap<>();
+                    map.put("returnValue", object);
+                    return map;
+                })
+                .throwingAnExceptionIfNoResponseMappingCanBeFound();
         return this;
     }
 
@@ -60,7 +68,7 @@ public final class UseCaseAdapterSetupBuilder {
                 .forType(eventType);
         testUseCase.useCustomInvocationLogic(callingBuilder);
         useCaseAdapter = useCaseAdapterBuilder.obtainingUseCaseInstancesUsingTheZeroArgumentConstructor()
-                .throwAnExceptionByDefault();
+                .throwAnExceptionByDefault().throwingAnExceptionIfNoResponseMappingCanBeFound();
         return this;
     }
 

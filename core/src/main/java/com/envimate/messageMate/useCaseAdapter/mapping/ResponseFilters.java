@@ -19,13 +19,24 @@
  * under the License.
  */
 
-package com.envimate.messageMate.useCaseAdapter.methodInvoking;
+package com.envimate.messageMate.useCaseAdapter.mapping;
 
-import com.envimate.messageMate.useCaseAdapter.mapping.RequestDeserializer;
-import com.envimate.messageMate.useCaseAdapter.mapping.ResponseSerializer;
+import java.util.function.Predicate;
 
-public interface UseCaseMethodInvoker {
+import static com.envimate.messageMate.useCaseAdapter.mapping.ResponseMapperException.responseMapperException;
 
-    Object invoke(Object useCase, Object event, RequestDeserializer requestDeserializer, ResponseSerializer responseSerializer);
+public final class ResponseFilters {
 
+    private ResponseFilters() {
+    }
+
+    public static Predicate<Object> areOfType(final Class<?> type) {
+        return type::isInstance;
+    }
+
+    public static <T> ResponseMapper<T> failWithMessage(final String message) {
+        return object -> {
+            throw responseMapperException(message);
+        };
+    }
 }

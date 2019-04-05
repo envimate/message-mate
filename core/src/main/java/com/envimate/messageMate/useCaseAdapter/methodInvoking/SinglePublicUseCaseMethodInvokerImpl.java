@@ -22,6 +22,7 @@
 package com.envimate.messageMate.useCaseAdapter.methodInvoking;
 
 import com.envimate.messageMate.useCaseAdapter.mapping.RequestDeserializer;
+import com.envimate.messageMate.useCaseAdapter.mapping.ResponseSerializer;
 import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.InvocationTargetException;
@@ -41,7 +42,10 @@ public final class SinglePublicUseCaseMethodInvokerImpl implements UseCaseMethod
     }
 
     @Override
-    public Object invoke(final Object useCase, final Object event, final RequestDeserializer requestDeserializer) {
+    public Object invoke(final Object useCase,
+                         final Object event,
+                         final RequestDeserializer requestDeserializer,
+                         final ResponseSerializer responseSerializer) {
         try {
             final Class<?>[] parameterTypes = useCaseMethod.getParameterTypes();
 
@@ -49,7 +53,8 @@ public final class SinglePublicUseCaseMethodInvokerImpl implements UseCaseMethod
             final Object[] parameters = stream(parameterTypes)
                     .map(parameterType -> requestDeserializer.deserializeRequest(parameterType, map))
                     .toArray();
-            return useCaseMethod.invoke(useCase, parameters);
+            final Object returnValue = useCaseMethod.invoke(useCase, parameters);
+            return responseSerializer.serializeReturnValue(returnValue);
         } catch (final IllegalAccessException e) {
             final Class<?> useCaseClass = useCase.getClass();
             throw methodInvocationException(useCaseClass, useCase, useCaseMethod, event, e);
