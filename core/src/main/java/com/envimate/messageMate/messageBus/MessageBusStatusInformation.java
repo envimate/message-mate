@@ -22,6 +22,7 @@
 package com.envimate.messageMate.messageBus;
 
 import com.envimate.messageMate.channel.Channel;
+import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener;
 import com.envimate.messageMate.messageBus.statistics.MessageBusStatistics;
 import com.envimate.messageMate.subscribing.Subscriber;
 
@@ -66,4 +67,6 @@ public interface MessageBusStatusInformation {
      * @return the {@code Channel} of the class or {@code null}
      */
     Channel<Object> getChannelFor(EventType eventType);
+
+    List<MessageBusExceptionListener<?>> getAllExceptionListener();
 }

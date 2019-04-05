@@ -175,9 +175,9 @@ public final class TestMessageFunctionSetupBuilder {
         return MessageFunctionBuilder.aMessageFunction(messageBus);
     }
 
-    private static class MessageBusMock {
+    private static final class MessageBusMock {
         public static MessageBus createMessageBusMock() {
-            return (MessageBus) Proxy.newProxyInstance(MessageBusMock.class.getClassLoader(), new Class[]{MessageBus.class}, new InvocationHandler() {
+            return (MessageBus) Proxy.newProxyInstance(MessageBusMock.class.getClassLoader(), new Class<?>[]{MessageBus.class}, new InvocationHandler() {
                 @Override
                 public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
                     if (method.getName().equals("send")) {

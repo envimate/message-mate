@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package com.envimate.messageMate.useCaseAdapter;
 
 import com.envimate.messageMate.messageBus.EventType;
@@ -19,6 +40,7 @@ import static com.envimate.messageMate.useCaseAdapter.methodInvoking.ParameterVa
 import static com.envimate.messageMate.useCaseAdapter.usecaseInvoking.UseCaseCallingInformation.useCaseInvocationInformation;
 import static lombok.AccessLevel.PRIVATE;
 
+@SuppressWarnings("rawtypes") //TODO: remove
 public class UseCaseAdapterBuilder implements UseCaseAdapterStep1Builder {
     private final List<UseCaseCallingInformation> useCaseCallingInformations = new LinkedList<>();
 
@@ -29,17 +51,16 @@ public class UseCaseAdapterBuilder implements UseCaseAdapterStep1Builder {
     //TODO: registerUseCase + alles andere optional
 
     @Override
-    public <USECASE> UseCaseAdapterStep2Builder<USECASE> invokingUseCase(final Class<USECASE> useCaseClass) {
-        return new UseCaseAdapterStep2Builder<USECASE>() {
+    public <U> UseCaseAdapterStep2Builder<U> invokingUseCase(final Class<U> useCaseClass) {
+        return new UseCaseAdapterStep2Builder<U>() {
 
             @Override
-            public UseCaseAdapterStep3Builder<USECASE> forType(EventType eventType) {
+            public UseCaseAdapterStep3Builder<U> forType(final EventType eventType) {
                 return new MappingBuilder<>(UseCaseAdapterBuilder.this, useCaseClass, eventType);
             }
 
         };
     }
-
 
     @Override
     public UseCaseAdapter obtainingUseCaseInstancesUsing(final UseCaseInstantiator useCaseInstantiator) {
@@ -47,22 +68,23 @@ public class UseCaseAdapterBuilder implements UseCaseAdapterStep1Builder {
     }
 
     @RequiredArgsConstructor(access = PRIVATE)
-    private final class MappingBuilder<USECASE> implements UseCaseAdapterStep3Builder<USECASE> {
+    private final class MappingBuilder<U> implements UseCaseAdapterStep3Builder<U> {
         private final ParameterValueMappings parameterValueMappings = emptyParameterValueMappings();
         private final UseCaseAdapterBuilder wrappingBuilder;
-        private final Class<USECASE> useCaseClass;
+        private final Class<U> useCaseClass;
         private final EventType eventType;
 
-
         @Override
-        public <PARAM> UseCaseAdapterStep3Builder<USECASE> mappingEventToParameter(Class<PARAM> paramClass, Function<Object, Object> mapping) {
-            parameterValueMappings.registerMapping(paramClass, event -> mapping.apply(event));
+        public <P> UseCaseAdapterStep3Builder<U> mappingEventToParameter(final Class<P> paramClass,
+                                                                         final Function<Object, Object> mapping) {
+            parameterValueMappings.registerMapping(paramClass, mapping::apply);
             return this;
         }
 
         @Override
-        public UseCaseAdapterStep1Builder callingBy(Caller<USECASE> caller) {
-            final UseCaseCallingInformation<USECASE> invocationInformation = useCaseInvocationInformation(useCaseClass, eventType, caller, parameterValueMappings);
+        public UseCaseAdapterStep1Builder callingBy(final Caller<U> caller) {
+            final UseCaseCallingInformation<U> invocationInformation =
+                    useCaseInvocationInformation(useCaseClass, eventType, caller, parameterValueMappings);
             wrappingBuilder.useCaseCallingInformations.add(invocationInformation);
             return wrappingBuilder;
         }

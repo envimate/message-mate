@@ -23,6 +23,7 @@ package com.envimate.messageMate.messageFunction.givenWhenThen;
 
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusStatusInformation;
+import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener;
 import com.envimate.messageMate.messageFunction.ResponseFuture;
 import com.envimate.messageMate.messageFunction.testResponses.RequestResponseFuturePair;
 import com.envimate.messageMate.messageFunction.testResponses.TestRequest;
@@ -243,12 +244,16 @@ public final class TestMessageFunctionValidationBuilder {
         });
     }
 
-    public static TestMessageFunctionValidationBuilder expectNoSubscribersOnTheMessageBus() {
+    public static TestMessageFunctionValidationBuilder expectNoUnecssarySubscribersOnTheMessageBus() {
         return new TestMessageFunctionValidationBuilder(testEnvironment -> {
             final MessageBus messageBus = testEnvironment.getPropertyAsType(MOCK, MessageBus.class);
             final MessageBusStatusInformation statusInformation = messageBus.getStatusInformation();
             final List<Subscriber<?>> allSubscribers = statusInformation.getAllSubscribers();
-            assertCollectionOfSize(allSubscribers, 0);
+            final int initialResponseSubscriber = 1;
+            assertCollectionOfSize(allSubscribers, initialResponseSubscriber);
+            final List<MessageBusExceptionListener<?>> listener = statusInformation.getAllExceptionListener();
+            final int noRemainingErrorListener = 0;
+            assertCollectionOfSize(listener, noRemainingErrorListener);
         });
     }
 

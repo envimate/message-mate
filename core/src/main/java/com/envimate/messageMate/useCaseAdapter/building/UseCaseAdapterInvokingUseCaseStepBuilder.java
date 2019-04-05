@@ -22,5 +22,5 @@
 package com.envimate.messageMate.useCaseAdapter.building;
 
 public interface UseCaseAdapterInvokingUseCaseStepBuilder {
-    <USECASE> UseCaseAdapterStep2Builder<USECASE> invokingUseCase(Class<USECASE> useCaseType);
+    <U> UseCaseAdapterStep2Builder<U> invokingUseCase(Class<U> useCaseType);
 }

@@ -59,7 +59,6 @@ final class MessageFunctionImpl implements MessageFunction {
         return requestHandle.getResponseFuture();
     }
 
-
     //No automatic cancel right now
     @Override
     public void close() {
@@ -73,7 +72,7 @@ final class MessageFunctionImpl implements MessageFunction {
         private final SubscriptionContainer subscriptionContainer;
         private volatile boolean alreadyFinishedOrCancelled;
 
-        public RequestHandle(final MessageBus messageBus) {
+        RequestHandle(final MessageBus messageBus) {
             this.messageBus = messageBus;
             this.responseFuture = expectedResponseFuture();
             this.subscriptionContainer = new SubscriptionContainer();
@@ -86,12 +85,12 @@ final class MessageFunctionImpl implements MessageFunction {
                 fulFillFuture(processingContext);
                 subscriptionContainer.unsubscribe(messageBus);
             });
-            final SubscriptionId errorSubscriptionId1 = messageBus.onException(correlationId, (o, e) -> {
+            final SubscriptionId errorSubscriptionId1 = messageBus.onException(correlationId, (processingContext, e) -> {
                 fulFillFuture(e);
                 subscriptionContainer.unsubscribe(messageBus);
             });
-            final SubscriptionId errorSubsciptionId2 = messageBus.onException(eventType, (o, e) -> {
-                if (o == request) {
+            final SubscriptionId errorSubsciptionId2 = messageBus.onException(eventType, (processingContext, e) -> {
+                if (processingContext.getPayload() == request) {
                     fulFillFuture(e);
                     subscriptionContainer.unsubscribe(messageBus);
                 }

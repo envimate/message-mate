@@ -24,7 +24,9 @@ package com.envimate.messageMate.messageBus.internal;
 import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.messageBus.MessageBusStatusInformation;
+import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener;
 import com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategy;
+import com.envimate.messageMate.messageBus.internal.exception.ExceptionListenerHandler;
 import com.envimate.messageMate.messageBus.internal.statistics.MessageBusStatisticsCollector;
 import com.envimate.messageMate.messageBus.statistics.MessageBusStatistics;
 import com.envimate.messageMate.subscribing.Subscriber;
@@ -38,14 +40,15 @@ import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
 public final class MessageBusStatusInformationAdapter implements MessageBusStatusInformation {
-
     private final MessageBusStatisticsCollector statisticsCollector;
     private final MessageBusBrokerStrategy brokerStrategy;
+    private final ExceptionListenerHandler exceptionListenerHandler;
 
     public static MessageBusStatusInformationAdapter statusInformationAdapter(
             @NonNull final MessageBusStatisticsCollector statisticsCollector,
-            @NonNull final MessageBusBrokerStrategy brokerStrategy) {
-        return new MessageBusStatusInformationAdapter(statisticsCollector, brokerStrategy);
+            @NonNull final MessageBusBrokerStrategy brokerStrategy,
+            @NonNull final ExceptionListenerHandler exceptionListenerHandler) {
+        return new MessageBusStatusInformationAdapter(statisticsCollector, brokerStrategy, exceptionListenerHandler);
     }
 
     @Override
@@ -59,7 +62,7 @@ public final class MessageBusStatusInformationAdapter implements MessageBusStatu
     }
 
     @Override
-    public Channel<Object> getChannelFor(EventType eventType) {
+    public Channel<Object> getChannelFor(final EventType eventType) {
         return brokerStrategy.getDeliveringChannelFor(eventType);
     }
 
@@ -68,4 +71,8 @@ public final class MessageBusStatusInformationAdapter implements MessageBusStatu
         return brokerStrategy.getSubscribersPerType();
     }
 
+    @Override
+    public List<MessageBusExceptionListener<?>> getAllExceptionListener() {
+        return exceptionListenerHandler.allListener();
+    }
 }

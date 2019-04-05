@@ -21,8 +21,6 @@
 
 package com.envimate.messageMate.channel.action;
 
-import com.envimate.messageMate.channel.action.Action;
-
 /**
  * Exception, that is thrown, when the {@code ActionHandlerSet} is queried for an unknown {@code Action}.
  */

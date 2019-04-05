@@ -23,12 +23,12 @@ package com.envimate.messageMate.useCaseAdapter.building;
 
 import com.envimate.messageMate.messageBus.EventType;
 
-public interface UseCaseAdapterStep2Builder<USECASE> {
+public interface UseCaseAdapterStep2Builder<U> {
 
-    default UseCaseAdapterStep3Builder<USECASE> forType(final String eventType) {
+    default UseCaseAdapterStep3Builder<U> forType(final String eventType) {
         final EventType eventTypeObject = EventType.eventTypeFromString(eventType);
         return forType(eventTypeObject);
     }
 
-    UseCaseAdapterStep3Builder<USECASE> forType(EventType eventType);
+    UseCaseAdapterStep3Builder<U> forType(EventType eventType);
 }

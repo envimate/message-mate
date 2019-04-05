@@ -4,6 +4,7 @@ import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
+import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.TestEventType;
@@ -25,6 +26,7 @@ import java.util.function.Consumer;
 
 import static com.envimate.messageMate.identification.CorrelationId.newUniqueCorrelationId;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.EVENT_TYPE;
+import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.MESSAGE_RECEIVED_BY_ERROR_LISTENER;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RECEIVERS;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
 import static com.envimate.messageMate.shared.TestEventType.testEventType;
@@ -202,6 +204,7 @@ public final class MessageBusTestActions {
         final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
         final SubscriptionId subscriptionId = messageBus.onException(eventType, (m, e) -> {
             testEnvironment.setPropertyIfNotSet(RESULT, e);
+            testEnvironment.setPropertyIfNotSet(MESSAGE_RECEIVED_BY_ERROR_LISTENER, m);
         });
         testEnvironment.setProperty(USED_SUBSCRIPTION_ID, subscriptionId);
     }
@@ -214,6 +217,11 @@ public final class MessageBusTestActions {
         testEnvironment.setProperty(USED_SUBSCRIPTION_ID, subscriptionId);
         messageBus.onException(eventType, (m, e) -> {
             testEnvironment.setPropertyIfNotSet(RESULT, e);
+            testEnvironment.setPropertyIfNotSet(MESSAGE_RECEIVED_BY_ERROR_LISTENER, m);
         });
+    }
+
+    public static List<MessageBusExceptionListener<?>> queryListOfDynamicExceptionListener(final MessageBus messageBus) {
+        return messageBus.getStatusInformation().getAllExceptionListener();
     }
 }

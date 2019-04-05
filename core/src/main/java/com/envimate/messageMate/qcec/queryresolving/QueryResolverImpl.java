@@ -41,6 +41,7 @@ public class QueryResolverImpl implements QueryResolver {
     @Override
     public <T extends Query<?>> SubscriptionId answer(final Class<T> queryClass, final Consumer<T> responder) {
         final PreemptiveSubscriber<Object> subscriber = PreemptiveSubscriber.preemptiveSubscriber(t -> {
+            @SuppressWarnings("unchecked")
             final T query = (T) t;
             responder.accept(query);
             final boolean continueDelivery = !query.finished();
@@ -51,7 +52,6 @@ public class QueryResolverImpl implements QueryResolver {
         final SubscriptionId subscriptionId = subscriber.getSubscriptionId();
         return subscriptionId;
     }
-
 
     @Override
     public <R> Optional<R> query(final Query<R> query) {

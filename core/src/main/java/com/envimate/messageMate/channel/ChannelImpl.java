@@ -72,7 +72,8 @@ final class ChannelImpl<T> implements Channel<T> {
         this.processFilter = new CopyOnWriteArrayList<>();
         this.postFilter = new CopyOnWriteArrayList<>();
         acceptingPipe.subscribe(new AdvanceMessageUsingFilter(preFilter, preToProcessPipe, eventListener, exceptionHandler));
-        preToProcessPipe.subscribe(new AdvanceMessageUsingFilter(processFilter, processToPostPipe, eventListener, exceptionHandler));
+        preToProcessPipe.subscribe(
+                new AdvanceMessageUsingFilter(processFilter, processToPostPipe, eventListener, exceptionHandler));
         processToPostPipe.subscribe(new AdvanceMessageUsingFilter(postFilter, afterPostPipe, eventListener, exceptionHandler));
         afterPostPipe.subscribe(new ConsumerExecutingActionSetByFilterOrDefaultAction());
     }

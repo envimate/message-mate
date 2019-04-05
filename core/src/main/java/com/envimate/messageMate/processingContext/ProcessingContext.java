@@ -203,7 +203,6 @@ public final class ProcessingContext<T> {
         currentProcessingFrame.setAction(action);
     }
 
-
     /**
      * Creates a {@code CorrelationId} matching the current {@code ProcessingContext's}{@code MessageId}.
      *

@@ -29,6 +29,7 @@ import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusStatusInformation;
+import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.qcec.shared.TestAction;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
@@ -363,6 +364,14 @@ public final class MessageBusActionBuilder {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
             final SubscriptionId subscriptionId = testEnvironment.getPropertyAsType(USED_SUBSCRIPTION_ID, SubscriptionId.class);
             messageBus.unregisterExceptionListener(subscriptionId);
+            return null;
+        });
+    }
+
+    public static MessageBusActionBuilder allDynamicExceptionListenerAreQueried() {
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            final List<MessageBusExceptionListener<?>> listeners = MessageBusTestActions.queryListOfDynamicExceptionListener(messageBus);
+            testEnvironment.setPropertyIfNotSet(RESULT, listeners);
             return null;
         });
     }

@@ -32,7 +32,7 @@ import java.util.concurrent.Future;
  * @see <a href="https://github.com/envimate/message-mate#responsefuture">Message Mate Documentation</a>
  */
 
-public interface ResponseFuture extends Future {
+public interface ResponseFuture extends Future<Object> {
 
     /**
      * Returns {@code true} if the future was fulfilled with an success response, {@code false} otherwise.
@@ -40,7 +40,6 @@ public interface ResponseFuture extends Future {
      * @return {@code true} if success, {@code false} an exception occurred or the future was cancelled
      */
     boolean wasSuccessful();
-
 
     /**
      * Adds a {@code FollowUpAction}, that gets executed, once the Future is fulfilled.

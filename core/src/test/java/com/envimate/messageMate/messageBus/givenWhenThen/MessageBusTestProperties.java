@@ -8,4 +8,5 @@ import static lombok.AccessLevel.PRIVATE;
 public final class MessageBusTestProperties {
     public final static String EVENT_TYPE = "EVENT_TYPE";
     public final static String CORRELATION_SUBSCRIPTION_ID = "CORRELATION_SUBSCRIPTION_ID";
+    public final static String MESSAGE_RECEIVED_BY_ERROR_LISTENER = "MESSAGE_RECEIVED_BY_ERROR_LISTENER";
 }

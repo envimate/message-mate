@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package com.envimate.messageMate.messageBus.internal.brokering;
 
 import com.envimate.messageMate.channel.Channel;
@@ -25,17 +46,17 @@ public final class MessageBusBrokerStrategyImpl implements MessageBusBrokerStrat
     private final MessageBusChannelFactory channelFactory;
     private final MessageBusExceptionHandler messageBusExceptionHandler;
 
-    public static MessageBusBrokerStrategyImpl messageBusBrokerStrategyImpl2(final MessageBusChannelFactory messageBusChannelFactory,
-                                                                             final MessageBusExceptionHandler messageBusExceptionHandler) {
-        return new MessageBusBrokerStrategyImpl(messageBusChannelFactory, messageBusExceptionHandler);
+    public static MessageBusBrokerStrategyImpl messageBusBrokerStrategyImpl2(final MessageBusChannelFactory channelFactory,
+                                                                             final MessageBusExceptionHandler exceptionHandler) {
+        return new MessageBusBrokerStrategyImpl(channelFactory, exceptionHandler);
     }
 
     @Override
-    public Channel<Object> getDeliveringChannelFor(EventType eventType) {
+    public Channel<Object> getDeliveringChannelFor(final EventType eventType) {
         return getOrCreateChannel(eventType);
     }
 
-    private Channel<Object> getOrCreateChannel(EventType eventType) {
+    private Channel<Object> getOrCreateChannel(final EventType eventType) {
         if (channelMap.containsKey(eventType)) {
             return channelMap.get(eventType);
         } else {
@@ -46,7 +67,7 @@ public final class MessageBusBrokerStrategyImpl implements MessageBusBrokerStrat
     }
 
     @Override
-    public void addSubscriber(EventType eventType, Subscriber<Object> subscriber) {
+    public void addSubscriber(final EventType eventType, final Subscriber<Object> subscriber) {
         final Channel<Object> channel = getOrCreateChannel(eventType);
         final Subscription<Object> subscription = getChannelSubscription(channel);
         subscription.addSubscriber(subscriber);
@@ -54,18 +75,18 @@ public final class MessageBusBrokerStrategyImpl implements MessageBusBrokerStrat
     }
 
     @Override
-    public void addRawSubscriber(EventType eventType, Subscriber<ProcessingContext<Object>> subscriber) {
+    public void addRawSubscriber(final EventType eventType, final Subscriber<ProcessingContext<Object>> subscriber) {
         final Channel<Object> channel = getOrCreateChannel(eventType);
         final Subscription<Object> subscription = getChannelSubscription(channel);
         subscription.addRawSubscriber(subscriber);
         storeSubscriptionForLookup(eventType, subscriber);
     }
 
-    private Subscription<Object> getChannelSubscription(Channel<Object> channel) {
+    private Subscription<Object> getChannelSubscription(final Channel<Object> channel) {
         return (Subscription<Object>) channel.getDefaultAction();
     }
 
-    private void storeSubscriptionForLookup(EventType eventType, Subscriber<?> subscriber) {
+    private void storeSubscriptionForLookup(final EventType eventType, final Subscriber<?> subscriber) {
         final SubscriptionId subscriptionId = subscriber.getSubscriptionId();
         final List<EventType> eventTypes;
         if (subscriptionLookupMap.containsKey(subscriptionId)) {
@@ -78,7 +99,7 @@ public final class MessageBusBrokerStrategyImpl implements MessageBusBrokerStrat
     }
 
     @Override
-    public void removeSubscriber(SubscriptionId subscriptionId) {
+    public void removeSubscriber(final SubscriptionId subscriptionId) {
         if (subscriptionLookupMap.containsKey(subscriptionId)) {
             final List<EventType> eventTypes = subscriptionLookupMap.get(subscriptionId);
             eventTypes.stream()

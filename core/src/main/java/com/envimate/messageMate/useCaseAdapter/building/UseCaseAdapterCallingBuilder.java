@@ -1,4 +1,3 @@
-package com.envimate.messageMate.useCaseAdapter.building;
 /*
  * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
  *
@@ -20,6 +19,8 @@ package com.envimate.messageMate.useCaseAdapter.building;
  * under the License.
  */
 
+package com.envimate.messageMate.useCaseAdapter.building;
+
 import com.envimate.messageMate.useCaseAdapter.methodInvoking.UseCaseMethodInvoker;
 import com.envimate.messageMate.useCaseAdapter.usecaseInvoking.Caller;
 import com.envimate.messageMate.useCaseAdapter.usecaseInvoking.UseCaseInvocationInformation;
@@ -30,16 +31,16 @@ import java.util.function.BiFunction;
 
 import static com.envimate.messageMate.useCaseAdapter.usecaseInvoking.ClassBasedUseCaseInvokerImpl.classBasedUseCaseInvoker;
 
-public interface UseCaseAdapterCallingBuilder<USECASE> {
+public interface UseCaseAdapterCallingBuilder<U> {
 
-    default UseCaseAdapterStep1Builder calling(final BiFunction<USECASE, Object, Object> caller) {
+    default UseCaseAdapterStep1Builder calling(final BiFunction<U, Object, Object> caller) {
         return callingBy((useCase, event, parameterValueMappings) -> {
             final Object returnValue = caller.apply(useCase, event);
             return returnValue;
         });
     }
 
-    default UseCaseAdapterStep1Builder callingVoid(final BiConsumer<USECASE, Object> caller) {
+    default UseCaseAdapterStep1Builder callingVoid(final BiConsumer<U, Object> caller) {
         return callingBy((usecase, event, parameterValueMappings) -> {
             caller.accept(usecase, event);
             return null;
@@ -56,5 +57,5 @@ public interface UseCaseAdapterCallingBuilder<USECASE> {
         });
     }
 
-    UseCaseAdapterStep1Builder callingBy(Caller<USECASE> caller);
+    UseCaseAdapterStep1Builder callingBy(Caller<U> caller);
 }

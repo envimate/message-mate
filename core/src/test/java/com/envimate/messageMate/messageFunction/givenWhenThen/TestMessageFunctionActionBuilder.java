@@ -143,9 +143,9 @@ public final class TestMessageFunctionActionBuilder {
             request.then((response, exception) -> {
                 if (!testEnvironment.has(RESULT)) {
                     if (exception != null) {
-                        testEnvironment.setProperty(RESULT, exception);
+                        testEnvironment.setPropertyIfNotSet(RESULT, exception);
                     } else {
-                        testEnvironment.setProperty(RESULT, response);
+                        testEnvironment.setPropertyIfNotSet(RESULT, response);
                     }
                 } else {
                     testEnvironment.setPropertyIfNotSet(EXCEPTION, new RuntimeException("FollowUp called twice"));

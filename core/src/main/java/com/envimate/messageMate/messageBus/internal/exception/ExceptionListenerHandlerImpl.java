@@ -45,7 +45,8 @@ public class ExceptionListenerHandlerImpl implements ExceptionListenerHandler {
     }
 
     @Override
-    public synchronized SubscriptionId register(final EventType eventType, final MessageBusExceptionListener<Object> exceptionListener) {
+    public synchronized SubscriptionId register(final EventType eventType,
+                                                final MessageBusExceptionListener<Object> exceptionListener) {
         final ListenerInformation listenerInformation = new ListenerInformation(eventType, exceptionListener);
         storeListenerInformation(eventType, listenerInformation);
 
@@ -55,7 +56,8 @@ public class ExceptionListenerHandlerImpl implements ExceptionListenerHandler {
     }
 
     @Override
-    public synchronized SubscriptionId register(final CorrelationId correlationId, final MessageBusExceptionListener<Object> exceptionListener) {
+    public synchronized SubscriptionId register(final CorrelationId correlationId,
+                                                final MessageBusExceptionListener<Object> exceptionListener) {
         final ListenerInformation listenerInformation = new ListenerInformation(correlationId, exceptionListener);
         storeListenerInformation(correlationId, listenerInformation);
         final SubscriptionId subscriptionId = SubscriptionId.newUniqueId();
@@ -90,6 +92,7 @@ public class ExceptionListenerHandlerImpl implements ExceptionListenerHandler {
             final ListenerInformation listenerInformation = unregisterLookupMap.get(subscriptionId);
             removeClassBasedListener(listenerInformation);
             removeCorrelationIdBasedListener(listenerInformation);
+            unregisterLookupMap.remove(subscriptionId);
         }
     }
 
@@ -114,42 +117,49 @@ public class ExceptionListenerHandlerImpl implements ExceptionListenerHandler {
     }
 
     @Override
-    public List<MessageBusExceptionListener> listenerFor(final ProcessingContext<?> processingContext) {
-        final List<MessageBusExceptionListener> listeners = new LinkedList<>();
+    public List<MessageBusExceptionListener<?>> listenerFor(final ProcessingContext<?> processingContext) {
+        final List<MessageBusExceptionListener<?>> listeners = new LinkedList<>();
         final CorrelationId correlationId = processingContext.getCorrelationId();
         if (correlationId != null) {
-            final List<MessageBusExceptionListener> correlationBasedListeners = listenerForCorrelationId(correlationId);
+            final List<MessageBusExceptionListener<?>> correlationBasedListeners = listenerForCorrelationId(correlationId);
             listeners.addAll(correlationBasedListeners);
         }
 
         final EventType eventType = processingContext.getEventType();
-        final List<MessageBusExceptionListener> classBasedListener = listenerForEventType(eventType);
+        final List<MessageBusExceptionListener<?>> classBasedListener = listenerForEventType(eventType);
         listeners.addAll(classBasedListener);
         return listeners;
     }
 
-    private List<MessageBusExceptionListener> listenerForEventType(final EventType eventType) {
+    private List<MessageBusExceptionListener<?>> listenerForEventType(final EventType eventType) {
         if (eventTypeBasedListenerLookupMap.containsKey(eventType)) {
             final List<ListenerInformation> listenerInformationList = eventTypeBasedListenerLookupMap.get(eventType);
-            final List<MessageBusExceptionListener> listener = extractListener(listenerInformationList);
+            final List<MessageBusExceptionListener<?>> listener = extractListener(listenerInformationList);
             return listener;
         } else {
             return Collections.emptyList();
         }
     }
 
-    private List<MessageBusExceptionListener> listenerForCorrelationId(final CorrelationId correlationId) {
+    private List<MessageBusExceptionListener<?>> listenerForCorrelationId(final CorrelationId correlationId) {
         if (correlationIdBasedListenerLookupMap.containsKey(correlationId)) {
             final List<ListenerInformation> listenerInformationList = correlationIdBasedListenerLookupMap.get(correlationId);
-            final List<MessageBusExceptionListener> listener = extractListener(listenerInformationList);
+            final List<MessageBusExceptionListener<?>> listener = extractListener(listenerInformationList);
             return listener;
         } else {
             return Collections.emptyList();
         }
     }
 
-    private List<MessageBusExceptionListener> extractListener(final List<ListenerInformation> listenerInformationList) {
+    private List<MessageBusExceptionListener<?>> extractListener(final List<ListenerInformation> listenerInformationList) {
         return listenerInformationList.stream()
+                .map(ListenerInformation::getListener)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<MessageBusExceptionListener<?>> allListener() {
+        return this.unregisterLookupMap.values().stream()
                 .map(ListenerInformation::getListener)
                 .collect(Collectors.toList());
     }

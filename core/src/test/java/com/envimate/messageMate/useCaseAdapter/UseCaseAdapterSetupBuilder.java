@@ -90,6 +90,7 @@ public final class UseCaseAdapterSetupBuilder {
     public UseCaseAdapterSetupBuilder usingACustomInstantiationMechanism() {
         final Supplier<Object> useCaseInstantiationFunction = testUseCase.getInstantiationFunction();
         instantiationFunction = b -> b.obtainingUseCaseInstancesUsing(new UseCaseInstantiator() {
+            @SuppressWarnings("unchecked")
             @Override
             public <T> T instantiate(final Class<T> type) {
                 return (T) useCaseInstantiationFunction.get();

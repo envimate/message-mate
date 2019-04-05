@@ -38,7 +38,11 @@ public class ConstraintEnforcerImpl implements ConstraintEnforcer {
     @Override
     public <T> SubscriptionId respondTo(final Class<T> aClass, final Consumer<T> responder) {
         final EventType eventType = eventTypeFor(aClass);
-        return messageBus.subscribe(eventType, o -> responder.accept((T) o));
+        return messageBus.subscribe(eventType, o -> {
+            @SuppressWarnings("unchecked")
+            final T t = (T) o;
+            responder.accept(t);
+        });
     }
 
     @Override

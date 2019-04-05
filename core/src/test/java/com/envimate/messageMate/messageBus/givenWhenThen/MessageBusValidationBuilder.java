@@ -23,8 +23,10 @@ package com.envimate.messageMate.messageBus.givenWhenThen;
 
 
 import com.envimate.messageMate.identification.CorrelationId;
+import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
+import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.qcec.shared.TestValidation;
@@ -41,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActionsOld.messageBusTestActions;
+import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.MESSAGE_RECEIVED_BY_ERROR_LISTENER;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.SUT;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
@@ -210,6 +213,13 @@ public final class MessageBusValidationBuilder {
         return asValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
             assertResultOfClass(testEnvironment, expectedExceptionClass);
+            final ProcessingContext<?> processingContext = testEnvironment.getPropertyAsType(MESSAGE_RECEIVED_BY_ERROR_LISTENER, ProcessingContext.class);
+            final Object message = processingContext.getPayload();
+            final Object expectedPayload = testEnvironment.getProperty(SINGLE_SEND_MESSAGE);
+            assertEquals(message, expectedPayload);
+            final MessageId messageId = processingContext.getMessageId();
+            final Object expectedMessageId = testEnvironment.getProperty(SEND_MESSAGE_ID);
+            assertEquals(messageId, expectedMessageId);
         });
     }
 
@@ -262,6 +272,15 @@ public final class MessageBusValidationBuilder {
         });
     }
 
+    public static MessageBusValidationBuilder expectNumberOfErrorListener(final int expectedNumberOfListener) {
+        return asValidation(testEnvironment -> {
+            assertNoExceptionThrown(testEnvironment);
+            final MessageBus messageBus = getMessageBus(testEnvironment);
+            final List<MessageBusExceptionListener<?>> listeners = MessageBusTestActions.queryListOfDynamicExceptionListener(messageBus);
+            assertCollectionOfSize(listeners, expectedNumberOfListener);
+        });
+    }
+
     private static void assertAllReceiverReceivedProcessingContextWithCorrectCorrelationId(final TestEnvironment testEnvironment) {
         final List<TestSubscriber<ProcessingContext<Object>>> receivers = getExpectedReceiverAsCorrelationBasedSubscriberList(testEnvironment);
         final Object expectedResult = testEnvironment.getProperty(SINGLE_SEND_MESSAGE);
@@ -290,6 +309,7 @@ public final class MessageBusValidationBuilder {
         return messageBus;
     }
 
+    @SuppressWarnings("unchecked")
     private static ProcessingContext<?> getOnlyMessageFromSingleReceiver(final TestEnvironment testEnvironment) {
         final List<TestSubscriber<Object>> testSubscribers = (List<TestSubscriber<Object>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
         assertThat(testSubscribers.size(), equalTo(1));

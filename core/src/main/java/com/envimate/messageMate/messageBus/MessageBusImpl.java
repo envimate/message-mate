@@ -66,7 +66,7 @@ final class MessageBusImpl implements MessageBus {
         this.correlationBasedSubscriptions = correlationBasedSubscriptions;
         this.exceptionListenerHandler = exceptionListenerHandler;
         final MessageBusStatisticsCollector statisticsCollector = channelBasedMessageBusStatisticsCollector(acceptingChannel);
-        statusInformationAdapter = statusInformationAdapter(statisticsCollector, brokerStrategy);
+        statusInformationAdapter = statusInformationAdapter(statisticsCollector, brokerStrategy, exceptionListenerHandler);
     }
 
     @Override
@@ -122,6 +122,17 @@ final class MessageBusImpl implements MessageBus {
     }
 
     @Override
+    public SubscriptionId subscribe(final CorrelationId correlationId, final Consumer<ProcessingContext<Object>> consumer) {
+        final ConsumerSubscriber<ProcessingContext<Object>> subscriber = consumerSubscriber(consumer);
+        return subscribe(correlationId, subscriber);
+    }
+
+    @Override
+    public SubscriptionId subscribe(final CorrelationId correlationId, final Subscriber<ProcessingContext<Object>> subscriber) {
+        return correlationBasedSubscriptions.addCorrelationBasedSubscriber(correlationId, subscriber);
+    }
+
+    @Override
     public SubscriptionId subscribeRaw(final EventType eventType, final Consumer<ProcessingContext<Object>> consumer) {
         final ConsumerSubscriber<ProcessingContext<Object>> subscriber = consumerSubscriber(consumer);
         return subscribeRaw(eventType, subscriber);
@@ -131,17 +142,6 @@ final class MessageBusImpl implements MessageBus {
     public SubscriptionId subscribeRaw(final EventType eventType, final Subscriber<ProcessingContext<Object>> subscriber) {
         brokerStrategy.addRawSubscriber(eventType, subscriber);
         return subscriber.getSubscriptionId();
-    }
-
-    @Override
-    public SubscriptionId subscribe(final CorrelationId correlationId, final Consumer<ProcessingContext<Object>> consumer) {
-        final ConsumerSubscriber<ProcessingContext<Object>> subscriber = consumerSubscriber(consumer);
-        return subscribe(correlationId, subscriber);
-    }
-
-    @Override
-    public SubscriptionId subscribe(final CorrelationId correlationId, final Subscriber<ProcessingContext<Object>> subscriber) {
-        return correlationBasedSubscriptions.addCorrelationBasedSubscriber(correlationId, subscriber);
     }
 
     @Override

@@ -209,12 +209,19 @@ public class MessageFunctionSpecs {
 
 
     //cleaning up
-    //TODO: allow for it + also for error case
-    /*@Test
+    @Test
     public void testMessageFunction_unregistersAllSubscriber_whenFulfilled() {
         given(aMessageFunction()
                 .withTheRequestAnsweredByACorrelatedResponse())
                 .when(aRequestIsSend())
                 .then(expectNoUnecssarySubscribersOnTheMessageBus());
-    }*/
+    }
+
+    @Test
+    public void testMessageFunction_unregistersAllSubscriber_whenExceptionIsReceived() {
+        given(aMessageFunction()
+                .definedWithResponseThrowingAnException())
+                .when(aRequestIsSend())
+                .then(expectNoUnecssarySubscribersOnTheMessageBus());
+    }
 }

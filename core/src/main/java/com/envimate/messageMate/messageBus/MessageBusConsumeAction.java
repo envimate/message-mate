@@ -56,7 +56,8 @@ public final class MessageBusConsumeAction {
     private static void deliveryBasedOnCorrelationId(final ProcessingContext<Object> objectProcessingContext,
                                                      final CorrelationBasedSubscriptions correlationBasedSubscriptions) {
         final CorrelationId correlationId = objectProcessingContext.getCorrelationId();
-        final List<Subscriber<ProcessingContext<Object>>> corIdSubscribers = correlationBasedSubscriptions.getSubscribersFor(correlationId);
+        final List<Subscriber<ProcessingContext<Object>>> corIdSubscribers =
+                correlationBasedSubscriptions.getSubscribersFor(correlationId);
         for (final Subscriber<ProcessingContext<Object>> correlationSubscriber : corIdSubscribers) {
             correlationSubscriber.accept(objectProcessingContext);
         }

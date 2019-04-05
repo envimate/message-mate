@@ -35,8 +35,9 @@ public interface ExceptionListenerHandler {
 
     SubscriptionId register(CorrelationId correlationId, MessageBusExceptionListener<Object> exceptionListener);
 
-    List<MessageBusExceptionListener> listenerFor(ProcessingContext<?> processingContext);
+    List<MessageBusExceptionListener<?>> listenerFor(ProcessingContext<?> processingContext);
 
+    List<MessageBusExceptionListener<?>> allListener();
 
     void unregister(SubscriptionId subscriptionId);
 }

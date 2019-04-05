@@ -122,7 +122,7 @@ public final class SharedTestValidations {
         }
     }
 
-    public static void assertCollectionOfSize(final Collection collection, final int expectedSize) {
+    public static void assertCollectionOfSize(final Collection<?> collection, final int expectedSize) {
         assertThat(collection.size(), equalTo(expectedSize));
     }
 

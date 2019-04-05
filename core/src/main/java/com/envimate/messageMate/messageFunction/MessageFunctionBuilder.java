@@ -40,5 +40,4 @@ public final class MessageFunctionBuilder {
         return MessageFunctionImpl.messageFunction(messageBus);
     }
 
-
 }

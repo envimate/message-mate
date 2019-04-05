@@ -41,7 +41,6 @@ import java.util.function.Consumer;
  *
  * @see <a href="https://github.com/envimate/message-mate#messagebus">Message Mate Documentation</a>
  */
-//TODO: dynamic exceptionHandler access to PC statt message
 //TODO: error in event-channel does not count as failed in MB statistics
 public interface MessageBus extends NoErrorAutoClosable {
 
@@ -66,10 +65,6 @@ public interface MessageBus extends NoErrorAutoClosable {
 
     SubscriptionId subscribe(EventType eventType, Subscriber<Object> subscriber);
 
-    SubscriptionId subscribeRaw(EventType eventType, Consumer<ProcessingContext<Object>> consumer);
-
-    SubscriptionId subscribeRaw(EventType eventType, Subscriber<ProcessingContext<Object>> subscriber);
-
     /**
      * Adds the given {@code Consumer} wrapped in a {@code Subscriber} object for all messages with a matching
      * {@code CorrelationId}.
@@ -88,6 +83,10 @@ public interface MessageBus extends NoErrorAutoClosable {
      * @return the {@code SubscriptionId} of the {@code Subscriber}
      */
     SubscriptionId subscribe(CorrelationId correlationId, Subscriber<ProcessingContext<Object>> subscriber);
+
+    SubscriptionId subscribeRaw(EventType eventType, Consumer<ProcessingContext<Object>> consumer);
+
+    SubscriptionId subscribeRaw(EventType eventType, Subscriber<ProcessingContext<Object>> subscriber);
 
     /**
      * Removes all {@code Subscribers} with the given {@code SubscriptionId}
@@ -110,6 +109,7 @@ public interface MessageBus extends NoErrorAutoClosable {
      * @param position the position of the {@code Filter}
      * @throws ArrayIndexOutOfBoundsException if the position is higher than the number of {@code Filter} or negative
      */
+    //TODO: addRaw(ProcessingContext);
     void add(Filter<Object> filter, int position);
 
     /**
@@ -125,7 +125,6 @@ public interface MessageBus extends NoErrorAutoClosable {
      * @param filter the {@code Filter} to remove
      */
     void remove(Filter<Object> filter);
-
 
     SubscriptionId onException(EventType eventType, MessageBusExceptionListener<Object> exceptionListener);
 

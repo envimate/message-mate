@@ -44,7 +44,11 @@ public class EventBusImpl implements EventBus {
     @Override
     public <T> SubscriptionId reactTo(final Class<T> tClass, final Consumer<T> consumer) {
         final EventType eventType = eventTypeFor(tClass);
-        return messageBus.subscribe(eventType, o -> consumer.accept((T) o));
+        return messageBus.subscribe(eventType, o -> {
+            @SuppressWarnings("unchecked")
+            final T t = (T) o;
+            consumer.accept(t);
+        });
     }
 
     @Override

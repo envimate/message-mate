@@ -21,6 +21,8 @@
 
 package com.envimate.messageMate.messageBus.exception;
 
+import com.envimate.messageMate.processingContext.ProcessingContext;
+
 import java.util.function.BiConsumer;
 
 /**
@@ -29,5 +31,5 @@ import java.util.function.BiConsumer;
  * @param <T> the type of messages, for which the listener accepts exceptions
  * @see <a href="https://github.com/envimate/message-mate#dynamically-adding-exception-listener">Message Mate Documentation</a>
  */
-public interface MessageBusExceptionListener<T> extends BiConsumer<T, Exception> {
+public interface MessageBusExceptionListener<T> extends BiConsumer<ProcessingContext<T>, Exception> {
 }

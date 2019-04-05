@@ -53,7 +53,7 @@ public final class ErrorListenerDelegatingMessageBusExceptionHandler implements 
         try {
             callDeliveryExceptionHandlerIfNotBubbleUpException(message, e, channel);
         } finally {
-            callTemporaryHandlerIfNotBubbleUpException(message, e, channel);
+            callTemporaryHandlerIfNotBubbleUpException(message, e);
         }
     }
 
@@ -62,15 +62,19 @@ public final class ErrorListenerDelegatingMessageBusExceptionHandler implements 
         try {
             callFilterExceptionHandlerIfNotBubbleUpException(message, e, channel);
         } finally {
-            callTemporaryHandlerIfNotBubbleUpException(message, e, channel);
+            callTemporaryHandlerIfNotBubbleUpException(message, e);
         }
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private List<MessageBusExceptionListener> getListener(final ProcessingContext<?> message) {
-        return exceptionListenerHandler.listenerFor(message);
+        final List list = exceptionListenerHandler.listenerFor(message);
+        return (List<MessageBusExceptionListener>) list;
     }
 
-    private void callDeliveryExceptionHandlerIfNotBubbleUpException(final ProcessingContext<?> message, final Exception e, final Channel<?> channel) {
+    private void callDeliveryExceptionHandlerIfNotBubbleUpException(final ProcessingContext<?> message,
+                                                                    final Exception e,
+                                                                    final Channel<?> channel) {
         if (e instanceof BubbleUpWrappedException) {
             return;
         }
@@ -81,7 +85,9 @@ public final class ErrorListenerDelegatingMessageBusExceptionHandler implements 
         }
     }
 
-    private void callFilterExceptionHandlerIfNotBubbleUpException(final ProcessingContext<?> message, final Exception e, final Channel<?> channel) {
+    private void callFilterExceptionHandlerIfNotBubbleUpException(final ProcessingContext<?> message,
+                                                                  final Exception e,
+                                                                  final Channel<?> channel) {
         if (e instanceof BubbleUpWrappedException) {
             return;
         }
@@ -92,7 +98,9 @@ public final class ErrorListenerDelegatingMessageBusExceptionHandler implements 
         }
     }
 
-    private void callTemporaryHandlerIfNotBubbleUpException(final ProcessingContext<?> message, final Exception e, final Channel<?> channel) {
+    @SuppressWarnings("rawtypes")
+    private void callTemporaryHandlerIfNotBubbleUpException(final ProcessingContext<?> message,
+                                                            final Exception e) {
         if (e instanceof BubbleUpWrappedException) {
             return;
         }

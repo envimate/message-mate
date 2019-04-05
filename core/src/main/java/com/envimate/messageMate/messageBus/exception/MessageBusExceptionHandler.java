@@ -34,10 +34,9 @@ public interface MessageBusExceptionHandler {
 
     void handleFilterException(ProcessingContext<?> message, Exception e, Channel<?> channel);
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     default <T> void callTemporaryExceptionListener(final ProcessingContext<T> message, final Exception e,
                                                     final List<MessageBusExceptionListener> listener) {
-        final T payload = message.getPayload();
-        listener.forEach(l -> l.accept(payload, e));
+        listener.forEach(l -> l.accept(message, e));
     }
 }

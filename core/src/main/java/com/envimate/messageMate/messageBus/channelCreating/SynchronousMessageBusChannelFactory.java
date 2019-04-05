@@ -51,7 +51,9 @@ public final class SynchronousMessageBusChannelFactory implements MessageBusChan
     }
 
     @Override
-    public Channel<Object> createChannel(final EventType eventType, final Subscriber<?> subscriber, final MessageBusExceptionHandler messageBusExceptionHandler) {
+    public Channel<Object> createChannel(final EventType eventType,
+                                         final Subscriber<?> subscriber,
+                                         final MessageBusExceptionHandler messageBusExceptionHandler) {
         final DelegatingChannelExceptionHandler<Object> delegatingChannelExceptionHandler =
                 delegatingChannelExceptionHandlerForDeliveryChannel(messageBusExceptionHandler);
         final Channel<Object> channel = aChannel(Object.class)

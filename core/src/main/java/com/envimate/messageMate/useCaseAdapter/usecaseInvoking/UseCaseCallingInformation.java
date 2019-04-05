@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package com.envimate.messageMate.useCaseAdapter.usecaseInvoking;
 
 import com.envimate.messageMate.messageBus.EventType;
@@ -13,20 +34,20 @@ import static lombok.AccessLevel.PRIVATE;
 @ToString
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = PRIVATE)
-public final class UseCaseCallingInformation<USECASE> {
+public final class UseCaseCallingInformation<U> {
     @Getter
-    private final Class<USECASE> useCaseClass;
+    private final Class<U> useCaseClass;
     @Getter
     private final EventType eventType;
     @Getter
-    private final Caller<USECASE> caller;
+    private final Caller<U> caller;
     @Getter
     private final ParameterValueMappings parameterValueMappings;
 
-    public static <USECASE> UseCaseCallingInformation<USECASE> useCaseInvocationInformation(
-            final Class<USECASE> useCaseClass,
+    public static <U> UseCaseCallingInformation<U> useCaseInvocationInformation(
+            final Class<U> useCaseClass,
             final EventType eventType,
-            final Caller<USECASE> caller,
+            final Caller<U> caller,
             final ParameterValueMappings parameterValueMappings) {
         ensureNotNull(useCaseClass, "useCaseClass");
         ensureNotNull(eventType, "eventType");

@@ -414,7 +414,8 @@ public interface MessageBusSpecs {
                 .withTwoDynamicExceptionListenerForEventType())
                 .when(theDynamicExceptionHandlerToBeRemoved()
                         .andThen(aSingleMessageIsSend()))
-                .then(expectTheExceptionHandled(TestException.class));
+                .then(expectNumberOfErrorListener(1)
+                        .and(expectTheExceptionHandled(TestException.class)));
     }
 
     @Test
@@ -442,7 +443,26 @@ public interface MessageBusSpecs {
                 .withTwoDynamicCorrelationBasedExceptionListener())
                 .when(theDynamicExceptionHandlerToBeRemoved()
                         .andThen(aMessageWithCorrelationIdIsSend()))
-                .then(expectTheExceptionHandledOnlyBeTheRemaining(TestException.class));
+                .then(expectNumberOfErrorListener(1)
+                        .and(expectTheExceptionHandledOnlyBeTheRemaining(TestException.class)));
+    }
+
+    @Test
+    default void testMessageBus_dynamicExceptionListenerGetsCorrectMessageTheErrorOccurredOn(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withAnExceptionThrowingFilter()
+                .withADynamicExceptionListenerForEventType())
+                .when(aSingleMessageIsSend())
+                .then(expectTheExceptionHandled(TestException.class));
+    }
+
+    @Test
+    default void testMessageBus_canQueryForAllExceptionListener(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withADynamicExceptionListenerForEventType()
+                .withADynamicCorrelationIdBasedExceptionListener())
+                .when(allDynamicExceptionListenerAreQueried())
+                .then(expectAListOfSize(2));
     }
 
     //await

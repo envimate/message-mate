@@ -73,6 +73,16 @@ public final class Subscription<T> implements Action<T> {
     }
 
     /**
+     * Adds a {@code Subscriber}.
+     *
+     * @param subscriber the {@code Subscriber} to be added
+     * @return the wrapping {@code Subscriber's} {@code SubscriptionId}
+     */
+    public SubscriptionId addSubscriber(final Subscriber<T> subscriber) {
+        return addRawSubscriber(new WrappingRawSubscriber(subscriber));
+    }
+
+    /**
      * Adds a the consumer wrapped in a {@code Subscriber} object, that gets access to the underlying {@code ProcessingContext}
      * object.
      *
@@ -85,16 +95,6 @@ public final class Subscription<T> implements Action<T> {
     }
 
     /**
-     * Adds a {@code Subscriber}.
-     *
-     * @param subscriber the {@code Subscriber} to be added
-     * @return the wrapping {@code Subscriber's} {@code SubscriptionId}
-     */
-    public SubscriptionId addSubscriber(final Subscriber<T> subscriber) {
-        return addRawSubscriber(new WrappingRawSubscriber(subscriber));
-    }
-
-    /**
      * Adds a {@code Subscriber}, that gets access to the underlying {@code ProcessingContext} object.
      *
      * @param subscriber the {@code Subscriber} to be added
@@ -104,7 +104,6 @@ public final class Subscription<T> implements Action<T> {
         subscribers.add(subscriber);
         return subscriber.getSubscriptionId();
     }
-
 
     /**
      * Returns if at least one subscriber exists.

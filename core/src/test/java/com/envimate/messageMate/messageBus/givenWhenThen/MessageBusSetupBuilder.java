@@ -49,6 +49,7 @@ import static com.envimate.messageMate.identification.CorrelationId.newUniqueCor
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActionsOld.messageBusTestActions;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler.*;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.CORRELATION_SUBSCRIPTION_ID;
+import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.MESSAGE_RECEIVED_BY_ERROR_LISTENER;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RECEIVERS;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
@@ -242,7 +243,8 @@ public final class MessageBusSetupBuilder {
             final CorrelationId correlationId = newUniqueCorrelationId();
             testEnvironment.setProperty(EXPECTED_CORRELATION_ID, correlationId);
             final SubscriptionId subscriptionId = messageBus.onException(correlationId, (m, e) -> {
-                this.testEnvironment.setProperty(RESULT, e);
+                this.testEnvironment.setPropertyIfNotSet(RESULT, e);
+                this.testEnvironment.setPropertyIfNotSet(MESSAGE_RECEIVED_BY_ERROR_LISTENER, m);
             });
             this.testEnvironment.setProperty(USED_SUBSCRIPTION_ID, subscriptionId);
         });
@@ -262,6 +264,7 @@ public final class MessageBusSetupBuilder {
 
             messageBus.onException(correlationId, (m, e) -> {
                 this.testEnvironment.setProperty(RESULT, e);
+                this.testEnvironment.setPropertyIfNotSet(MESSAGE_RECEIVED_BY_ERROR_LISTENER, m);
             });
         });
         return this;
