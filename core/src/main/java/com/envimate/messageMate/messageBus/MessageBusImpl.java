@@ -156,6 +156,11 @@ final class MessageBusImpl implements MessageBus {
     }
 
     @Override
+    public void addRaw(final Filter<ProcessingContext<Object>> filter) {
+        acceptingChannel.addProcessFilter(filter);
+    }
+
+    @Override
     public void add(final Filter<Object> filter, final int position) {
         acceptingChannel.addProcessFilter(new FilterAdapter(filter), position);
     }

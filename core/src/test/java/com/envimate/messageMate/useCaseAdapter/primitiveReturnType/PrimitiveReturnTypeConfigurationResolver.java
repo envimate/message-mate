@@ -32,15 +32,8 @@ public class PrimitiveReturnTypeConfigurationResolver extends AbstractTestConfig
         };
         final Supplier<Object> instantiationFunction = PrimitiveReturnTypeUseCase::new;
         final Consumer<UseCaseAdapterStep3Builder<?>> parameterMapping = callingBuilder -> {
-            callingBuilder.mappingEventToParameter(int.class, o -> (int) o); //TODO: think about adding default mappings for primitive
         };
         final Consumer<UseCaseAdapterStep3Builder<?>> customCallingLogic = callingBuilder -> {
-            callingBuilder.calling((useCaseInstance, event) -> {
-                final PrimitiveReturnTypeUseCase useCase = (PrimitiveReturnTypeUseCase) useCaseInstance;
-                final int parameter = (int) event;
-                final int intReturnValue = useCase.useCaseMethod(parameter);
-                return intReturnValue;
-            });
         };
         return testUseCase(USE_CASE_CLASS, EVENT_TYPE, messageBusSetup, instantiationFunction, parameterMapping, customCallingLogic, expectedResponse, expectedResponse);
     }

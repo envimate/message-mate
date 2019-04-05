@@ -43,12 +43,6 @@ public class VoidReturnConfigurationResolver extends AbstractTestConfigProvider 
         };
         final Supplier<Object> instantiationFunction = VoidReturnUseCase::new;
         final Consumer<UseCaseAdapterStep3Builder<?>> parameterMapping = callingBuilder -> {
-            callingBuilder.calling((useCaseInstance, event) -> {
-                final VoidReturnUseCase useCase = (VoidReturnUseCase) useCaseInstance;
-                final CallbackTestRequest callbackTestRequest = (CallbackTestRequest) event;
-                useCase.useCaseMethod(callbackTestRequest);
-                return null;
-            });
         };
         final Function<TestEnvironment, Object> expectedResultSupploer = testEnvironment -> {
             if (testEnvironment.getPropertyAsType(MESSAGE_FUNCTION_USED, Boolean.class)) {

@@ -22,6 +22,7 @@
 package com.envimate.messageMate.useCaseAdapter.usecaseInvoking;
 
 import com.envimate.messageMate.messageBus.EventType;
+import com.envimate.messageMate.useCaseAdapter.mapping.RequestDeserializer;
 import com.envimate.messageMate.useCaseAdapter.methodInvoking.ParameterValueMappings;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -34,24 +35,25 @@ import static lombok.AccessLevel.PRIVATE;
 @ToString
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = PRIVATE)
-public final class UseCaseCallingInformation<U> {
+public final class UseCaseCallingInformation<USECASE> {
     @Getter
-    private final Class<U> useCaseClass;
+    private final Class<USECASE> useCaseClass;
     @Getter
     private final EventType eventType;
     @Getter
-    private final Caller<U> caller;
+    private final Caller<USECASE> caller;
     @Getter
-    private final ParameterValueMappings parameterValueMappings;
+    private final RequestDeserializer requestDeserializer;
 
-    public static <U> UseCaseCallingInformation<U> useCaseInvocationInformation(
-            final Class<U> useCaseClass,
+    public static <USECASE> UseCaseCallingInformation<USECASE> useCaseInvocationInformation(
+            final Class<USECASE> useCaseClass,
             final EventType eventType,
-            final Caller<U> caller,
-            final ParameterValueMappings parameterValueMappings) {
+            final Caller<USECASE> caller,
+            final RequestDeserializer requestDeserializer) {
         ensureNotNull(useCaseClass, "useCaseClass");
         ensureNotNull(eventType, "eventType");
         ensureNotNull(caller, "caller");
-        return new UseCaseCallingInformation<>(useCaseClass, eventType, caller, parameterValueMappings);
+        ensureNotNull(requestDeserializer, "requestDeserializer");
+        return new UseCaseCallingInformation<>(useCaseClass, eventType, caller, requestDeserializer);
     }
 }

@@ -7,6 +7,8 @@ import com.envimate.messageMate.shared.config.AbstractTestConfigProvider;
 import com.envimate.messageMate.useCaseAdapter.TestUseCase;
 import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterStep3Builder;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -30,15 +32,10 @@ public class SingleEventParameterConfigurationResolver extends AbstractTestConfi
         final BiConsumer<MessageBus, TestEnvironment> messageBusSetup = (messageBus, testEnvironment) -> {
             messageBus.subscribe(USE_CASE_RESPONSE_EVENT_TYPE, s -> testEnvironment.setPropertyIfNotSet(RESULT, s));
         };
-        final Object requestObject = SingleParameterEvent.testUseCaseRequest(expectedResponse);
+        final Map<String, Object> requestObject = new HashMap<>();
+        requestObject.put("message", expectedResponse);
         final Supplier<Object> instantiationFunction = SingleEventParameterUseCase::new;
         final Consumer<UseCaseAdapterStep3Builder<?>> parameterMapping = callingBuilder -> {
-            callingBuilder.calling((useCaseInstance, event) -> {
-                final SingleEventParameterUseCase useCase = (SingleEventParameterUseCase) useCaseInstance;
-                final SingleParameterEvent singleParameterEvent = (SingleParameterEvent) event;
-                final String stringReturnValue = useCase.useCaseMethod(singleParameterEvent);
-                return stringReturnValue;
-            });
         };
         return testUseCase(USE_CASE_CLASS, EVENT_TYPE, messageBusSetup, instantiationFunction, parameterMapping, requestObject, expectedResponse);
     }

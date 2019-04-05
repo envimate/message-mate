@@ -19,12 +19,8 @@
  * under the License.
  */
 
-package com.envimate.messageMate.useCaseAdapter.methodInvoking;
+package com.envimate.messageMate.useCaseAdapter.building;
 
-import com.envimate.messageMate.useCaseAdapter.mapping.RequestDeserializer;
-
-public interface UseCaseMethodInvoker {
-
-    Object invoke(Object useCase, Object event, RequestDeserializer requestDeserializer);
-
+public interface Using<T, U> {
+    T using(U u);
 }

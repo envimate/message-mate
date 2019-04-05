@@ -34,16 +34,8 @@ public class SingleObjectParameterButDifferentToEventConfigurationResolver exten
         final Object requestObject = singleObjectParameterButDifferentToEvent(expectedResponse);
         final Supplier<Object> instantiationFunction = SingleObjectParameterButDifferentToEventParameterUseCase::new;
         final Consumer<UseCaseAdapterStep3Builder<?>> parameterMapping = callingBuilder -> {
-            callingBuilder.mappingEventToParameter(String.class, o -> ((SingleObjectParameterButDifferentToEventParameterEvent) o).getMessage());
         };
         final Consumer<UseCaseAdapterStep3Builder<?>> customCallingLogic = callingBuilder -> {
-            callingBuilder.calling((useCaseInstance, event) -> {
-                final SingleObjectParameterButDifferentToEventParameterUseCase useCase = (SingleObjectParameterButDifferentToEventParameterUseCase) useCaseInstance;
-                final SingleObjectParameterButDifferentToEventParameterEvent parameterEvent = (SingleObjectParameterButDifferentToEventParameterEvent) event;
-                final String message = parameterEvent.getMessage();
-                final String stringReturnValue = useCase.useCaseMethod(message);
-                return stringReturnValue;
-            });
         };
         return testUseCase(USE_CASE_CLASS, EVENT_TYPE, messageBusSetup, instantiationFunction, parameterMapping, customCallingLogic, requestObject, expectedResponse);
     }

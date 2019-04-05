@@ -19,12 +19,11 @@
  * under the License.
  */
 
-package com.envimate.messageMate.useCaseAdapter.methodInvoking;
+package com.envimate.messageMate.useCaseAdapter.mapping;
 
-import com.envimate.messageMate.useCaseAdapter.mapping.RequestDeserializer;
+import java.util.Map;
 
-public interface UseCaseMethodInvoker {
-
-    Object invoke(Object useCase, Object event, RequestDeserializer requestDeserializer);
-
+@FunctionalInterface
+public interface RequestMapper<T> {
+    T map(Class<T> targetType, Map<String, Object> map);
 }
