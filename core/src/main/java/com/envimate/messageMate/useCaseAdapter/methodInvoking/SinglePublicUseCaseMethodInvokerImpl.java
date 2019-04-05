@@ -21,13 +21,18 @@
 
 package com.envimate.messageMate.useCaseAdapter.methodInvoking;
 
+import com.envimate.messageMate.useCaseAdapter.mapping.RequestDeserializer;
 import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 import static com.envimate.messageMate.useCaseAdapter.methodInvoking.MethodInvocationException.methodInvocationException;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
@@ -39,24 +44,16 @@ public final class SinglePublicUseCaseMethodInvokerImpl implements UseCaseMethod
     }
 
     @Override
-    public Object invoke(final Object useCase, final Object event, final ParameterValueMappings parameterValueMappings) {
+    public Object invoke(final Object useCase, final Object event, final RequestDeserializer requestDeserializer) {
         try {
+            System.out.println("invoker!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
             final Class<?>[] parameterTypes = useCaseMethod.getParameterTypes();
-            if (parameterTypes.length == 0) {
-                return useCaseMethod.invoke(useCase);
-            } else if (parameterTypes.length == 1) {
-                final Class<?> parameterType = parameterTypes[0];
-                if (parameterType.equals(event.getClass())) {
-                    return useCaseMethod.invoke(useCase, event);
-                } else {
-                    final Object parameterValue = parameterValueMappings.getParameterValue(parameterType, event);
-                    return useCaseMethod.invoke(useCase, parameterValue);
-                }
-            } else {
-                final Object[] parameters = Arrays.stream(parameterTypes)
-                        .map(parameterType -> parameterValueMappings.getParameterValue(parameterType, event)).toArray();
-                return useCaseMethod.invoke(useCase, parameters);
-            }
+
+            final Map<String, Object> map = (Map<String, Object>) event;
+            final Object[] parameters = stream(parameterTypes)
+                    .map(parameterType -> requestDeserializer.deserializeRequest(parameterType, map))
+                    .toArray();
+            return useCaseMethod.invoke(useCase, parameters);
         } catch (final IllegalAccessException e) {
             final Class<?> useCaseClass = useCase.getClass();
             throw methodInvocationException(useCaseClass, useCase, useCaseMethod, event, e);

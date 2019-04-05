@@ -103,6 +103,8 @@ public interface MessageBus extends NoErrorAutoClosable {
      */
     void add(Filter<Object> filter);
 
+    void addRaw(Filter<ProcessingContext<Object>> filter);
+
     /**
      * Adds the {@code Filter} to the accepting {@code Channel}
      *

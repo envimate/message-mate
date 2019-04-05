@@ -6,7 +6,7 @@ import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.subscribing.AcceptingBehavior;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
-import com.envimate.messageMate.useCaseAdapter.methodInvoking.ParameterValueMappings;
+import com.envimate.messageMate.useCaseAdapter.mapping.RequestDeserializer;
 import com.envimate.messageMate.useCaseAdapter.usecaseInstantiating.UseCaseInstantiator;
 import com.envimate.messageMate.useCaseAdapter.usecaseInvoking.Caller;
 import com.envimate.messageMate.useCaseAdapter.usecaseInvoking.UseCaseCallingInformation;
@@ -40,13 +40,14 @@ final class UseCaseRequestExecutingSubscriber implements Subscriber<ProcessingCo
 
     @Override
     public AcceptingBehavior accept(final ProcessingContext<Object> processingContext) {
+        System.out.println("accept!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         final Caller caller = useCaseCallingInformation.getCaller();
         final Class<?> useCaseClass = useCaseCallingInformation.getUseCaseClass();
         final Object useCase = useCaseInstantiator.instantiate(useCaseClass);
         final Object event = processingContext.getPayload();
-        final ParameterValueMappings parameterValueMappings = useCaseCallingInformation.getParameterValueMappings();
+        final RequestDeserializer requestDeserializer = useCaseCallingInformation.getRequestDeserializer();
         @SuppressWarnings("unchecked")
-        final Object returnValue = caller.call(useCase, event, parameterValueMappings);
+        final Object returnValue = caller.call(useCase, event, requestDeserializer);
         final CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();
         messageBus.send(USE_CASE_RESPONSE_EVENT_TYPE, returnValue, correlationId);
         return MESSAGE_ACCEPTED;

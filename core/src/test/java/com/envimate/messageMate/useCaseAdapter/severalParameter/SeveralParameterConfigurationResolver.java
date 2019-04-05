@@ -36,17 +36,8 @@ public class SeveralParameterConfigurationResolver extends AbstractTestConfigPro
         final SeveralParameterUseCaseResponse expectedResult = createExpectedResponse(requestObject);
         final Supplier<Object> instantiationFunction = SeveralParameterUseCase::new;
         final Consumer<UseCaseAdapterStep3Builder<?>> parameterMapping = callingBuilder -> {
-            callingBuilder.mappingEventToParameter(String.class, o -> ((SeveralParameterUseCaseRequest) o).stringParameter);
-            callingBuilder.mappingEventToParameter(Object.class, o -> ((SeveralParameterUseCaseRequest) o).objectParameter);
-            callingBuilder.mappingEventToParameter(int.class, o -> ((SeveralParameterUseCaseRequest) o).intParameter);
-            callingBuilder.mappingEventToParameter(Boolean.class, o -> ((SeveralParameterUseCaseRequest) o).booleanParameter);
         };
         final Consumer<UseCaseAdapterStep3Builder<?>> customCallingLogic = callingBuilder -> {
-            callingBuilder.calling((useCaseInstance, event) -> {
-                final SeveralParameterUseCase useCase = (SeveralParameterUseCase) useCaseInstance;
-                final SeveralParameterUseCaseRequest request = (SeveralParameterUseCaseRequest) event;
-                return useCase.useCaseMethod(request.stringParameter, request.objectParameter, request.intParameter, request.booleanParameter);
-            });
         };
         return testUseCase(USE_CASE_CLASS, EVENT_TYPE, messageBusSetup, instantiationFunction, parameterMapping, customCallingLogic, requestObject, expectedResult);
     }

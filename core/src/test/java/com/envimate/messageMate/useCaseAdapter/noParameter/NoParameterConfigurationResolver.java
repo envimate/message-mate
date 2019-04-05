@@ -39,11 +39,6 @@ public class NoParameterConfigurationResolver extends AbstractTestConfigProvider
         final Object requestObject = new DummyUseCaseEvent();
         final Supplier<Object> instantiationFunction = NoParameterUseCase::new;
         final Consumer<UseCaseAdapterStep3Builder<?>> parameterMapping = callingBuilder -> {
-            callingBuilder.calling((useCaseInstance, event) -> {
-                final NoParameterUseCase useCase = (NoParameterUseCase) useCaseInstance;
-                final String stringReturnValue = useCase.useCaseMethod();
-                return stringReturnValue;
-            });
         };
         final String expectedResult = NoParameterUseCase.NO_PARAMETER_USE_CASE_RETURN_VALUE;
         return testUseCase(USE_CASE_CLASS, EVENT_TYPE, messageBusSetup, instantiationFunction, parameterMapping, requestObject, expectedResult);

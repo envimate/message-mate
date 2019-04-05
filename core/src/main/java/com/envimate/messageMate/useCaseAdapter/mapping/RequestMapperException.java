@@ -19,12 +19,15 @@
  * under the License.
  */
 
-package com.envimate.messageMate.useCaseAdapter.methodInvoking;
+package com.envimate.messageMate.useCaseAdapter.mapping;
 
-import com.envimate.messageMate.useCaseAdapter.mapping.RequestDeserializer;
+public final class RequestMapperException extends RuntimeException {
 
-public interface UseCaseMethodInvoker {
+    private RequestMapperException(final String message) {
+        super(message);
+    }
 
-    Object invoke(Object useCase, Object event, RequestDeserializer requestDeserializer);
-
+    static RequestMapperException requestMapperException(final String message) {
+        return new RequestMapperException(message);
+    }
 }

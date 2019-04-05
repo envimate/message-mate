@@ -40,15 +40,6 @@ public class ExceptionThrowingConfigurationResolver extends AbstractTestConfigPr
         final Object requestObject = new ExceptionThrowingRequest(expectedResult);
         final Supplier<Object> instantiationFunction = ExceptionThrowingUseCase::new;
         final Consumer<UseCaseAdapterStep3Builder<?>> parameterMapping = callingBuilder -> {
-            callingBuilder.callingVoid((useCaseInstance, event) -> {
-                final ExceptionThrowingUseCase useCase = (ExceptionThrowingUseCase) useCaseInstance;
-                final ExceptionThrowingRequest request = (ExceptionThrowingRequest) event;
-                try {
-                    useCase.useCaseMethod(request);
-                } catch (final Exception e) {
-                    throw (TestException) e;
-                }
-            });
         };
         final Consumer<MessageBusBuilder> messageBusEnhancer = messageBusBuilder -> {
             messageBusBuilder.withExceptionHandler(new MessageBusExceptionHandler() {
