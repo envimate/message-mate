@@ -22,6 +22,7 @@
 package com.envimate.messageMate.useCaseAdapter;
 
 import com.envimate.messageMate.identification.CorrelationId;
+import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.subscribing.AcceptingBehavior;
@@ -31,8 +32,8 @@ import com.envimate.messageMate.useCaseAdapter.mapping.ExceptionSerializer;
 import com.envimate.messageMate.useCaseAdapter.mapping.RequestDeserializer;
 import com.envimate.messageMate.useCaseAdapter.mapping.ResponseSerializer;
 import com.envimate.messageMate.useCaseAdapter.usecaseInstantiating.UseCaseInstantiator;
-import com.envimate.messageMate.useCaseAdapter.usecaseInvoking.Caller;
-import com.envimate.messageMate.useCaseAdapter.usecaseInvoking.UseCaseCallingInformation;
+import com.envimate.messageMate.useCaseAdapter.usecaseCalling.Caller;
+import com.envimate.messageMate.useCaseAdapter.usecaseCalling.UseCaseCallingInformation;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -49,7 +50,6 @@ import static lombok.AccessLevel.PRIVATE;
 @ToString
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = PRIVATE)
-@SuppressWarnings("rawtypes") //TODO: remove
 final class UseCaseRequestExecutingSubscriber implements Subscriber<ProcessingContext<Object>> {
     private final MessageBus messageBus;
     private final UseCaseCallingInformation useCaseCallingInformation;
@@ -72,7 +72,8 @@ final class UseCaseRequestExecutingSubscriber implements Subscriber<ProcessingCo
         ensureNotNull(requestDeserializer, "requestDeserializer");
         ensureNotNull(responseSerializer, "responseSerializer");
         ensureNotNull(exceptionSerializer, "exceptionSerializer");
-        return new UseCaseRequestExecutingSubscriber(messageBus, useCaseCallingInformation, useCaseInstantiator, requestDeserializer, responseSerializer, exceptionSerializer);
+        return new UseCaseRequestExecutingSubscriber(messageBus, useCaseCallingInformation, useCaseInstantiator,
+                requestDeserializer, responseSerializer, exceptionSerializer);
     }
 
     @Override
@@ -89,7 +90,8 @@ final class UseCaseRequestExecutingSubscriber implements Subscriber<ProcessingCo
             serializedException = exceptionSerializer.serializeException(e);
         }
         final CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();
-        final ProcessingContext<Object> response = processingContextForPayloadAndError(USE_CASE_RESPONSE_EVENT_TYPE, correlationId, serializedReturnValue, serializedException);
+        final ProcessingContext<Object> response = processingContextForPayloadAndError(USE_CASE_RESPONSE_EVENT_TYPE,
+                correlationId, serializedReturnValue, serializedException);
         messageBus.send(response);
         return MESSAGE_ACCEPTED;
     }
@@ -97,5 +99,10 @@ final class UseCaseRequestExecutingSubscriber implements Subscriber<ProcessingCo
     @Override
     public SubscriptionId getSubscriptionId() {
         return subscriptionId;
+    }
+
+    public void attachTo(final MessageBus messageBus) {
+        final EventType eventType = useCaseCallingInformation.getEventType();
+        messageBus.subscribeRaw(eventType, this);
     }
 }

@@ -21,7 +21,7 @@
 
 package com.envimate.messageMate.useCaseAdapter.mapping;
 
-import com.envimate.messageMate.useCaseAdapter.mapping.filtermap.FilterMap;
+import com.envimate.messageMate.internal.collections.filtermap.FilterMap;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +34,7 @@ import static com.envimate.messageMate.internal.enforcing.NotNullEnforcer.ensure
 @ToString
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public final class RequestDeserializer { // TODO rename to EventDeserializer
+public final class RequestDeserializer {
     private final FilterMap<Class<?>, Map<String, Object>, RequestMapper<?>> requestMappers;
 
     public static RequestDeserializer requestDeserializer(

@@ -19,9 +19,32 @@
  * under the License.
  */
 
-package com.envimate.messageMate.useCaseAdapter.methodInvoking;
+package com.envimate.messageMate.internal.collections.filtermap;
 
-public interface ParameterValueMapping {
-    Object getParameter(Object event);
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+
+import java.util.function.BiPredicate;
+
+import static com.envimate.messageMate.internal.enforcing.NotNullEnforcer.ensureNotNull;
+
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+final class FilterMapEntry<F1, F2, T> {
+    private final BiPredicate<F1, F2> filter;
+    private final T value;
+
+    static <F1, F2, T> FilterMapEntry<F1, F2, T> filterMapEntry(final BiPredicate<F1, F2> filter, final T value) {
+        ensureNotNull(filter, "filter");
+        ensureNotNull(value, "value");
+        return new FilterMapEntry<>(filter, value);
+    }
+
+    boolean test(final F1 condidtion1,
+                 final F2 condidtion2) {
+        return filter.test(condidtion1, condidtion2);
+    }
+
+    T value() {
+        return value;
+    }
 }
-

@@ -21,24 +21,14 @@
 
 package com.envimate.messageMate.useCaseAdapter.building;
 
-import com.envimate.messageMate.useCaseAdapter.usecaseInstantiating.UseCaseFactory;
 import com.envimate.messageMate.useCaseAdapter.usecaseInstantiating.UseCaseInstantiator;
 
-import static com.envimate.messageMate.useCaseAdapter.usecaseInstantiating.ZeroArgumentsConstructorUseCaseFactory.zeroArgumentsConstructorUseCaseFactory;
+import static com.envimate.messageMate.useCaseAdapter.usecaseInstantiating.ZeroArgumentsConstructorUseCaseInstantiator.zeroArgumentsConstructorUseCaseInstantiator;
 
-// TODO mit guice
 public interface UseCaseAdapterInstantiationBuilder {
 
     default UseCaseAdapterDeserializationStep1Builder obtainingUseCaseInstancesUsingTheZeroArgumentConstructor() {
-        return obtainingUseCaseInstancesUsing(new UseCaseInstantiator() {
-            @SuppressWarnings("unchecked") //TODO: double check
-            @Override
-            public <T> T instantiate(final Class<T> useCaseClass) {
-                // TODO no not use reflection on every call
-                final UseCaseFactory factory = zeroArgumentsConstructorUseCaseFactory(useCaseClass);
-                return (T) factory.createInstance();
-            }
-        });
+        return obtainingUseCaseInstancesUsing(zeroArgumentsConstructorUseCaseInstantiator());
     }
 
     UseCaseAdapterDeserializationStep1Builder obtainingUseCaseInstancesUsing(UseCaseInstantiator useCaseInstantiator);

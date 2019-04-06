@@ -9,7 +9,6 @@ import static com.envimate.messageMate.useCaseAdapter.UseCaseAdapterSetupBuilder
 import static com.envimate.messageMate.useCaseAdapter.UseCaseAdapterValidationBuilder.expectTheResponseToBeReceivedByTheMessageFunction;
 import static com.envimate.messageMate.useCaseAdapter.UseCaseAdapterValidationBuilder.expectTheUseCaseToBeInvokedOnce;
 
-//TODO: ensure injector is called for each request again
 //TODO: test for primitive types as arguments
 //TODO: test for missing mapping
 public interface UseCaseAdapterSpecs {

@@ -23,9 +23,11 @@ package com.envimate.messageMate.useCaseAdapter;
 
 import com.envimate.messageMate.useCaseAdapter.building.*;
 import com.envimate.messageMate.useCaseAdapter.mapping.*;
-import com.envimate.messageMate.useCaseAdapter.mapping.filtermap.FilterMapBuilder;
+import com.envimate.messageMate.internal.collections.filtermap.FilterMapBuilder;
+import com.envimate.messageMate.useCaseAdapter.usecaseCalling.Caller;
+import com.envimate.messageMate.useCaseAdapter.usecaseCalling.SinglePublicUseCaseMethodCaller;
+import com.envimate.messageMate.useCaseAdapter.usecaseCalling.UseCaseCallingInformation;
 import com.envimate.messageMate.useCaseAdapter.usecaseInstantiating.UseCaseInstantiator;
-import com.envimate.messageMate.useCaseAdapter.usecaseInvoking.UseCaseCallingInformation;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -36,8 +38,9 @@ import java.util.function.Predicate;
 import static com.envimate.messageMate.useCaseAdapter.UseCaseAdapterImpl.useCaseAdapterImpl;
 import static com.envimate.messageMate.useCaseAdapter.mapping.RequestDeserializer.requestDeserializer;
 import static com.envimate.messageMate.useCaseAdapter.mapping.ResponseSerializer.responseSerializer;
-import static com.envimate.messageMate.useCaseAdapter.mapping.filtermap.FilterMapBuilder.filterMapBuilder;
-import static com.envimate.messageMate.useCaseAdapter.usecaseInvoking.UseCaseCallingInformation.useCaseInvocationInformation;
+import static com.envimate.messageMate.internal.collections.filtermap.FilterMapBuilder.filterMapBuilder;
+import static com.envimate.messageMate.useCaseAdapter.usecaseCalling.SinglePublicUseCaseMethodCaller.singlePublicUseCaseMethodCaller;
+import static com.envimate.messageMate.useCaseAdapter.usecaseCalling.UseCaseCallingInformation.useCaseInvocationInformation;
 
 public class UseCaseAdapterBuilder implements UseCaseAdapterStep1Builder, UseCaseAdapterDeserializationStep1Builder,
         UseCaseAdapterResponseSerializationStep1Builder, UseCaseAdapterExceptionSerializationStep1Builder {
@@ -55,10 +58,19 @@ public class UseCaseAdapterBuilder implements UseCaseAdapterStep1Builder, UseCas
 
     @Override
     public <USECASE> UseCaseAdapterStep2Builder<USECASE> invokingUseCase(final Class<USECASE> useCaseClass) {
-        return eventType -> caller -> {
-            final UseCaseCallingInformation<USECASE> invocationInformation = useCaseInvocationInformation(useCaseClass, eventType, caller);
-            useCaseCallingInformationList.add(invocationInformation);
-            return this;
+        return eventType -> new UseCaseAdapterStep3Builder<USECASE>() {
+            @Override
+            public UseCaseAdapterStep1Builder callingTheSingleUseCaseMethod() {
+                final SinglePublicUseCaseMethodCaller<USECASE> caller = singlePublicUseCaseMethodCaller(useCaseClass);
+                return callingBy(caller);
+            }
+
+            @Override
+            public UseCaseAdapterStep1Builder callingBy(final Caller<USECASE> caller) {
+                final UseCaseCallingInformation<USECASE> invocationInformation = useCaseInvocationInformation(useCaseClass, eventType, caller);
+                useCaseCallingInformationList.add(invocationInformation);
+                return UseCaseAdapterBuilder.this;
+            }
         };
     }
 
@@ -69,7 +81,7 @@ public class UseCaseAdapterBuilder implements UseCaseAdapterStep1Builder, UseCas
     }
 
     @Override
-    public <T> UseCaseAdapterDeserializationStep2Builder<T> mappingRequestsToUseCaseParametersThat(BiPredicate<Class<?>, Map<String, Object>> filter) {
+    public <T> UseCaseAdapterDeserializationStep2Builder<T> mappingRequestsToUseCaseParametersThat(final BiPredicate<Class<?>, Map<String, Object>> filter) {
         return requestMapper -> {
             deserializers.put(filter, requestMapper);
             return this;
@@ -98,7 +110,7 @@ public class UseCaseAdapterBuilder implements UseCaseAdapterStep1Builder, UseCas
     }
 
     @Override
-    public UseCaseAdapterExceptionSerializationStep2Builder<Exception> serializingExceptionsThat(Predicate<Exception> filter) {
+    public UseCaseAdapterExceptionSerializationStep2Builder<Exception> serializingExceptionsThat(final Predicate<Exception> filter) {
         return mapper -> {
             final BiPredicate<Exception, Void> biPredicate = (object, aVoid) -> filter.test(object); // TODO
             exceptionSerializers.put(biPredicate, mapper);
@@ -108,7 +120,7 @@ public class UseCaseAdapterBuilder implements UseCaseAdapterStep1Builder, UseCas
 
 
     @Override
-    public UseCaseAdapter serializingExceptionsByDefaultUsing(ResponseMapper<Exception> mapper) {
+    public UseCaseAdapter serializingExceptionsByDefaultUsing(final ResponseMapper<Exception> mapper) {
         exceptionSerializers.setDefaultValue(mapper);
         final RequestDeserializer requestDeserializer = requestDeserializer(deserializers.build());
         final ResponseSerializer responseSerializer = responseSerializer(responseSerializers.build());

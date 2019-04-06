@@ -23,25 +23,29 @@ package com.envimate.messageMate.useCaseAdapter.usecaseInstantiating;
 
 import lombok.RequiredArgsConstructor;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-import static com.envimate.messageMate.useCaseAdapter.usecaseInstantiating.ZeroArgumentsConstructorUseCaseFactoryException.zeroArgumentsConstructorUseCaseFactoryException;
+import static com.envimate.messageMate.useCaseAdapter.usecaseInstantiating.ZeroArgumentsConstructorUseCaseFactoryException.zeroArgumentsConstructorUseCaseInstantiatorException;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
-public final class ZeroArgumentsConstructorUseCaseFactory implements UseCaseFactory {
-    private final Class<?> useCaseClass;
+public final class ZeroArgumentsConstructorUseCaseInstantiator implements UseCaseInstantiator {
 
-    public static UseCaseFactory zeroArgumentsConstructorUseCaseFactory(final Class<?> useCaseClass) {
-        return new ZeroArgumentsConstructorUseCaseFactory(useCaseClass);
+    public static ZeroArgumentsConstructorUseCaseInstantiator zeroArgumentsConstructorUseCaseInstantiator() {
+        return new ZeroArgumentsConstructorUseCaseInstantiator();
     }
 
     @Override
-    public Object createInstance() {
+    public <T> T instantiate(final Class<T> type) {
         try {
-            return useCaseClass.getDeclaredConstructor().newInstance();
+            final Constructor<?> constructor = type.getDeclaredConstructor();
+            @SuppressWarnings("unchecked")
+            final T newInstance = (T) constructor.newInstance();
+            return newInstance;
         } catch (final NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
-            throw zeroArgumentsConstructorUseCaseFactoryException(useCaseClass, e);
+            throw zeroArgumentsConstructorUseCaseInstantiatorException(type, e);
         }
     }
+
 }

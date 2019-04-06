@@ -19,39 +19,33 @@
  * under the License.
  */
 
-package com.envimate.messageMate.useCaseAdapter.mapping.filtermap;
+package com.envimate.messageMate.internal.collections.filtermap;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
-import java.util.LinkedList;
 import java.util.List;
-import java.util.function.BiPredicate;
 
 import static com.envimate.messageMate.internal.enforcing.NotNullEnforcer.ensureNotNull;
-import static com.envimate.messageMate.useCaseAdapter.mapping.filtermap.FilterMap.filterMap;
-import static com.envimate.messageMate.useCaseAdapter.mapping.filtermap.FilterMapEntry.filterMapEntry;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public final class FilterMapBuilder<F1, F2, T> {
+public final class FilterMap<F1, F2, T> {
     private final List<FilterMapEntry<F1, F2, T>> entries;
-    private T defaultValue;
+    private final T defaultValue;
 
-    public static <F1, F2, T> FilterMapBuilder<F1, F2, T> filterMapBuilder() {
-        return new FilterMapBuilder<>(new LinkedList<>());
-    }
-
-    public void put(final BiPredicate<F1, F2> filter, final T value) {
-        final FilterMapEntry<F1, F2, T> entry = filterMapEntry(filter, value);
-        entries.add(entry);
-    }
-
-    public void setDefaultValue(final T defaultValue) {
+    static <F1, F2, T> FilterMap<F1, F2, T> filterMap(final List<FilterMapEntry<F1, F2, T>> entries,
+                                                      final T defaultValue) {
+        ensureNotNull(entries, "entries");
         ensureNotNull(defaultValue, "defaultValue");
-        this.defaultValue = defaultValue;
+        return new FilterMap<>(entries, defaultValue);
     }
 
-    public FilterMap<F1, F2, T> build() {
-        return filterMap(entries, defaultValue);
+    public T get(final F1 condition1,
+                 final F2 condition2) {
+        return entries.stream()
+                .filter(entry -> entry.test(condition1, condition2))
+                .map(FilterMapEntry::value)
+                .findFirst()
+                .orElse(defaultValue);
     }
 }

@@ -21,17 +21,13 @@
 
 package com.envimate.messageMate.useCaseAdapter.building;
 
-import com.envimate.messageMate.useCaseAdapter.methodInvoking.UseCaseMethodInvoker;
-import com.envimate.messageMate.useCaseAdapter.usecaseInvoking.Caller;
-import com.envimate.messageMate.useCaseAdapter.usecaseInvoking.UseCaseInvocationInformation;
-import com.envimate.messageMate.useCaseAdapter.usecaseInvoking.UseCaseInvoker;
+import com.envimate.messageMate.useCaseAdapter.usecaseCalling.Caller;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
-import static com.envimate.messageMate.useCaseAdapter.usecaseInvoking.ClassBasedUseCaseInvokerImpl.classBasedUseCaseInvoker;
+import static java.util.Collections.emptyMap;
 
 public interface UseCaseAdapterCallingBuilder<U> {
 
@@ -45,19 +41,11 @@ public interface UseCaseAdapterCallingBuilder<U> {
     default UseCaseAdapterStep1Builder callingVoid(final BiConsumer<U, Object> caller) {
         return callingBy((usecase, event, requestDeserializer, responseSerializer) -> {
             caller.accept(usecase, event);
-            return Collections.emptyMap();
+            return emptyMap();
         });
     }
 
-    default UseCaseAdapterStep1Builder callingTheSingleUseCaseMethod() {
-        return callingBy((usecase, event, requestDeserializer, responseSerializer) -> {
-            final UseCaseInvoker invoker = classBasedUseCaseInvoker(usecase.getClass());
-            final UseCaseInvocationInformation invocationInformation = invoker.getInvocationInformation();
-            final UseCaseMethodInvoker methodInvoker = invocationInformation.getMethodInvoker();
-            final Map<String, Object> responseMap = methodInvoker.invoke(usecase, event, requestDeserializer, responseSerializer);
-            return responseMap;
-        });
-    }
+    UseCaseAdapterStep1Builder callingTheSingleUseCaseMethod();
 
     UseCaseAdapterStep1Builder callingBy(Caller<U> caller);
 }

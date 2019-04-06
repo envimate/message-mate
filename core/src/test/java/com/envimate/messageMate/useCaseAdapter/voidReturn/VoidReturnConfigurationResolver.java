@@ -12,7 +12,6 @@ import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterStep3Build
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -27,6 +26,7 @@ public class VoidReturnConfigurationResolver extends AbstractTestConfigProvider 
 
     public static final Class<?> USE_CASE_CLASS = VoidReturnUseCase.class;
     public static final EventType EVENT_TYPE = EventType.eventTypeFromString("ExceptionThrowingUseCase");
+    private static final String PARAMETER_MAP_PROPERTY_NAME = "consumer";
 
     @Override
     protected Class<?> forConfigClass() {
@@ -46,17 +46,17 @@ public class VoidReturnConfigurationResolver extends AbstractTestConfigProvider 
                 }
             };
             final Map<String, Object> requestObject = new HashMap<>();
-            requestObject.put("consumer", consumer);
+            requestObject.put(PARAMETER_MAP_PROPERTY_NAME, consumer);
             return requestObject;
         };
         final Supplier<Object> instantiationFunction = VoidReturnUseCase::new;
         final Consumer<UseCaseAdapterDeserializationStep1Builder> deserializationEnhancer = deserializationStepBuilder -> {
             deserializationStepBuilder.mappingRequestsToUseCaseParametersOfType(CallbackTestRequest.class)
-                    .using((targetType, map) -> CallbackTestRequest.callbackTestRequest((Consumer<Object>) map.get("consumer")));
+                    .using((targetType, map) -> CallbackTestRequest.callbackTestRequest((Consumer<Object>) map.get(PARAMETER_MAP_PROPERTY_NAME)));
         };
 
         final Consumer<UseCaseAdapterResponseSerializationStep1Builder> serializationEnhancer = serializationStepBuilder -> {
-            serializationStepBuilder.serializingResponseObjectsThat(Objects::isNull).using(nullValue -> {//TODO: sinnvoll?
+            serializationStepBuilder.serializingResponseObjectsOfTypeVoid().using(nullValue -> {
                 return Collections.emptyMap();
             });
         };
@@ -64,7 +64,7 @@ public class VoidReturnConfigurationResolver extends AbstractTestConfigProvider 
             useCaseAdapterStep3Builder.callingVoid((useCase, map) -> {
                 final VoidReturnUseCase voidReturnUseCase = (VoidReturnUseCase) useCase;
                 final Map<String, Object> requestMap = (Map<String, Object>) map;
-                final Consumer<Object> consumer = (Consumer<Object>) requestMap.get("consumer");
+                final Consumer<Object> consumer = (Consumer<Object>) requestMap.get(PARAMETER_MAP_PROPERTY_NAME);
                 final CallbackTestRequest request = CallbackTestRequest.callbackTestRequest(consumer);
                 voidReturnUseCase.useCaseMethod(request);
             });

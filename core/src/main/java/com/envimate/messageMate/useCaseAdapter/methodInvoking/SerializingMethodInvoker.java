@@ -34,11 +34,11 @@ import static java.util.Arrays.stream;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
-public final class SinglePublicUseCaseMethodInvokerImpl implements UseCaseMethodInvoker {
+public final class SerializingMethodInvoker implements UseCaseMethodInvoker {
     private final Method useCaseMethod;
 
-    public static SinglePublicUseCaseMethodInvokerImpl singlePublicUseCaseMethodInvoker(final Method method) {
-        return new SinglePublicUseCaseMethodInvokerImpl(method);
+    public static SerializingMethodInvoker serializingMethodInvoker(final Method method) {
+        return new SerializingMethodInvoker(method);
     }
 
     @Override

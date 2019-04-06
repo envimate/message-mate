@@ -27,7 +27,7 @@ public final class ZeroArgumentsConstructorUseCaseFactoryException extends Runti
         super(message, cause);
     }
 
-    static ZeroArgumentsConstructorUseCaseFactoryException zeroArgumentsConstructorUseCaseFactoryException(
+    static ZeroArgumentsConstructorUseCaseFactoryException zeroArgumentsConstructorUseCaseInstantiatorException(
             final Class<?> type, final Throwable cause) {
         return new ZeroArgumentsConstructorUseCaseFactoryException("Exception during instantiation " +
                 "of " + type.getName() + " using zero argument constructor", cause);

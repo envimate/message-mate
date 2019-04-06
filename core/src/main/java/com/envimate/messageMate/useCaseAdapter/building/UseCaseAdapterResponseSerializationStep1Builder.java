@@ -21,9 +21,9 @@
 
 package com.envimate.messageMate.useCaseAdapter.building;
 
-import com.envimate.messageMate.useCaseAdapter.UseCaseAdapter;
 import com.envimate.messageMate.useCaseAdapter.mapping.ResponseMapper;
 
+import java.util.Objects;
 import java.util.function.Predicate;
 
 import static com.envimate.messageMate.useCaseAdapter.mapping.ResponseFilters.areOfType;
@@ -63,6 +63,13 @@ public interface UseCaseAdapterResponseSerializationStep1Builder {
     default <T> UseCaseAdapterResponseSerializationStep2Builder<T> serializingResponseObjectsOfType(final Class<T> type) {
         return mapper ->
                 serializingResponseObjectsThat(areOfType(type))
+                        .using((ResponseMapper<Object>) mapper);
+    }
+
+    @SuppressWarnings("unchecked")
+    default <T> UseCaseAdapterResponseSerializationStep2Builder<T> serializingResponseObjectsOfTypeVoid() {
+        return mapper ->
+                serializingResponseObjectsThat(Objects::isNull)
                         .using((ResponseMapper<Object>) mapper);
     }
 

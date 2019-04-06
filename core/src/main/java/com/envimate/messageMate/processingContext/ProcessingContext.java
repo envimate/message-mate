@@ -61,7 +61,7 @@ import static com.envimate.messageMate.internal.enforcing.NotNullEnforcer.ensure
  * @see <a href="https://github.com/envimate/message-mate#processing-context">Message Mate Documentation</a>
  */
 
-//TODO: errorPayload
+//TODO: errorPayload: test for MB + for Channel
 @ToString
 @EqualsAndHashCode
 public final class ProcessingContext<T> {

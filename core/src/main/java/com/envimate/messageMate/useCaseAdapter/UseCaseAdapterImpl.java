@@ -22,13 +22,11 @@
 package com.envimate.messageMate.useCaseAdapter;
 
 import com.envimate.messageMate.messageBus.MessageBus;
-import com.envimate.messageMate.processingContext.ProcessingContext;
-import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.useCaseAdapter.mapping.ExceptionSerializer;
 import com.envimate.messageMate.useCaseAdapter.mapping.RequestDeserializer;
 import com.envimate.messageMate.useCaseAdapter.mapping.ResponseSerializer;
 import com.envimate.messageMate.useCaseAdapter.usecaseInstantiating.UseCaseInstantiator;
-import com.envimate.messageMate.useCaseAdapter.usecaseInvoking.UseCaseCallingInformation;
+import com.envimate.messageMate.useCaseAdapter.usecaseCalling.UseCaseCallingInformation;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -42,7 +40,6 @@ import static lombok.AccessLevel.PRIVATE;
 @ToString
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = PRIVATE)
-@SuppressWarnings("rawtypes") //TODO: remove
 public final class UseCaseAdapterImpl implements UseCaseAdapter {
     private final List<UseCaseCallingInformation> useCaseCallingInformations;
     private final UseCaseInstantiator useCaseInstantiator;
@@ -65,9 +62,9 @@ public final class UseCaseAdapterImpl implements UseCaseAdapter {
     @Override
     public void attachTo(final MessageBus messageBus) {
         useCaseCallingInformations.forEach(callingInformation -> {
-            final Subscriber<ProcessingContext<Object>> useCaseRequestSubscriber =
-                    useCaseRequestExecutingSubscriber(messageBus, callingInformation, useCaseInstantiator, requestDeserializer, responseSerializer, exceptionSerializer);
-            messageBus.subscribeRaw(callingInformation.getEventType(), useCaseRequestSubscriber);
+            final UseCaseRequestExecutingSubscriber useCaseRequestSubscriber = useCaseRequestExecutingSubscriber(messageBus,
+                    callingInformation, useCaseInstantiator, requestDeserializer, responseSerializer, exceptionSerializer);
+            useCaseRequestSubscriber.attachTo(messageBus);
         });
     }
 }
