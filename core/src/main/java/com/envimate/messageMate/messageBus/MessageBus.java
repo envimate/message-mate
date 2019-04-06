@@ -104,6 +104,8 @@ public interface MessageBus extends NoErrorAutoClosable {
 
     void addRaw(Filter<ProcessingContext<Object>> filter);
 
+    void addRaw(Filter<ProcessingContext<Object>> filter, int position);
+
     /**
      * Adds the {@code Filter} to the accepting {@code Channel}
      *
@@ -111,7 +113,6 @@ public interface MessageBus extends NoErrorAutoClosable {
      * @param position the position of the {@code Filter}
      * @throws ArrayIndexOutOfBoundsException if the position is higher than the number of {@code Filter} or negative
      */
-    //TODO: addRaw(ProcessingContext);
     void add(Filter<Object> filter, int position);
 
     /**

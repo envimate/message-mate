@@ -9,6 +9,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.*;
+import static com.envimate.messageMate.useCaseAdapter.UseCaseAdapterTestProperties.RETRIEVE_ERROR_FROM_FUTURE;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static lombok.AccessLevel.PRIVATE;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -35,7 +36,12 @@ public final class UseCaseAdapterValidationBuilder {
             final Object expectedResult = testUseCase.getExpectedResult(testEnvironment);
             final ResponseFuture responseFuture = testEnvironment.getPropertyAsType(TestEnvironmentProperty.RESULT, ResponseFuture.class);
             try {
-                final Object result = responseFuture.get(10, MILLISECONDS);
+                final Object result;
+                if(testEnvironment.has(RETRIEVE_ERROR_FROM_FUTURE)) {
+                    result = responseFuture.getErrorResponse(10, MILLISECONDS);
+                }else {
+                    result = responseFuture.get(10, MILLISECONDS);
+                }
                 assertEquals(result, expectedResult);
             } catch (final InterruptedException | TimeoutException e) {
                 fail(e);

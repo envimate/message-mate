@@ -21,11 +21,14 @@ import java.util.function.Supplier;
 
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
 import static com.envimate.messageMate.useCaseAdapter.TestUseCase.testUseCase;
+import static com.envimate.messageMate.useCaseAdapter.UseCaseAdapterTestProperties.RETRIEVE_ERROR_FROM_FUTURE;
+import static com.envimate.messageMate.useCaseAdapter.UseCaseInvokingResponseEventType.USE_CASE_RESPONSE_EVENT_TYPE;
 
 public class ExceptionThrowingConfigurationResolver extends AbstractTestConfigProvider {
 
     public static final Class<?> USE_CASE_CLASS = ExceptionThrowingUseCase.class;
     public static final EventType EVENT_TYPE = EventType.eventTypeFromString("ExceptionThrowingUseCase");
+    private static final String PARAMETER_MAP_PROPERTY_NAME = "Exception";
 
     @Override
     protected Class<?> forConfigClass() {
@@ -35,28 +38,27 @@ public class ExceptionThrowingConfigurationResolver extends AbstractTestConfigPr
     @Override
     protected Object testConfig() {
         final BiConsumer<MessageBus, TestEnvironment> messageBusSetup = (messageBus, testEnvironment) -> {
-            messageBus.onException(EVENT_TYPE, (request, e) -> {
-                testEnvironment.setPropertyIfNotSet(RESULT, e);
-            });
+            messageBus.subscribeRaw(USE_CASE_RESPONSE_EVENT_TYPE, processingContext -> testEnvironment.setPropertyIfNotSet(RESULT, processingContext.getErrorPayload()));
         };
-        final TestException expectedResult = new TestException();
+        final TestException expectedException = new TestException();
         final Map<String, Object> requestObject = new HashMap<>();
-        requestObject.put("exception", expectedResult);
+        requestObject.put(PARAMETER_MAP_PROPERTY_NAME, expectedException);
         final Supplier<Object> instantiationFunction = ExceptionThrowingUseCase::new;
         final Consumer<UseCaseAdapterDeserializationStep1Builder> deserializationEnhancer = deserializationStepBuilder -> {
             deserializationStepBuilder.mappingRequestsToUseCaseParametersOfType(ExceptionThrowingRequest.class)
-                    .using((targetType, map) -> new ExceptionThrowingRequest((RuntimeException) map.get("exception")));
+                    .using((targetType, map) -> new ExceptionThrowingRequest((RuntimeException) map.get(PARAMETER_MAP_PROPERTY_NAME)));
         };
         Consumer<UseCaseAdapterStep3Builder<?>> customCallingLogic = useCaseAdapterStep3Builder -> {
             useCaseAdapterStep3Builder.callingVoid((useCase, map) -> {
                 final ExceptionThrowingUseCase exceptionthrowingusecase = (ExceptionThrowingUseCase) useCase;
                 final Map<String, Object> requestMap = (Map<String, Object>) map;
-                final RuntimeException exception = (RuntimeException) requestMap.get("exception");
+                final RuntimeException exception = (RuntimeException) requestMap.get(PARAMETER_MAP_PROPERTY_NAME);
                 final ExceptionThrowingRequest request = new ExceptionThrowingRequest(exception);
                 exceptionthrowingusecase.useCaseMethod(request);
             });
         };
-        final Consumer<MessageBusBuilder> messageBusEnhancer = messageBusBuilder -> {
+        final BiConsumer<MessageBusBuilder, TestEnvironment> messageBusEnhancer = (messageBusBuilder,testEnvironment) -> {
+            testEnvironment.setPropertyIfNotSet(RETRIEVE_ERROR_FROM_FUTURE, true);
             messageBusBuilder.withExceptionHandler(new MessageBusExceptionHandler() {
                 @Override
                 public boolean shouldDeliveryChannelErrorBeHandledAndDeliveryAborted(ProcessingContext<?> message, Exception e, Channel<?> channel) {
@@ -65,19 +67,19 @@ public class ExceptionThrowingConfigurationResolver extends AbstractTestConfigPr
 
                 @Override
                 public void handleDeliveryChannelException(ProcessingContext<?> message, Exception e, Channel<?> channel) {
-                    if (e != expectedResult) {
+                    if (e != expectedException) {
                         throw (RuntimeException) e;
                     }
                 }
 
                 @Override
                 public void handleFilterException(ProcessingContext<?> message, Exception e, Channel<?> channel) {
-                    if (e != expectedResult) {
+                    if (e != expectedException) {
                         throw (RuntimeException) e;
                     }
                 }
             });
         };
-        return testUseCase(USE_CASE_CLASS, EVENT_TYPE, messageBusSetup, instantiationFunction, deserializationEnhancer, customCallingLogic, requestObject, expectedResult, messageBusEnhancer);
+        return testUseCase(USE_CASE_CLASS, EVENT_TYPE, messageBusSetup, instantiationFunction, deserializationEnhancer, customCallingLogic, requestObject, requestObject, messageBusEnhancer);
     }
 }

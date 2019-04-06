@@ -22,9 +22,9 @@
 package com.envimate.messageMate.messageFunction;
 
 import com.envimate.messageMate.messageFunction.followup.FollowUpAction;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 /**
  * For each request, the related {@code ResponseFuture} provides methods, to query or wait on the result.
@@ -40,6 +40,14 @@ public interface ResponseFuture extends Future<Object> {
      * @return {@code true} if success, {@code false} an exception occurred or the future was cancelled
      */
     boolean wasSuccessful();
+
+    Object getErrorResponse() throws InterruptedException, ExecutionException;
+
+    Object getErrorResponse(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
+
+    ProcessingContext<Object> getRaw() throws InterruptedException, ExecutionException;
+
+    ProcessingContext<Object> getRaw(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
 
     /**
      * Adds a {@code FollowUpAction}, that gets executed, once the Future is fulfilled.

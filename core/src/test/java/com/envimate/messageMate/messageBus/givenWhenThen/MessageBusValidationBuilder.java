@@ -83,6 +83,14 @@ public final class MessageBusValidationBuilder {
         });
     }
 
+
+    public static MessageBusValidationBuilder expectTheErrorPayloadToBeReceived() {
+        return asValidation(testEnvironment -> {
+            assertNoExceptionThrown(testEnvironment);
+            assertExpectedReceiverReceivedMessageWithErrorPayload(testEnvironment);
+        });
+    }
+
     public static MessageBusValidationBuilder expectAllRemainingSubscribersToStillBeSubscribed() {
         return asValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
@@ -99,6 +107,13 @@ public final class MessageBusValidationBuilder {
         });
     }
 
+    public static MessageBusValidationBuilder expectAllProcessingContextsToBeReplaced() {
+        return asValidation(testEnvironment -> {
+            assertNoExceptionThrown(testEnvironment);
+            final MessageBus messageBus = getMessageBus(testEnvironment);
+            assertAllReceivedProcessingContextsWereChanged(messageBus, testEnvironment);
+        });
+    }
 
     public static MessageBusValidationBuilder expectTheMessageToHaveTheSameMessageIdAndAMatchingGeneratedCorrelationId() {
         return asValidation(testEnvironment -> {

@@ -92,6 +92,14 @@ public interface MessageBusSpecs {
                 .when(aMessageWithoutEventType())
                 .then(expectTheException(MissingEventTypeException.class));
     }
+    //errorPayload
+    @Test
+    default void testMessageBus_canSendAndReceiveErrorPayload(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withASingleRawSubscriber())
+                .when(aSingleMessageWithErrorPayloadIsSend())
+                .then(expectTheErrorPayloadToBeReceived());
+    }
 
     //unsubscribe
     @Test
@@ -167,7 +175,7 @@ public interface MessageBusSpecs {
         given(aConfiguredMessageBus(messageBusTestConfig)
                 .withASingleSubscriber()
                 .withAFilterThatChangesTheContentOfEveryMessage())
-                .when(severalMessagesAreSend(1))
+                .when(severalMessagesAreSend(5))
                 .then(expectAllMessagesToHaveTheContentChanged());
     }
 
@@ -219,6 +227,15 @@ public interface MessageBusSpecs {
                 .withTwoFilterOnSpecificPositions())
                 .when(aFilterIsRemoved())
                 .then(expectTheRemainingFilter());
+    }
+
+    @Test
+    default void testMessageBus_allowsRawFiltersToCompleteProcessingContext(final MessageBusTestConfig messageBusTestConfig) throws Exception {
+        given(aConfiguredMessageBus(messageBusTestConfig)
+                .withASingleRawSubscriber()
+                .withARawFilterThatChangesCompleteProcessingContext())
+                .when(severalMessagesAreSend(5))
+                .then(expectAllProcessingContextsToBeReplaced());
     }
 
     //messageStatistics

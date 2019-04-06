@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static com.envimate.messageMate.useCaseAdapter.Given.given;
 import static com.envimate.messageMate.useCaseAdapter.UseCaseAdapterActionBuilder.theAssociatedEventIsSend;
+import static com.envimate.messageMate.useCaseAdapter.UseCaseAdapterActionBuilder.theRequestIsExecutedUsingAMessageFunction;
 import static com.envimate.messageMate.useCaseAdapter.UseCaseAdapterSetupBuilder.aUseCaseAdapter;
 import static com.envimate.messageMate.useCaseAdapter.UseCaseAdapterValidationBuilder.expectTheResponseToBeReceivedByTheMessageFunction;
 import static com.envimate.messageMate.useCaseAdapter.UseCaseAdapterValidationBuilder.expectTheUseCaseToBeInvokedOnce;
@@ -42,7 +43,7 @@ public interface UseCaseAdapterSpecs {
     default void testUseCaseAdapter_canBeUsedInCombinationWithAMessageFunction(final TestUseCase testUseCase) {
         given(aUseCaseAdapter(testUseCase)
                 .invokingTheUseCaseUsingTheSingleUseCaseMethod())
-                .when(UseCaseAdapterActionBuilder.theRequestIsExecutedUsingAMessageFunction())
+                .when(theRequestIsExecutedUsingAMessageFunction())
                 .then(expectTheResponseToBeReceivedByTheMessageFunction());
     }
 
@@ -50,7 +51,7 @@ public interface UseCaseAdapterSpecs {
     default void testUseCaseAdapter_canAMessageFunctionAndACustomMapping(final TestUseCase testUseCase) {
         given(aUseCaseAdapter(testUseCase)
                 .invokingTheUseCaseUsingTheDefinedMapping())
-                .when(UseCaseAdapterActionBuilder.theRequestIsExecutedUsingAMessageFunction())
+                .when(theRequestIsExecutedUsingAMessageFunction())
                 .then(expectTheResponseToBeReceivedByTheMessageFunction());
     }
 

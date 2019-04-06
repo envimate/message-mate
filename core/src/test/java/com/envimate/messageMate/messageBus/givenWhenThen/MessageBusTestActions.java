@@ -35,6 +35,7 @@ import static com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber.
 import static com.envimate.messageMate.shared.subscriber.ExceptionThrowingTestSubscriber.exceptionThrowingTestSubscriber;
 import static com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber.testSubscriber;
 import static com.envimate.messageMate.shared.testMessages.TestMessageOfInterest.messageOfInterest;
+import static com.envimate.messageMate.shared.testMessages.TestMessageOfInterest.messageWithErrorContent;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
@@ -122,6 +123,16 @@ public final class MessageBusTestActions {
                                                          final EventType eventType) {
         final ProcessingContext<Object> processingContext = ProcessingContext.processingContext(eventType, message);
         testEnvironment.setProperty(SINGLE_SEND_MESSAGE, processingContext);
+        final MessageId messageId = messageBus.send(processingContext);
+        testEnvironment.setProperty(SEND_MESSAGE_ID, messageId);
+    }
+
+
+    public static void sendMessageWithErrorPayloadIsSend(final MessageBus messageBus, final TestEnvironment testEnvironment) {
+        final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+        final TestMessageOfInterest errorPayload = messageWithErrorContent();
+        testEnvironment.setProperty(SINGLE_SEND_MESSAGE, errorPayload);
+        final ProcessingContext<Object> processingContext = ProcessingContext.processingContextForError(eventType, errorPayload);
         final MessageId messageId = messageBus.send(processingContext);
         testEnvironment.setProperty(SEND_MESSAGE_ID, messageId);
     }

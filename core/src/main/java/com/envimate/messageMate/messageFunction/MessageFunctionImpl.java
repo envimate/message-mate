@@ -111,8 +111,7 @@ final class MessageFunctionImpl implements MessageFunction {
                 return;
             }
             alreadyFinishedOrCancelled = true;
-            final Object payload = processingContext.getPayload();
-            responseFuture.fullFill(payload);
+            responseFuture.fullFill(processingContext);
         }
 
         private synchronized void fulFillFuture(final Exception exception) {

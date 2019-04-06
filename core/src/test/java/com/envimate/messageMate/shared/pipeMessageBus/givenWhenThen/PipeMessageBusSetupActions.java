@@ -22,6 +22,8 @@
 package com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen;
 
 import com.envimate.messageMate.filtering.Filter;
+import com.envimate.messageMate.messageBus.MessageBus;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.subscriber.*;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
@@ -61,7 +63,7 @@ public final class PipeMessageBusSetupActions {
     }
 
     public static void addAFilterThatChangesTheContentOfEveryMessage(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
-        testEnvironment.setProperty(EXPECTED_CHANGED_CONTENT, TestFilter.CHANGED_CONTENT);
+        testEnvironment.setProperty(EXPECTED_CHANGED_CONTENT, CHANGED_CONTENT);
         final Filter<TestMessageOfInterest> filter = aContentChangingFilter();
         sutActions.addFilter(filter);
     }
@@ -97,6 +99,11 @@ public final class PipeMessageBusSetupActions {
         final Filter<Object> filter = anErrorThrowingFilter(exception);
         sutActions.addFilter(filter);
         testEnvironment.setProperty(EXPECTED_RESULT, exception);
+    }
+
+    public static void addARawFilterThatChangesTheContentOfEveryMessage(final MessageBus messageBus) {
+        final Filter<ProcessingContext<Object>> filter = aRawFilterThatChangesTheCompleteProcessingContext();
+        messageBus.addRaw(filter);
     }
 
     public static void addASubscriberThatBlocksWhenAccepting(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {

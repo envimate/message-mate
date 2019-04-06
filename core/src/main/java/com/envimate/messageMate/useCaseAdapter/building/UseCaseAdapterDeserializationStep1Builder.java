@@ -49,7 +49,7 @@ public interface UseCaseAdapterDeserializationStep1Builder {
      *
      * @return the next step in the fluent builder
      */
-    default SerializationStage throwAnExceptionByDefault() {
+    default UseCaseAdapterResponseSerializationStep1Builder throwAnExceptionByDefault() {
         return mappingRequestsToUseCaseParametersByDefaultUsing(failWithMessage("No request mapper found"));
     }
 
@@ -72,5 +72,5 @@ public interface UseCaseAdapterDeserializationStep1Builder {
      * @param mapper a {@link RequestMapper}
      * @return the next step in the fluent builder
      */
-    SerializationStage mappingRequestsToUseCaseParametersByDefaultUsing(RequestMapper<Object> mapper);
+    UseCaseAdapterResponseSerializationStep1Builder mappingRequestsToUseCaseParametersByDefaultUsing(RequestMapper<Object> mapper);
 }

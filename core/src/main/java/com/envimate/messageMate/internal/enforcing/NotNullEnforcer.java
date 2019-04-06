@@ -28,9 +28,9 @@ import static lombok.AccessLevel.PRIVATE;
 @RequiredArgsConstructor(access = PRIVATE)
 public final class NotNullEnforcer {
 
-    public static void ensureNotNull(final Object o, final String message) {
+    public static void ensureNotNull(final Object o, final String propertyName) {
         if (o == null) {
-            throw new MustNotBeNullException(message);
+            throw new MustNotBeNullException(propertyName);
         }
     }
 }

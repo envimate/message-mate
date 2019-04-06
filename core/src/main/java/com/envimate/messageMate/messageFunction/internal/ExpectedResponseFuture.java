@@ -23,16 +23,18 @@ package com.envimate.messageMate.messageFunction.internal;
 
 import com.envimate.messageMate.messageFunction.ResponseFuture;
 import com.envimate.messageMate.messageFunction.followup.FollowUpAction;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
 import java.util.concurrent.*;
+import java.util.function.Supplier;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ExpectedResponseFuture implements ResponseFuture {
     private final CountDownLatch countDownLatch = new CountDownLatch(1);
     private volatile boolean isCancelled;
-    private volatile Object response;
+    private volatile ProcessingContext<Object> response;
     private volatile boolean successful;
     private volatile FollowUpAction followUpAction;
     private volatile Exception thrownException;
@@ -41,13 +43,15 @@ public final class ExpectedResponseFuture implements ResponseFuture {
         return new ExpectedResponseFuture();
     }
 
-    public synchronized void fullFill(final Object response) {
+    public synchronized void fullFill(final ProcessingContext<Object> response) {
         if (!isCancelled()) {
+            final Object errorPayload = response.getErrorPayload();
+            this.successful = errorPayload == null;
             this.response = response;
-            this.successful = true;
             countDownLatch.countDown();
             if (followUpAction != null) {
-                followUpAction.apply(response, null);
+                final Object payload = response.getPayload();
+                followUpAction.apply(payload, errorPayload, null);
             }
         }
     }
@@ -58,7 +62,7 @@ public final class ExpectedResponseFuture implements ResponseFuture {
             this.successful = false;
             countDownLatch.countDown();
             if (followUpAction != null) {
-                followUpAction.apply(null, e);
+                followUpAction.apply(null, null, e);
             }
         }
     }
@@ -97,6 +101,35 @@ public final class ExpectedResponseFuture implements ResponseFuture {
 
     @Override
     public Object get() throws InterruptedException, ExecutionException {
+        return getResponse(() -> response.getPayload());
+    }
+
+    @Override
+    public Object get(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        return getResponse(() -> response.getPayload(), timeout, unit);
+    }
+
+    @Override
+    public Object getErrorResponse() throws InterruptedException, ExecutionException {
+        return getResponse(() -> response.getErrorPayload());
+    }
+
+    @Override
+    public Object getErrorResponse(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        return getResponse(() -> response.getErrorPayload(), timeout, unit);
+    }
+
+    @Override
+    public ProcessingContext<Object> getRaw() throws InterruptedException, ExecutionException {
+        return getResponse(() -> response);
+    }
+
+    @Override
+    public ProcessingContext<Object> getRaw(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        return getResponse(() -> response, timeout, unit);
+    }
+
+    private <T> T getResponse(final Supplier<T> responseSupplier) throws InterruptedException, ExecutionException {
         if (!isDone()) {
             countDownLatch.await();
             //if threads is woken up with countDown in "cancel", then it should be handled as Interrupt;
@@ -109,12 +142,11 @@ public final class ExpectedResponseFuture implements ResponseFuture {
         } else if (isCancelled()) {
             throw new CancellationException();
         } else {
-            return response;
+            return responseSupplier.get();
         }
     }
 
-    @Override
-    public Object get(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+    private <T> T getResponse(final Supplier<T> responseSupplier, final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         if (!isDone()) {
             if (!countDownLatch.await(timeout, unit)) {
                 throw new TimeoutException("Response future timed out");
@@ -131,7 +163,7 @@ public final class ExpectedResponseFuture implements ResponseFuture {
         if (hasExceptionInExecution()) {
             throw new ExecutionException(thrownException);
         } else {
-            return response;
+            return responseSupplier.get();
         }
     }
 
@@ -145,7 +177,13 @@ public final class ExpectedResponseFuture implements ResponseFuture {
                 if (isCancelled()) {
                     throw new CancellationException();
                 } else {
-                    followUpAction.apply(this.response, this.thrownException);
+                    if (response != null) {
+                        final Object payload = response.getPayload();
+                        final Object errorPayload = response.getErrorPayload();
+                        followUpAction.apply(payload, errorPayload, null);
+                    } else {
+                        followUpAction.apply(null, null, this.thrownException);
+                    }
                 }
             }
         }

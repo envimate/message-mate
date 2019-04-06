@@ -26,8 +26,10 @@ import com.envimate.messageMate.messageBus.MessageBusStatusInformation;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener;
 import com.envimate.messageMate.messageFunction.ResponseFuture;
 import com.envimate.messageMate.messageFunction.testResponses.RequestResponseFuturePair;
+import com.envimate.messageMate.messageFunction.testResponses.SimpleErrorResponse;
 import com.envimate.messageMate.messageFunction.testResponses.TestRequest;
 import com.envimate.messageMate.messageFunction.testResponses.TestResponse;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.qcec.shared.TestValidation;
 import com.envimate.messageMate.shared.subscriber.TestException;
@@ -67,6 +69,23 @@ public final class TestMessageFunctionValidationBuilder {
         return expectTheResponseToBeReceived();
     }
 
+    public static TestMessageFunctionValidationBuilder expectTheFutureToHaveAccessToTheErrorResponse() {
+        return new TestMessageFunctionValidationBuilder(testEnvironment -> {
+            ensureNoExceptionThrown(testEnvironment);
+            final ResponseFuture responseFuture = testEnvironment.getPropertyAsType(RESULT, ResponseFuture.class);
+            final TestRequest testRequest = testEnvironment.getPropertyAsType(TEST_OBJECT, TestRequest.class);
+            assertErrorResponseForRequest(responseFuture, testRequest);
+        });
+    }
+
+    public static TestMessageFunctionValidationBuilder expectTheProcessingContextToBeReceived() {
+        return new TestMessageFunctionValidationBuilder(testEnvironment -> {
+            ensureNoExceptionThrown(testEnvironment);
+            final ResponseFuture responseFuture = testEnvironment.getPropertyAsType(RESULT, ResponseFuture.class);
+            assertCorrectResponseProcessingContext(responseFuture, testEnvironment);
+        });
+    }
+
     private static void assertResponseForRequest(final ResponseFuture responseFuture, final TestRequest testRequest) {
         assertTrue(responseFuture.wasSuccessful());
         try {
@@ -82,6 +101,36 @@ public final class TestMessageFunctionValidationBuilder {
             fail(e);
         }
     }
+
+    private static void assertErrorResponseForRequest(final ResponseFuture responseFuture, final TestRequest testRequest) {
+        assertFalse(responseFuture.wasSuccessful());
+        try {
+            final Object response = responseFuture.getErrorResponse();
+            if (response instanceof SimpleErrorResponse) {
+                final TestResponse testResponse = (TestResponse) response;
+                final Object request = testResponse.getCorrelatedRequest();
+                assertThat(request, equalTo(testRequest));
+            } else {
+                fail("Unexpected Result in validation found.");
+            }
+        } catch (final InterruptedException | ExecutionException e) {
+            fail(e);
+        }
+    }
+
+    private static void assertCorrectResponseProcessingContext(final ResponseFuture responseFuture, final TestEnvironment testEnvironment) {
+        final ProcessingContext<Object> expectedProcessingContext = (ProcessingContext<Object>) testEnvironment.getProperty(RESPONSE_PROCESSING_CONTEXT);
+        final Object errorPayload = expectedProcessingContext.getErrorPayload();
+        final boolean wasSuccessfull = errorPayload == null;
+        assertThat(responseFuture.wasSuccessful(), equalTo(wasSuccessfull));
+        try {
+            final Object response = responseFuture.getRaw();
+            assertThat(response, equalTo(expectedProcessingContext));
+        } catch (final InterruptedException | ExecutionException e) {
+            fail(e);
+        }
+    }
+
 
     public static TestMessageFunctionValidationBuilder expectCorrectResponseReceivedForEachRequest() {
         return new TestMessageFunctionValidationBuilder(testEnvironment -> {
@@ -278,7 +327,15 @@ public final class TestMessageFunctionValidationBuilder {
         }
     }
 
+    public TestMessageFunctionValidationBuilder and(final TestMessageFunctionValidationBuilder other) {
+        return new TestMessageFunctionValidationBuilder(testValidation -> {
+            this.testValidation.validate(testValidation);
+            other.testValidation.validate(testValidation);
+        });
+    }
+
     public TestValidation build() {
         return testValidation;
     }
+
 }

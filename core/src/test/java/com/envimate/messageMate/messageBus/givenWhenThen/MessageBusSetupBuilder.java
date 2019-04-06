@@ -185,6 +185,11 @@ public final class MessageBusSetupBuilder {
         return this;
     }
 
+    public MessageBusSetupBuilder withARawFilterThatChangesCompleteProcessingContext() {
+        setupActions.add((t, testEnvironment) -> addARawFilterThatChangesTheContentOfEveryMessage(t));
+        return this;
+    }
+
     public MessageBusSetupBuilder withASubscriberThatBlocksWhenAccepting() {
         setupActions.add((t, testEnvironment) -> MessageBusTestActions.addASubscriberThatBlocksWhenAccepting(t, testEnvironment));
         return this;

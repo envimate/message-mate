@@ -21,12 +21,21 @@
 
 package com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen;
 
+import com.envimate.messageMate.channel.ChannelProcessingFrame;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.filtering.FilterActions;
+import com.envimate.messageMate.identification.MessageId;
+import com.envimate.messageMate.messageBus.EventType;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
+
+import java.util.HashMap;
+
+import static com.envimate.messageMate.processingContext.ProcessingContext.processingContext;
 
 public final class TestFilter {
     public static final String CHANGED_CONTENT = "CHANGED";
+    public static final String ADDED_ERROR_CONTENT = "ERROR_CHANGED";
 
     public static Filter<TestMessageOfInterest> aContentChangingFilter() {
         return (TestMessageOfInterest testMessageOfInterest, FilterActions<TestMessageOfInterest> filterActions) -> {
@@ -58,6 +67,19 @@ public final class TestFilter {
     public static <T> Filter<T> anErrorThrowingFilter(final RuntimeException exception) {
         return (message, filterActions) -> {
             throw exception;
+        };
+    }
+
+
+    public static Filter<ProcessingContext<Object>> aRawFilterThatChangesTheCompleteProcessingContext() {
+        return (processingContext, filterActions) -> {
+            final EventType eventType = processingContext.getEventType();
+            final MessageId messageId = processingContext.getMessageId();
+            final ChannelProcessingFrame<Object> currentProcessingFrame = processingContext.getCurrentProcessingFrame();
+            final ChannelProcessingFrame<Object> initialProcessingFrame = processingContext.getInitialProcessingFrame();
+            final ProcessingContext<Object> newProcessingContext = processingContext(eventType, messageId, null, CHANGED_CONTENT,
+                    ADDED_ERROR_CONTENT, new HashMap<>(), initialProcessingFrame, currentProcessingFrame);
+            filterActions.pass(newProcessingContext);
         };
     }
 

@@ -6,14 +6,10 @@ import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusBuilder;
 import com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
-import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterDeserializationStep1Builder;
-import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterInstantiationBuilder;
-import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterStep1Builder;
-import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterStep3Builder;
+import com.envimate.messageMate.useCaseAdapter.building.*;
 import com.envimate.messageMate.useCaseAdapter.usecaseInstantiating.UseCaseInstantiator;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -51,13 +47,10 @@ public final class UseCaseAdapterSetupBuilder {
                 .callingTheSingleUseCaseMethod();
         final UseCaseAdapterDeserializationStep1Builder deserializationBuilder = instantiationFunction.apply(useCaseInvokingBuilder);
         testUseCase.defineDeserialization(deserializationBuilder);
-        useCaseAdapter = deserializationBuilder.throwAnExceptionByDefault()
-                .serializingResponseObjectsOfType(String.class).using(object -> {
-                    final Map<String, Object> map = new HashMap<>();
-                    map.put("returnValue", object);
-                    return map;
-                })
-                .throwingAnExceptionIfNoResponseMappingCanBeFound();
+        final UseCaseAdapterResponseSerializationStep1Builder serializationStep1Builder = deserializationBuilder.throwAnExceptionByDefault();
+        testUseCase.defineSerialization(serializationStep1Builder);
+        useCaseAdapter = serializationStep1Builder.throwingAnExceptionIfNoResponseMappingCanBeFound()
+                .puttingExceptionObjectNamedAsExceptionIntoResponseMapByDefault();
         return this;
     }
 
@@ -68,7 +61,8 @@ public final class UseCaseAdapterSetupBuilder {
                 .forType(eventType);
         testUseCase.useCustomInvocationLogic(callingBuilder);
         useCaseAdapter = useCaseAdapterBuilder.obtainingUseCaseInstancesUsingTheZeroArgumentConstructor()
-                .throwAnExceptionByDefault().throwingAnExceptionIfNoResponseMappingCanBeFound();
+                .throwAnExceptionByDefault().throwingAnExceptionIfNoResponseMappingCanBeFound()
+        .puttingExceptionObjectNamedAsExceptionIntoResponseMapByDefault();
         return this;
     }
 
@@ -110,8 +104,8 @@ public final class UseCaseAdapterSetupBuilder {
         final AsynchronousConfiguration asynchronousConfiguration = constantPoolSizeAsynchronousPipeConfiguration(3);
         messageBusBuilder.forType(ASYNCHRONOUS)
                 .withAsynchronousConfiguration(asynchronousConfiguration);
-        final Consumer<MessageBusBuilder> messageBusEnhancer = testUseCase.getMessageBusEnhancer();
-        messageBusEnhancer.accept(messageBusBuilder);
+        final BiConsumer<MessageBusBuilder, TestEnvironment> messageBusEnhancer = testUseCase.getMessageBusEnhancer();
+        messageBusEnhancer.accept(messageBusBuilder, testEnvironment);
         final MessageBus messageBus = messageBusBuilder
                 .build();
         useCaseAdapter.attachTo(messageBus);

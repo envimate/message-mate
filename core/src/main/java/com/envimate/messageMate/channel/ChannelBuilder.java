@@ -180,7 +180,7 @@ public class ChannelBuilder<T> {
      * @return the configured {@code Channel}
      */
     public Channel<T> build() {
-        ensureNotNull(action, "Action must not be null");
+        ensureNotNull(action, "action");
         final Pipe<ProcessingContext<T>> acceptingPipe = createAcceptingPipe();
         final Pipe<ProcessingContext<T>> prePipe = createSynchronousPipe();
         final Pipe<ProcessingContext<T>> processPipe = createSynchronousPipe();

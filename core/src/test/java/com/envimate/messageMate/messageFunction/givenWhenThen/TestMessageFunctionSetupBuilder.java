@@ -28,8 +28,10 @@ import com.envimate.messageMate.messageBus.MessageBusBuilder;
 import com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler;
 import com.envimate.messageMate.messageFunction.MessageFunction;
 import com.envimate.messageMate.messageFunction.MessageFunctionBuilder;
+import com.envimate.messageMate.messageFunction.testResponses.SimpleErrorResponse;
 import com.envimate.messageMate.messageFunction.testResponses.SimpleTestRequest;
 import com.envimate.messageMate.messageFunction.testResponses.SimpleTestResponse;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.subscriber.TestException;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +47,8 @@ import java.util.function.Function;
 import static com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration.constantPoolSizeAsynchronousPipeConfiguration;
 import static com.envimate.messageMate.messageBus.MessageBusType.ASYNCHRONOUS;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.EVENT_TYPE;
+import static com.envimate.messageMate.messageFunction.givenWhenThen.MessageFunctionTestProperties.RESPONSE_PROCESSING_CONTEXT;
+import static com.envimate.messageMate.processingContext.ProcessingContext.processingContextForPayloadAndError;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RESULT;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.MOCK;
 import static com.envimate.messageMate.shared.TestEventType.differentTestEventType;
@@ -72,6 +76,14 @@ public final class TestMessageFunctionSetupBuilder {
         return answerWith(request -> null);
     }
 
+    public TestMessageFunctionSetupBuilder withTheRequestAnsweredByAErrorResponse() {
+        return answerWithPayloadAndError(request -> null, SimpleErrorResponse::simpleErrorResponse);
+    }
+
+    public TestMessageFunctionSetupBuilder withTheRequestAnsweredByANormalAndAErrorResponse() {
+        return answerWithPayloadAndError(SimpleTestResponse::testResponse, SimpleErrorResponse::simpleErrorResponse);
+    }
+
     private TestMessageFunctionSetupBuilder answerWith(final Function<Object, Object> responseCreator) {
         setupActions.add(messageBus -> {
             final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
@@ -81,6 +93,24 @@ public final class TestMessageFunctionSetupBuilder {
                 final Object response = responseCreator.apply(request);
                 final EventType differentTestEventType = differentTestEventType();
                 messageBus.send(differentTestEventType, response, correlationId);
+            });
+        });
+        return this;
+    }
+
+    private TestMessageFunctionSetupBuilder answerWithPayloadAndError(final Function<Object, Object> responseCreator,
+                                                                      final Function<Object, Object> errorResponseCreator) {
+        setupActions.add(messageBus -> {
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+            messageBus.subscribeRaw(eventType, processingContext -> {
+                final CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();
+                final SimpleTestRequest request = (SimpleTestRequest) processingContext.getPayload();
+                final Object response = responseCreator.apply(request);
+                final Object errorResponse = errorResponseCreator.apply(request);
+                final EventType differentTestEventType = differentTestEventType();
+                final ProcessingContext<Object> responseProcessingContext = processingContextForPayloadAndError(differentTestEventType, correlationId, response, errorResponse);
+                testEnvironment.setPropertyIfNotSet(RESPONSE_PROCESSING_CONTEXT, responseProcessingContext);
+                messageBus.send(responseProcessingContext);
             });
         });
         return this;

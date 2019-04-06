@@ -24,6 +24,7 @@ package com.envimate.messageMate.useCaseAdapter;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.subscribing.Subscriber;
+import com.envimate.messageMate.useCaseAdapter.mapping.ExceptionSerializer;
 import com.envimate.messageMate.useCaseAdapter.mapping.RequestDeserializer;
 import com.envimate.messageMate.useCaseAdapter.mapping.ResponseSerializer;
 import com.envimate.messageMate.useCaseAdapter.usecaseInstantiating.UseCaseInstantiator;
@@ -47,23 +48,25 @@ public final class UseCaseAdapterImpl implements UseCaseAdapter {
     private final UseCaseInstantiator useCaseInstantiator;
     private final RequestDeserializer requestDeserializer;
     private final ResponseSerializer responseSerializer;
+    private final ExceptionSerializer exceptionSerializer;
 
     public static UseCaseAdapter useCaseAdapterImpl(final List<UseCaseCallingInformation> useCaseCallingInformations,
                                                     final UseCaseInstantiator useCaseInstantiator,
                                                     final RequestDeserializer requestDeserializer,
-                                                    final ResponseSerializer responseSerializer) {
+                                                    final ResponseSerializer responseSerializer,
+                                                    final ExceptionSerializer exceptionSerializer) {
         ensureNotNull(useCaseCallingInformations, "useCaseCallingInformations");
         ensureNotNull(useCaseInstantiator, "useCaseInstantiator");
         ensureNotNull(requestDeserializer, "requestDeserializer");
         ensureNotNull(responseSerializer, "responseSerializer");
-        return new UseCaseAdapterImpl(useCaseCallingInformations, useCaseInstantiator, requestDeserializer, responseSerializer);
+        return new UseCaseAdapterImpl(useCaseCallingInformations, useCaseInstantiator, requestDeserializer, responseSerializer, exceptionSerializer);
     }
 
     @Override
     public void attachTo(final MessageBus messageBus) {
         useCaseCallingInformations.forEach(callingInformation -> {
             final Subscriber<ProcessingContext<Object>> useCaseRequestSubscriber =
-                    useCaseRequestExecutingSubscriber(messageBus, callingInformation, useCaseInstantiator, requestDeserializer, responseSerializer);
+                    useCaseRequestExecutingSubscriber(messageBus, callingInformation, useCaseInstantiator, requestDeserializer, responseSerializer, exceptionSerializer);
             messageBus.subscribeRaw(callingInformation.getEventType(), useCaseRequestSubscriber);
         });
     }

@@ -129,7 +129,7 @@ public final class TestMessageFunctionActionBuilder {
                 messageBus.send(answerEventType, testResponse, correlationId);
             });
             final ResponseFuture responseFuture = messageFunction.request(eventType, testRequest);
-            responseFuture.then((testResponse, exception) -> testEnvironment.setProperty(RESULT, expectedResult));
+            responseFuture.then((testResponse, errorResponse, exception) -> testEnvironment.setProperty(RESULT, expectedResult));
             return null;
         });
     }
@@ -140,7 +140,7 @@ public final class TestMessageFunctionActionBuilder {
             final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             final ResponseFuture request = messageFunction.request(eventType, testRequest);
 
-            request.then((response, exception) -> {
+            request.then((response,errorResponse,  exception) -> {
                 if (!testEnvironment.has(RESULT)) {
                     if (exception != null) {
                         testEnvironment.setPropertyIfNotSet(RESULT, exception);
@@ -165,7 +165,7 @@ public final class TestMessageFunctionActionBuilder {
             testEnvironment.setProperty(TEST_OBJECT, testRequest);
             final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             final ResponseFuture responseFuture = messageFunction.request(eventType, testRequest);
-            responseFuture.then((testResponse, exception) -> {
+            responseFuture.then((testResponse,errorResponse,  exception) -> {
                 testEnvironment.setPropertyIfNotSet(EXCEPTION, exception);
                 testEnvironment.setPropertyIfNotSet(EXCEPTION_OCCURRED_DURING_FOLLOW_UP, true);
             });
@@ -222,7 +222,7 @@ public final class TestMessageFunctionActionBuilder {
             final SimpleTestRequest testRequest = SimpleTestRequest.testRequest();
             final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             final ResponseFuture responseFuture = messageFunction.request(eventType, testRequest);
-            responseFuture.then((testResponse, exception) -> {
+            responseFuture.then((testResponse,errorResponse,  exception) -> {
                 throw new RuntimeException("This FollowUpActionShouldNotBeCalled");
             });
             for (int i = 0; i < cancelCalls; i++) {
@@ -263,7 +263,7 @@ public final class TestMessageFunctionActionBuilder {
             final SimpleTestRequest testRequest = SimpleTestRequest.testRequest();
             final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             final ResponseFuture responseFuture = messageFunction.request(eventType, testRequest);
-            responseFuture.then((testResponse, exception) -> {
+            responseFuture.then((testResponse,errorResponse,  exception) -> {
                 throw new RuntimeException("This FollowUpActionShouldNotBeCalled");
             });
             final boolean cancelResult = responseFuture.cancel(true);
@@ -361,7 +361,7 @@ public final class TestMessageFunctionActionBuilder {
             final ResponseFuture responseFuture = messageFunction.request(eventType, testRequest);
             responseFuture.cancel(true);
             try {
-                responseFuture.then((response, exception) -> {
+                responseFuture.then((response,errorResponse,  exception) -> {
                     throw new UnsupportedOperationException();
                 });
             } catch (final Exception e) {

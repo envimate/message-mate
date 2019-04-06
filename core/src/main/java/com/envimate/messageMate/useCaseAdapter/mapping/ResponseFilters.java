@@ -30,13 +30,13 @@ public final class ResponseFilters {
     private ResponseFilters() {
     }
 
-    public static Predicate<Object> areOfType(final Class<?> type) {
+    public static <T> Predicate<T> areOfType(final Class<?> type) {
         return type::isInstance;
     }
 
     public static <T> ResponseMapper<T> failWithMessage(final String message) {
         return object -> {
-            throw responseMapperException(message);
+            throw responseMapperException(message); //TODO: try to include object
         };
     }
 }

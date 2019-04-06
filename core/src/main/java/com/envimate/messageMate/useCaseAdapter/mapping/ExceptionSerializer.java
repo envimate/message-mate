@@ -30,20 +30,20 @@ import java.util.Map;
 import static com.envimate.messageMate.internal.enforcing.NotNullEnforcer.ensureNotNull;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public final class ResponseSerializer {
+public final class ExceptionSerializer {
 
     private static final Void CHANGEME = null; // TODO
 
-    private final FilterMap<Object, Void, ResponseMapper<Object>> returnValueMappers;
+    private final FilterMap<Exception, Void, ResponseMapper<Exception>> returnValueMappers;
 
-    public static ResponseSerializer responseSerializer(
-            final FilterMap<Object, Void, ResponseMapper<Object>> returnValueMappers) {
+    public static ExceptionSerializer exceptionSerializer(
+            final FilterMap<Exception, Void, ResponseMapper<Exception>> returnValueMappers) {
         ensureNotNull(returnValueMappers, "returnValueMappers");
-        return new ResponseSerializer(returnValueMappers);
+        return new ExceptionSerializer(returnValueMappers);
     }
 
-    public Map<String, Object> serializeReturnValue(final Object returnValue) {
-        final ResponseMapper<Object> mapper = returnValueMappers.get(returnValue, CHANGEME);
+    public Map<String, Object> serializeException(final Exception returnValue) {
+        final ResponseMapper<Exception> mapper = returnValueMappers.get(returnValue, CHANGEME);
         return mapper.map(returnValue);
     }
 }

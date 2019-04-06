@@ -42,7 +42,7 @@ public final class SinglePublicUseCaseMethodInvokerImpl implements UseCaseMethod
     }
 
     @Override
-    public Object invoke(final Object useCase,
+    public Map<String, Object> invoke(final Object useCase,
                          final Object event,
                          final RequestDeserializer requestDeserializer,
                          final ResponseSerializer responseSerializer) {

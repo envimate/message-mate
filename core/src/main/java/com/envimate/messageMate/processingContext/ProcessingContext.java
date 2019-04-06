@@ -36,6 +36,7 @@ import java.util.Map;
 
 import static com.envimate.messageMate.identification.CorrelationId.correlationIdFor;
 import static com.envimate.messageMate.identification.MessageId.newUniqueMessageId;
+import static com.envimate.messageMate.internal.enforcing.NotNullEnforcer.ensureNotNull;
 
 /**
  * Message specific root object for all information related to the processing of a message.
@@ -59,6 +60,8 @@ import static com.envimate.messageMate.identification.MessageId.newUniqueMessage
  * @param <T> the type of the processing {@code Channel}
  * @see <a href="https://github.com/envimate/message-mate#processing-context">Message Mate Documentation</a>
  */
+
+//TODO: errorPayload
 @ToString
 @EqualsAndHashCode
 public final class ProcessingContext<T> {
@@ -74,6 +77,9 @@ public final class ProcessingContext<T> {
     @Getter
     @Setter
     private T payload;
+    @Getter
+    @Setter
+    private Object errorPayload;
 
     @Getter
     @Setter
@@ -84,20 +90,26 @@ public final class ProcessingContext<T> {
     private ChannelProcessingFrame<T> currentProcessingFrame;
 
 
-    private ProcessingContext(final EventType eventType, final MessageId messageId,
+    private ProcessingContext(final EventType eventType,
+                              final MessageId messageId,
                               final CorrelationId correlationId,
                               final T payload,
+                              final Object errorPayload,
                               final Map<Object, Object> contextMetaData,
                               final ChannelProcessingFrame<T> initialProcessingFrame,
                               final ChannelProcessingFrame<T> currentProcessingFrame) {
         this.eventType = eventType;
+        ensureNotNull(messageId, "messageId");
         this.messageId = messageId;
+        this.correlationId = correlationId;
         this.contextMetaData = contextMetaData;
+        ensureNotNull(contextMetaData, "contextMetaData");
         this.payload = payload;
+        this.errorPayload = errorPayload;
         this.initialProcessingFrame = initialProcessingFrame;
         this.currentProcessingFrame = currentProcessingFrame;
-        this.correlationId = correlationId;
     }
+
 
     /**
      * Factory method to create a new {@code ProcessingContext} for a given payload.
@@ -109,18 +121,29 @@ public final class ProcessingContext<T> {
     public static <T> ProcessingContext<T> processingContext(final T payload) {
         final Map<Object, Object> contextMetaData = new HashMap<>();
         final MessageId messageId = newUniqueMessageId();
-        return new ProcessingContext<>(null, messageId, null, payload, contextMetaData, null, null);
+        return new ProcessingContext<>(null, messageId, null, payload, null, contextMetaData, null, null);
     }
 
     public static <T> ProcessingContext<T> processingContext(final EventType eventType, final T payload) {
         final Map<Object, Object> contextMetaData = new HashMap<>();
         final MessageId messageId = newUniqueMessageId();
-        return new ProcessingContext<>(eventType, messageId, null, payload, contextMetaData, null, null);
+        return new ProcessingContext<>(eventType, messageId, null, payload, null, contextMetaData, null, null);
+    }
+
+    public static <T> ProcessingContext<T> processingContextForError(final EventType eventType, final Object errorPayload) {
+        final Map<Object, Object> contextMetaData = new HashMap<>();
+        final MessageId messageId = newUniqueMessageId();
+        return new ProcessingContext<>(eventType, messageId, null, null, errorPayload, contextMetaData, null, null);
     }
 
     public static <T> ProcessingContext<T> processingContext(final EventType eventType, final T payload, final MessageId messageId) {
         final Map<Object, Object> contextMetaData = new HashMap<>();
-        return new ProcessingContext<>(eventType, messageId, null, payload, contextMetaData, null, null);
+        return new ProcessingContext<>(eventType, messageId, null, payload, null, contextMetaData, null, null);
+    }
+
+    public static <T> ProcessingContext<T> processingContextForError(final EventType eventType, final Object errorPayload, final MessageId messageId) {
+        final Map<Object, Object> contextMetaData = new HashMap<>();
+        return new ProcessingContext<>(eventType, messageId, null, null, errorPayload, contextMetaData, null, null);
     }
 
     /**
@@ -134,7 +157,25 @@ public final class ProcessingContext<T> {
     public static <T> ProcessingContext<T> processingContext(final T payload, final CorrelationId correlationId) {
         final Map<Object, Object> metaData = new HashMap<>();
         final MessageId messageId = newUniqueMessageId();
-        return new ProcessingContext<>(null, messageId, correlationId, payload, metaData, null, null);
+        return new ProcessingContext<>(null, messageId, correlationId, payload, null, metaData, null, null);
+    }
+
+    public static <T> ProcessingContext<T> processingContextForError(final Object errorPayload, final CorrelationId correlationId) {
+        final Map<Object, Object> metaData = new HashMap<>();
+        final MessageId messageId = newUniqueMessageId();
+        return new ProcessingContext<>(null, messageId, correlationId, null, errorPayload, metaData, null, null);
+    }
+
+    public static <T> ProcessingContext<T> processingContextForPayloadAndError(final EventType eventType, final T payload, final Object errorPayload) {
+        final Map<Object, Object> contextMetaData = new HashMap<>();
+        final MessageId messageId = newUniqueMessageId();
+        return new ProcessingContext<>(eventType, messageId, null, payload, errorPayload, contextMetaData, null, null);
+    }
+
+    public static <T> ProcessingContext<T> processingContextForPayloadAndError(final EventType eventType, final CorrelationId correlationId, final T payload, final Object errorPayload) {
+        final Map<Object, Object> contextMetaData = new HashMap<>();
+        final MessageId messageId = newUniqueMessageId();
+        return new ProcessingContext<>(eventType, messageId, correlationId, payload, errorPayload, contextMetaData, null, null);
     }
 
     /**
@@ -147,17 +188,18 @@ public final class ProcessingContext<T> {
      * @param <T>           the type of the message
      * @return a new {@code ProcessingContext} object
      */
+    //TODO: clean up
     public static <T> ProcessingContext<T> processingContext(final T payload, final MessageId messageId,
                                                              final CorrelationId correlationId) {
         final Map<Object, Object> metaData = new HashMap<>();
-        return new ProcessingContext<>(null, messageId, correlationId, payload, metaData, null, null);
+        return new ProcessingContext<>(null, messageId, correlationId, payload, null, metaData, null, null);
     }
 
     public static <T> ProcessingContext<T> processingContext(final EventType eventType, final T payload,
                                                              final CorrelationId correlationId) {
         final Map<Object, Object> metaData = new HashMap<>();
         final MessageId messageId = MessageId.newUniqueMessageId();
-        return new ProcessingContext<>(eventType, messageId, correlationId, payload, metaData, null, null);
+        return new ProcessingContext<>(eventType, messageId, correlationId, payload, null, metaData, null, null);
     }
 
     /**
@@ -170,7 +212,17 @@ public final class ProcessingContext<T> {
      */
     public static <T> ProcessingContext<T> processingContext(final T payload, final Map<Object, Object> contextMetaData) {
         final MessageId messageId = newUniqueMessageId();
-        return new ProcessingContext<>(null, messageId, null, payload, contextMetaData, null, null);
+        return new ProcessingContext<>(null, messageId, null, payload, null, contextMetaData, null, null);
+    }
+
+    public static <T> ProcessingContext<T> processingContext(final EventType eventType, final MessageId messageId,
+                                                             final CorrelationId correlationId,
+                                                             final T payload,
+                                                             final Object errorPayload,
+                                                             final Map<Object, Object> contextMetaData,
+                                                             final ChannelProcessingFrame<T> initialProcessingFrame,
+                                                             final ChannelProcessingFrame<T> currentProcessingFrame) {
+        return new ProcessingContext<>(eventType, messageId, correlationId, payload, errorPayload, contextMetaData, initialProcessingFrame, currentProcessingFrame);
     }
 
     /**

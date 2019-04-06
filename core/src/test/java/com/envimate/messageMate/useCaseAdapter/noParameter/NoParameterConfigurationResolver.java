@@ -6,6 +6,7 @@ import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.config.AbstractTestConfigProvider;
 import com.envimate.messageMate.useCaseAdapter.TestUseCase;
 import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterDeserializationStep1Builder;
+import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterResponseSerializationStep1Builder;
 import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterStep3Builder;
 
 import java.util.HashMap;
@@ -22,6 +23,7 @@ public class NoParameterConfigurationResolver extends AbstractTestConfigProvider
 
     public static final Class<?> USE_CASE_CLASS = NoParameterUseCase.class;
     public static final EventType EVENT_TYPE = EventType.eventTypeFromString("NoParameterUseCase");
+    private static final String RETURN_MAP_PROPERTY_NAME = "returnValue";
 
     @Override
     protected Class<?> forConfigClass() {
@@ -43,14 +45,26 @@ public class NoParameterConfigurationResolver extends AbstractTestConfigProvider
         final Supplier<Object> instantiationFunction = NoParameterUseCase::new;
         final Consumer<UseCaseAdapterDeserializationStep1Builder> deserializationEnhancer = deserializationStepBuilder -> {
         };
-        Consumer<UseCaseAdapterStep3Builder<?>> customCallingLogic = useCaseAdapterStep3Builder -> {
+        final Consumer<UseCaseAdapterResponseSerializationStep1Builder> serializationEnhancer = serializationStepBuilder -> {
+            serializationStepBuilder.serializingResponseObjectsOfType(String.class).using(string -> {
+                final Map<String, Object> map = new HashMap<>();
+                map.put(RETURN_MAP_PROPERTY_NAME, string);
+                return map;
+            });
+        };
+        final Consumer<UseCaseAdapterStep3Builder<?>> customCallingLogic = useCaseAdapterStep3Builder -> {
             useCaseAdapterStep3Builder.calling((useCase, map) -> {
                 final NoParameterUseCase noParameterUseCase = (NoParameterUseCase) useCase;
                 final String returnValue = noParameterUseCase.useCaseMethod();
-                return returnValue;
+                final Map<String, Object> responseMap = new HashMap<>();
+                responseMap.put(RETURN_MAP_PROPERTY_NAME, returnValue);
+                return responseMap;
             });
         };
-        final String expectedResult = NoParameterUseCase.NO_PARAMETER_USE_CASE_RETURN_VALUE;
-        return testUseCase(USE_CASE_CLASS, EVENT_TYPE, messageBusSetup, instantiationFunction, deserializationEnhancer, customCallingLogic, requestObject, expectedResult);
+
+        final Map<String, Object> expectedResponse = new HashMap<>();
+        expectedResponse.put(RETURN_MAP_PROPERTY_NAME, NoParameterUseCase.NO_PARAMETER_USE_CASE_RETURN_VALUE);
+        return testUseCase(USE_CASE_CLASS, EVENT_TYPE, messageBusSetup, instantiationFunction, deserializationEnhancer, serializationEnhancer,
+                customCallingLogic, requestObject, expectedResponse);
     }
 }

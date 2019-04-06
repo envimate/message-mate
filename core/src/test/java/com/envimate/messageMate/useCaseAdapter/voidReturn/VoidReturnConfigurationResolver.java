@@ -6,10 +6,13 @@ import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.config.AbstractTestConfigProvider;
 import com.envimate.messageMate.useCaseAdapter.TestUseCase;
 import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterDeserializationStep1Builder;
+import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterResponseSerializationStep1Builder;
 import com.envimate.messageMate.useCaseAdapter.building.UseCaseAdapterStep3Builder;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -36,10 +39,10 @@ public class VoidReturnConfigurationResolver extends AbstractTestConfigProvider 
         };
         final Function<TestEnvironment, Object> requestObjectFunction = testEnvironment -> {
             final String expectedResponse = "expected Response";
-            testEnvironment.setProperty(EXPECTED_RESULT, expectedResponse);
             final Consumer<Object> consumer = o -> {
                 if (!testEnvironment.getPropertyAsType(MESSAGE_FUNCTION_USED, Boolean.class)) {
-                    testEnvironment.setProperty(RESULT, expectedResponse);
+                    testEnvironment.setPropertyIfNotSet(EXPECTED_RESULT, expectedResponse);
+                    testEnvironment.setPropertyIfNotSet(RESULT, expectedResponse);
                 }
             };
             final Map<String, Object> requestObject = new HashMap<>();
@@ -50,6 +53,12 @@ public class VoidReturnConfigurationResolver extends AbstractTestConfigProvider 
         final Consumer<UseCaseAdapterDeserializationStep1Builder> deserializationEnhancer = deserializationStepBuilder -> {
             deserializationStepBuilder.mappingRequestsToUseCaseParametersOfType(CallbackTestRequest.class)
                     .using((targetType, map) -> CallbackTestRequest.callbackTestRequest((Consumer<Object>) map.get("consumer")));
+        };
+
+        final Consumer<UseCaseAdapterResponseSerializationStep1Builder> serializationEnhancer = serializationStepBuilder -> {
+            serializationStepBuilder.serializingResponseObjectsThat(Objects::isNull).using(nullValue -> {//TODO: sinnvoll?
+                return Collections.emptyMap();
+            });
         };
         Consumer<UseCaseAdapterStep3Builder<?>> customCallingLogic = useCaseAdapterStep3Builder -> {
             useCaseAdapterStep3Builder.callingVoid((useCase, map) -> {
@@ -62,11 +71,13 @@ public class VoidReturnConfigurationResolver extends AbstractTestConfigProvider 
         };
         final Function<TestEnvironment, Object> expectedResultSupplier = testEnvironment -> {
             if (testEnvironment.getPropertyAsType(MESSAGE_FUNCTION_USED, Boolean.class)) {
-                return null;
+                return Collections.emptyMap();
             } else {
                 return testEnvironment.getProperty(EXPECTED_RESULT);
             }
         };
-        return testUseCase(USE_CASE_CLASS, EVENT_TYPE, messageBusSetup, instantiationFunction, deserializationEnhancer, customCallingLogic, requestObjectFunction, expectedResultSupplier);
+        return testUseCase(USE_CASE_CLASS, EVENT_TYPE, messageBusSetup, instantiationFunction, deserializationEnhancer,
+                serializationEnhancer, customCallingLogic, requestObjectFunction, expectedResultSupplier);
     }
+
 }

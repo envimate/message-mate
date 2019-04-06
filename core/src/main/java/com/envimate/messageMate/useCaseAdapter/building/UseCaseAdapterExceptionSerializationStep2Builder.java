@@ -21,6 +21,8 @@
 
 package com.envimate.messageMate.useCaseAdapter.building;
 
-public interface Using<T, U> {
-    T using(U u);
+import com.envimate.messageMate.useCaseAdapter.mapping.ResponseMapper;
+
+public interface UseCaseAdapterExceptionSerializationStep2Builder<T> {
+    UseCaseAdapterExceptionSerializationStep1Builder using(ResponseMapper<T> responseMapper);
 }

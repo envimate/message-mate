@@ -22,10 +22,7 @@
 package com.envimate.messageMate.useCaseAdapter;
 
 import com.envimate.messageMate.useCaseAdapter.building.*;
-import com.envimate.messageMate.useCaseAdapter.mapping.RequestDeserializer;
-import com.envimate.messageMate.useCaseAdapter.mapping.RequestMapper;
-import com.envimate.messageMate.useCaseAdapter.mapping.ResponseMapper;
-import com.envimate.messageMate.useCaseAdapter.mapping.ResponseSerializer;
+import com.envimate.messageMate.useCaseAdapter.mapping.*;
 import com.envimate.messageMate.useCaseAdapter.mapping.filtermap.FilterMapBuilder;
 import com.envimate.messageMate.useCaseAdapter.usecaseInstantiating.UseCaseInstantiator;
 import com.envimate.messageMate.useCaseAdapter.usecaseInvoking.UseCaseCallingInformation;
@@ -42,10 +39,12 @@ import static com.envimate.messageMate.useCaseAdapter.mapping.ResponseSerializer
 import static com.envimate.messageMate.useCaseAdapter.mapping.filtermap.FilterMapBuilder.filterMapBuilder;
 import static com.envimate.messageMate.useCaseAdapter.usecaseInvoking.UseCaseCallingInformation.useCaseInvocationInformation;
 
-public class UseCaseAdapterBuilder implements UseCaseAdapterStep1Builder, UseCaseAdapterDeserializationStep1Builder, SerializationStage {
+public class UseCaseAdapterBuilder implements UseCaseAdapterStep1Builder, UseCaseAdapterDeserializationStep1Builder,
+        UseCaseAdapterResponseSerializationStep1Builder, UseCaseAdapterExceptionSerializationStep1Builder {
     private final List<UseCaseCallingInformation> useCaseCallingInformationList = new LinkedList<>();
     private final FilterMapBuilder<Class<?>, Map<String, Object>, RequestMapper<?>> deserializers = filterMapBuilder();
-    private final FilterMapBuilder<Object, Void, ResponseMapper<Object>> serializers = filterMapBuilder();
+    private final FilterMapBuilder<Object, Void, ResponseMapper<Object>> responseSerializers = filterMapBuilder();
+    private final FilterMapBuilder<Exception, Void, ResponseMapper<Exception>> exceptionSerializers = filterMapBuilder();
     private UseCaseInstantiator useCaseInstantiator;
 
     public static UseCaseAdapterStep1Builder anUseCaseAdapter() {
@@ -78,25 +77,42 @@ public class UseCaseAdapterBuilder implements UseCaseAdapterStep1Builder, UseCas
     }
 
     @Override
-    public SerializationStage mappingRequestsToUseCaseParametersByDefaultUsing(final RequestMapper<Object> mapper) {
+    public UseCaseAdapterResponseSerializationStep1Builder mappingRequestsToUseCaseParametersByDefaultUsing(final RequestMapper<Object> mapper) {
         deserializers.setDefaultValue(mapper);
         return this;
     }
 
     @Override
-    public Using<SerializationStage, ResponseMapper<Object>> serializingResponseObjectsThat(final Predicate<Object> filter) {
+    public UseCaseAdapterResponseSerializationStep2Builder<Object> serializingResponseObjectsThat(final Predicate<Object> filter) {
         return mapper -> {
             final BiPredicate<Object, Void> biPredicate = (object, aVoid) -> filter.test(object); // TODO
-            serializers.put(biPredicate, mapper);
+            responseSerializers.put(biPredicate, mapper);
             return this;
         };
     }
 
     @Override
-    public UseCaseAdapter serializingResponseObjectsByDefaultUsing(final ResponseMapper<Object> mapper) {
-        serializers.setDefaultValue(mapper);
+    public UseCaseAdapterExceptionSerializationStep1Builder serializingResponseObjectsByDefaultUsing(final ResponseMapper<Object> mapper) {
+        responseSerializers.setDefaultValue(mapper);
+        return this;
+    }
+
+    @Override
+    public UseCaseAdapterExceptionSerializationStep2Builder<Exception> serializingExceptionsThat(Predicate<Exception> filter) {
+        return mapper -> {
+            final BiPredicate<Exception, Void> biPredicate = (object, aVoid) -> filter.test(object); // TODO
+            exceptionSerializers.put(biPredicate, mapper);
+            return this;
+        };
+    }
+
+
+    @Override
+    public UseCaseAdapter serializingExceptionsByDefaultUsing(ResponseMapper<Exception> mapper) {
+        exceptionSerializers.setDefaultValue(mapper);
         final RequestDeserializer requestDeserializer = requestDeserializer(deserializers.build());
-        final ResponseSerializer responseSerializer = responseSerializer(serializers.build());
-        return useCaseAdapterImpl(useCaseCallingInformationList, useCaseInstantiator, requestDeserializer, responseSerializer);
+        final ResponseSerializer responseSerializer = responseSerializer(responseSerializers.build());
+        final ExceptionSerializer exceptionSerializer = ExceptionSerializer.exceptionSerializer(exceptionSerializers.build());
+        return useCaseAdapterImpl(useCaseCallingInformationList, useCaseInstantiator, requestDeserializer, responseSerializer, exceptionSerializer);
     }
 }

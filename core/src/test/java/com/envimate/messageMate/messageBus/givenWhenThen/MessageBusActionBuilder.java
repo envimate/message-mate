@@ -146,6 +146,13 @@ public final class MessageBusActionBuilder {
         });
     }
 
+    public static MessageBusActionBuilder aSingleMessageWithErrorPayloadIsSend() {
+        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
+            MessageBusTestActions.sendMessageWithErrorPayloadIsSend(messageBus, testEnvironment);
+            return null;
+        });
+    }
+
     public static MessageBusActionBuilder aSubscriberIsAdded(final EventType eventType) {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
             MessageBusTestActions.addASingleSubscriber(messageBus, testEnvironment, eventType);

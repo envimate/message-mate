@@ -19,15 +19,10 @@
  * under the License.
  */
 
-package com.envimate.messageMate.useCaseAdapter.methodInvoking;
+package com.envimate.messageMate.useCaseAdapter.building;
 
-import com.envimate.messageMate.useCaseAdapter.mapping.RequestDeserializer;
-import com.envimate.messageMate.useCaseAdapter.mapping.ResponseSerializer;
+import com.envimate.messageMate.useCaseAdapter.mapping.ResponseMapper;
 
-import java.util.Map;
-
-public interface UseCaseMethodInvoker {
-
-    Map<String, Object> invoke(Object useCase, Object event, RequestDeserializer requestDeserializer, ResponseSerializer responseSerializer);
-
+public interface UseCaseAdapterResponseSerializationStep2Builder<T> {
+    UseCaseAdapterResponseSerializationStep1Builder using(ResponseMapper<T> responseMapper);
 }

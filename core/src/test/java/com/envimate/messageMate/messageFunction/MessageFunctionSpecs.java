@@ -32,6 +32,7 @@ import static com.envimate.messageMate.messageFunction.givenWhenThen.TestMessage
 import static com.envimate.messageMate.messageFunction.givenWhenThen.TestMessageFunctionSetupBuilder.aMessageFunction;
 import static com.envimate.messageMate.messageFunction.givenWhenThen.TestMessageFunctionValidationBuilder.*;
 
+//TODO: ensure all for timeout testet
 public class MessageFunctionSpecs {
 
     @Test
@@ -58,6 +59,21 @@ public class MessageFunctionSpecs {
                 .then(expectCorrectTheResponseToBeReceived());
     }
 
+    @Test
+    public void testMessageFunction_canGetErrorResponse() {
+        given(aMessageFunction()
+                .withTheRequestAnsweredByAErrorResponse())
+                .when(aRequestIsSend())
+                .then(expectTheFutureToHaveAccessToTheErrorResponse());
+    }
+
+    @Test
+    public void testMessageFunction_canGetReceivedProcessingContext() {
+        given(aMessageFunction()
+                .withTheRequestAnsweredByANormalAndAErrorResponse())
+                .when(aRequestIsSend())
+                .then(expectTheProcessingContextToBeReceived());
+    }
 
     @Test
     public void testMessageFunction_futureIsOnlyFulfilledOnce_forRedundantMessage() {

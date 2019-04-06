@@ -24,12 +24,14 @@ package com.envimate.messageMate.useCaseAdapter.building;
 import com.envimate.messageMate.useCaseAdapter.UseCaseAdapter;
 import com.envimate.messageMate.useCaseAdapter.mapping.ResponseMapper;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Predicate;
 
 import static com.envimate.messageMate.useCaseAdapter.mapping.ResponseFilters.areOfType;
 import static com.envimate.messageMate.useCaseAdapter.mapping.ResponseFilters.failWithMessage;
 
-public interface SerializationStage {
+public interface UseCaseAdapterExceptionSerializationStep1Builder {
 
     /**
      * Enters a fluent builder that configures a {@link ResponseMapper} that will be used to serialize a use case return value
@@ -39,18 +41,18 @@ public interface SerializationStage {
      *               respective use case return value
      * @return the next step in the fluent builder
      */
-    Using<SerializationStage, ResponseMapper<Object>> serializingResponseObjectsThat(Predicate<Object> filter);
+    UseCaseAdapterExceptionSerializationStep2Builder<Exception> serializingExceptionsThat(Predicate<Exception> filter);
 
     /**
      * Configures the default {@link ResponseMapper} that will be used to serialize a use case return value
      * to a  if no {@link ResponseMapper} configured under
-     * {@link SerializationStage#serializingResponseObjectsThat(Predicate)},
-     * {@link SerializationStage#serializingResponseObjectsOfType(Class)}, etc. matches the use case return value.
+     * {@link UseCaseAdapterExceptionSerializationStep1Builder#serializingResponseObjectsThat(Predicate)},
+     * {@link UseCaseAdapterExceptionSerializationStep1Builder#serializingResponseObjectsOfType(Class)}, etc. matches the use case return value.
      *
      * @param mapper a {@link ResponseMapper}
      * @return the next step in the fluent builder
      */
-    UseCaseAdapter serializingResponseObjectsByDefaultUsing(ResponseMapper<Object> mapper);
+    UseCaseAdapter serializingExceptionsByDefaultUsing(ResponseMapper<Exception> mapper);
 
     /**
      * Enters a fluent builder that configures a {@link ResponseMapper} that will be used to serialize a use case return value
@@ -60,20 +62,28 @@ public interface SerializationStage {
      * @return the next step in the fluent builder
      */
     @SuppressWarnings("unchecked")
-    default <X> Using<SerializationStage, ResponseMapper<X>> serializingResponseObjectsOfType(final Class<X> type) {
+    default <T> UseCaseAdapterExceptionSerializationStep2Builder<T> serializingExceptionsOfType(final Class<T> type) {
         return mapper ->
-                serializingResponseObjectsThat(areOfType(type))
-                        .using((ResponseMapper<Object>) mapper);
+                serializingExceptionsThat(areOfType(type))
+                        .using((ResponseMapper<Exception>) mapper);
     }
 
     /**
      * Configures  to throw an exception if no {@link ResponseMapper} configured under
-     * {@link SerializationStage#serializingResponseObjectsThat(Predicate)},
-     * {@link SerializationStage#serializingResponseObjectsOfType(Class)}, etc. matches the use case return value.
+     * {@link UseCaseAdapterExceptionSerializationStep1Builder#serializingResponseObjectsThat(Predicate)},
+     * {@link UseCaseAdapterExceptionSerializationStep1Builder#serializingResponseObjectsOfType(Class)}, etc. matches the use case return value.
      *
      * @return the next step in the fluent builder
      */
-    default UseCaseAdapter throwingAnExceptionIfNoResponseMappingCanBeFound() {
-        return serializingResponseObjectsByDefaultUsing(failWithMessage("No response mapper found"));
+    default UseCaseAdapter throwingAnExceptionIfNoExceptionMappingCanBeFound() {
+        return serializingExceptionsByDefaultUsing(failWithMessage("No response mapper found"));
+    }
+
+    default UseCaseAdapter puttingExceptionObjectNamedAsExceptionIntoResponseMapByDefault() {
+        return serializingExceptionsByDefaultUsing(exception -> {
+            final Map<String, Object> map = new HashMap<>();
+            map.put("Exception", exception); //TODO:
+            return map;
+        });
     }
 }

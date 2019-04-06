@@ -29,6 +29,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 public class TestMessageOfInterest implements TestMessage {
     public static final String CONTENT = "TestContent";
+    public static final String ERROR_CONTENT = "ErrorContent";
     public String content;
 
     protected TestMessageOfInterest(final String content) {
@@ -37,5 +38,9 @@ public class TestMessageOfInterest implements TestMessage {
 
     public static TestMessageOfInterest messageOfInterest() {
         return new TestMessageOfInterest(CONTENT);
+    }
+
+    public static TestMessageOfInterest messageWithErrorContent() {
+        return new TestMessageOfInterest(ERROR_CONTENT);
     }
 }

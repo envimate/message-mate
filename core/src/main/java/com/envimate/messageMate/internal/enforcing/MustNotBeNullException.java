@@ -22,7 +22,7 @@
 package com.envimate.messageMate.internal.enforcing;
 
 public class MustNotBeNullException extends RuntimeException {
-    public MustNotBeNullException(final String message) {
-        super(message);
+    public MustNotBeNullException(final String propertyName) {
+        super(propertyName+" must not be null.");
     }
 }

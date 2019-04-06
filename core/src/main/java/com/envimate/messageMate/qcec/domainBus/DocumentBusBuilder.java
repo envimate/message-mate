@@ -117,9 +117,9 @@ public final class DocumentBusBuilder {
      * @return newly created {@code DocumentBus}
      */
     public DocumentBusImpl build() {
-        ensureNotNull(queryResolver, "DocumentBus needs a QueryResolver.");
-        ensureNotNull(constraintEnforcer, "DocumentBus needs a ConstraintEnforcer.");
-        ensureNotNull(eventBus, "DocumentBus needs a EventBus.");
+        ensureNotNull(queryResolver, "query resolver");
+        ensureNotNull(constraintEnforcer, "constraint enforcer");
+        ensureNotNull(eventBus, "event bus");
         return new DocumentBusImpl(queryResolver, constraintEnforcer, eventBus);
     }
 }

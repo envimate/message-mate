@@ -27,6 +27,7 @@ import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.subscribing.AcceptingBehavior;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
+import com.envimate.messageMate.useCaseAdapter.mapping.ExceptionSerializer;
 import com.envimate.messageMate.useCaseAdapter.mapping.RequestDeserializer;
 import com.envimate.messageMate.useCaseAdapter.mapping.ResponseSerializer;
 import com.envimate.messageMate.useCaseAdapter.usecaseInstantiating.UseCaseInstantiator;
@@ -36,7 +37,10 @@ import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
+import java.util.Map;
+
 import static com.envimate.messageMate.internal.enforcing.NotNullEnforcer.ensureNotNull;
+import static com.envimate.messageMate.processingContext.ProcessingContext.processingContextForPayloadAndError;
 import static com.envimate.messageMate.subscribing.AcceptingBehavior.MESSAGE_ACCEPTED;
 import static com.envimate.messageMate.subscribing.SubscriptionId.newUniqueId;
 import static com.envimate.messageMate.useCaseAdapter.UseCaseInvokingResponseEventType.USE_CASE_RESPONSE_EVENT_TYPE;
@@ -52,6 +56,7 @@ final class UseCaseRequestExecutingSubscriber implements Subscriber<ProcessingCo
     private final UseCaseInstantiator useCaseInstantiator;
     private final RequestDeserializer requestDeserializer;
     private final ResponseSerializer responseSerializer;
+    private final ExceptionSerializer exceptionSerializer;
     private final SubscriptionId subscriptionId = newUniqueId();
 
     public static UseCaseRequestExecutingSubscriber useCaseRequestExecutingSubscriber(
@@ -59,13 +64,15 @@ final class UseCaseRequestExecutingSubscriber implements Subscriber<ProcessingCo
             final UseCaseCallingInformation useCaseCallingInformation,
             final UseCaseInstantiator useCaseInstantiator,
             final RequestDeserializer requestDeserializer,
-            final ResponseSerializer responseSerializer) {
+            final ResponseSerializer responseSerializer,
+            final ExceptionSerializer exceptionSerializer) {
         ensureNotNull(messageBus, "messageBus");
         ensureNotNull(useCaseCallingInformation, "useCaseCallingInformation");
         ensureNotNull(useCaseInstantiator, "useCaseInstantiator");
         ensureNotNull(requestDeserializer, "requestDeserializer");
         ensureNotNull(responseSerializer, "responseSerializer");
-        return new UseCaseRequestExecutingSubscriber(messageBus, useCaseCallingInformation, useCaseInstantiator, requestDeserializer, responseSerializer);
+        ensureNotNull(exceptionSerializer, "exceptionSerializer");
+        return new UseCaseRequestExecutingSubscriber(messageBus, useCaseCallingInformation, useCaseInstantiator, requestDeserializer, responseSerializer, exceptionSerializer);
     }
 
     @Override
@@ -74,10 +81,16 @@ final class UseCaseRequestExecutingSubscriber implements Subscriber<ProcessingCo
         final Class<?> useCaseClass = useCaseCallingInformation.getUseCaseClass();
         final Object useCase = useCaseInstantiator.instantiate(useCaseClass);
         final Object event = processingContext.getPayload();
-        @SuppressWarnings("unchecked")
-        final Object returnValue = caller.call(useCase, event, requestDeserializer, responseSerializer);
+        Map<String, Object> serializedReturnValue = null;
+        Map<String, Object> serializedException = null;
+        try {
+            serializedReturnValue = caller.call(useCase, event, requestDeserializer, responseSerializer);
+        } catch (final Exception e) {
+            serializedException = exceptionSerializer.serializeException(e);
+        }
         final CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();
-        messageBus.send(USE_CASE_RESPONSE_EVENT_TYPE, returnValue, correlationId);
+        final ProcessingContext<Object> response = processingContextForPayloadAndError(USE_CASE_RESPONSE_EVENT_TYPE, correlationId, serializedReturnValue, serializedException);
+        messageBus.send(response);
         return MESSAGE_ACCEPTED;
     }
 
