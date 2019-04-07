@@ -19,31 +19,15 @@
  * under the License.
  */
 
-package com.envimate.messageMate.shared.testMessages;
+package com.envimate.messageMate.useCases.useCaseAdapter.mapping;
 
+public final class ResponseMapperException extends RuntimeException {
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-
-@ToString
-@EqualsAndHashCode
-public class TestMessageOfInterest implements TestMessage {
-    public static final String CONTENT = "TestContent";
-    public static final String ERROR_CONTENT = "ErrorContent";
-    public String content;
-
-    protected TestMessageOfInterest(final String content) {
-        this.content = content;
+    private ResponseMapperException(final String message) {
+        super(message);
     }
 
-    public static TestMessageOfInterest messageOfInterest() {
-        return new TestMessageOfInterest(CONTENT);
-    }
-    public static TestMessageOfInterest messageOfInterest(final String content) {
-        return new TestMessageOfInterest(content);
-    }
-
-    public static TestMessageOfInterest messageWithErrorContent() {
-        return new TestMessageOfInterest(ERROR_CONTENT);
+    static ResponseMapperException responseMapperException(final String message) {
+        return new ResponseMapperException(message);
     }
 }

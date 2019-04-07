@@ -19,31 +19,16 @@
  * under the License.
  */
 
-package com.envimate.messageMate.shared.testMessages;
+package com.envimate.messageMate.useCases.building;
 
+import com.envimate.messageMate.messageBus.EventType;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+public interface Step2Builder<U> {
 
-@ToString
-@EqualsAndHashCode
-public class TestMessageOfInterest implements TestMessage {
-    public static final String CONTENT = "TestContent";
-    public static final String ERROR_CONTENT = "ErrorContent";
-    public String content;
-
-    protected TestMessageOfInterest(final String content) {
-        this.content = content;
+    default Step3Builder<U> forType(final String eventType) {
+        final EventType eventTypeObject = EventType.eventTypeFromString(eventType);
+        return forType(eventTypeObject);
     }
 
-    public static TestMessageOfInterest messageOfInterest() {
-        return new TestMessageOfInterest(CONTENT);
-    }
-    public static TestMessageOfInterest messageOfInterest(final String content) {
-        return new TestMessageOfInterest(content);
-    }
-
-    public static TestMessageOfInterest messageWithErrorContent() {
-        return new TestMessageOfInterest(ERROR_CONTENT);
-    }
+    Step3Builder<U> forType(EventType eventType);
 }

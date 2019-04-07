@@ -19,31 +19,15 @@
  * under the License.
  */
 
-package com.envimate.messageMate.shared.testMessages;
+package com.envimate.messageMate.useCases.useCaseAdapter;
 
+import com.envimate.messageMate.messageBus.MessageBus;
+import com.envimate.messageMate.serializedMessageBus.SerializedMessageBus;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+public interface UseCaseAdapter {
 
-@ToString
-@EqualsAndHashCode
-public class TestMessageOfInterest implements TestMessage {
-    public static final String CONTENT = "TestContent";
-    public static final String ERROR_CONTENT = "ErrorContent";
-    public String content;
+    void attachTo(SerializedMessageBus serializedMessageBus);
 
-    protected TestMessageOfInterest(final String content) {
-        this.content = content;
-    }
+    SerializedMessageBus attachAndEnhance(MessageBus messageBus);
 
-    public static TestMessageOfInterest messageOfInterest() {
-        return new TestMessageOfInterest(CONTENT);
-    }
-    public static TestMessageOfInterest messageOfInterest(final String content) {
-        return new TestMessageOfInterest(content);
-    }
-
-    public static TestMessageOfInterest messageWithErrorContent() {
-        return new TestMessageOfInterest(ERROR_CONTENT);
-    }
 }

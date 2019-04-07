@@ -19,31 +19,24 @@
  * under the License.
  */
 
-package com.envimate.messageMate.shared.testMessages;
+package com.envimate.messageMate.useCases.useCaseAdapter.mapping;
 
+import java.util.function.Predicate;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import static com.envimate.messageMate.useCases.useCaseAdapter.mapping.ResponseMapperException.responseMapperException;
 
-@ToString
-@EqualsAndHashCode
-public class TestMessageOfInterest implements TestMessage {
-    public static final String CONTENT = "TestContent";
-    public static final String ERROR_CONTENT = "ErrorContent";
-    public String content;
+public final class ResponseFilters {
 
-    protected TestMessageOfInterest(final String content) {
-        this.content = content;
+    private ResponseFilters() {
     }
 
-    public static TestMessageOfInterest messageOfInterest() {
-        return new TestMessageOfInterest(CONTENT);
-    }
-    public static TestMessageOfInterest messageOfInterest(final String content) {
-        return new TestMessageOfInterest(content);
+    public static <T> Predicate<T> areOfType(final Class<?> type) {
+        return type::isInstance;
     }
 
-    public static TestMessageOfInterest messageWithErrorContent() {
-        return new TestMessageOfInterest(ERROR_CONTENT);
+    public static <T> ResponseMapper<T> failWithMessage(final String message) {
+        return object -> {
+            throw responseMapperException(message); //TODO: try to include object
+        };
     }
 }

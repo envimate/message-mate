@@ -19,31 +19,17 @@
  * under the License.
  */
 
-package com.envimate.messageMate.shared.testMessages;
+package com.envimate.messageMate.useCases.useCaseAdapter.usecaseInstantiating;
 
+public final class ZeroArgumentsConstructorUseCaseFactoryException extends RuntimeException {
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-
-@ToString
-@EqualsAndHashCode
-public class TestMessageOfInterest implements TestMessage {
-    public static final String CONTENT = "TestContent";
-    public static final String ERROR_CONTENT = "ErrorContent";
-    public String content;
-
-    protected TestMessageOfInterest(final String content) {
-        this.content = content;
+    private ZeroArgumentsConstructorUseCaseFactoryException(final String message, final Throwable cause) {
+        super(message, cause);
     }
 
-    public static TestMessageOfInterest messageOfInterest() {
-        return new TestMessageOfInterest(CONTENT);
-    }
-    public static TestMessageOfInterest messageOfInterest(final String content) {
-        return new TestMessageOfInterest(content);
-    }
-
-    public static TestMessageOfInterest messageWithErrorContent() {
-        return new TestMessageOfInterest(ERROR_CONTENT);
+    static ZeroArgumentsConstructorUseCaseFactoryException zeroArgumentsConstructorUseCaseInstantiatorException(
+            final Class<?> type, final Throwable cause) {
+        return new ZeroArgumentsConstructorUseCaseFactoryException("Exception during instantiation " +
+                "of " + type.getName() + " using zero argument constructor", cause);
     }
 }

@@ -19,31 +19,15 @@
  * under the License.
  */
 
-package com.envimate.messageMate.shared.testMessages;
+package com.envimate.messageMate.useCases.useCaseAdapter.methodInvoking;
 
+import com.envimate.messageMate.useCases.useCaseAdapter.mapping.RequestDeserializer;
+import com.envimate.messageMate.useCases.useCaseAdapter.mapping.ResponseSerializer;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import java.util.Map;
 
-@ToString
-@EqualsAndHashCode
-public class TestMessageOfInterest implements TestMessage {
-    public static final String CONTENT = "TestContent";
-    public static final String ERROR_CONTENT = "ErrorContent";
-    public String content;
+public interface UseCaseMethodInvoker {
 
-    protected TestMessageOfInterest(final String content) {
-        this.content = content;
-    }
+    Map<String, Object> invoke(Object useCase, Object event, RequestDeserializer requestDeserializer, ResponseSerializer responseSerializer);
 
-    public static TestMessageOfInterest messageOfInterest() {
-        return new TestMessageOfInterest(CONTENT);
-    }
-    public static TestMessageOfInterest messageOfInterest(final String content) {
-        return new TestMessageOfInterest(content);
-    }
-
-    public static TestMessageOfInterest messageWithErrorContent() {
-        return new TestMessageOfInterest(ERROR_CONTENT);
-    }
 }

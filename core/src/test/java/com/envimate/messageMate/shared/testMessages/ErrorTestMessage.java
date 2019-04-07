@@ -22,28 +22,22 @@
 package com.envimate.messageMate.shared.testMessages;
 
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 
 @ToString
 @EqualsAndHashCode
-public class TestMessageOfInterest implements TestMessage {
-    public static final String CONTENT = "TestContent";
-    public static final String ERROR_CONTENT = "ErrorContent";
-    public String content;
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public final class ErrorTestMessage implements TestMessage {
+    public final static String CONTENT = "error";
+    @Getter
+    private final String content;
 
-    protected TestMessageOfInterest(final String content) {
-        this.content = content;
+
+    public static ErrorTestMessage errorTestMessage(final String content) {
+        return new ErrorTestMessage(content);
     }
 
-    public static TestMessageOfInterest messageOfInterest() {
-        return new TestMessageOfInterest(CONTENT);
-    }
-    public static TestMessageOfInterest messageOfInterest(final String content) {
-        return new TestMessageOfInterest(content);
-    }
-
-    public static TestMessageOfInterest messageWithErrorContent() {
-        return new TestMessageOfInterest(ERROR_CONTENT);
+    public static ErrorTestMessage errorTestMessage() {
+        return new ErrorTestMessage(CONTENT);
     }
 }

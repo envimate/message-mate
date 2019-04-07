@@ -41,9 +41,10 @@ public final class FilterMapBuilder<F1, F2, T> {
         return new FilterMapBuilder<>(new CopyOnWriteArrayList<>());
     }
 
-    public void put(final BiPredicate<F1, F2> filter, final T value) {
+    public FilterMapBuilder<F1, F2, T> put(final BiPredicate<F1, F2> filter, final T value) {
         final FilterMapEntry<F1, F2, T> entry = filterMapEntry(filter, value);
         entries.add(entry);
+        return this;
     }
 
     public void setDefaultValue(final T defaultValue) {

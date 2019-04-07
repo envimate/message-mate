@@ -19,31 +19,14 @@
  * under the License.
  */
 
-package com.envimate.messageMate.shared.testMessages;
+package com.envimate.messageMate.useCases.useCaseAdapter;
 
+import com.envimate.messageMate.messageBus.EventType;
+import lombok.RequiredArgsConstructor;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import static lombok.AccessLevel.PRIVATE;
 
-@ToString
-@EqualsAndHashCode
-public class TestMessageOfInterest implements TestMessage {
-    public static final String CONTENT = "TestContent";
-    public static final String ERROR_CONTENT = "ErrorContent";
-    public String content;
-
-    protected TestMessageOfInterest(final String content) {
-        this.content = content;
-    }
-
-    public static TestMessageOfInterest messageOfInterest() {
-        return new TestMessageOfInterest(CONTENT);
-    }
-    public static TestMessageOfInterest messageOfInterest(final String content) {
-        return new TestMessageOfInterest(content);
-    }
-
-    public static TestMessageOfInterest messageWithErrorContent() {
-        return new TestMessageOfInterest(ERROR_CONTENT);
-    }
+@RequiredArgsConstructor(access = PRIVATE)
+public final class UseCaseInvokingResponseEventType {
+    public static final EventType USE_CASE_RESPONSE_EVENT_TYPE = EventType.eventTypeFromString("UseCaseResponse");
 }
