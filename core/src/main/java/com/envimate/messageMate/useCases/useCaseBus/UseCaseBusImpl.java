@@ -5,6 +5,7 @@ import com.envimate.messageMate.messageBus.PayloadAndErrorPayload;
 import com.envimate.messageMate.serializedMessageBus.SerializedMessageBus;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -23,5 +24,15 @@ public class UseCaseBusImpl implements UseCaseBus {
     @Override
     public <P, E> PayloadAndErrorPayload<P, E> invokeAndWait(EventType eventType, Object data, Class<P> payloadClass, Class<E> errorPayloadClass, long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         return serializedMessageBus.invokeAndWaitDeserialized(eventType, data, payloadClass, errorPayloadClass, timeout, unit);
+    }
+
+    @Override
+    public PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> invokeAndWaitNotDeserialized(EventType eventType, Object data) throws InterruptedException, ExecutionException, TimeoutException {
+        return serializedMessageBus.invokeAndWait(eventType, data);
+    }
+
+    @Override
+    public PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> invokeAndWaitNotDeserialized(EventType eventType, Object data, long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        return serializedMessageBus.invokeAndWait(eventType, data);
     }
 }

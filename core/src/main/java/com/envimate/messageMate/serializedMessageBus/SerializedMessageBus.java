@@ -16,6 +16,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+//TODO: cancel underlying future when invokeAndWait throw exception
 public interface SerializedMessageBus {
 
     static SerializedMessageBus aSerializedMessageBus(final MessageBus messageBus,
@@ -42,12 +43,16 @@ public interface SerializedMessageBus {
 
     PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> invokeAndWait(EventType eventType, Map<String, Object> data) throws InterruptedException, ExecutionException;
 
-    <P, E> PayloadAndErrorPayload<P, E> invokeAndWaitDeserialized(EventType eventType, Object data, Class<P> responseClass, Class<E> errorPayloadClass) throws InterruptedException, ExecutionException;
-
-    //TODO: cancel on exception
     PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> invokeAndWait(EventType eventType, Map<String, Object> data, long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
 
+   PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> invokeAndWait(EventType eventType, Object data) throws InterruptedException, ExecutionException;
+
+    PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> invokeAndWait(EventType eventType, Object data, long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
+
+    <P, E> PayloadAndErrorPayload<P, E> invokeAndWaitDeserialized(EventType eventType, Object data, Class<P> responseClass, Class<E> errorPayloadClass) throws InterruptedException, ExecutionException;
+
     <P, E> PayloadAndErrorPayload<P, E> invokeAndWaitDeserialized(EventType eventType, Object data, Class<P> responseClass, Class<E> errorPayloadClass, long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
+
 
     SubscriptionId subscribe(EventType eventType, Subscriber<PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>>> subscriber);
 

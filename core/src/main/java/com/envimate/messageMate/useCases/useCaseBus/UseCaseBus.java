@@ -4,6 +4,7 @@ import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.messageBus.PayloadAndErrorPayload;
 import com.envimate.messageMate.serializedMessageBus.SerializedMessageBus;
 
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -25,5 +26,13 @@ public interface UseCaseBus {
                                                     Class<E> errorPayloadClass,
                                                     long timeout,
                                                     TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
+
+     PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> invokeAndWaitNotDeserialized(EventType eventType,
+                                                                                                   Object data) throws InterruptedException, ExecutionException, TimeoutException;
+
+    PayloadAndErrorPayload<Map<String, Object>,Map<String, Object>> invokeAndWaitNotDeserialized(EventType eventType,
+                                                                                                 Object data,
+                                                                                                 long timeout,
+                                                                                                 TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
 
 }
