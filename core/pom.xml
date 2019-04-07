@@ -38,10 +38,10 @@
     <parent>
         <groupId>com.envimate.message-mate</groupId>
         <artifactId>message-mate-parent</artifactId>
-        <version>1.0.4</version>
+        <version>1.0.5-SNAPSHOT</version>
     </parent>
     <artifactId>core</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5-SNAPSHOT</version>
     <name>MessageMate - Core Library</name>
 
     <packaging>jar</packaging>
