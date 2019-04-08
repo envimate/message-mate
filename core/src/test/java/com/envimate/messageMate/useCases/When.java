@@ -6,9 +6,9 @@ import static lombok.AccessLevel.PACKAGE;
 
 @RequiredArgsConstructor(access = PACKAGE)
 public class When {
-    private final UseCaseAdapterSetupBuilder useCaseAdapterSetupBuilder;
+    private final UseCaseInvocationSetupBuilder useCaseInvocationSetupBuilder;
 
-    public Then when(UseCaseAdapterActionBuilder useCaseAdapterActionBuilder) {
-        return new Then(useCaseAdapterSetupBuilder, useCaseAdapterActionBuilder);
+    public Then when(UseCaseInvocationActionBuilder useCaseInvocationActionBuilder) {
+        return new Then(useCaseInvocationSetupBuilder, useCaseInvocationActionBuilder);
     }
 }

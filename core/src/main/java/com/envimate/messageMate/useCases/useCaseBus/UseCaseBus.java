@@ -18,7 +18,7 @@ public interface UseCaseBus {
     <P,E> PayloadAndErrorPayload<P,E> invokeAndWait(EventType eventType,
                                                     Object data,
                                                     Class<P> payloadClass,
-                                                    Class<E> errorPayloadClass) throws InterruptedException, ExecutionException, TimeoutException;
+                                                    Class<E> errorPayloadClass) throws InterruptedException, ExecutionException;
 
     <P,E> PayloadAndErrorPayload<P,E> invokeAndWait(EventType eventType,
                                                     Object data,
@@ -28,7 +28,7 @@ public interface UseCaseBus {
                                                     TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
 
      PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> invokeAndWaitNotDeserialized(EventType eventType,
-                                                                                                   Object data) throws InterruptedException, ExecutionException, TimeoutException;
+                                                                                                   Object data) throws InterruptedException, ExecutionException;
 
     PayloadAndErrorPayload<Map<String, Object>,Map<String, Object>> invokeAndWaitNotDeserialized(EventType eventType,
                                                                                                  Object data,

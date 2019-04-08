@@ -32,7 +32,7 @@ import static com.envimate.messageMate.messageFunction.givenWhenThen.TestMessage
 import static com.envimate.messageMate.messageFunction.givenWhenThen.TestMessageFunctionSetupBuilder.aMessageFunction;
 import static com.envimate.messageMate.messageFunction.givenWhenThen.TestMessageFunctionValidationBuilder.*;
 
-//TODO: ensure all for timeout testet
+//TODO: ensure all for timeout testet + correct timeout
 public class MessageFunctionSpecs {
 
     @Test

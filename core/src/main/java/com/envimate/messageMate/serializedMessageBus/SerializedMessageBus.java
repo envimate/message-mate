@@ -45,9 +45,9 @@ public interface SerializedMessageBus {
 
     PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> invokeAndWait(EventType eventType, Map<String, Object> data, long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
 
-   PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> invokeAndWait(EventType eventType, Object data) throws InterruptedException, ExecutionException;
+   PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> invokeAndWaitSerializedOnly(EventType eventType, Object data) throws InterruptedException, ExecutionException;
 
-    PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> invokeAndWait(EventType eventType, Object data, long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
+    PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> invokeAndWaitSerializedOnly(EventType eventType, Object data, long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
 
     <P, E> PayloadAndErrorPayload<P, E> invokeAndWaitDeserialized(EventType eventType, Object data, Class<P> responseClass, Class<E> errorPayloadClass) throws InterruptedException, ExecutionException;
 
@@ -63,5 +63,7 @@ public interface SerializedMessageBus {
     <P,E> SubscriptionId subscribeDeserialized(CorrelationId correlationId, Subscriber<PayloadAndErrorPayload<P, E>> subscriber, Class<P> responseClass, Class<E> errorClass);
 
     SubscriptionId subscribeRaw(EventType eventType, Subscriber<ProcessingContext<Map<String, Object>>> subscriber);
+
+    void unsubscribe(SubscriptionId subscriptionId);
 
 }

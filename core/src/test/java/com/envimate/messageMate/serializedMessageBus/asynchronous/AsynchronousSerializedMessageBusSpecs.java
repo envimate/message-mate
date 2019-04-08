@@ -1,0 +1,10 @@
+package com.envimate.messageMate.serializedMessageBus.asynchronous;
+
+import com.envimate.messageMate.serializedMessageBus.SerializedMessageBusSpecs;
+import com.envimate.messageMate.serializedMessageBus.synchronous.SynchronousSerializedMessageBusConfigurationResolver;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+@ExtendWith(AsynchronousSerializedMessageBusConfigurationResolver.class)
+public class AsynchronousSerializedMessageBusSpecs implements SerializedMessageBusSpecs {
+
+}

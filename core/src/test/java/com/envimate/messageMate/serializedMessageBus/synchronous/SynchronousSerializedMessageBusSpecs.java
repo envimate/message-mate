@@ -1,5 +1,6 @@
-package com.envimate.messageMate.serializedMessageBus;
+package com.envimate.messageMate.serializedMessageBus.synchronous;
 
+import com.envimate.messageMate.serializedMessageBus.SerializedMessageBusSpecs;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(SynchronousSerializedMessageBusConfigurationResolver.class)

@@ -8,9 +8,11 @@ import com.envimate.messageMate.messageBus.PayloadAndErrorPayload;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.SetupAction;
 import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
+import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.shared.testMessages.ErrorTestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 import com.envimate.messageMate.subscribing.ConsumerSubscriber;
+import com.envimate.messageMate.subscribing.SubscriptionId;
 import com.envimate.messageMate.useCases.useCaseAdapter.mapping.RequestDeserializer;
 import com.envimate.messageMate.useCases.useCaseAdapter.mapping.RequestMapper;
 import com.envimate.messageMate.useCases.useCaseAdapter.mapping.ResponseMapper;
@@ -24,16 +26,16 @@ import java.util.List;
 import java.util.Map;
 
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
+import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RECEIVERS;
 import static com.envimate.messageMate.serializedMessageBus.SerializedMessageBusTestProperties.*;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.EXPECTED_CORRELATION_ID;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.SINGLE_RECEIVER;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
 import static com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber.testSubscriber;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
 public final class SerializedMessageBusSetupBuilder {
-    private final static String PAYLOAD_SERIALIZATION_KEY = "content";
-    private final static String ERROR_PAYLOAD_SERIALIZATION_KEY = "error";
+    public final static String PAYLOAD_SERIALIZATION_KEY = "content";
+    public final static String ERROR_PAYLOAD_SERIALIZATION_KEY = "error";
     private final TestEnvironment testEnvironment = TestEnvironment.emptyTestEnvironment();
     private final List<SetupAction<SerializedMessageBus>> setupActions = new LinkedList<>();
     private final SerializedMessageBusTestConfig testConfig;
@@ -44,14 +46,28 @@ public final class SerializedMessageBusSetupBuilder {
     }
 
     public SerializedMessageBusSetupBuilder withAMapSubscriber() {
+        setupActions.add(this::addMapSubscriber);
+        return this;
+    }
+
+    public SerializedMessageBusSetupBuilder withAMapSubscriber_expectingPotentialErrors() {
         setupActions.add((serializedMessageBus, testEnvironment) -> {
-            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
-            final SimpleTestSubscriber<PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>>> subscriber = testSubscriber();
-            testEnvironment.addToListProperty(EXPECTED_RECEIVERS, subscriber);
-            testEnvironment.setProperty(SINGLE_RECEIVER, subscriber);
-            serializedMessageBus.subscribe(eventType, subscriber);
+            try {
+                addMapSubscriber(serializedMessageBus, testEnvironment);
+            } catch (Exception e) {
+                testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
+            }
         });
         return this;
+    }
+
+    private void addMapSubscriber(SerializedMessageBus serializedMessageBus, TestEnvironment testEnvironment) {
+        final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
+        final SimpleTestSubscriber<PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>>> subscriber = testSubscriber();
+        testEnvironment.addToListProperty(EXPECTED_RECEIVERS, subscriber);
+        testEnvironment.setProperty(SINGLE_RECEIVER, subscriber);
+        final SubscriptionId subscriptionId = serializedMessageBus.subscribe(eventType, subscriber);
+        testEnvironment.addToListProperty(USED_SUBSCRIPTION_ID, subscriptionId);
     }
 
     public SerializedMessageBusSetupBuilder withAMapSubscriberForACorrelationId() {
@@ -61,7 +77,8 @@ public final class SerializedMessageBusSetupBuilder {
             final SimpleTestSubscriber<PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>>> subscriber = testSubscriber();
             testEnvironment.addToListProperty(EXPECTED_RECEIVERS, subscriber);
             testEnvironment.setProperty(SINGLE_RECEIVER, subscriber);
-            serializedMessageBus.subscribe(correlationId, subscriber);
+            final SubscriptionId subscriptionId = serializedMessageBus.subscribe(correlationId, subscriber);
+            testEnvironment.addToListProperty(USED_SUBSCRIPTION_ID, subscriptionId);
         });
         return this;
     }
@@ -72,7 +89,8 @@ public final class SerializedMessageBusSetupBuilder {
             final SimpleTestSubscriber<PayloadAndErrorPayload<TestMessageOfInterest, ErrorTestMessage>> subscriber = testSubscriber();
             testEnvironment.addToListProperty(EXPECTED_RECEIVERS, subscriber);
             testEnvironment.setProperty(SINGLE_RECEIVER, subscriber);
-            serializedMessageBus.subscribeDeserialized(eventType, subscriber, TestMessageOfInterest.class, ErrorTestMessage.class);
+            final SubscriptionId subscriptionId = serializedMessageBus.subscribeDeserialized(eventType, subscriber, TestMessageOfInterest.class, ErrorTestMessage.class);
+            testEnvironment.addToListProperty(USED_SUBSCRIPTION_ID, subscriptionId);
         });
         return this;
     }
@@ -84,7 +102,8 @@ public final class SerializedMessageBusSetupBuilder {
             final SimpleTestSubscriber<PayloadAndErrorPayload<TestMessageOfInterest, ErrorTestMessage>> subscriber = testSubscriber();
             testEnvironment.addToListProperty(EXPECTED_RECEIVERS, subscriber);
             testEnvironment.setProperty(SINGLE_RECEIVER, subscriber);
-            serializedMessageBus.subscribeDeserialized(correlationId, subscriber, TestMessageOfInterest.class, ErrorTestMessage.class);
+            final SubscriptionId subscriptionId = serializedMessageBus.subscribeDeserialized(correlationId, subscriber, TestMessageOfInterest.class, ErrorTestMessage.class);
+            testEnvironment.addToListProperty(USED_SUBSCRIPTION_ID, subscriptionId);
         });
         return this;
     }
@@ -93,11 +112,23 @@ public final class SerializedMessageBusSetupBuilder {
     public SerializedMessageBusSetupBuilder withASubscriberSendingCorrelatedResponse() {
         setupActions.add((serializedMessageBus, testEnvironment) -> {
             final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
-            serializedMessageBus.subscribeRaw(eventType, ConsumerSubscriber.consumerSubscriber(processingContext -> {
+            final SubscriptionId subscriptionId = serializedMessageBus.subscribeRaw(eventType, ConsumerSubscriber.consumerSubscriber(processingContext -> {
                 final CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();
                 final Map<String, Object> payload = processingContext.getPayload();
                 serializedMessageBus.send(EVENT_TYPE_WITH_NO_SUBSCRIBERS, payload, correlationId);
             }));
+            testEnvironment.addToListProperty(USED_SUBSCRIPTION_ID, subscriptionId);
+        });
+        return this;
+    }
+
+    public SerializedMessageBusSetupBuilder withASubscriberThrowingError() {
+        setupActions.add((serializedMessageBus, testEnvironment) -> {
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
+            final SubscriptionId subscriptionId = serializedMessageBus.subscribe(eventType, ConsumerSubscriber.consumerSubscriber(ignored -> {
+                throw new TestException();
+            }));
+            testEnvironment.addToListProperty(USED_SUBSCRIPTION_ID, subscriptionId);
         });
         return this;
     }
@@ -125,7 +156,7 @@ public final class SerializedMessageBusSetupBuilder {
                     return ErrorTestMessage.errorTestMessage(content);
                 })
                 .setDefaultValue((targetType, map) -> {
-                    throw new IllegalArgumentException("No deserialization known for " + targetType);
+                    throw new TestMissingDeserializationException("No deserialization known for " + targetType);
                 });
 
         return RequestDeserializer.requestDeserializer(deserializingFilterMapBuilder.build());
@@ -147,7 +178,7 @@ public final class SerializedMessageBusSetupBuilder {
                     return map;
                 })
                 .setDefaultValue((o) -> {
-                    throw new IllegalArgumentException("No serialization known for " + o.getClass());
+                    throw new TestMissingSerializationException("No serialization known for " + o.getClass());
                 });
         return ResponseSerializer.responseSerializer(serializingFilterMapBuilder.build());
     }

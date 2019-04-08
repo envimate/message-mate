@@ -85,7 +85,27 @@ public final class SharedTestValidations {
 
     public static void assertExceptionThrownOfType(final TestEnvironment testEnvironment, final Class<?> expectedExceptionClass, final TestEnvironmentProperty property) {
         final Exception exception = testEnvironment.getPropertyAsType(property, Exception.class);
-        assertThat(exception.getClass(), equalTo(expectedExceptionClass));
+        final Class<? extends Exception> exceptionClass = exception.getClass();
+        boolean assertSucceeded = false;
+        try {
+            assertThat(exceptionClass, equalTo(expectedExceptionClass));
+            assertSucceeded = true;
+        } finally {
+            if (!assertSucceeded) {
+                exception.printStackTrace();
+            }
+        }
+    }
+
+    public static void assertExceptionThrownOfTypeWithCause(final TestEnvironment testEnvironment,
+                                                            final Class<?> expectedExceptionClass,
+                                                            final Class<?> expectedCauseClass) {
+        final Exception exception = testEnvironment.getPropertyAsType(EXCEPTION, Exception.class);
+        final Class<? extends Exception> exceptionClass = exception.getClass();
+        assertThat(exceptionClass, equalTo(expectedExceptionClass));
+        final Throwable cause = exception.getCause();
+        final Class<? extends Throwable> causeClass = cause.getClass();
+        assertThat(causeClass, equalTo(expectedCauseClass));
     }
 
     public static void assertTimestampToBeInTheLastXSeconds(final TestEnvironment testEnvironment, final long maximumSecondsDifference) {

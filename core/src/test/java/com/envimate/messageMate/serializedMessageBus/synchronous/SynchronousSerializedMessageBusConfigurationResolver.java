@@ -1,5 +1,6 @@
-package com.envimate.messageMate.serializedMessageBus;
+package com.envimate.messageMate.serializedMessageBus.synchronous;
 
+import com.envimate.messageMate.serializedMessageBus.SerializedMessageBusTestConfig;
 import com.envimate.messageMate.shared.config.AbstractTestConfigProvider;
 
 import static com.envimate.messageMate.serializedMessageBus.SerializedMessageBusTestConfig.synchronousMessageBusTestConfig;

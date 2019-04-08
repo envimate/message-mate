@@ -1,10 +1,14 @@
 package com.envimate.messageMate.messageBus;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 import static lombok.AccessLevel.PRIVATE;
 
+@ToString
+@EqualsAndHashCode
 @RequiredArgsConstructor(access = PRIVATE)
 public final class PayloadAndErrorPayload<P, E> {
     @Getter

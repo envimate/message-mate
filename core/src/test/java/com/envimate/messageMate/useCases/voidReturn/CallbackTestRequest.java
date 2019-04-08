@@ -15,6 +15,8 @@ public final class CallbackTestRequest {
     }
 
     public void invokeCallback() {
-        callback.accept(this);
+        if (callback != null) {
+            callback.accept(this);
+        }
     }
 }

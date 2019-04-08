@@ -1,16 +1,24 @@
 package com.envimate.messageMate.serializedMessageBus;
 
+import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.PayloadAndErrorPayload;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.qcec.shared.TestEnvironmentProperty;
 import com.envimate.messageMate.qcec.shared.TestValidation;
+import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.shared.subscriber.TestSubscriber;
+import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
+import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.RequiredArgsConstructor;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
+import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.MOCK;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
+import static com.envimate.messageMate.serializedMessageBus.SerializedMessageBusSetupBuilder.PAYLOAD_SERIALIZATION_KEY;
 import static com.envimate.messageMate.serializedMessageBus.SerializedMessageBusTestProperties.SEND_DATA;
 import static com.envimate.messageMate.serializedMessageBus.SerializedMessageBusTestProperties.SEND_ERROR_DATA;
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.*;
@@ -41,9 +49,45 @@ public final class SerializedMessageBusValidationBuilder {
         });
     }
 
+    public static SerializedMessageBusValidationBuilder expectToHaveWaitedUntilTheNotSerializedResponseWasReceived() {
+        return new SerializedMessageBusValidationBuilder(testEnvironment -> {
+            assertNoExceptionThrown(testEnvironment);
+            final TestMessageOfInterest sendObject = testEnvironment.getPropertyAsType(SEND_DATA, TestMessageOfInterest.class);
+            final HashMap<String, Object> expectedResult = new HashMap<>();
+            expectedResult.put(PAYLOAD_SERIALIZATION_KEY, sendObject.content);
+            assertReceivedResultEqualsExpected(testEnvironment, expectedResult, null);
+        });
+    }
+
     public static SerializedMessageBusValidationBuilder expectTheTimeoutToBeOccurred() {
         return new SerializedMessageBusValidationBuilder(testEnvironment -> {
             assertExceptionThrownOfType(testEnvironment, TimeoutException.class);
+        });
+    }
+
+    public static SerializedMessageBusValidationBuilder expectAnExecutionExceptionWithTheCorrectCause() {
+        return new SerializedMessageBusValidationBuilder(testEnvironment -> {
+            assertExceptionThrownOfTypeWithCause(testEnvironment, ExecutionException.class, TestException.class);
+        });
+    }
+
+    public static SerializedMessageBusValidationBuilder expectAnExecutionExceptionFor(final Class<?> expectedExceptionCauseClass) {
+        return new SerializedMessageBusValidationBuilder(testEnvironment -> {
+            assertExceptionThrownOfTypeWithCause(testEnvironment, ExecutionException.class, expectedExceptionCauseClass);
+        });
+    }
+
+    public static SerializedMessageBusValidationBuilder expectTheException(final Class<?> expectedExceptionClass) {
+        return new SerializedMessageBusValidationBuilder(testEnvironment -> {
+            assertExceptionThrownOfType(testEnvironment, expectedExceptionClass);
+        });
+    }
+
+    public static SerializedMessageBusValidationBuilder expectNoRemainingSubscriber() {
+        return new SerializedMessageBusValidationBuilder(testEnvironment -> {
+            final MessageBus underlyingMessageBus = testEnvironment.getPropertyAsType(MOCK, MessageBus.class);
+            final List<Subscriber<?>> allSubscribers = underlyingMessageBus.getStatusInformation().getAllSubscribers();
+            assertCollectionOfSize(allSubscribers, 0);
         });
     }
 
@@ -75,6 +119,10 @@ public final class SerializedMessageBusValidationBuilder {
         } else {
             expectedErrorPayload = null;
         }
+        assertReceivedResultEqualsExpected(testEnvironment, expectedPayload, expectedErrorPayload);
+    }
+
+    private static void assertReceivedResultEqualsExpected(TestEnvironment testEnvironment, Object expectedPayload, Object expectedErrorPayload) {
         final PayloadAndErrorPayload<?, ?> payloadAndErrorPayload = (PayloadAndErrorPayload<?, ?>) testEnvironment.getProperty(RESULT);
         final Object payload = payloadAndErrorPayload.getPayload();
         assertEquals(payload, expectedPayload);

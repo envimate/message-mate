@@ -6,17 +6,17 @@ import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import lombok.RequiredArgsConstructor;
 
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXCEPTION;
-import static com.envimate.messageMate.useCases.UseCaseAdapterTestProperties.EVENT_TYPE;
+import static com.envimate.messageMate.useCases.UseCaseInvocationTestProperties.EVENT_TYPE;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static lombok.AccessLevel.PACKAGE;
 
 @RequiredArgsConstructor(access = PACKAGE)
 public class Then {
-    private final UseCaseAdapterSetupBuilder setupBuilder;
-    private final UseCaseAdapterActionBuilder actionBuilder;
+    private final UseCaseInvocationSetupBuilder setupBuilder;
+    private final UseCaseInvocationActionBuilder actionBuilder;
 
-    public void then(final UseCaseAdapterValidationBuilder validationBuilder) {
-        final UseCaseAdapterSetup setup = setupBuilder.build();
+    public void then(final UseCaseInvocationValidationBuilder validationBuilder) {
+        final UseCaseInvocationSetup setup = setupBuilder.build();
         final TestEnvironment testEnvironment = setup.getTestEnvironment();
         final TestAction<TestUseCase> testAction = actionBuilder.build();
         final TestUseCase testUseCase = setup.getTestUseCase();
@@ -24,15 +24,15 @@ public class Then {
         testEnvironment.setPropertyIfNotSet(EVENT_TYPE, eventType);
         try {
             testAction.execute(testUseCase, testEnvironment);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             testEnvironment.setProperty(EXCEPTION, e);
         }
         try {
-            MILLISECONDS.sleep(200);
-        } catch (InterruptedException e) {
+            MILLISECONDS.sleep(10);
+        } catch (final InterruptedException e) {
             testEnvironment.setProperty(EXCEPTION, e);
         }
-        final UseCaseAdapterValidationBuilder.UseCaseAdapterTestValidation validation = validationBuilder.build();
+        final UseCaseInvocationValidationBuilder.UseCaseAdapterTestValidation validation = validationBuilder.build();
         validation.validate(testUseCase, testEnvironment);
     }
 }

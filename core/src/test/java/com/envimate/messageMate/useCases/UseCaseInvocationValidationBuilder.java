@@ -9,20 +9,20 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.*;
-import static com.envimate.messageMate.useCases.UseCaseAdapterTestProperties.RETRIEVE_ERROR_FROM_FUTURE;
+import static com.envimate.messageMate.useCases.UseCaseInvocationTestProperties.RETRIEVE_ERROR_FROM_FUTURE;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static lombok.AccessLevel.PRIVATE;
 import static org.junit.jupiter.api.Assertions.fail;
 
 @RequiredArgsConstructor(access = PRIVATE)
-public final class UseCaseAdapterValidationBuilder {
+public final class UseCaseInvocationValidationBuilder {
     private final UseCaseAdapterTestValidation testValidation;
 
-    private static UseCaseAdapterValidationBuilder asValidation(final UseCaseAdapterTestValidation testValidation) {
-        return new UseCaseAdapterValidationBuilder(testValidation);
+    private static UseCaseInvocationValidationBuilder asValidation(final UseCaseAdapterTestValidation testValidation) {
+        return new UseCaseInvocationValidationBuilder(testValidation);
     }
 
-    public static UseCaseAdapterValidationBuilder expectTheUseCaseToBeInvokedOnce() {
+    public static UseCaseInvocationValidationBuilder expectTheUseCaseToBeInvokedOnce() {
         return asValidation((testUseCase, testEnvironment) -> {
             assertNoExceptionThrown(testEnvironment);
             final Object expectedResult = testUseCase.getExpectedResult(testEnvironment);
@@ -30,7 +30,7 @@ public final class UseCaseAdapterValidationBuilder {
         });
     }
 
-    public static UseCaseAdapterValidationBuilder expectTheResponseToBeReceivedByTheMessageFunction() {
+    public static UseCaseInvocationValidationBuilder expectTheResponseToBeReceivedByTheMessageFunction() {
         return asValidation((testUseCase, testEnvironment) -> {
             assertNoExceptionThrown(testEnvironment);
             final Object expectedResult = testUseCase.getExpectedResult(testEnvironment);
@@ -52,9 +52,16 @@ public final class UseCaseAdapterValidationBuilder {
         });
     }
 
-    public static UseCaseAdapterValidationBuilder expectAExceptionOfType(final Class<?> expectedExceptionClass) {
+    public static UseCaseInvocationValidationBuilder expectAExceptionOfType(final Class<?> expectedExceptionClass) {
         return asValidation((testUseCase, testEnvironment) -> {
             assertExceptionThrownOfType(testEnvironment, expectedExceptionClass);
+        });
+    }
+
+    public static UseCaseInvocationValidationBuilder expectTheUseCaseToBeInvokedByTheUseCaseBus() {
+        return asValidation((testUseCase, testEnvironment) -> {
+            assertNoExceptionThrown(testEnvironment);
+            assertResultAndExpectedResultAreEqual(testEnvironment);
         });
     }
 

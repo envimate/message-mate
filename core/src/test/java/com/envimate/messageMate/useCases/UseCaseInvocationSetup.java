@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import static lombok.AccessLevel.PACKAGE;
 
 @RequiredArgsConstructor(access = PACKAGE)
-final class UseCaseAdapterSetup {
+final class UseCaseInvocationSetup {
     @Getter
     private final TestEnvironment testEnvironment;
     @Getter

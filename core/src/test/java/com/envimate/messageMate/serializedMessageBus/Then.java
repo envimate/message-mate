@@ -6,6 +6,7 @@ import com.envimate.messageMate.qcec.shared.TestValidation;
 import lombok.RequiredArgsConstructor;
 
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXCEPTION;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static lombok.AccessLevel.PACKAGE;
 
 @RequiredArgsConstructor(access = PACKAGE)
@@ -22,6 +23,11 @@ public final class Then {
         try {
             action.execute(serializedMessageBus, testEnvironment);
         } catch (final Exception e) {
+            testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
+        }
+        try {
+            MILLISECONDS.sleep(15);
+        } catch (final InterruptedException e) {
             testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
         }
         final TestValidation testValidation = validationBuilder.build();

@@ -15,9 +15,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import static lombok.AccessLevel.PRIVATE;
+import static lombok.AccessLevel.PACKAGE;
 
-@RequiredArgsConstructor(access = PRIVATE)
+@RequiredArgsConstructor(access = PACKAGE)
 public final class TestUseCase {
     @Getter
     private final Class<?> useCaseClass;
@@ -41,100 +41,15 @@ public final class TestUseCase {
     @Getter
     private final BiConsumer<MessageBusBuilder, TestEnvironment> messageBusEnhancer;
 
-    public static TestUseCase testUseCase(final Class<?> useCaseClass,
-                                          final EventType eventType,
-                                          final BiConsumer<MessageBus, TestEnvironment> messageBusSetup,
-                                          final Supplier<Object> instantiationFunction,
-                                          final Consumer<DeserializationStep1Builder> deserializationEnhancer,
-                                          final Consumer<ResponseSerializationStep1Builder> serializationEnhancer,
-                                          final Consumer<Step3Builder<?>> customCallingLogic,
-                                          final Object requestObject,
-                                          final Object expectedResult) {
-        final Function<TestEnvironment, Object> requestObjectSupplier = testEnvironment -> requestObject;
-        final Function<TestEnvironment, Object> expectedResultSupplier = testEnvironment -> expectedResult;
-
-        final BiConsumer<MessageBusBuilder, TestEnvironment> messageBusEnhancer = (messageBusBuilder, testEnvironment) -> {
-        };
-        return new TestUseCase(useCaseClass, eventType, messageBusSetup, instantiationFunction, deserializationEnhancer, serializationEnhancer,
-                customCallingLogic, requestObjectSupplier, expectedResultSupplier, messageBusEnhancer);
-    }
-    public static TestUseCase testUseCase(final Class<?> useCaseClass,
-                                          final EventType eventType,
-                                          final BiConsumer<MessageBus, TestEnvironment> messageBusSetup,
-                                          final Supplier<Object> instantiationFunction,
-                                          final Consumer<DeserializationStep1Builder> deserializationEnhancer,
-                                          final Consumer<ResponseSerializationStep1Builder> serializationEnhancer,
-                                          final Consumer<Step3Builder<?>> customCallingLogic,
-                                          final Function<TestEnvironment, Object> requestObjectSupplier,
-                                          final Function<TestEnvironment, Object> expectedResultSupplier) {
-
-        final BiConsumer<MessageBusBuilder, TestEnvironment> messageBusEnhancer = (messageBusBuilder, testEnvironment) -> {
-        };
-        return new TestUseCase(useCaseClass, eventType, messageBusSetup, instantiationFunction, deserializationEnhancer, serializationEnhancer,
-                customCallingLogic, requestObjectSupplier, expectedResultSupplier, messageBusEnhancer);
-    }
-
-    public static TestUseCase testUseCase(final Class<?> useCaseClass,
-                                          final EventType eventType,
-                                          final BiConsumer<MessageBus, TestEnvironment> messageBusSetup,
-                                          final Supplier<Object> instantiationFunction,
-                                          final Consumer<DeserializationStep1Builder> deserializationEnhancer,
-                                          final Consumer<Step3Builder<?>> customCallingLogic,
-                                          final Object requestObject,
-                                          final Object expectedResult) {
-        final Function<TestEnvironment, Object> requestObjectSupplier = testEnvironment -> requestObject;
-        final Function<TestEnvironment, Object> expectedResultSupplier = testEnvironment -> expectedResult;
-        final Consumer<ResponseSerializationStep1Builder> serializationEnhancer = b -> {
-
-        };
-        final BiConsumer<MessageBusBuilder, TestEnvironment> messageBusEnhancer = (messageBusBuilder, testEnvironment) -> {
-        };
-        return new TestUseCase(useCaseClass, eventType, messageBusSetup, instantiationFunction, deserializationEnhancer,serializationEnhancer,
-                customCallingLogic, requestObjectSupplier, expectedResultSupplier, messageBusEnhancer);
-    }
-
-
-    public static TestUseCase testUseCase(final Class<?> useCaseClass,
-                                          final EventType eventType,
-                                          final BiConsumer<MessageBus, TestEnvironment> messageBusSetup,
-                                          final Supplier<Object> instantiationFunction,
-                                          final Consumer<DeserializationStep1Builder> deserializationEnhancer,
-                                          final Consumer<Step3Builder<?>> customCallingLogic,
-                                          final Object request,
-                                          final Object result,
-                                          final BiConsumer<MessageBusBuilder, TestEnvironment> messageBusEnhancer) {
-        final Function<TestEnvironment, Object> requestObjectSupplier = (testEnvironment) -> request;
-        final Function<TestEnvironment, Object> expectedResultSupplier = (testEnvironment) -> result;
-        final Consumer<ResponseSerializationStep1Builder> serializationEnhancer = b -> {
-
-        };
-        return new TestUseCase(useCaseClass, eventType, messageBusSetup, instantiationFunction, deserializationEnhancer, serializationEnhancer,
-                customCallingLogic, requestObjectSupplier, expectedResultSupplier, messageBusEnhancer);
-    }
-
-
-    public static TestUseCase testUseCase(final Class<?> useCaseClass,
-                                          final EventType eventType,
-                                          final BiConsumer<MessageBus, TestEnvironment> messageBusSetup,
-                                          final Supplier<Object> instantiationFunction,
-                                          final Consumer<DeserializationStep1Builder> deserializationEnhancer,
-                                          final Consumer<ResponseSerializationStep1Builder> serializationEnhancer,
-                                          final Consumer<Step3Builder<?>> customCallingLogic,
-                                          final Object request,
-                                          final Object result,
-                                          final BiConsumer<MessageBusBuilder, TestEnvironment> messageBusEnhancer) {
-        final Function<TestEnvironment, Object> requestObjectSupplier = (testEnvironment) -> request;
-        final Function<TestEnvironment, Object> expectedResultSupplier = (testEnvironment) -> result;
-        return new TestUseCase(useCaseClass, eventType, messageBusSetup, instantiationFunction, deserializationEnhancer,
-                serializationEnhancer, customCallingLogic, requestObjectSupplier, expectedResultSupplier, messageBusEnhancer);
-    }
+    @Getter
+    private final UseCaseBusCall useCaseBusCall;
 
 
     public void performNecessaryResultSubscriptionsOn(final MessageBus messageBus, final TestEnvironment testEnvironment) {
         messageBusSetup.accept(messageBus, testEnvironment);
     }
 
-    public Object getRequestObjectSupplier(final TestEnvironment testEnvironment) {
+    public Object getRequestObject(final TestEnvironment testEnvironment) {
         return requestObjectSupplier.apply(testEnvironment);
     }
 
@@ -153,4 +68,5 @@ public final class TestUseCase {
     public void defineSerialization(ResponseSerializationStep1Builder serializationBuilder) {
         serializationEnhancer.accept(serializationBuilder);
     }
+
 }

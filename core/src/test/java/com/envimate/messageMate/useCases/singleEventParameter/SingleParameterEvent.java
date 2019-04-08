@@ -10,7 +10,7 @@ public final class SingleParameterEvent {
     @Getter
     private final String message;
 
-    public static SingleParameterEvent testUseCaseRequest(final String message) {
+    public static SingleParameterEvent singleParameterEvent(final String message) {
         return new SingleParameterEvent(message);
     }
 }

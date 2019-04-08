@@ -2,6 +2,9 @@ package com.envimate.messageMate.serializedMessageBus;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.concurrent.TimeoutException;
+
+//TODO: test invokeAndWaitWithError / without Error
 public interface SerializedMessageBusSpecs {
 
     //send and receive maps
@@ -118,6 +121,132 @@ public interface SerializedMessageBusSpecs {
                 .then(SerializedMessageBusValidationBuilder.expectTheTimeoutToBeOccurred());
     }
 
-    //TODO: unsubscribe
-    //TODO: errors
+    //invokeAndWait serializedOnly
+    @Test
+    default void testSerializedMessageBus_canWaitForSerializedOnlyVersion(final SerializedMessageBusTestConfig testConfig) {
+        Given.given(SerializedMessageBusSetupBuilder.aSerializedMessageBus(testConfig)
+                .withASubscriberSendingCorrelatedResponse())
+                .when(SerializedMessageBusActionBuilder.anObjectIsSendAndTheNotSerializedResultIsWaited())
+                .then(SerializedMessageBusValidationBuilder.expectToHaveWaitedUntilTheNotSerializedResponseWasReceived());
+    }
+
+    @Test
+    default void testSerializedMessageBus_canWaitForSerializedOnyVersionResultWithTimeout(final SerializedMessageBusTestConfig testConfig) {
+        Given.given(SerializedMessageBusSetupBuilder.aSerializedMessageBus(testConfig)
+                .withASubscriberSendingCorrelatedResponse())
+                .when(SerializedMessageBusActionBuilder.anObjectIsSendAndTheNotSerializedResultIsWaitedWithTimeOut())
+                .then(SerializedMessageBusValidationBuilder.expectToHaveWaitedUntilTheNotSerializedResponseWasReceived());
+    }
+
+    @Test
+    default void testSerializedMessageBus_serializedOnyVersionIsStoppedByTimeOutWhenNoResultIsReceived(final SerializedMessageBusTestConfig testConfig) {
+        Given.given(SerializedMessageBusSetupBuilder.aSerializedMessageBus(testConfig))
+                .when(SerializedMessageBusActionBuilder.anObjectIsSendAndTheNotSerializedResultIsWaitedWithTimeOut())
+                .then(SerializedMessageBusValidationBuilder.expectTheTimeoutToBeOccurred());
+    }
+
+
+    //unsubscribe
+    @Test
+    default void testSerializedMessageBus_canUnsubscribe(final SerializedMessageBusTestConfig testConfig) {
+        Given.given(SerializedMessageBusSetupBuilder.aSerializedMessageBus(testConfig)
+                .withAMapSubscriber()
+                .withADeserializedSubscriber())
+                .when(SerializedMessageBusActionBuilder.theSubscriberUnsubscribe())
+                .then(SerializedMessageBusValidationBuilder.expectNoRemainingSubscriber());
+    }
+
+    //errors: invokeAndWait
+    @Test
+    default void testSerializedMessageBus_invokeAndWaitBubblesUnderlyingExceptionUp(final SerializedMessageBusTestConfig testConfig) {
+        Given.given(SerializedMessageBusSetupBuilder.aSerializedMessageBus(testConfig)
+                .withASubscriberThrowingError())
+                .when(SerializedMessageBusActionBuilder.aMapIsSendAndTheResultIsWaited())
+                .then(SerializedMessageBusValidationBuilder.expectAnExecutionExceptionWithTheCorrectCause());
+    }
+
+    @Test
+    default void testSerializedMessageBus_invokeAndWaitSerializedOnlyBubblesUnderlyingExceptionUp(final SerializedMessageBusTestConfig testConfig) {
+        Given.given(SerializedMessageBusSetupBuilder.aSerializedMessageBus(testConfig)
+                .withASubscriberThrowingError())
+                .when(SerializedMessageBusActionBuilder.anObjectIsSendAndTheResultIsWaited())
+                .then(SerializedMessageBusValidationBuilder.expectAnExecutionExceptionWithTheCorrectCause());
+    }
+
+    @Test
+    default void testSerializedMessageBus_invokeAndWaitDeserializedBubblesUnderlyingExceptionUp(final SerializedMessageBusTestConfig testConfig) {
+        Given.given(SerializedMessageBusSetupBuilder.aSerializedMessageBus(testConfig)
+                .withASubscriberThrowingError())
+                .when(SerializedMessageBusActionBuilder.anObjectIsSendAndTheNotSerializedResultIsWaited())
+                .then(SerializedMessageBusValidationBuilder.expectAnExecutionExceptionWithTheCorrectCause());
+    }
+
+    //errors: missing serialization mapping
+    @Test
+    default void testSerializedMessageBus_anExceptionIsThrownForMissingSerializationMapping_forInvokeAndWaitDeserialized(final SerializedMessageBusTestConfig testConfig) {
+        Given.given(SerializedMessageBusSetupBuilder.aSerializedMessageBus(testConfig))
+                .when(SerializedMessageBusActionBuilder.anObjectWithoutKnownSerializationIsSend())
+                .then(SerializedMessageBusValidationBuilder.expectAnExecutionExceptionFor(TestMissingSerializationException.class));
+    }
+
+    @Test
+    default void testSerializedMessageBus_anExceptionIsThrownForMissingSerializationMapping_forInvokeAndWaitDeserializedWithTimeout(final SerializedMessageBusTestConfig testConfig) {
+        Given.given(SerializedMessageBusSetupBuilder.aSerializedMessageBus(testConfig))
+                .when(SerializedMessageBusActionBuilder.anObjectWithoutKnownSerializationIsSendWithTimeout())
+                .then(SerializedMessageBusValidationBuilder.expectAnExecutionExceptionFor(TestMissingSerializationException.class));
+    }
+
+    @Test
+    default void testSerializedMessageBus_anExceptionIsThrownForMissingSerializationMapping_forInvokeAndSerializeOnly(final SerializedMessageBusTestConfig testConfig) {
+        Given.given(SerializedMessageBusSetupBuilder.aSerializedMessageBus(testConfig))
+                .when(SerializedMessageBusActionBuilder.anObjectWithoutKnownSerializationIsSendForInvokeAndSerializeOnly())
+                .then(SerializedMessageBusValidationBuilder.expectAnExecutionExceptionFor(TestMissingSerializationException.class));
+    }
+
+    @Test
+    default void testSerializedMessageBus_anExceptionIsThrownForMissingSerializationMapping_forInvokeAndSerializeOnlyWithTimeout(final SerializedMessageBusTestConfig testConfig) {
+        Given.given(SerializedMessageBusSetupBuilder.aSerializedMessageBus(testConfig))
+                .when(SerializedMessageBusActionBuilder.anObjectWithoutKnownSerializationIsSendForInvokeAndSerializeOnlyWithTimeout())
+                .then(SerializedMessageBusValidationBuilder.expectAnExecutionExceptionFor(TestMissingSerializationException.class));
+    }
+
+    //errors: missing deserialization mapping
+    @Test
+    default void testSerializedMessageBus_anExceptionIsThrownForMissingDeserializationMapping_forInvokeAndWaitDeserialized(final SerializedMessageBusTestConfig testConfig) {
+        Given.given(SerializedMessageBusSetupBuilder.aSerializedMessageBus(testConfig)
+                .withASubscriberSendingCorrelatedResponse())
+                .when(SerializedMessageBusActionBuilder.anObjectWithoutKnownReturnValueDeserializationIsSend())
+                .then(SerializedMessageBusValidationBuilder.expectAnExecutionExceptionFor(TestMissingDeserializationException.class));
+    }
+
+    @Test
+    default void testSerializedMessageBus_anExceptionIsThrownForMissingDeserializationMapping_forInvokeAndSerializeOnly(final SerializedMessageBusTestConfig testConfig) {
+        Given.given(SerializedMessageBusSetupBuilder.aSerializedMessageBus(testConfig)
+                .withASubscriberSendingCorrelatedResponse())
+                .when(SerializedMessageBusActionBuilder.anObjectWithoutKnownReturnValueDeserializationIsSendWithTimeout())
+                .then(SerializedMessageBusValidationBuilder.expectAnExecutionExceptionFor(TestMissingDeserializationException.class));
+    }
+
+    //errors: timeout when no response
+    @Test
+    default void testSerializedMessageBus_invokeAndWaitThrowsTimeoutExceptionWhenNoResponseIsReceived(final SerializedMessageBusTestConfig testConfig) {
+        Given.given(SerializedMessageBusSetupBuilder.aSerializedMessageBus(testConfig))
+                .when(SerializedMessageBusActionBuilder.aMapIsSendAndTheResultIsWaitedWithTimeout())
+                .then(SerializedMessageBusValidationBuilder.expectTheException(TimeoutException.class));
+    }
+
+    @Test
+    default void testSerializedMessageBus_invokeAndWaitSerializedOnlyThrowsTimeoutExceptionWhenNoResponseIsReceived(final SerializedMessageBusTestConfig testConfig) {
+        Given.given(SerializedMessageBusSetupBuilder.aSerializedMessageBus(testConfig))
+                .when(SerializedMessageBusActionBuilder.anObjectIsSendAndTheNotSerializedResultIsWaitedWithTimeOut())
+                .then(SerializedMessageBusValidationBuilder.expectTheException(TimeoutException.class));
+    }
+
+    @Test
+    default void testSerializedMessageBus_invokeAndWaitDeserializedOnlyThrowsTimeoutExceptionWhenNoResponseIsReceived(final SerializedMessageBusTestConfig testConfig) {
+        Given.given(SerializedMessageBusSetupBuilder.aSerializedMessageBus(testConfig))
+                .when(SerializedMessageBusActionBuilder.anObjectIsSendAndTheResultIsWaitedWithTimeout())
+                .then(SerializedMessageBusValidationBuilder.expectTheException(TimeoutException.class));
+    }
+
 }

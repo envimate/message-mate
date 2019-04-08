@@ -17,7 +17,7 @@ public class UseCaseBusImpl implements UseCaseBus {
     private final SerializedMessageBus serializedMessageBus;
 
     @Override
-    public <P, E> PayloadAndErrorPayload<P, E> invokeAndWait(EventType eventType, Object data, Class<P> payloadClass, Class<E> errorPayloadClass) throws InterruptedException, ExecutionException, TimeoutException {
+    public <P, E> PayloadAndErrorPayload<P, E> invokeAndWait(EventType eventType, Object data, Class<P> payloadClass, Class<E> errorPayloadClass) throws InterruptedException, ExecutionException {
         return serializedMessageBus.invokeAndWaitDeserialized(eventType, data, payloadClass, errorPayloadClass);
     }
 
@@ -27,12 +27,12 @@ public class UseCaseBusImpl implements UseCaseBus {
     }
 
     @Override
-    public PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> invokeAndWaitNotDeserialized(EventType eventType, Object data) throws InterruptedException, ExecutionException, TimeoutException {
-        return serializedMessageBus.invokeAndWait(eventType, data);
+    public PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> invokeAndWaitNotDeserialized(EventType eventType, Object data) throws InterruptedException, ExecutionException {
+        return serializedMessageBus.invokeAndWaitSerializedOnly(eventType, data);
     }
 
     @Override
     public PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> invokeAndWaitNotDeserialized(EventType eventType, Object data, long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        return serializedMessageBus.invokeAndWait(eventType, data);
+        return serializedMessageBus.invokeAndWaitSerializedOnly(eventType, data);
     }
 }

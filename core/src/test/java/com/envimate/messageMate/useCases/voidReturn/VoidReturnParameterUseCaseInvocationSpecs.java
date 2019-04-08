@@ -1,10 +1,10 @@
 package com.envimate.messageMate.useCases.voidReturn;
 
 
-import com.envimate.messageMate.useCases.UseCaseAdapterSpecs;
+import com.envimate.messageMate.useCases.UseCaseInvocationSpecs;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(VoidReturnConfigurationResolver.class)
-public class VoidReturnParameterUseCaseAdapterSpecs implements UseCaseAdapterSpecs {
+public class VoidReturnParameterUseCaseInvocationSpecs implements UseCaseInvocationSpecs {
 
 }
