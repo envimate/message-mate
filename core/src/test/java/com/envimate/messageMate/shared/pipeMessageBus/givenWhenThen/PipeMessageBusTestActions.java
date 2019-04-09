@@ -97,7 +97,7 @@ public final class PipeMessageBusTestActions {
     public static void sendSeveralMessagesAsynchronouslyBeforeTheObjectIsShutdown(final PipeMessageBusSutActions sutActions,
                                                                                   final TestEnvironment testEnvironment,
                                                                                   final int numberOfSenders, final int numberOfMessages) {
-        sendMessagesBeforeShutdownAsynchronously(sutActions::subscribe, sutActions::send, sutActions::close,
+        sendMessagesBeforeShutdownAsynchronouslyClassBased(sutActions::subscribe, sutActions::send, sutActions::close,
                 testEnvironment, numberOfSenders, numberOfMessages);
     }
 
@@ -105,7 +105,7 @@ public final class PipeMessageBusTestActions {
                                                                                   final TestEnvironment testEnvironment,
                                                                                   final int numberOfSenders, final int numberOfMessages,
                                                                                   final boolean finishRemainingTasks) {
-        sendMessagesBeforeShutdownAsynchronously(sutActions::subscribe, sutActions::send, ignored -> sutActions.close(finishRemainingTasks),
+        sendMessagesBeforeShutdownAsynchronouslyClassBased(sutActions::subscribe, sutActions::send, ignored -> sutActions.close(finishRemainingTasks),
                 testEnvironment, numberOfSenders, numberOfMessages);
     }
 

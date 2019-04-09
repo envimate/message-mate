@@ -19,25 +19,11 @@
  * under the License.
  */
 
-package com.envimate.messageMate.useCases.useCaseAdapter.mapping;
+package com.envimate.messageMate.mapping;
 
 import java.util.Map;
-import java.util.function.BiPredicate;
 
-import static com.envimate.messageMate.useCases.useCaseAdapter.mapping.RequestMapperException.requestMapperException;
-
-public final class RequestFilters {
-
-    private RequestFilters() {
-    }
-
-    public static <T extends Class<?>> BiPredicate<T, Map<String, Object>> areOfType(final T type) {
-        return (requestedType, map) -> type.isAssignableFrom(requestedType);
-    }
-
-    public static RequestMapper<Object> failWithMessage(final String message) {
-        return (responseBuilder, metaData) -> {
-            throw requestMapperException(message);
-        };
-    }
+@FunctionalInterface
+public interface Mapifier<T> {
+    Map<String, Object> map(T object);
 }

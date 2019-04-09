@@ -26,6 +26,7 @@ public class VoidReturnConfigurationResolver extends AbstractTestConfigProvider 
         return TestUseCase.class;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected Object testConfig() {
         return TestUseCaseBuilder.aTestUseCase()

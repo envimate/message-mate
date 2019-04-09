@@ -19,11 +19,18 @@
  * under the License.
  */
 
-package com.envimate.messageMate.useCases.useCaseAdapter.mapping;
+package com.envimate.messageMate.mapping;
 
-import java.util.Map;
+import static java.lang.String.format;
 
-@FunctionalInterface
-public interface RequestMapper<T> {
-    T map(Class<T> targetType, Map<String, Object> map);
+public final class MissingSerializationException extends RuntimeException {
+
+    private MissingSerializationException(final String message) {
+        super(message);
+    }
+
+    public static MissingSerializationException responseMapperException(final String message, final Object object) {
+        final String formatted = format(message, object);
+        return new MissingSerializationException(formatted);
+    }
 }

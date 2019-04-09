@@ -119,6 +119,7 @@ public final class TestMessageFunctionValidationBuilder {
     }
 
     private static void assertCorrectResponseProcessingContext(final ResponseFuture responseFuture, final TestEnvironment testEnvironment) {
+        @SuppressWarnings("unchecked")
         final ProcessingContext<Object> expectedProcessingContext = (ProcessingContext<Object>) testEnvironment.getProperty(RESPONSE_PROCESSING_CONTEXT);
         final Object errorPayload = expectedProcessingContext.getErrorPayload();
         final boolean wasSuccessfull = errorPayload == null;
@@ -196,7 +197,7 @@ public final class TestMessageFunctionValidationBuilder {
         });
     }
 
-    public static TestMessageFunctionValidationBuilder expectTheTimeoutToBeTriggered() {
+    public static TestMessageFunctionValidationBuilder expectTheTimeoutToBeTriggeredAtTheCorrectTime() {
         return new TestMessageFunctionValidationBuilder(testEnvironment -> {
             ensureNoExceptionThrown(testEnvironment);
             final long timeoutInMillis = testEnvironment.getPropertyAsType(RESULT, long.class);

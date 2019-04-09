@@ -154,17 +154,11 @@ public final class AsynchronousSendingTestUtils {
         }
     }
 
-    public static void sendMessagesBeforeShutdownAsynchronously(final PipeMessageBusSutActions sutActions,
-                                                                final TestEnvironment testEnvironment,
-                                                                final int numberOfSenders, final int numberOfMessages) {
-        sendMessagesBeforeShutdownAsynchronously(sutActions::subscribe, sutActions::send, sutActions::close, testEnvironment, numberOfSenders, numberOfMessages);
-    }
-
-    public static void sendMessagesBeforeShutdownAsynchronously(final BiConsumer<Class<TestMessageOfInterest>, Subscriber<TestMessageOfInterest>> subscriberConsumer,
-                                                                final Consumer<TestMessage> sendConsumer,
-                                                                final Consumer<Boolean> closeConsumer,
-                                                                final TestEnvironment testEnvironment,
-                                                                final int numberOfSenders, final int numberOfMessages) {
+    public static void sendMessagesBeforeShutdownAsynchronouslyClassBased(final BiConsumer<Class<TestMessageOfInterest>, Subscriber<TestMessageOfInterest>> subscriberConsumer,
+                                                                          final Consumer<TestMessage> sendConsumer,
+                                                                          final Consumer<Boolean> closeConsumer,
+                                                                          final TestEnvironment testEnvironment,
+                                                                          final int numberOfSenders, final int numberOfMessages) {
         final Semaphore semaphore = new Semaphore(0);
         testEnvironment.setProperty(EXECUTION_END_SEMAPHORE, semaphore);
         final BlockingTestSubscriber<TestMessageOfInterest> subscriber = blockingTestSubscriber(semaphore);

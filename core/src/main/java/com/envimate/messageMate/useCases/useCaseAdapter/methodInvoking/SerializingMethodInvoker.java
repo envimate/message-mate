@@ -21,8 +21,8 @@
 
 package com.envimate.messageMate.useCases.useCaseAdapter.methodInvoking;
 
-import com.envimate.messageMate.useCases.useCaseAdapter.mapping.RequestDeserializer;
-import com.envimate.messageMate.useCases.useCaseAdapter.mapping.ResponseSerializer;
+import com.envimate.messageMate.mapping.Deserializer;
+import com.envimate.messageMate.mapping.Serializer;
 import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.InvocationTargetException;
@@ -43,18 +43,19 @@ public final class SerializingMethodInvoker implements UseCaseMethodInvoker {
 
     @Override
     public Map<String, Object> invoke(final Object useCase,
-                         final Object event,
-                         final RequestDeserializer requestDeserializer,
-                         final ResponseSerializer responseSerializer) {
+                                      final Object event,
+                                      final Deserializer requestDeserializer,
+                                      final Serializer responseSerializer) {
         try {
             final Class<?>[] parameterTypes = useCaseMethod.getParameterTypes();
 
-            final Map<String, Object> map = (Map<String, Object>) event; //TODO: use good exception for ClassCastException + test
+            @SuppressWarnings("unchecked")
+            final Map<String, Object> map = (Map<String, Object>) event;
             final Object[] parameters = stream(parameterTypes)
-                    .map(parameterType -> requestDeserializer.deserializeRequest(parameterType, map))
+                    .map(parameterType -> requestDeserializer.deserialize(parameterType, map))
                     .toArray();
             final Object returnValue = useCaseMethod.invoke(useCase, parameters);
-            return responseSerializer.serializeReturnValue(returnValue);
+            return responseSerializer.serialize(returnValue);
         } catch (final IllegalAccessException e) {
             final Class<?> useCaseClass = useCase.getClass();
             throw methodInvocationException(useCaseClass, useCase, useCaseMethod, event, e);

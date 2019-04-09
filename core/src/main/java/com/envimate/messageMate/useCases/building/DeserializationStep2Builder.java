@@ -21,8 +21,8 @@
 
 package com.envimate.messageMate.useCases.building;
 
-import com.envimate.messageMate.useCases.useCaseAdapter.mapping.RequestMapper;
+import com.envimate.messageMate.mapping.Demapifier;
 
 public interface DeserializationStep2Builder<T> {
-    DeserializationStep1Builder using(RequestMapper<T> requestMapper);
+    DeserializationStep1Builder using(Demapifier<T> deMapifier);
 }

@@ -19,29 +19,20 @@
  * under the License.
  */
 
-package com.envimate.messageMate.useCases.useCaseAdapter.mapping;
+package com.envimate.messageMate.mapping;
 
-import com.envimate.messageMate.internal.collections.filtermap.FilterMap;
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Map;
+import java.util.function.BiPredicate;
 
-import static com.envimate.messageMate.internal.enforcing.NotNullEnforcer.ensureNotNull;
+import static lombok.AccessLevel.PRIVATE;
 
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public final class ResponseSerializer {
+@RequiredArgsConstructor(access = PRIVATE)
+public final class DeserializationFilters {
 
-    private final FilterMap<Object, Void, ResponseMapper<Object>> returnValueMappers;
-
-    public static ResponseSerializer responseSerializer(
-            final FilterMap<Object, Void, ResponseMapper<Object>> returnValueMappers) {
-        ensureNotNull(returnValueMappers, "returnValueMappers");
-        return new ResponseSerializer(returnValueMappers);
+    public static <T extends Class<?>> BiPredicate<T, Map<String, Object>> areOfType(final T type) {
+        return (requestedType, map) -> type.isAssignableFrom(requestedType);
     }
 
-    public Map<String, Object> serializeReturnValue(final Object returnValue) {
-        final ResponseMapper<Object> mapper = returnValueMappers.get(returnValue, null);
-        return mapper.map(returnValue);
-    }
 }

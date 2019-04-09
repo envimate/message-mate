@@ -19,33 +19,34 @@
  * under the License.
  */
 
-package com.envimate.messageMate.internal.collections.filtermap;
+package com.envimate.messageMate.mapping;
 
+import com.envimate.messageMate.internal.collections.filtermap.FilterMap;
 import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
-import java.util.List;
+import java.util.Map;
 
 import static com.envimate.messageMate.internal.enforcing.NotNullEnforcer.ensureNotNull;
 
+@ToString
+@EqualsAndHashCode
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public final class FilterMap<F, G, T> {
-    private final List<FilterMapEntry<F, G, T>> entries;
-    private final T defaultValue;
+public final class Deserializer {
+    private final FilterMap<Class<?>, Map<String, Object>, Demapifier<?>> requestMappers;
 
-    static <F, G, T> FilterMap<F, G, T> filterMap(final List<FilterMapEntry<F, G, T>> entries,
-                                                  final T defaultValue) {
-        ensureNotNull(entries, "entries");
-        ensureNotNull(defaultValue, "defaultValue");
-        return new FilterMap<>(entries, defaultValue);
+    public static Deserializer requestDeserializer(
+            final FilterMap<Class<?>, Map<String, Object>, Demapifier<?>> requestMappers) {
+        ensureNotNull(requestMappers, "requestMappers");
+        return new Deserializer(requestMappers);
     }
 
-    public T get(final F condition1,
-                 final G condition2) {
-        return entries.stream()
-                .filter(entry -> entry.test(condition1, condition2))
-                .map(FilterMapEntry::value)
-                .findFirst()
-                .orElse(defaultValue);
+    @SuppressWarnings("unchecked")
+    public <T> T deserialize(final Class<T> type,
+                             final Map<String, Object> map) {
+        final Demapifier<T> demapifier = (Demapifier<T>) requestMappers.get(type, map);
+        return demapifier.map(type, map);
     }
 }

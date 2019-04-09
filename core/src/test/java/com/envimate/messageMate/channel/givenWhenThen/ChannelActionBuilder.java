@@ -29,8 +29,10 @@ import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.qcec.shared.TestAction;
+import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.AsynchronousSendingTestUtils;
 import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
 import com.envimate.messageMate.shared.subscriber.TestSubscriber;
+import com.envimate.messageMate.shared.testMessages.ErrorTestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 import com.envimate.messageMate.subscribing.Subscriber;
@@ -43,8 +45,8 @@ import java.util.function.BiConsumer;
 import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestActions.*;
 import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestProperties.*;
 import static com.envimate.messageMate.channel.givenWhenThen.FilterPosition.*;
+import static com.envimate.messageMate.processingContext.ProcessingContext.processingContext;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.AsynchronousSendingTestUtils.sendMessagesBeforeShutdownAsynchronously;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.AsynchronousSendingTestUtils.sendValidMessagesAsynchronously;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.EXPECTED_CORRELATION_ID;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.SEND_MESSAGE_ID;
@@ -96,7 +98,18 @@ public final class ChannelActionBuilder {
 
     public static ChannelActionBuilder aProcessingContextObjectIsSend() {
         return anAction((channel, testEnvironment) -> {
-            final ProcessingContext<TestMessage> processingContext = ProcessingContext.processingContext(DEFAULT_TEST_MESSAGE);
+            final ProcessingContext<TestMessage> processingContext = processingContext(DEFAULT_EVENT_TYPE, DEFAULT_TEST_MESSAGE);
+            testEnvironment.setProperty(EXPECTED_RESULT, processingContext);
+            channel.send(processingContext);
+            return null;
+        });
+    }
+
+
+    public static ChannelActionBuilder aMessageWithoutPayloadAndErrorPayloadIsSend() {
+        return anAction((channel, testEnvironment) -> {
+            final ErrorTestMessage errorTestMessage = ErrorTestMessage.errorTestMessage("some error");
+            final ProcessingContext<TestMessage> processingContext = ProcessingContext.processingContextForPayloadAndError(null, DEFAULT_TEST_MESSAGE, errorTestMessage);
             testEnvironment.setProperty(EXPECTED_RESULT, processingContext);
             channel.send(processingContext);
             return null;
@@ -126,7 +139,7 @@ public final class ChannelActionBuilder {
 
     public static ChannelActionBuilder severalMessagesAreSendAsynchronouslyBeforeTheChannelIsClosedWithoutFinishingRemainingTasks(final int numberOfMessages) {
         return anAction((channel, testEnvironment) -> {
-            sendMessagesBeforeShutdownAsynchronously(addSubscriber(channel), channel::send,
+            AsynchronousSendingTestUtils.sendMessagesBeforeShutdownAsynchronouslyClassBased(addSubscriber(channel), channel::send,
                     channel::close, testEnvironment, numberOfMessages, 1);
             return null;
         });
@@ -134,7 +147,7 @@ public final class ChannelActionBuilder {
 
     public static ChannelActionBuilder sendMessagesBeforeTheShutdownIsAwaitedWithoutFinishingTasks(final int numberOfMessages) {
         return anAction((channel, testEnvironment) -> {
-            sendMessagesBeforeShutdownAsynchronously(addSubscriber(channel), channel::send,
+            AsynchronousSendingTestUtils.sendMessagesBeforeShutdownAsynchronouslyClassBased(addSubscriber(channel), channel::send,
                     ignored -> {
                         try {
                             channel.close(false);

@@ -149,6 +149,13 @@ public interface ChannelSpecs {
                 .when(aMessageWithoutPayloadIsSend())
                 .then(expectTheMessageToBeConsumed());
     }
+    @Test
+    default void testChannel_canSendBothNormalAndErrorPayload(final ChannelTestConfig channelTestConfig) {
+        given(aConfiguredChannel(channelTestConfig)
+                .withDefaultActionConsume())
+                .when(aMessageWithoutPayloadAndErrorPayloadIsSend())
+                .then(expectTheMessageToBeConsumed());
+    }
 
 
     //filter

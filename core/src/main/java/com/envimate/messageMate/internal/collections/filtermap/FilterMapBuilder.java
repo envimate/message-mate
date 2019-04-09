@@ -33,16 +33,16 @@ import static com.envimate.messageMate.internal.collections.filtermap.FilterMapE
 import static com.envimate.messageMate.internal.enforcing.NotNullEnforcer.ensureNotNull;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public final class FilterMapBuilder<F1, F2, T> {
-    private final List<FilterMapEntry<F1, F2, T>> entries;
+public final class FilterMapBuilder<F, G, T> {
+    private final List<FilterMapEntry<F, G, T>> entries;
     private T defaultValue;
 
-    public static <F1, F2, T> FilterMapBuilder<F1, F2, T> filterMapBuilder() {
+    public static <F, G, T> FilterMapBuilder<F, G, T> filterMapBuilder() {
         return new FilterMapBuilder<>(new CopyOnWriteArrayList<>());
     }
 
-    public FilterMapBuilder<F1, F2, T> put(final BiPredicate<F1, F2> filter, final T value) {
-        final FilterMapEntry<F1, F2, T> entry = filterMapEntry(filter, value);
+    public FilterMapBuilder<F, G, T> put(final BiPredicate<F, G> filter, final T value) {
+        final FilterMapEntry<F, G, T> entry = filterMapEntry(filter, value);
         entries.add(entry);
         return this;
     }
@@ -52,7 +52,7 @@ public final class FilterMapBuilder<F1, F2, T> {
         this.defaultValue = defaultValue;
     }
 
-    public FilterMap<F1, F2, T> build() {
+    public FilterMap<F, G, T> build() {
         return filterMap(entries, defaultValue);
     }
 }

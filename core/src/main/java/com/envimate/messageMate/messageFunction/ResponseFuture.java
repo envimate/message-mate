@@ -43,11 +43,13 @@ public interface ResponseFuture extends Future<Object> {
 
     Object getErrorResponse() throws InterruptedException, ExecutionException;
 
-    Object getErrorResponse(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
+    Object getErrorResponse(long timeout,
+                            TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
 
     ProcessingContext<Object> getRaw() throws InterruptedException, ExecutionException;
 
-    ProcessingContext<Object> getRaw(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
+    ProcessingContext<Object> getRaw(long timeout,
+                                     TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
 
     /**
      * Adds a {@code FollowUpAction}, that gets executed, once the Future is fulfilled.

@@ -115,7 +115,8 @@ public final class ExpectedResponseFuture implements ResponseFuture {
     }
 
     @Override
-    public Object getErrorResponse(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+    public Object getErrorResponse(final long timeout,
+                                   final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         return getResponse(() -> response.getErrorPayload(), timeout, unit);
     }
 
@@ -125,7 +126,9 @@ public final class ExpectedResponseFuture implements ResponseFuture {
     }
 
     @Override
-    public ProcessingContext<Object> getRaw(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+    public ProcessingContext<Object> getRaw(
+            final long timeout,
+            final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         return getResponse(() -> response, timeout, unit);
     }
 
@@ -146,7 +149,10 @@ public final class ExpectedResponseFuture implements ResponseFuture {
         }
     }
 
-    private <T> T getResponse(final Supplier<T> responseSupplier, final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+    private <T> T getResponse(
+            final Supplier<T> responseSupplier,
+            final long timeout,
+            final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         if (!isDone()) {
             if (!countDownLatch.await(timeout, unit)) {
                 throw new TimeoutException("Response future timed out");

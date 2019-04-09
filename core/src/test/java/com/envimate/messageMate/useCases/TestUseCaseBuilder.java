@@ -70,7 +70,7 @@ public class TestUseCaseBuilder {
     }
 
 
-    public <T> TestUseCaseBuilder withAParameterSerialization(Class<T> type, BiConsumer<T, Map<String, Object>> serialization) {
+    public <T> TestUseCaseBuilder withAParameterSerialization(final Class<T> type, final BiConsumer<T, Map<String, Object>> serialization) {
         this.serializationDefinition.add(responseSerializationStep1Builder -> {
             responseSerializationStep1Builder.serializingResponseObjectsOfType(type)
                     .using(object -> {
@@ -82,7 +82,7 @@ public class TestUseCaseBuilder {
         return this;
     }
 
-    public TestUseCaseBuilder withAParameterSerialization(Predicate<Object> predicate, BiConsumer<Object, Map<String, Object>> serialization) {
+    public TestUseCaseBuilder withAParameterSerialization(final Predicate<Object> predicate, final BiConsumer<Object, Map<String, Object>> serialization) {
         this.serializationDefinition.add(responseSerializationStep1Builder -> {
             responseSerializationStep1Builder.serializingResponseObjectsThat(predicate)
                     .using(object -> {
@@ -95,7 +95,7 @@ public class TestUseCaseBuilder {
     }
 
 
-    public <T> TestUseCaseBuilder withAUseCaseInvocationRequestSerialization(Class<T> type, BiConsumer<T, Map<String, Object>> serialization) {
+    public <T> TestUseCaseBuilder withAUseCaseInvocationRequestSerialization(final Class<T> type, final BiConsumer<T, Map<String, Object>> serialization) {
         return withAParameterSerialization(type, serialization);
     }
 
@@ -124,7 +124,7 @@ public class TestUseCaseBuilder {
         return this;
     }
 
-    public <T> TestUseCaseBuilder withParameterDeserialization(Class<T> type, Function<Map<String, Object>, T> deserialization) {
+    public <T> TestUseCaseBuilder withParameterDeserialization(final Class<T> type, final Function<Map<String, Object>, T> deserialization) {
         this.deserializationDefinition.add(deserializationStep1Builder -> {
             deserializationStep1Builder.mappingRequestsToUseCaseParametersOfType(type).using((targetType, map) -> {
                 return deserialization.apply(map);
@@ -134,7 +134,7 @@ public class TestUseCaseBuilder {
     }
 
 
-    public TestUseCaseBuilder withAUseCaseInvocationResponseDeserialization(BiPredicate<Class<?>, Map<String, Object>> predicate, Function<Map<String, Object>, Object> deserialization) {
+    public TestUseCaseBuilder withAUseCaseInvocationResponseDeserialization(final BiPredicate<Class<?>, Map<String, Object>> predicate, final Function<Map<String, Object>, Object> deserialization) {
         this.deserializationDefinition.add(responseSerializationStep1Builder -> {
             responseSerializationStep1Builder.mappingRequestsToUseCaseParametersThat(predicate)
                     .using((targetType, map) -> {
@@ -144,22 +144,23 @@ public class TestUseCaseBuilder {
         return this;
     }
 
-    public <T> TestUseCaseBuilder withAUseCaseInvocationResponseDeserialization(Class<T> type, Function<Map<String, Object>, T> deserialization) {
+    public <T> TestUseCaseBuilder withAUseCaseInvocationResponseDeserialization(final Class<T> type, final Function<Map<String, Object>, T> deserialization) {
         return withParameterDeserialization(type, deserialization);
     }
 
-    public TestUseCaseBuilder withAUseCaseInvocationRequestSerialization(Predicate<Object> predicate, BiConsumer<Object, Map<String, Object>> serialization) {
+    public TestUseCaseBuilder withAUseCaseInvocationRequestSerialization(final Predicate<Object> predicate, final BiConsumer<Object, Map<String, Object>> serialization) {
         return withAParameterSerialization(predicate, serialization);
     }
 
-    public TestUseCaseBuilder instantiatingUseCaseWith(Supplier<Object> useCaseInstanceSupplier) {
+    public TestUseCaseBuilder instantiatingUseCaseWith(final Supplier<Object> useCaseInstanceSupplier) {
         this.useCaseInstanceSupplier = useCaseInstanceSupplier;
         return this;
     }
 
-    public TestUseCaseBuilder callingUseCaseWith(CustomUseCaseCall customUseCaseCall) {
+    public TestUseCaseBuilder callingUseCaseWith(final CustomUseCaseCall customUseCaseCall) {
         this.useCaseCall = step3Builder -> {
             step3Builder.callingBy((useCase, event, requestDeserializer, responseSerializer) -> {
+                @SuppressWarnings("unchecked")
                 final Map<String, Object> requestMap = (Map<String, Object>) event;
                 final Map<String, Object> responseMap = new HashMap<>();
                 customUseCaseCall.call(useCase, requestMap, responseMap);
@@ -169,17 +170,17 @@ public class TestUseCaseBuilder {
         return this;
     }
 
-    public TestUseCaseBuilder callingUseCaseWith(Consumer<Step3Builder<?>> customUseCaseCall) {
+    public TestUseCaseBuilder callingUseCaseWith(final Consumer<Step3Builder<?>> customUseCaseCall) {
         this.useCaseCall = customUseCaseCall;
         return this;
     }
 
-    public TestUseCaseBuilder withSetup(BiConsumer<MessageBus, TestEnvironment> setup) {
+    public TestUseCaseBuilder withSetup(final BiConsumer<MessageBus, TestEnvironment> setup) {
         this.setup = setup;
         return this;
     }
 
-    public TestUseCaseBuilder withMessageBusEnhancer(BiConsumer<MessageBusBuilder, TestEnvironment> messageBusEnhancer) {
+    public TestUseCaseBuilder withMessageBusEnhancer(final BiConsumer<MessageBusBuilder, TestEnvironment> messageBusEnhancer) {
         this.messageBusEnhancer = messageBusEnhancer;
         return this;
     }

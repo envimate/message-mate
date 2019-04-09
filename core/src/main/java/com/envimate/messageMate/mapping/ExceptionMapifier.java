@@ -19,15 +19,22 @@
  * under the License.
  */
 
-package com.envimate.messageMate.useCases.useCaseAdapter.mapping;
+package com.envimate.messageMate.mapping;
 
-public final class ResponseMapperException extends RuntimeException {
+import java.util.HashMap;
+import java.util.Map;
 
-    private ResponseMapperException(final String message) {
-        super(message);
+public class ExceptionMapifier implements Mapifier<Exception> {
+    public static final String DEFAULT_EXCEPTION_MAPFIER_KEY = "Exception";
+
+    public static ExceptionMapifier defaultExceptionMapifier() {
+        return new ExceptionMapifier();
     }
 
-    static ResponseMapperException responseMapperException(final String message) {
-        return new ResponseMapperException(message);
+    @Override
+    public Map<String, Object> map(final Exception exception) {
+        final Map<String, Object> map = new HashMap<>();
+        map.put(DEFAULT_EXCEPTION_MAPFIER_KEY, exception);
+        return map;
     }
 }

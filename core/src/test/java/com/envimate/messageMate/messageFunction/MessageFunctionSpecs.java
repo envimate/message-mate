@@ -32,7 +32,6 @@ import static com.envimate.messageMate.messageFunction.givenWhenThen.TestMessage
 import static com.envimate.messageMate.messageFunction.givenWhenThen.TestMessageFunctionSetupBuilder.aMessageFunction;
 import static com.envimate.messageMate.messageFunction.givenWhenThen.TestMessageFunctionValidationBuilder.*;
 
-//TODO: ensure all for timeout testet + correct timeout
 public class MessageFunctionSpecs {
 
     @Test
@@ -124,19 +123,20 @@ public class MessageFunctionSpecs {
     }
 
     @Test
-    public void testMessageFunction_getWaitsForTimeout() {
-        given(aMessageFunction()
-                .definedWithAnUnansweredResponse())
-                .when(forTheResponseIsWaitedASpecificTime())
-                .then(expectTheTimeoutToBeTriggered());
-    }
-
-    @Test
     public void testMessageFunction_isFulFilledForNullResponse() {
         given(aMessageFunction()
                 .withTheRequestAnsweredByANull())
                 .when(aRequestIsSend())
                 .then(expectNullReceived());
+    }
+
+    // timeout
+    @Test
+    public void testMessageFunction_getWaitsForTimeout() {
+        given(aMessageFunction()
+                .definedWithAnUnansweredResponse())
+                .when(forTheResponseIsWaitedASpecificTime())
+                .then(expectTheTimeoutToBeTriggeredAtTheCorrectTime());
     }
 
     //cancelling

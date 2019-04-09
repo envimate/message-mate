@@ -21,5 +21,5 @@
 
 package com.envimate.messageMate.useCases.building;
 
-public interface Step3Builder<USECASE> extends CallingBuilder<USECASE> {
+public interface Step3Builder<U> extends CallingBuilder<U> {
 }

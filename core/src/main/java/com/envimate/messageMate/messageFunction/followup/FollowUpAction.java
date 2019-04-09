@@ -34,6 +34,5 @@ public interface FollowUpAction {
      * @param response      the received response, or {@code null} of an exception was thrown
      * @param exception     the thrown exception or {@code null} otherwise
      */
-    //TODO: split into onError + normal; throw error when error not handled
     void apply(Object response, Object errorResponse, Exception exception);
 }

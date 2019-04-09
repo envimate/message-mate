@@ -36,6 +36,7 @@ import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.internal.exceptions.BubbleUpWrappedException;
 import com.envimate.messageMate.internal.pipe.Pipe;
+import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import lombok.RequiredArgsConstructor;
 
@@ -45,6 +46,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static com.envimate.messageMate.channel.ChannelProcessingFrame.processingFrame;
+import static com.envimate.messageMate.messageBus.EventType.eventTypeFromObjectClass;
+import static com.envimate.messageMate.processingContext.ProcessingContext.processingContext;
 import static lombok.AccessLevel.PRIVATE;
 
 final class ChannelImpl<T> implements Channel<T> {
@@ -93,13 +96,15 @@ final class ChannelImpl<T> implements Channel<T> {
 
     @Override
     public MessageId send(final T message) {
-        final ProcessingContext<T> processingContext = ProcessingContext.processingContext(message);
+        final EventType eventType = eventTypeFromObjectClass(message);
+        final ProcessingContext<T> processingContext = processingContext(eventType, message);
         return send(processingContext);
     }
 
     @Override
     public MessageId send(final T message, final CorrelationId correlationId) {
-        final ProcessingContext<T> processingContext = ProcessingContext.processingContext(message, correlationId);
+        final EventType eventType = eventTypeFromObjectClass(message);
+        final ProcessingContext<T> processingContext = processingContext(eventType, message, correlationId);
         return send(processingContext);
     }
 

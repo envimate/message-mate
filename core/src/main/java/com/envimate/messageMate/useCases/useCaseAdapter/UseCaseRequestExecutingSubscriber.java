@@ -22,15 +22,15 @@
 package com.envimate.messageMate.useCases.useCaseAdapter;
 
 import com.envimate.messageMate.identification.CorrelationId;
+import com.envimate.messageMate.mapping.Deserializer;
+import com.envimate.messageMate.mapping.ExceptionSerializer;
+import com.envimate.messageMate.mapping.Serializer;
 import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.serializedMessageBus.SerializedMessageBus;
 import com.envimate.messageMate.subscribing.AcceptingBehavior;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
-import com.envimate.messageMate.useCases.useCaseAdapter.mapping.ExceptionSerializer;
-import com.envimate.messageMate.useCases.useCaseAdapter.mapping.RequestDeserializer;
-import com.envimate.messageMate.useCases.useCaseAdapter.mapping.ResponseSerializer;
 import com.envimate.messageMate.useCases.useCaseAdapter.usecaseCalling.Caller;
 import com.envimate.messageMate.useCases.useCaseAdapter.usecaseCalling.UseCaseCallingInformation;
 import com.envimate.messageMate.useCases.useCaseAdapter.usecaseInstantiating.UseCaseInstantiator;
@@ -50,19 +50,19 @@ import static lombok.AccessLevel.PRIVATE;
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = PRIVATE)
 final class UseCaseRequestExecutingSubscriber implements Subscriber<ProcessingContext<Map<String, Object>>> {
-    private final UseCaseCallingInformation useCaseCallingInformation;
+    private final UseCaseCallingInformation<?> useCaseCallingInformation;
     private final UseCaseInstantiator useCaseInstantiator;
-    private final RequestDeserializer requestDeserializer;
-    private final ResponseSerializer responseSerializer;
+    private final Deserializer requestDeserializer;
+    private final Serializer responseSerializer;
     private final ExceptionSerializer exceptionSerializer;
     private final SubscriptionId subscriptionId = newUniqueId();
     private SerializedMessageBus serializedMessageBus;
 
     public static UseCaseRequestExecutingSubscriber useCaseRequestExecutingSubscriber(
-            final UseCaseCallingInformation useCaseCallingInformation,
+            final UseCaseCallingInformation<?> useCaseCallingInformation,
             final UseCaseInstantiator useCaseInstantiator,
-            final RequestDeserializer requestDeserializer,
-            final ResponseSerializer responseSerializer,
+            final Deserializer requestDeserializer,
+            final Serializer responseSerializer,
             final ExceptionSerializer exceptionSerializer) {
         ensureNotNull(useCaseCallingInformation, "useCaseCallingInformation");
         ensureNotNull(useCaseInstantiator, "useCaseInstantiator");
@@ -75,7 +75,8 @@ final class UseCaseRequestExecutingSubscriber implements Subscriber<ProcessingCo
 
     @Override
     public AcceptingBehavior accept(final ProcessingContext<Map<String, Object>> processingContext) {
-        final Caller caller = useCaseCallingInformation.getCaller();
+        @SuppressWarnings("unchecked")
+        final Caller<Object> caller = (Caller<Object>) useCaseCallingInformation.getCaller();
         final Class<?> useCaseClass = useCaseCallingInformation.getUseCaseClass();
         final Object useCase = useCaseInstantiator.instantiate(useCaseClass);
         final Map<String, Object> payload = processingContext.getPayload();

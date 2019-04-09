@@ -27,6 +27,7 @@ import com.envimate.messageMate.channel.ChannelStatusInformation;
 import com.envimate.messageMate.channel.action.Action;
 import com.envimate.messageMate.channel.statistics.ChannelStatistics;
 import com.envimate.messageMate.filtering.Filter;
+import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
@@ -49,9 +50,10 @@ import static lombok.AccessLevel.PRIVATE;
 final class ChannelTestActions {
 
     final static TestMessageOfInterest DEFAULT_TEST_MESSAGE = messageOfInterest();
+    final static EventType DEFAULT_EVENT_TYPE = EventType.eventTypeFromString("defaultEventType");
 
     static ProcessingContext<TestMessage> sendMessage(final Channel<TestMessage> channel, final TestMessage testMessage) {
-        final ProcessingContext<TestMessage> processingContext = processingContext(testMessage);
+        final ProcessingContext<TestMessage> processingContext = processingContext(DEFAULT_EVENT_TYPE, testMessage);
         channel.send(processingContext);
         return processingContext;
     }

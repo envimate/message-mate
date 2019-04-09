@@ -41,7 +41,6 @@ import java.util.function.Consumer;
  *
  * @see <a href="https://github.com/envimate/message-mate#messagebus">Message Mate Documentation</a>
  */
-//TODO: error in event-channel does not count as failed in MB statistics
 public interface MessageBus extends NoErrorAutoClosable {
 
     MessageId send(String eventType, Object object);
@@ -102,10 +101,6 @@ public interface MessageBus extends NoErrorAutoClosable {
      */
     void add(Filter<Object> filter);
 
-    void addRaw(Filter<ProcessingContext<Object>> filter);
-
-    void addRaw(Filter<ProcessingContext<Object>> filter, int position);
-
     /**
      * Adds the {@code Filter} to the accepting {@code Channel}
      *
@@ -114,6 +109,10 @@ public interface MessageBus extends NoErrorAutoClosable {
      * @throws ArrayIndexOutOfBoundsException if the position is higher than the number of {@code Filter} or negative
      */
     void add(Filter<Object> filter, int position);
+
+    void addRaw(Filter<ProcessingContext<Object>> filter);
+
+    void addRaw(Filter<ProcessingContext<Object>> filter, int position);
 
     /**
      * Returns all currently added {@code Filters}.

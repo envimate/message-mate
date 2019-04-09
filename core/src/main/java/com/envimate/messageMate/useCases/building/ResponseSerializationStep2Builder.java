@@ -21,8 +21,8 @@
 
 package com.envimate.messageMate.useCases.building;
 
-import com.envimate.messageMate.useCases.useCaseAdapter.mapping.ResponseMapper;
+import com.envimate.messageMate.mapping.Mapifier;
 
 public interface ResponseSerializationStep2Builder<T> {
-    ResponseSerializationStep1Builder using(ResponseMapper<T> responseMapper);
+    ResponseSerializationStep1Builder using(Mapifier<T> mapifier);
 }

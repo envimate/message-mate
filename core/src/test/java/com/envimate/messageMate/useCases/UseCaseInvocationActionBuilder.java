@@ -50,6 +50,7 @@ public final class UseCaseInvocationActionBuilder {
             final Object requestObject = testUseCase.getRequestObject(testEnvironment);
             final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             messageBus.subscribeRaw(UseCaseInvokingResponseEventType.USE_CASE_RESPONSE_EVENT_TYPE, processingContext -> {
+                @SuppressWarnings("unchecked")
                 final Map<String, Object> map = (Map<String, Object>) processingContext.getErrorPayload();
                 testEnvironment.setPropertyIfNotSet(EXCEPTION, map.get("Exception"));
             });

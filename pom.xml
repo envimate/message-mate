@@ -27,7 +27,7 @@
     <parent>
         <groupId>com.envimate</groupId>
         <artifactId>envimate-opensource-parent</artifactId>
-        <version>1.0.7</version>
+        <version>1.0.11</version>
     </parent>
 
 
@@ -41,9 +41,7 @@
 
     <name>message-mate</name>
     <description>
-        HttpMate is a lightweight non-intrusive web framework, which allows you to easily use your services to handle
-        HTTP requests. It delegates the processing of a request based on it's path to one of your services, releasing
-        you from the headache of configuring numerous beans and spoiling your code with annotations.
+        MessageMate provides extensible messaging support on a use case and architectural level.
     </description>
     <url>https://github.com/envimate/message-mate/</url>
     <scm>
@@ -87,6 +85,10 @@
         </repository>
     </distributionManagement>
 
+    <properties>
+        <java.version>11</java.version>
+    </properties>
+
     <build>
         <plugins>
             <plugin>
@@ -101,29 +103,6 @@
                 </configuration>
             </plugin>
         </plugins>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.0.0-M3</version>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.8.0</version>
-                    <configuration>
-                        <compilerArgs>
-                            <arg>-Xlint:all</arg>
-                            <arg>-Xlint:-processing</arg>
-                            <arg>-Xlint:-serial</arg>
-                            <arg>-parameters</arg>
-                        </compilerArgs>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
     </build>
 
 </project>

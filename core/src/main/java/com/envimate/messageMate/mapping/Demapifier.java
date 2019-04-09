@@ -19,11 +19,11 @@
  * under the License.
  */
 
-package com.envimate.messageMate.useCases.useCaseAdapter.mapping;
+package com.envimate.messageMate.mapping;
 
 import java.util.Map;
 
 @FunctionalInterface
-public interface ResponseMapper<T> {
-    Map<String, Object> map(T object);
+public interface Demapifier<T> {
+    T map(Class<T> targetType, Map<String, Object> map);
 }

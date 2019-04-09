@@ -41,7 +41,7 @@
         <version>1.0.2-SNAPSHOT</version>
     </parent>
     <artifactId>core</artifactId>
-    <version>${parent.version}</version>
+    <version>1.0.2-SNAPSHOT</version>
     <name>MessageMate - Core Library</name>
 
     <packaging>jar</packaging>

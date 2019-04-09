@@ -21,13 +21,13 @@
 
 package com.envimate.messageMate.useCases.useCaseAdapter.methodInvoking;
 
-import com.envimate.messageMate.useCases.useCaseAdapter.mapping.RequestDeserializer;
-import com.envimate.messageMate.useCases.useCaseAdapter.mapping.ResponseSerializer;
+import com.envimate.messageMate.mapping.Deserializer;
+import com.envimate.messageMate.mapping.Serializer;
 
 import java.util.Map;
 
 public interface UseCaseMethodInvoker {
 
-    Map<String, Object> invoke(Object useCase, Object event, RequestDeserializer requestDeserializer, ResponseSerializer responseSerializer);
+    Map<String, Object> invoke(Object useCase, Object event, Deserializer requestDeserializer, Serializer responseSerializer);
 
 }

@@ -19,24 +19,19 @@
  * under the License.
  */
 
-package com.envimate.messageMate.useCases.useCaseAdapter.mapping;
+package com.envimate.messageMate.mapping;
+
+import lombok.RequiredArgsConstructor;
 
 import java.util.function.Predicate;
 
-import static com.envimate.messageMate.useCases.useCaseAdapter.mapping.ResponseMapperException.responseMapperException;
+import static lombok.AccessLevel.PRIVATE;
 
-public final class ResponseFilters {
-
-    private ResponseFilters() {
-    }
+@RequiredArgsConstructor(access = PRIVATE)
+public final class SerializationFilters {
 
     public static <T> Predicate<T> areOfType(final Class<?> type) {
         return type::isInstance;
     }
 
-    public static <T> ResponseMapper<T> failWithMessage(final String message) {
-        return object -> {
-            throw responseMapperException(message); //TODO: try to include object
-        };
-    }
 }

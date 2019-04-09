@@ -102,21 +102,6 @@ public final class MessageBusActionBuilder {
         });
     }
 
-    public static MessageBusActionBuilder aProcessingContextIsSend() {
-        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
-            final CorrelationId correlationId = newUniqueCorrelationId();
-            testEnvironment.setProperty(EXPECTED_CORRELATION_ID, correlationId);
-
-            final TestMessageOfInterest messageOfInterest = messageOfInterest();
-            final MessageId messageId = newUniqueMessageId();
-            final ProcessingContext<Object> processingContext = processingContext(messageOfInterest, messageId, correlationId);
-            messageBus.send(processingContext);
-            testEnvironment.setProperty(EXPECTED_RESULT, correlationId);
-            testEnvironment.setProperty(SEND_MESSAGE_ID, messageId);
-            return null;
-        });
-    }
-
     public static MessageBusActionBuilder severalMessagesAreSend(final int numberOfMessages) {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
             MessageBusTestActions.sendSeveralMessages(messageBus, testEnvironment, numberOfMessages);

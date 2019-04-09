@@ -37,10 +37,20 @@
     <suppress checks="HideUtilityClassConstructor" files="ForbiddenUseCaseMethods.java"/>
     <suppress checks="HideUtilityClassConstructor" files="TransportMechanismFactory.java"/>
     <suppress checks="HideUtilityClassConstructor" files="MessageBusConsumeAction.java"/>
+    <suppress checks="HideUtilityClassConstructor" files="UseCaseInvokingResponseEventType.java"/>
+    <suppress checks="HideUtilityClassConstructor" files="DeserializationFilters.java"/>
+    <suppress checks="HideUtilityClassConstructor" files="SerializationFilters.java"/>
+    <suppress checks="HideUtilityClassConstructor" files="MessageFunctionBuilder.java"/>
+    <suppress checks="HideUtilityClassConstructor" files="EventTypeMapper.java"/>
     <suppress checks="ParameterNumber" files="MessageStatistics.java" />
     <suppress checks="IllegalCatch" files="SynchronousDelivery.java" />
     <suppress checks="IllegalCatch" files="EventToUseCaseDispatcherBuilder.java"/>
     <suppress checks="IllegalCatch" files="ChannelImpl.java"/>
+    <suppress checks="IllegalCatch" files="SerializedMessageBusImpl.java"/>
+    <suppress checks="IllegalCatch" files="UseCaseRequestExecutingSubscriber.java"/>
+    <suppress checks="IllegalCatch" files="ErrorListenerDelegatingMessageBusExceptionHandler.java"/>
+    <suppress checks="IllegalCatch" files="MessageFunctionImpl.java"/>
     <suppress checks="VisibilityModifierCheck" files="AbstractSharedAnswerImpl.java" />
     <suppress checks="ParameterNumber" files="ChannelImpl.java" />
+    <suppress checks="ParameterNumber" files="ProcessingContext.java" />
 </suppressions>

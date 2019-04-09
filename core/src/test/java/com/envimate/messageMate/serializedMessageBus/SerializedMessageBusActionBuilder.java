@@ -2,7 +2,6 @@ package com.envimate.messageMate.serializedMessageBus;
 
 import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.messageBus.EventType;
-import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.PayloadAndErrorPayload;
 import com.envimate.messageMate.qcec.shared.TestAction;
 import com.envimate.messageMate.shared.testMessages.ErrorTestMessage;
@@ -17,7 +16,8 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
+import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXCEPTION;
+import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
 import static com.envimate.messageMate.serializedMessageBus.SerializedMessageBusTestProperties.*;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.EXPECTED_CORRELATION_ID;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.USED_SUBSCRIPTION_ID;
@@ -165,7 +165,7 @@ public final class SerializedMessageBusActionBuilder {
             final TestMessageOfInterest message = TestMessageOfInterest.messageOfInterest();
             testEnvironment.setPropertyIfNotSet(SEND_DATA, message);
             try {
-                final PayloadAndErrorPayload<TestMessageOfInterest, ErrorTestMessage> result = serializedMessageBus.invokeAndWaitDeserialized(eventType, message, TestMessageOfInterest.class, ErrorTestMessage.class);
+                final PayloadAndErrorPayload<TestMessageOfInterest, TestMessageOfInterest> result = serializedMessageBus.invokeAndWaitDeserialized(eventType, message, TestMessageOfInterest.class, TestMessageOfInterest.class);
                 testEnvironment.setPropertyIfNotSet(RESULT, result);
             } catch (final InterruptedException | ExecutionException e) {
                 testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
@@ -286,10 +286,9 @@ public final class SerializedMessageBusActionBuilder {
 
     public static SerializedMessageBusActionBuilder theSubscriberUnsubscribe() {
         return new SerializedMessageBusActionBuilder((serializedMessageBus, testEnvironment) -> {
+            @SuppressWarnings("unchecked")
             final List<SubscriptionId> subscriptionIdList = (List<SubscriptionId>) testEnvironment.getProperty(USED_SUBSCRIPTION_ID);
-            subscriptionIdList.forEach(subscriptionId -> {
-                serializedMessageBus.unsubscribe(subscriptionId);
-            });
+            subscriptionIdList.forEach(serializedMessageBus::unsubscribe);
             return null;
         });
     }

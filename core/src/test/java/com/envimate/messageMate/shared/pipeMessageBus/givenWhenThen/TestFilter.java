@@ -77,8 +77,8 @@ public final class TestFilter {
             final MessageId messageId = processingContext.getMessageId();
             final ChannelProcessingFrame<Object> currentProcessingFrame = processingContext.getCurrentProcessingFrame();
             final ChannelProcessingFrame<Object> initialProcessingFrame = processingContext.getInitialProcessingFrame();
-            final ProcessingContext<Object> newProcessingContext = processingContext(eventType, messageId, null, CHANGED_CONTENT,
-                    ADDED_ERROR_CONTENT, new HashMap<>(), initialProcessingFrame, currentProcessingFrame);
+            final ProcessingContext<Object> newProcessingContext = processingContext(eventType, messageId, null,
+                    CHANGED_CONTENT, ADDED_ERROR_CONTENT, new HashMap<>(), initialProcessingFrame, currentProcessingFrame);
             filterActions.pass(newProcessingContext);
         };
     }

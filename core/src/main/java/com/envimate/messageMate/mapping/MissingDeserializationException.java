@@ -19,15 +19,18 @@
  * under the License.
  */
 
-package com.envimate.messageMate.useCases.useCaseAdapter.mapping;
+package com.envimate.messageMate.mapping;
 
-public final class RequestMapperException extends RuntimeException {
+import static java.lang.String.format;
 
-    private RequestMapperException(final String message) {
+public final class MissingDeserializationException extends RuntimeException {
+
+    private MissingDeserializationException(final String message) {
         super(message);
     }
 
-    static RequestMapperException requestMapperException(final String message) {
-        return new RequestMapperException(message);
+    public static MissingDeserializationException missingDeserializationException(final String injectableMessage,
+                                                                                  final Class<Object> targetType) {
+        return new MissingDeserializationException(format(injectableMessage, targetType));
     }
 }

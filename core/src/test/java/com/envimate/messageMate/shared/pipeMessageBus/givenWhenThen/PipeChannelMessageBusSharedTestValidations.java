@@ -28,7 +28,6 @@ import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
 import com.envimate.messageMate.shared.subscriber.TestSubscriber;
-import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.RequiredArgsConstructor;
@@ -45,7 +44,6 @@ import static lombok.AccessLevel.PRIVATE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 @RequiredArgsConstructor(access = PRIVATE)
 public final class PipeChannelMessageBusSharedTestValidations {
@@ -80,6 +78,7 @@ public final class PipeChannelMessageBusSharedTestValidations {
     public static void assertExpectedReceiverReceivedMessageWithErrorPayload(final TestEnvironment testEnvironment) {
         final List<SimpleTestSubscriber<?>> receivers = getExpectedReceiversAsSubscriber(testEnvironment);
         for (final SimpleTestSubscriber<?> receiver : receivers) {
+            @SuppressWarnings("unchecked")
             final List<ProcessingContext<?>> receivedMessages = (List<ProcessingContext<?>>) receiver.getReceivedMessages();
             assertEquals(receivedMessages.size(), 1);
             final ProcessingContext<?> receivedMessage = receivedMessages.get(0);
@@ -94,8 +93,8 @@ public final class PipeChannelMessageBusSharedTestValidations {
         assertSutStillHasExpectedSubscriber(sutActions, expectedSubscriber);
     }
 
-    public static void assertSutStillHasExpectedSubscriber(final PipeMessageBusSutActions sutActions,
-                                                           final List<Subscriber<?>> expectedSubscriber) {
+    private static void assertSutStillHasExpectedSubscriber(final PipeMessageBusSutActions sutActions,
+                                                            final List<Subscriber<?>> expectedSubscriber) {
         final List<Subscriber<?>> allSubscribers = sutActions.getAllSubscribers();
         assertThat(allSubscribers, containsInAnyOrder(expectedSubscriber.toArray()));
     }
@@ -142,20 +141,6 @@ public final class PipeChannelMessageBusSharedTestValidations {
     @SuppressWarnings("unchecked")
     private static TestSubscriber<ProcessingContext<Object>> castToRawTestSubscriber(final Subscriber<?> subscriber) {
         return (TestSubscriber<ProcessingContext<Object>>) subscriber;
-    }
-
-    public static void assertReceiverReceivedOnlyValidMessages(final TestEnvironment testEnvironment) {
-        final List<?> expectedReceivedMessages = (List<?>) testEnvironment.getProperty(PipeChannelMessageBusSharedTestProperties.MESSAGES_SEND);
-        final List<SimpleTestSubscriber<?>> receivers = getExpectedReceiversAsSubscriber(testEnvironment);
-        for (final SimpleTestSubscriber<?> receiver : receivers) {
-            final List<?> receivedMessages = receiver.getReceivedMessages();
-            assertThat(receivedMessages.size(), equalTo(expectedReceivedMessages.size()));
-            for (final Object receivedMessage : receivedMessages) {
-                if (!(receivedMessage instanceof TestMessageOfInterest)) {
-                    fail("Found an invalid message. Expected only messages of type " + TestMessageOfInterest.class);
-                }
-            }
-        }
     }
 
     @SuppressWarnings("unchecked")

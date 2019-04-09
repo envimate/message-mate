@@ -19,34 +19,29 @@
  * under the License.
  */
 
-package com.envimate.messageMate.useCases.useCaseAdapter.mapping;
+package com.envimate.messageMate.mapping;
 
 import com.envimate.messageMate.internal.collections.filtermap.FilterMap;
 import lombok.AccessLevel;
-import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 
 import java.util.Map;
 
 import static com.envimate.messageMate.internal.enforcing.NotNullEnforcer.ensureNotNull;
 
-@ToString
-@EqualsAndHashCode
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public final class RequestDeserializer {
-    private final FilterMap<Class<?>, Map<String, Object>, RequestMapper<?>> requestMappers;
+public final class Serializer {
 
-    public static RequestDeserializer requestDeserializer(
-            final FilterMap<Class<?>, Map<String, Object>, RequestMapper<?>> requestMappers) {
-        ensureNotNull(requestMappers, "requestMappers");
-        return new RequestDeserializer(requestMappers);
+    private final FilterMap<Object, Void, Mapifier<Object>> returnValueMappers;
+
+    public static Serializer responseSerializer(
+            final FilterMap<Object, Void, Mapifier<Object>> returnValueMappers) {
+        ensureNotNull(returnValueMappers, "returnValueMappers");
+        return new Serializer(returnValueMappers);
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> T deserializeRequest(final Class<T> type,
-                                    final Map<String, Object> map) {
-        final RequestMapper<T> mapper = (RequestMapper<T>) requestMappers.get(type, map);
-        return mapper.map(type, map);
+    public Map<String, Object> serialize(final Object value) {
+        final Mapifier<Object> mapifier = returnValueMappers.get(value, null);
+        return mapifier.map(value);
     }
 }

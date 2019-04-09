@@ -43,7 +43,8 @@ public final class ErrorListenerDelegatingMessageBusExceptionHandler implements 
     }
 
     @Override
-    public boolean shouldDeliveryChannelErrorBeHandledAndDeliveryAborted(final ProcessingContext<?> message, final Exception e,
+    public boolean shouldDeliveryChannelErrorBeHandledAndDeliveryAborted(final ProcessingContext<?> message,
+                                                                         final Exception e,
                                                                          final Channel<?> channel) {
         return delegate.shouldDeliveryChannelErrorBeHandledAndDeliveryAborted(message, e, channel);
     }

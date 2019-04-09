@@ -1,16 +1,14 @@
 package com.envimate.messageMate.useCases;
 
-import com.envimate.messageMate.useCases.useCaseAdapter.mapping.RequestMapperException;
-import com.envimate.messageMate.useCases.useCaseAdapter.mapping.ResponseMapperException;
+import com.envimate.messageMate.mapping.MissingDeserializationException;
+import com.envimate.messageMate.mapping.MissingSerializationException;
 import org.junit.jupiter.api.Test;
 
 import static com.envimate.messageMate.useCases.Given.given;
 import static com.envimate.messageMate.useCases.UseCaseInvocationActionBuilder.*;
 import static com.envimate.messageMate.useCases.UseCaseInvocationSetupBuilder.aUseCaseAdapter;
 import static com.envimate.messageMate.useCases.UseCaseInvocationSetupBuilder.aUseCaseBus;
-import static com.envimate.messageMate.useCases.UseCaseInvocationValidationBuilder.expectTheResponseToBeReceivedByTheMessageFunction;
-import static com.envimate.messageMate.useCases.UseCaseInvocationValidationBuilder.expectTheUseCaseToBeInvokedByTheUseCaseBus;
-import static com.envimate.messageMate.useCases.UseCaseInvocationValidationBuilder.expectTheUseCaseToBeInvokedOnce;
+import static com.envimate.messageMate.useCases.UseCaseInvocationValidationBuilder.*;
 
 public interface UseCaseInvocationSpecs {
 
@@ -43,17 +41,18 @@ public interface UseCaseInvocationSpecs {
     //errors
     @Test
     default void testUseCaseAdapter_failsForMissingDeserializationMapping(final TestUseCase testUseCase) {
-        Given.given(UseCaseInvocationSetupBuilder.aUseCaseAdapter(testUseCase)
+        given(aUseCaseAdapter(testUseCase)
                 .invokingTheUseCaseUsingAMissingDeserializationParameter())
-                .when(UseCaseInvocationActionBuilder.anEventWithMissingMappingIsSend())
-                .then(UseCaseInvocationValidationBuilder.expectAExceptionOfType(RequestMapperException.class));//TODO: better exception name
+                .when(anEventWithMissingMappingIsSend())
+                .then(expectAExceptionOfType(MissingDeserializationException.class));
     }
+
     @Test
     default void testUseCaseAdapter_failsForMissingSerializationMapping(final TestUseCase testUseCase) {
-        Given.given(UseCaseInvocationSetupBuilder.aUseCaseAdapter(testUseCase)
+        given(aUseCaseAdapter(testUseCase)
                 .invokingTheUseCaseUsingAMissingSerializationParameter())
-                .when(UseCaseInvocationActionBuilder.anEventWithMissingMappingIsSend())
-                .then(UseCaseInvocationValidationBuilder.expectAExceptionOfType(ResponseMapperException.class));//TODO: better exception name
+                .when(anEventWithMissingMappingIsSend())
+                .then(expectAExceptionOfType(MissingSerializationException.class));
     }
 
     //UseCaseAdapter with MessageFunction

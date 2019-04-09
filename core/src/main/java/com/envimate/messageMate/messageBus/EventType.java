@@ -44,6 +44,11 @@ public final class EventType {
         return eventTypeFromString(name);
     }
 
+    public static EventType eventTypeFromObjectClass(final Object object) {
+        final Class<?> aClass = object.getClass();
+        return eventTypeFromClass(aClass);
+    }
+
     public static EventType eventTypeFromUseCase(final Class<?> useCaseClass) {
         final String name = useCaseClass.getName();
         return eventTypeFromString(name);

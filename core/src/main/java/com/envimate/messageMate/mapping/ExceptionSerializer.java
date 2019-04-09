@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.envimate.messageMate.useCases.useCaseAdapter.mapping;
+package com.envimate.messageMate.mapping;
 
 import com.envimate.messageMate.internal.collections.filtermap.FilterMap;
 import lombok.AccessLevel;
@@ -32,16 +32,17 @@ import static com.envimate.messageMate.internal.enforcing.NotNullEnforcer.ensure
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ExceptionSerializer {
 
-    private final FilterMap<Exception, Void, ResponseMapper<Exception>> returnValueMappers;
+    private final FilterMap<Exception, Void, Mapifier<Exception>> returnValueMappers;
 
     public static ExceptionSerializer exceptionSerializer(
-            final FilterMap<Exception, Void, ResponseMapper<Exception>> returnValueMappers) {
+            final FilterMap<Exception, Void, Mapifier<Exception>> returnValueMappers) {
         ensureNotNull(returnValueMappers, "returnValueMappers");
         return new ExceptionSerializer(returnValueMappers);
     }
 
     public Map<String, Object> serializeException(final Exception returnValue) {
-        final ResponseMapper<Exception> mapper = returnValueMappers.get(returnValue, null);
+        final Mapifier<Exception> mapper = returnValueMappers.get(returnValue, null);
         return mapper.map(returnValue);
     }
+
 }

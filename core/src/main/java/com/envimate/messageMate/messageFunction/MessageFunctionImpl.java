@@ -89,15 +89,15 @@ final class MessageFunctionImpl implements MessageFunction {
                 fulFillFuture(e);
                 subscriptionContainer.unsubscribe(messageBus);
             });
-            final SubscriptionId errorSubsciptionId2 = messageBus.onException(eventType, (processingContext, e) -> {
+            final SubscriptionId errorSubscriptionId2 = messageBus.onException(eventType, (processingContext, e) -> {
                 if (processingContext.getPayload() == request) {
                     fulFillFuture(e);
                     subscriptionContainer.unsubscribe(messageBus);
                 }
             });
-            subscriptionContainer.setSubscriptionIds(answerSubscriptionId, errorSubscriptionId1, errorSubsciptionId2);
+            subscriptionContainer.setSubscriptionIds(answerSubscriptionId, errorSubscriptionId1, errorSubscriptionId2);
 
-            final ProcessingContext<Object> processingContext = processingContext(eventType, request, messageId);
+            final ProcessingContext<Object> processingContext = processingContext(eventType, messageId, request);
             try {
                 messageBus.send(processingContext);
             } catch (final Exception e) {
