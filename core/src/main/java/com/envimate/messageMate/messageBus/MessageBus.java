@@ -21,12 +21,14 @@
 
 package com.envimate.messageMate.messageBus;
 
+import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.exceptions.AlreadyClosedException;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.internal.autoclosable.NoErrorAutoClosable;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
@@ -36,55 +38,100 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
- * Messages of different types can be sent over a {@code MessageBus}. {@code Subscribers} interested in specific messages
- * can subscribe on these selected messages. A {@code MessageBus} allows adding {@code Filters} to alter the message flow.
+ * Messages of different types can be sent over a {@code MessageBus}. {@link Subscriber Subscribers} interested in specific
+ * messages can subscribe on these selected messages. A {@code MessageBus} allows adding {@link Filter Filters} to alter
+ * the message flow.
  *
  * @see <a href="https://github.com/envimate/message-mate#messagebus">Message Mate Documentation</a>
  */
 public interface MessageBus extends NoErrorAutoClosable {
 
-    MessageId send(String eventType, Object object);
-
+    /**
+     * Sends the message with the given {@link EventType}.
+     *
+     * @param eventType the {@code EventType} to identify the message
+     * @param object    the message
+     * @return the {@link MessageId} of the send message
+     * @throws AlreadyClosedException if {@code MessageBus} already closed
+     */
     MessageId send(EventType eventType, Object object);
 
+    /**
+     * Sends the message with the given {@link EventType}.
+     *
+     * @param eventType     the {@code EventType} to identify the message
+     * @param object        the message
+     * @param correlationId the {@link CorrelationId} of the message
+     * @return the {@link MessageId} of the send message
+     * @throws AlreadyClosedException if {@code MessageBus} already closed
+     */
     MessageId send(EventType eventType, Object object, CorrelationId correlationId);
 
-    MessageId send(String eventType, Object object, CorrelationId correlationId);
-
     /**
-     * Sends the {@code ProcessingContext} on the {@code MessageBus}.
+     * Sends the {@link ProcessingContext} on the {@code MessageBus}.
      *
      * @param processingContext the {@code ProcessingContext} to send
-     * @return the {@code MessageId} of the send message
+     * @return the {@link MessageId} of the send message
      * @throws AlreadyClosedException if {@code MessageBus} already closed
      */
     MessageId send(ProcessingContext<Object> processingContext);
 
+    /**
+     * Adds the given {@link Consumer} wrapped in a {@link Subscriber} object for all messages with a matching
+     * {@link EventType}.
+     *
+     * @param eventType the {@code EventType} of interest
+     * @param consumer  the {@code Subscriber} to add
+     * @return the {@link SubscriptionId} of the {@code Subscriber}
+     */
     SubscriptionId subscribe(EventType eventType, Consumer<Object> consumer);
 
+    /**
+     * Adds the given {@link Subscriber} for all messages with a matching {@link EventType}.
+     *
+     * @param eventType  the {@code EventType} of interest
+     * @param subscriber the {@code Subscriber} to add
+     * @return the {@link SubscriptionId} of the {@code Subscriber}
+     */
     SubscriptionId subscribe(EventType eventType, Subscriber<Object> subscriber);
 
     /**
-     * Adds the given {@code Consumer} wrapped in a {@code Subscriber} object for all messages with a matching
-     * {@code CorrelationId}.
+     * Adds the given {@link Consumer} wrapped in a {@link Subscriber} object for all messages with a matching
+     * {@link CorrelationId}.
      *
-     * @param correlationId the correlation of interest
+     * @param correlationId the {@code CorrelationId} of interest
      * @param consumer      the {@code Subscriber} to add
-     * @return the {@code SubscriptionId} of the {@code Subscriber}
+     * @return the {@link SubscriptionId} of the {@code Subscriber}
      */
     SubscriptionId subscribe(CorrelationId correlationId, Consumer<ProcessingContext<Object>> consumer);
 
     /**
-     * Adds the given {@code Subscriber} for all messages with a matching {@code CorrelationId}.
+     * Adds the given {@link Subscriber} for all messages with a matching {@link CorrelationId}.
      *
-     * @param correlationId the correlation of interest
+     * @param correlationId the {@code CorrelationId} of interest
      * @param subscriber    the {@code Subscriber} to add
      * @return the {@code SubscriptionId} of the {@code Subscriber}
      */
     SubscriptionId subscribe(CorrelationId correlationId, Subscriber<ProcessingContext<Object>> subscriber);
 
+    /**
+     * Adds the given {@link Consumer} wrapped in a {@link Subscriber} object for all messages with a matching
+     * {@link EventType}. The {@code Subscriber} gets access to the underlying {@link ProcessingContext}.
+     *
+     * @param eventType the {@code EventType} of interest
+     * @param consumer  the {@code Subscriber} to add
+     * @return the {@link SubscriptionId} of the {@code Subscriber}
+     */
     SubscriptionId subscribeRaw(EventType eventType, Consumer<ProcessingContext<Object>> consumer);
 
+    /**
+     * Adds the {@link Subscriber} object for all messages with a matching
+     * {@link EventType}. The {@code Subscriber} gets access to the underlying {@link ProcessingContext}.
+     *
+     * @param eventType  the {@code EventType} of interest
+     * @param subscriber the {@code Subscriber} to add
+     * @return the {@link SubscriptionId} of the {@code Subscriber}
+     */
     SubscriptionId subscribeRaw(EventType eventType, Subscriber<ProcessingContext<Object>> subscriber);
 
     /**
@@ -95,14 +142,14 @@ public interface MessageBus extends NoErrorAutoClosable {
     void unsubcribe(SubscriptionId subscriptionId);
 
     /**
-     * Adds a {@code Filter} to the accepting {@code Channel}.
+     * Adds a {@link Filter} to the accepting {@link Channel}.
      *
      * @param filter the {@code Filter} to be added
      */
     void add(Filter<Object> filter);
 
     /**
-     * Adds the {@code Filter} to the accepting {@code Channel}
+     * Adds the {@link Filter} to the accepting {@link Channel}
      *
      * @param filter   the {@code Filter} to be added
      * @param position the position of the {@code Filter}
@@ -110,8 +157,19 @@ public interface MessageBus extends NoErrorAutoClosable {
      */
     void add(Filter<Object> filter, int position);
 
+    /**
+     * Adds a {@link Filter} to the accepting {@link Channel} with access to the {@link ProcessingContext}.
+     *
+     * @param filter the {@code Filter} to be added
+     */
     void addRaw(Filter<ProcessingContext<Object>> filter);
 
+    /**
+     * Adds a {@link Filter} to the accepting {@link Channel} with access to the {@link ProcessingContext} at the given position.
+     *
+     * @param filter   the {@code Filter} to be added
+     * @param position the position of the {@code Filter}
+     */
     void addRaw(Filter<ProcessingContext<Object>> filter, int position);
 
     /**
@@ -128,16 +186,23 @@ public interface MessageBus extends NoErrorAutoClosable {
      */
     void remove(Filter<Object> filter);
 
-    SubscriptionId onException(EventType eventType, MessageBusExceptionListener<Object> exceptionListener);
-
     /**
-     * Adds a dynamic exception listener for the messages matching the {@code CorrelationId}.
+     * Adds a dynamic {@code MessageBusExceptionListener} for the messages with the {@link EventType}
      *
-     * @param correlationId     the {@code CorrelationId} to match
-     * @param exceptionListener the exception listener
+     * @param eventType         the {@code EventType} to match
+     * @param exceptionListener the {@code MessageBusExceptionListener} to add
      * @return a {@code SubscriptionId} identifying exception listener
      */
-    SubscriptionId onException(CorrelationId correlationId, MessageBusExceptionListener<Object> exceptionListener);
+    SubscriptionId onException(EventType eventType, MessageBusExceptionListener exceptionListener);
+
+    /**
+     * Adds a dynamic {@code MessageBusExceptionListener} for the messages matching the {@link CorrelationId}.
+     *
+     * @param correlationId     the {@code CorrelationId} to match
+     * @param exceptionListener the {@code MessageBusExceptionListener} to add
+     * @return a {@code SubscriptionId} identifying exception listener
+     */
+    SubscriptionId onException(CorrelationId correlationId, MessageBusExceptionListener exceptionListener);
 
     /**
      * Removes all exceptionListener with the given {@code SubscriptionId}.

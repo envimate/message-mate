@@ -24,6 +24,7 @@ package com.envimate.messageMate.messageBus;
 import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener;
 import com.envimate.messageMate.messageBus.statistics.MessageBusStatistics;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.subscribing.Subscriber;
 
 import java.util.List;
@@ -59,14 +60,18 @@ public interface MessageBusStatusInformation {
     Map<EventType, List<Subscriber<?>>> getSubscribersPerType();
 
     /**
-     * Returns the class-specific {@code Channel} for the given class or {@code null} if the class has not yet been
+     * Returns the {@code EventType} specific {@code Channel} for the given type or {@code null} if the type has not yet been
      * sent or subscribed.
      *
-     * @param messageClass the class of interest
-     * @param <T>          the type of the class
+     * @param eventType the type of interest
      * @return the {@code Channel} of the class or {@code null}
      */
     Channel<Object> getChannelFor(EventType eventType);
 
-    List<MessageBusExceptionListener<?>> getAllExceptionListener();
+    /**
+     * Returns all {@code MessageBusExceptionListener} currently registered on the {@code MessageBus}.
+     *
+     * @return the list of {@code MessageBusExceptionListeners}
+     */
+    List<MessageBusExceptionListener> getAllExceptionListener();
 }

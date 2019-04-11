@@ -28,9 +28,21 @@ import java.util.function.BiPredicate;
 
 import static lombok.AccessLevel.PRIVATE;
 
+/**
+ * A class defining reusable filters for the deserialization of objects.
+ *
+ * @see <a href="https://github.com/envimate/message-mate#channel">Message Mate Documentation</a>
+ */
 @RequiredArgsConstructor(access = PRIVATE)
 public final class DeserializationFilters {
 
+    /**
+     * Creates a deserialization filter, that checks, if the the object to deserialize is of a given type.
+     *
+     * @param type the type, the to apply the deserialization on
+     * @param <T>  the type, the to apply the deserialization on
+     * @return a filter checking if the object of deserialize is of the given type
+     */
     public static <T extends Class<?>> BiPredicate<T, Map<String, Object>> areOfType(final T type) {
         return (requestedType, map) -> type.isAssignableFrom(requestedType);
     }

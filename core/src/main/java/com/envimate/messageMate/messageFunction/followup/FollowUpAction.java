@@ -21,8 +21,10 @@
 
 package com.envimate.messageMate.messageFunction.followup;
 
+import com.envimate.messageMate.messageFunction.ResponseFuture;
+
 /**
- * A {@code FollowUpAction} can be added to a {@code ResponseFuture} to be executed, once the future has be fulfilled.
+ * A {@code FollowUpAction} can be added to a {@link ResponseFuture} to be executed, once the future has be fulfilled.
  *
  * @see <a href="https://github.com/envimate/message-mate#responsefuture">Message Mate Documentation</a>
  */
@@ -32,6 +34,7 @@ public interface FollowUpAction {
      * Method to be called, when the {@code FollowUpAction} is executed.
      *
      * @param response      the received response, or {@code null} of an exception was thrown
+     * @param errorResponse the received error response, or {@code null} if an exception was thrown
      * @param exception     the thrown exception or {@code null} otherwise
      */
     void apply(Object response, Object errorResponse, Exception exception);

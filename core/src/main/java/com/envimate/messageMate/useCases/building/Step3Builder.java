@@ -21,5 +21,10 @@
 
 package com.envimate.messageMate.useCases.building;
 
+/**
+ * Defines how the currently configured use case should be invoked.
+ *
+ * @param <U> the currently configured use case type
+ */
 public interface Step3Builder<U> extends CallingBuilder<U> {
 }

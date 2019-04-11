@@ -1,8 +1,8 @@
 package com.envimate.messageMate.serializedMessageBus;
 
 import com.envimate.messageMate.identification.CorrelationId;
-import com.envimate.messageMate.messageBus.EventType;
-import com.envimate.messageMate.messageBus.PayloadAndErrorPayload;
+import com.envimate.messageMate.processingContext.EventType;
+import com.envimate.messageMate.useCases.payloadAndErrorPayload.PayloadAndErrorPayload;
 import com.envimate.messageMate.qcec.shared.TestAction;
 import com.envimate.messageMate.shared.testMessages.ErrorTestMessage;
 import com.envimate.messageMate.shared.testMessages.InvalidTestMessage;

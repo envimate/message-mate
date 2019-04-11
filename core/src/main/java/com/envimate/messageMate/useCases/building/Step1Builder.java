@@ -21,6 +21,11 @@
 
 package com.envimate.messageMate.useCases.building;
 
+/**
+ * This step allows to add a new use case invocation definition with {@link InvokingUseCaseStepBuilder#invokingUseCase(Class)} or
+ * do not add further definitions and continue with the methods of
+ * {@link InstantiationBuilder}.
+ */
 public interface Step1Builder extends InvokingUseCaseStepBuilder,
         InstantiationBuilder {
 }

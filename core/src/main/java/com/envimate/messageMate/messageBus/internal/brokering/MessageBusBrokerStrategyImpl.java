@@ -23,7 +23,7 @@ package com.envimate.messageMate.messageBus.internal.brokering;
 
 import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.channel.action.Subscription;
-import com.envimate.messageMate.messageBus.EventType;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.messageBus.channelCreating.MessageBusChannelFactory;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionHandler;
 import com.envimate.messageMate.processingContext.ProcessingContext;

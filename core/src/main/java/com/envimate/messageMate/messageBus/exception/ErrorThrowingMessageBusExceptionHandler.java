@@ -28,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 import static lombok.AccessLevel.PRIVATE;
 
 /**
- * The default {@code MessageBusExceptionHandler} implementation, that rethrows all exceptions.
+ * The default {@link MessageBusExceptionHandler} implementation, that rethrows all exceptions.
  */
 @RequiredArgsConstructor(access = PRIVATE)
 public final class ErrorThrowingMessageBusExceptionHandler implements MessageBusExceptionHandler {
@@ -43,13 +43,16 @@ public final class ErrorThrowingMessageBusExceptionHandler implements MessageBus
     }
 
     @Override
-    public boolean shouldDeliveryChannelErrorBeHandledAndDeliveryAborted(final ProcessingContext<?> message, final Exception e,
-                                                                         final Channel<?> channel) {
+    public boolean shouldDeliveryChannelErrorBeHandledAndDeliveryAborted(final ProcessingContext<Object> message,
+                                                                         final Exception e,
+                                                                         final Channel<Object> channel) {
         return true;
     }
 
     @Override
-    public void handleDeliveryChannelException(final ProcessingContext<?> message, final Exception e, final Channel<?> channel) {
+    public void handleDeliveryChannelException(final ProcessingContext<Object> message,
+                                               final Exception e,
+                                               final Channel<Object> channel) {
         if (e instanceof RuntimeException) {
             throw (RuntimeException) e;
         } else {
@@ -58,7 +61,7 @@ public final class ErrorThrowingMessageBusExceptionHandler implements MessageBus
     }
 
     @Override
-    public void handleFilterException(final ProcessingContext<?> message, final Exception e, final Channel<?> channel) {
+    public void handleFilterException(final ProcessingContext<Object> message, final Exception e, final Channel<Object> channel) {
         if (e instanceof RuntimeException) {
             throw (RuntimeException) e;
         } else {

@@ -24,9 +24,23 @@ package com.envimate.messageMate.mapping;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ExceptionMapifier implements Mapifier<Exception> {
-    public static final String DEFAULT_EXCEPTION_MAPFIER_KEY = "Exception";
+/**
+ * A {@code Mapifier} exclusively for exceptions.
+ *
+ * @see <a href="https://github.com/envimate/message-mate#channel">Message Mate Documentation</a>
+ */
 
+public class ExceptionMapifier implements Mapifier<Exception> {
+    /**
+     * All {@link Exception} objects are stored under this key in the {@code Map}
+     */
+    public static final String DEFAULT_EXCEPTION_MAPIFIER_KEY = "Exception";
+
+    /**
+     * Factory method to create a new {@code ExceptionMapifier}
+     *
+     * @return the newly created {@code ExceptionMapifier}
+     */
     public static ExceptionMapifier defaultExceptionMapifier() {
         return new ExceptionMapifier();
     }
@@ -34,7 +48,7 @@ public class ExceptionMapifier implements Mapifier<Exception> {
     @Override
     public Map<String, Object> map(final Exception exception) {
         final Map<String, Object> map = new HashMap<>();
-        map.put(DEFAULT_EXCEPTION_MAPFIER_KEY, exception);
+        map.put(DEFAULT_EXCEPTION_MAPIFIER_KEY, exception);
         return map;
     }
 }

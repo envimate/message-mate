@@ -27,7 +27,7 @@
     <parent>
         <groupId>com.envimate</groupId>
         <artifactId>envimate-opensource-parent</artifactId>
-        <version>1.0.11</version>
+        <version>1.0.14</version>
     </parent>
 
 
@@ -84,25 +84,4 @@
             <layout>default</layout>
         </repository>
     </distributionManagement>
-
-    <properties>
-        <java.version>11</java.version>
-    </properties>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.0</version>
-                <configuration>
-                    <compilerArgs>
-                    </compilerArgs>
-                    <source>11</source>
-                    <target>11</target>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
 </project>

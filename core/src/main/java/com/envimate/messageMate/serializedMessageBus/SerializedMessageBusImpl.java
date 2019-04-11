@@ -25,9 +25,9 @@ import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.mapping.Deserializer;
 import com.envimate.messageMate.mapping.Serializer;
-import com.envimate.messageMate.messageBus.EventType;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
-import com.envimate.messageMate.messageBus.PayloadAndErrorPayload;
+import com.envimate.messageMate.useCases.payloadAndErrorPayload.PayloadAndErrorPayload;
 import com.envimate.messageMate.messageFunction.MessageFunction;
 import com.envimate.messageMate.messageFunction.MessageFunctionBuilder;
 import com.envimate.messageMate.messageFunction.ResponseFuture;
@@ -42,7 +42,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static com.envimate.messageMate.messageBus.PayloadAndErrorPayload.payloadAndErrorPayload;
+import static com.envimate.messageMate.useCases.payloadAndErrorPayload.PayloadAndErrorPayload.payloadAndErrorPayload;
 import static com.envimate.messageMate.processingContext.ProcessingContext.processingContextForPayloadAndError;
 import static lombok.AccessLevel.PRIVATE;
 

@@ -24,7 +24,7 @@ package com.envimate.messageMate.messageFunction;
 import com.envimate.messageMate.exceptions.AlreadyClosedException;
 import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.identification.MessageId;
-import com.envimate.messageMate.messageBus.EventType;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageFunction.internal.ExpectedResponseFuture;
 import com.envimate.messageMate.processingContext.ProcessingContext;
@@ -65,7 +65,7 @@ final class MessageFunctionImpl implements MessageFunction {
         closed = true;
     }
 
-    private final class RequestHandle {
+    private static final class RequestHandle {
         @Getter
         private final ExpectedResponseFuture responseFuture;
         private final MessageBus messageBus;
@@ -123,9 +123,10 @@ final class MessageFunctionImpl implements MessageFunction {
         }
     }
 
-    private final class SubscriptionContainer {
+    private static final class SubscriptionContainer {
         private volatile SubscriptionId answerSubscriptionId;
         private volatile SubscriptionId errorSubscriptionId1;
+
         private volatile SubscriptionId errorSubscriptionId2;
 
         public void setSubscriptionIds(final SubscriptionId answerSubscriptionId, final SubscriptionId errorSubscriptionId1,
@@ -146,5 +147,6 @@ final class MessageFunctionImpl implements MessageFunction {
                 messageBus.unregisterExceptionListener(errorSubscriptionId2);
             }
         }
+
     }
 }

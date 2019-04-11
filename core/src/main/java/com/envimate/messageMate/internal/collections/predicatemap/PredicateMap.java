@@ -19,25 +19,33 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageBus;
+package com.envimate.messageMate.internal.collections.predicatemap;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 
+import java.util.Map;
+import java.util.function.Predicate;
+
+import static com.envimate.messageMate.internal.enforcing.NotNullEnforcer.ensureNotNull;
 import static lombok.AccessLevel.PRIVATE;
 
-@ToString
-@EqualsAndHashCode
 @RequiredArgsConstructor(access = PRIVATE)
-public final class PayloadAndErrorPayload<P, E> {
-    @Getter
-    private final P payload;
-    @Getter
-    private final E errorPayload;
+public final class PredicateMap<P, T> {
+    private final Map<Predicate<P>, T> entries;
+    private final T defaultValue;
 
-    public static <P, E> PayloadAndErrorPayload<P, E> payloadAndErrorPayload(final P payload, final E errorPayload) {
-        return new PayloadAndErrorPayload<>(payload, errorPayload);
+    static <P, T> PredicateMap<P, T> predicateMap(final Map<Predicate<P>, T> entries,
+                                                  final T defaultValue) {
+        ensureNotNull(entries, "entries");
+        ensureNotNull(defaultValue, "defaultValue");
+        return new PredicateMap<>(entries, defaultValue);
+    }
+
+    public T get(final P condition) {
+        return entries.entrySet().stream()
+                .filter(e -> e.getKey().test(condition))
+                .map(Map.Entry::getValue)
+                .findFirst()
+                .orElse(defaultValue);
     }
 }

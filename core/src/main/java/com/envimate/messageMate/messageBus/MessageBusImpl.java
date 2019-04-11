@@ -28,12 +28,12 @@ import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.internal.exceptions.BubbleUpWrappedException;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener;
-import com.envimate.messageMate.messageBus.exception.MissingEventTypeException;
 import com.envimate.messageMate.messageBus.internal.MessageBusStatusInformationAdapter;
 import com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategy;
 import com.envimate.messageMate.messageBus.internal.correlationIds.CorrelationBasedSubscriptions;
 import com.envimate.messageMate.messageBus.internal.exception.ExceptionListenerHandler;
 import com.envimate.messageMate.messageBus.internal.statistics.MessageBusStatisticsCollector;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.subscribing.ConsumerSubscriber;
 import com.envimate.messageMate.subscribing.Subscriber;
@@ -47,6 +47,7 @@ import java.util.function.Consumer;
 
 import static com.envimate.messageMate.messageBus.internal.MessageBusStatusInformationAdapter.statusInformationAdapter;
 import static com.envimate.messageMate.messageBus.internal.statistics.ChannelBasedMessageBusStatisticsCollector.channelBasedMessageBusStatisticsCollector;
+import static com.envimate.messageMate.processingContext.ProcessingContext.processingContext;
 import static com.envimate.messageMate.subscribing.ConsumerSubscriber.consumerSubscriber;
 import static lombok.AccessLevel.PRIVATE;
 
@@ -70,42 +71,23 @@ final class MessageBusImpl implements MessageBus {
     }
 
     @Override
-    public MessageId send(final String eventType, final Object object) {
-        final EventType eventTypeObject = EventType.eventTypeFromString(eventType);
-        return send(eventTypeObject, object);
-    }
-
-    @Override
     public MessageId send(final EventType eventType, final Object object) {
-        final ProcessingContext<Object> processingContext = ProcessingContext.processingContext(eventType, object);
+        final ProcessingContext<Object> processingContext = processingContext(eventType, object);
         return send(processingContext);
     }
 
     @Override
-    public MessageId send(final String eventType, final Object object, final CorrelationId correlationId) {
-        final EventType eventTypeObject = EventType.eventTypeFromString(eventType);
-        return send(eventTypeObject, object, correlationId);
-    }
-
-    @Override
     public MessageId send(final EventType eventType, final Object object, final CorrelationId correlationId) {
-        final ProcessingContext<Object> processingContext = ProcessingContext.processingContext(eventType, object, correlationId);
+        final ProcessingContext<Object> processingContext = processingContext(eventType, object, correlationId);
         return send(processingContext);
     }
 
     @Override
     public MessageId send(final ProcessingContext<Object> processingContext) {
-        ensureEventTypeIsSet(processingContext);
         try {
             return acceptingChannel.send(processingContext);
         } catch (final BubbleUpWrappedException e) {
             throw (RuntimeException) e.getCause();
-        }
-    }
-
-    private void ensureEventTypeIsSet(final ProcessingContext<Object> processingContext) {
-        if (processingContext.getEventType() == null) {
-            throw new MissingEventTypeException(processingContext);
         }
     }
 
@@ -198,13 +180,13 @@ final class MessageBusImpl implements MessageBus {
     }
 
     @Override
-    public SubscriptionId onException(final EventType eventType, final MessageBusExceptionListener<Object> exceptionListener) {
+    public SubscriptionId onException(final EventType eventType, final MessageBusExceptionListener exceptionListener) {
         return exceptionListenerHandler.register(eventType, exceptionListener);
     }
 
     @Override
     public SubscriptionId onException(final CorrelationId correlationId,
-                                      final MessageBusExceptionListener<Object> exceptionListener) {
+                                      final MessageBusExceptionListener exceptionListener) {
         return exceptionListenerHandler.register(correlationId, exceptionListener);
     }
 

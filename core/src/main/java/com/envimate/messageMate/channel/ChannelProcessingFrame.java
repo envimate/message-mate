@@ -22,34 +22,24 @@
 package com.envimate.messageMate.channel;
 
 import com.envimate.messageMate.channel.action.Action;
-import lombok.Getter;
-import lombok.Setter;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 
 /**
- * The {@code ProcessingContext} object stores the history of the traversed {@code Channels} in form of a linked list of
- * {@code ChannelProcessingFrames}. For each {@code Channel} one {@code ChannelProcessingFrame} is added to the end of the list.
+ * The {@link ProcessingContext} object stores the history of the traversed {@code Channels} in form of a linked list of
+ * {@code ChannelProcessingFrames}. For each {@link Channel} one {@code ChannelProcessingFrame} is added to the end of the list.
  *
- * <p>Each {@code ProcessingContext} stores the corresponding {@code Channel}, the {@code Action} that was executed as well as
- * its preceding and succeeding frame. In case of the first frame in the list, the {@code getPreviousFrame()} returns null.
- * Respective for the last frame the {@code getNextFrame()} returns null.</p>
+ * <p>Each {@code ProcessingContext} stores the corresponding {@code Channel}, the {@link Action} that was executed as well as
+ * its preceding and succeeding frame. In case of the first frame in the list, the
+ * {@link ChannelProcessingFrame#getPreviousFrame() ChannelProcessingFrame.getPreviousFrame()} returns null. Respective for the
+ * last frame the {@code ChannelProcessingFrame#getNextFrame() ChannelStatistics.getNextFrame()} returns null.</p>
  *
  * @param <T> the type of messages of the {@code Channel}
  * @see <a href="https://github.com/envimate/message-mate#processing-context">Message Mate Documentation</a>
  */
 public final class ChannelProcessingFrame<T> {
-    @Getter
     private final Channel<T> channel;
-
-    @Getter
-    @Setter
     private ChannelProcessingFrame<T> previousFrame;
-
-    @Getter
-    @Setter
     private ChannelProcessingFrame<T> nextFrame;
-
-    @Getter
-    @Setter
     private Action<T> action;
 
     private ChannelProcessingFrame(final Channel<T> channel) {
@@ -82,5 +72,33 @@ public final class ChannelProcessingFrame<T> {
      */
     public ChannelProcessingFrame<T> copy() {
         return new ChannelProcessingFrame<>(channel, previousFrame, nextFrame, action);
+    }
+
+    public Channel<T> getChannel() {
+        return this.channel;
+    }
+
+    public ChannelProcessingFrame<T> getPreviousFrame() {
+        return this.previousFrame;
+    }
+
+    public void setPreviousFrame(final ChannelProcessingFrame<T> previousFrame) {
+        this.previousFrame = previousFrame;
+    }
+
+    public ChannelProcessingFrame<T> getNextFrame() {
+        return this.nextFrame;
+    }
+
+    public void setNextFrame(final ChannelProcessingFrame<T> nextFrame) {
+        this.nextFrame = nextFrame;
+    }
+
+    public Action<T> getAction() {
+        return this.action;
+    }
+
+    public void setAction(final Action<T> action) {
+        this.action = action;
     }
 }

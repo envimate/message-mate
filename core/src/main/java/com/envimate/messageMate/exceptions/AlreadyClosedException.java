@@ -21,8 +21,13 @@
 
 package com.envimate.messageMate.exceptions;
 
+import com.envimate.messageMate.channel.Channel;
+import com.envimate.messageMate.messageBus.MessageBus;
+import com.envimate.messageMate.messageFunction.MessageFunction;
+
 /**
- * Exception, that is thrown, when {@code send} is called on object, that was already closed.
+ * Exception, that is thrown, when a message is send on a {@link Channel}, {@link MessageBus} or {@link MessageFunction} is
+ * called on object, that was already closed.
  */
 public class AlreadyClosedException extends RuntimeException {
     public AlreadyClosedException() {

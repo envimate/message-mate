@@ -26,7 +26,24 @@ import com.envimate.messageMate.mapping.Serializer;
 
 import java.util.Map;
 
+/**
+ * A {@code Caller} is responsible to invoke the correct method on the use case instance. The {@link Deserializer} is used
+ * to deserialize the event into the parameters of the method. The {@link Serializer} is used to serialized the use case's return
+ * value back into a {@link Map}.
+ *
+ * @param <U> the type of the use case
+ */
 @FunctionalInterface
 public interface Caller<U> {
+
+    /**
+     * Invokes the use case with the data from the event.
+     *
+     * @param useCase             the use case instance
+     * @param event               the data for the use case
+     * @param requestDeserializer the {@code Deserializer} to deserialize the parameters
+     * @param responseSerializer  the {@code Serializer} to serialize the use case's return value
+     * @return the serialized return value
+     */
     Map<String, Object> call(U useCase, Object event, Deserializer requestDeserializer, Serializer responseSerializer);
 }

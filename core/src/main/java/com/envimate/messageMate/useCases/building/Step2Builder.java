@@ -21,14 +21,32 @@
 
 package com.envimate.messageMate.useCases.building;
 
-import com.envimate.messageMate.messageBus.EventType;
+import com.envimate.messageMate.processingContext.EventType;
 
+/**
+ * This builder step defines, for which {@link EventType} the use case class configured in the previous
+ * {@link InvokingUseCaseStepBuilder#invokingUseCase(Class)} method should be invoked.
+ *
+ * @param <U> the type of the currently configured use case
+ */
 public interface Step2Builder<U> {
 
+    /**
+     * Defines the {@link EventType} as {@code String} to invoke the use case for.
+     *
+     * @param eventType the {@code EventType} {@code String} to check for
+     * @return the next step in the fluent builder interface
+     */
     default Step3Builder<U> forType(final String eventType) {
         final EventType eventTypeObject = EventType.eventTypeFromString(eventType);
         return forType(eventTypeObject);
     }
 
+    /**
+     * Defines the {@link EventType} to invoke the use case for.
+     *
+     * @param eventType the {@code EventType} to check for
+     * @return the next step in the fluent builder interface
+     */
     Step3Builder<U> forType(EventType eventType);
 }

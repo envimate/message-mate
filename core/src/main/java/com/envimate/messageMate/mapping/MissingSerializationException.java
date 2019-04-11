@@ -21,16 +21,24 @@
 
 package com.envimate.messageMate.mapping;
 
-import static java.lang.String.format;
-
+/**
+ * An {@link Exception} indicating, that no serialization rule could be applied.
+ *
+ * @see <a href="https://github.com/envimate/message-mate#channel">Message Mate Documentation</a>
+ */
 public final class MissingSerializationException extends RuntimeException {
 
     private MissingSerializationException(final String message) {
         super(message);
     }
 
-    public static MissingSerializationException responseMapperException(final String message, final Object object) {
-        final String formatted = format(message, object);
-        return new MissingSerializationException(formatted);
+    /**
+     * Creates a new {@code MissingSerializationException} for the given message.
+
+     * @param message the exceptions message
+     * @return the newly created {@code MissingSerializationException}
+     */
+    public static MissingSerializationException missingSerializationException(final String message) {
+        return new MissingSerializationException(message);
     }
 }

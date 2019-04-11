@@ -35,19 +35,58 @@ import java.util.concurrent.*;
 public interface ResponseFuture extends Future<Object> {
 
     /**
-     * Returns {@code true} if the future was fulfilled with an success response, {@code false} otherwise.
+     * Returns {@code true} if the future was fulfilled with an success response, {@code false} if an exception occurred,
+     * the future was cancelled or the error payload is not {@code null}.
      *
-     * @return {@code true} if success, {@code false} an exception occurred or the future was cancelled
+     * @return {@code true} if only payload is set, {@code false} otherwise
      */
     boolean wasSuccessful();
 
+    /**
+     * Waits until the future is fulfilled and returns the error payload.
+     *
+     * @return the error payload of the message or {@code null} if none exists
+     * @throws CancellationException if the future was cancelled
+     * @throws InterruptedException  if the waiting {@link Thread} is interrupted
+     * @throws ExecutionException    if the future was fulfilled with an exception
+     */
     Object getErrorResponse() throws InterruptedException, ExecutionException;
 
+    /**
+     * Waits until the future is fulfilled to return the error payload or the timeout expires.
+     *
+     * @param timeout the interval to wait
+     * @param unit    the unit of the interval
+     * @return the error payload of the message or {@code null} if none exists
+     * @throws CancellationException if the future was cancelled
+     * @throws InterruptedException  if the waiting {@link Thread} is interrupted
+     * @throws ExecutionException    if the future was fulfilled with an exception
+     * @throws TimeoutException      if the timeout expired
+     */
     Object getErrorResponse(long timeout,
                             TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
 
+    /**
+     * Waits until the future is fulfilled and returns the {@code ProcessingContext} payload.
+     *
+     * @return the {@code ProcessingContext} of the message
+     * @throws CancellationException if the future was cancelled
+     * @throws InterruptedException  if the waiting {@link Thread} is interrupted
+     * @throws ExecutionException    if the future was fulfilled with an exception
+     */
     ProcessingContext<Object> getRaw() throws InterruptedException, ExecutionException;
 
+    /**
+     * Waits until the future is fulfilled and returns the {@code ProcessingContext} payload or the timeout expires.
+     *
+     * @param timeout the interval to wait
+     * @param unit    the unit of the interval
+     * @return the {@code ProcessingContext} of the message
+     * @throws CancellationException if the future was cancelled
+     * @throws InterruptedException  if the waiting {@link Thread} is interrupted
+     * @throws ExecutionException    if the future was fulfilled with an exception
+     * @throws TimeoutException      if the timeout expired
+     */
     ProcessingContext<Object> getRaw(long timeout,
                                      TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
 

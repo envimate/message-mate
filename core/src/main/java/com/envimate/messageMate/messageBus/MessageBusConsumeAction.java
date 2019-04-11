@@ -26,6 +26,7 @@ import com.envimate.messageMate.channel.action.Consume;
 import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategy;
 import com.envimate.messageMate.messageBus.internal.correlationIds.CorrelationBasedSubscriptions;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.RequiredArgsConstructor;
@@ -36,10 +37,10 @@ import static com.envimate.messageMate.channel.action.Consume.consumeMessage;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
-public final class MessageBusConsumeAction {
+final class MessageBusConsumeAction {
 
-    public static Consume<Object> messageBusConsumeAction(final MessageBusBrokerStrategy brokerStrategy,
-                                                          final CorrelationBasedSubscriptions correlationBasedSubscriptions) {
+    static Consume<Object> messageBusConsumeAction(final MessageBusBrokerStrategy brokerStrategy,
+                                                   final CorrelationBasedSubscriptions correlationBasedSubscriptions) {
         return consumeMessage(objectProcessingContext -> {
             deliveryToEventTypeBasedSubscriber(objectProcessingContext, brokerStrategy);
             deliveryBasedOnCorrelationId(objectProcessingContext, correlationBasedSubscriptions);

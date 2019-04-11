@@ -21,7 +21,7 @@
 
 package com.envimate.messageMate.mapping;
 
-import com.envimate.messageMate.internal.collections.filtermap.FilterMap;
+import com.envimate.messageMate.internal.collections.predicatemap.PredicateMap;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
@@ -32,16 +32,15 @@ import static com.envimate.messageMate.internal.enforcing.NotNullEnforcer.ensure
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ExceptionSerializer {
 
-    private final FilterMap<Exception, Void, Mapifier<Exception>> returnValueMappers;
+    private final PredicateMap<Exception, Mapifier<Exception>> mapifiers;
 
-    public static ExceptionSerializer exceptionSerializer(
-            final FilterMap<Exception, Void, Mapifier<Exception>> returnValueMappers) {
-        ensureNotNull(returnValueMappers, "returnValueMappers");
-        return new ExceptionSerializer(returnValueMappers);
+    public static ExceptionSerializer exceptionSerializer(final PredicateMap<Exception, Mapifier<Exception>> mapifierMap) {
+        ensureNotNull(mapifierMap, "mapifiers");
+        return new ExceptionSerializer(mapifierMap);
     }
 
     public Map<String, Object> serializeException(final Exception returnValue) {
-        final Mapifier<Exception> mapper = returnValueMappers.get(returnValue, null);
+        final Mapifier<Exception> mapper = mapifiers.get(returnValue);
         return mapper.map(returnValue);
     }
 

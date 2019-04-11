@@ -2,7 +2,7 @@ package com.envimate.messageMate.messageBus.givenWhenThen;
 
 import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.identification.MessageId;
-import com.envimate.messageMate.messageBus.EventType;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener;
 import com.envimate.messageMate.processingContext.ProcessingContext;
@@ -232,7 +232,7 @@ public final class MessageBusTestActions {
         });
     }
 
-    public static List<MessageBusExceptionListener<?>> queryListOfDynamicExceptionListener(final MessageBus messageBus) {
+    public static List<MessageBusExceptionListener> queryListOfDynamicExceptionListener(final MessageBus messageBus) {
         return messageBus.getStatusInformation().getAllExceptionListener();
     }
 }

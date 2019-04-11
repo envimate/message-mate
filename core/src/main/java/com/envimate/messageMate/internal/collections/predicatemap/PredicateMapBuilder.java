@@ -19,28 +19,39 @@
  * under the License.
  */
 
-package com.envimate.messageMate.mapping;
+package com.envimate.messageMate.internal.collections.predicatemap;
 
-import com.envimate.messageMate.internal.collections.predicatemap.PredicateMap;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Predicate;
 
+import static com.envimate.messageMate.internal.collections.predicatemap.PredicateMap.predicateMap;
 import static com.envimate.messageMate.internal.enforcing.NotNullEnforcer.ensureNotNull;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public final class Serializer {
+public final class PredicateMapBuilder<P, T> {
+    private final Map<Predicate<P>, T> entries;
+    private T defaultValue;
 
-    private final PredicateMap<Object, Mapifier<Object>> mapifiers;
-
-    public static Serializer responseSerializer(final PredicateMap<Object, Mapifier<Object>> mapifierPredicateMap) {
-        ensureNotNull(mapifierPredicateMap, "mapifiers");
-        return new Serializer(mapifierPredicateMap);
+    public static <P, T> PredicateMapBuilder<P, T> predicateMapBuilder() {
+        final Map<Predicate<P>, T> entries = new HashMap<>();
+        return new PredicateMapBuilder<>(entries);
     }
 
-    public Map<String, Object> serialize(final Object value) {
-        final Mapifier<Object> mapifier = mapifiers.get(value);
-        return mapifier.map(value);
+    public PredicateMapBuilder<P, T> put(final Predicate<P> filter, final T value) {
+        entries.put(filter, value);
+        return this;
+    }
+
+    public void setDefaultValue(final T defaultValue) {
+        ensureNotNull(defaultValue, "defaultValue");
+        this.defaultValue = defaultValue;
+    }
+
+    public PredicateMap<P, T> build() {
+        return predicateMap(entries, defaultValue);
     }
 }

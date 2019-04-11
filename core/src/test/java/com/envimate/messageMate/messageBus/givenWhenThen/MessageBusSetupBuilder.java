@@ -25,7 +25,7 @@ import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.channel.ChannelBuilder;
 import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration;
-import com.envimate.messageMate.messageBus.EventType;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusBuilder;
 import com.envimate.messageMate.messageBus.MessageBusType;

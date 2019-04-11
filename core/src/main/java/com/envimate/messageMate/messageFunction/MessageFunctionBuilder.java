@@ -24,7 +24,7 @@ package com.envimate.messageMate.messageFunction;
 import com.envimate.messageMate.messageBus.MessageBus;
 
 /**
- * The {@code MessageFunctionBuilder} class provides a fluent interface for defining a new {@code MessageFunction}.
+ * The {@code MessageFunctionBuilder} class provides a fluent interface for defining a new {@link MessageFunction}.
  *
  * @see <a href="https://github.com/envimate/message-mate#message-function">Message Mate Documentation</a>
  */

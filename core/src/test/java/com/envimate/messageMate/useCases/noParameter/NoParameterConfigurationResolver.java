@@ -1,6 +1,6 @@
 package com.envimate.messageMate.useCases.noParameter;
 
-import com.envimate.messageMate.messageBus.EventType;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.shared.config.AbstractTestConfigProvider;
 import com.envimate.messageMate.useCases.TestUseCase;
 import com.envimate.messageMate.useCases.TestUseCaseBuilder;

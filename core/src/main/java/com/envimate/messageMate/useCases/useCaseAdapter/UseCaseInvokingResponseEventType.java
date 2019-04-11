@@ -21,12 +21,21 @@
 
 package com.envimate.messageMate.useCases.useCaseAdapter;
 
-import com.envimate.messageMate.messageBus.EventType;
+import com.envimate.messageMate.processingContext.EventType;
+import com.envimate.messageMate.useCases.useCaseBus.UseCaseBus;
 import lombok.RequiredArgsConstructor;
 
+import static com.envimate.messageMate.processingContext.EventType.eventTypeFromString;
 import static lombok.AccessLevel.PRIVATE;
 
+/**
+ * The {@link EventType} to identify response from use cases invoked by the {@link UseCaseBus} or {@link UseCaseAdapter}.
+ */
 @RequiredArgsConstructor(access = PRIVATE)
 public final class UseCaseInvokingResponseEventType {
-    public static final EventType USE_CASE_RESPONSE_EVENT_TYPE = EventType.eventTypeFromString("UseCaseResponse");
+    /**
+     * The {@link EventType}, on which response from use cases invoked by the {@link UseCaseBus} or {@link UseCaseAdapter} are
+     * send back.
+     */
+    public static final EventType USE_CASE_RESPONSE_EVENT_TYPE = eventTypeFromString("UseCaseResponse");
 }

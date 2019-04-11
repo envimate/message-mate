@@ -43,14 +43,16 @@ public final class ErrorListenerDelegatingMessageBusExceptionHandler implements 
     }
 
     @Override
-    public boolean shouldDeliveryChannelErrorBeHandledAndDeliveryAborted(final ProcessingContext<?> message,
+    public boolean shouldDeliveryChannelErrorBeHandledAndDeliveryAborted(final ProcessingContext<Object> message,
                                                                          final Exception e,
-                                                                         final Channel<?> channel) {
+                                                                         final Channel<Object> channel) {
         return delegate.shouldDeliveryChannelErrorBeHandledAndDeliveryAborted(message, e, channel);
     }
 
     @Override
-    public void handleDeliveryChannelException(final ProcessingContext<?> message, final Exception e, final Channel<?> channel) {
+    public void handleDeliveryChannelException(final ProcessingContext<Object> message,
+                                               final Exception e,
+                                               final Channel<Object> channel) {
         try {
             callDeliveryExceptionHandlerIfNotBubbleUpException(message, e, channel);
         } finally {
@@ -59,7 +61,7 @@ public final class ErrorListenerDelegatingMessageBusExceptionHandler implements 
     }
 
     @Override
-    public void handleFilterException(final ProcessingContext<?> message, final Exception e, final Channel<?> channel) {
+    public void handleFilterException(final ProcessingContext<Object> message, final Exception e, final Channel<Object> channel) {
         try {
             callFilterExceptionHandlerIfNotBubbleUpException(message, e, channel);
         } finally {
@@ -67,15 +69,9 @@ public final class ErrorListenerDelegatingMessageBusExceptionHandler implements 
         }
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private List<MessageBusExceptionListener> getListener(final ProcessingContext<?> message) {
-        final List list = exceptionListenerHandler.listenerFor(message);
-        return (List<MessageBusExceptionListener>) list;
-    }
-
-    private void callDeliveryExceptionHandlerIfNotBubbleUpException(final ProcessingContext<?> message,
+    private void callDeliveryExceptionHandlerIfNotBubbleUpException(final ProcessingContext<Object> message,
                                                                     final Exception e,
-                                                                    final Channel<?> channel) {
+                                                                    final Channel<Object> channel) {
         if (e instanceof BubbleUpWrappedException) {
             return;
         }
@@ -86,9 +82,9 @@ public final class ErrorListenerDelegatingMessageBusExceptionHandler implements 
         }
     }
 
-    private void callFilterExceptionHandlerIfNotBubbleUpException(final ProcessingContext<?> message,
+    private void callFilterExceptionHandlerIfNotBubbleUpException(final ProcessingContext<Object> message,
                                                                   final Exception e,
-                                                                  final Channel<?> channel) {
+                                                                  final Channel<Object> channel) {
         if (e instanceof BubbleUpWrappedException) {
             return;
         }
@@ -99,13 +95,12 @@ public final class ErrorListenerDelegatingMessageBusExceptionHandler implements 
         }
     }
 
-    @SuppressWarnings("rawtypes")
-    private void callTemporaryHandlerIfNotBubbleUpException(final ProcessingContext<?> message,
+    private void callTemporaryHandlerIfNotBubbleUpException(final ProcessingContext<Object> message,
                                                             final Exception e) {
         if (e instanceof BubbleUpWrappedException) {
             return;
         }
-        final List<MessageBusExceptionListener> listener = getListener(message);
+        final List<MessageBusExceptionListener> listener = exceptionListenerHandler.listenerFor(message);
         delegate.callTemporaryExceptionListener(message, e, listener);
     }
 }

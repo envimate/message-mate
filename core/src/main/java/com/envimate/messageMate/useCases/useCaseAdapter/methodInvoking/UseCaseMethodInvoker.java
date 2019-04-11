@@ -26,8 +26,24 @@ import com.envimate.messageMate.mapping.Serializer;
 
 import java.util.Map;
 
+/**
+ * Invokes a specific method on the use case.
+ */
 public interface UseCaseMethodInvoker {
 
+    /**
+     * Takes the use case instance and the current event to invoke the method on the use case instance. The {@link Deserializer}
+     * is used to deserialize the event into the parameters of the method. The method's return value is deserialized with the
+     * {@link Serializer}.
+     *
+     * @param useCase             the use case instance
+     * @param event               the request message
+     * @param requestDeserializer the {@code Deserializer} for the parameters
+     * @param responseSerializer  the {@code Serializer} for the return value
+     * @return the serialized return value as {@link Map}
+     * @throws MethodInvocationException when the method cannot be invoked
+     * @throws ClassCastException        when the event is not a valid {@link Map} of type {@code <String, Object>}
+     */
     Map<String, Object> invoke(Object useCase, Object event, Deserializer requestDeserializer, Serializer responseSerializer);
 
 }

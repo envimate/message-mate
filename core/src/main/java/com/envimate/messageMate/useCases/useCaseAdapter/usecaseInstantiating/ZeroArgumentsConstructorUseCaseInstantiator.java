@@ -26,12 +26,22 @@ import lombok.RequiredArgsConstructor;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-import static com.envimate.messageMate.useCases.useCaseAdapter.usecaseInstantiating.ZeroArgumentsConstructorUseCaseFactoryException.zeroArgumentsConstructorUseCaseInstantiatorException;
+import static com.envimate.messageMate.useCases.useCaseAdapter.usecaseInstantiating.ZeroArgumentsConstructorUseCaseInstantiatorException.zeroArgumentsConstructorUseCaseInstantiatorException;
 import static lombok.AccessLevel.PRIVATE;
 
+/**
+ * This {@link UseCaseInstantiator} takes the current use case {@link Class} and locates its constructor with
+ * {@link Class#getDeclaredConstructor(Class[])} with no arguments. It fails with
+ * {@link ZeroArgumentsConstructorUseCaseInstantiatorException} if no suitable constructor was found.
+ */
 @RequiredArgsConstructor(access = PRIVATE)
 public final class ZeroArgumentsConstructorUseCaseInstantiator implements UseCaseInstantiator {
 
+    /**
+     * Factory method to create a new {@code ZeroArgumentsConstructorUseCaseInstantiator}.
+     *
+     * @return the newly created {@code ZeroArgumentsConstructorUseCaseInstantiator}
+     */
     public static ZeroArgumentsConstructorUseCaseInstantiator zeroArgumentsConstructorUseCaseInstantiator() {
         return new ZeroArgumentsConstructorUseCaseInstantiator();
     }

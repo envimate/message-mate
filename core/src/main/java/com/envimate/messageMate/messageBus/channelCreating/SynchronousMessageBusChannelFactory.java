@@ -22,9 +22,9 @@
 package com.envimate.messageMate.messageBus.channelCreating;
 
 import com.envimate.messageMate.channel.Channel;
-import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionHandler;
 import com.envimate.messageMate.messageBus.internal.exception.DelegatingChannelExceptionHandler;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.RequiredArgsConstructor;
 
@@ -34,7 +34,7 @@ import static com.envimate.messageMate.messageBus.internal.exception.DelegatingC
 import static lombok.AccessLevel.PRIVATE;
 
 /**
- * The default {@code MessageBusChannelFactory}, that creates synchronous {@code Channels}.
+ * The default {@link MessageBusChannelFactory}, that creates synchronous {@link Channel Channels}.
  *
  * @see <a href="https://github.com/envimate/message-mate#configuring-the-messagebus">Message Mate Documentation</a>
  */

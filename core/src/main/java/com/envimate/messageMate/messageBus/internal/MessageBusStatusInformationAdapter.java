@@ -22,7 +22,7 @@
 package com.envimate.messageMate.messageBus.internal;
 
 import com.envimate.messageMate.channel.Channel;
-import com.envimate.messageMate.messageBus.EventType;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.messageBus.MessageBusStatusInformation;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener;
 import com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategy;
@@ -72,7 +72,7 @@ public final class MessageBusStatusInformationAdapter implements MessageBusStatu
     }
 
     @Override
-    public List<MessageBusExceptionListener<?>> getAllExceptionListener() {
+    public List<MessageBusExceptionListener> getAllExceptionListener() {
         return exceptionListenerHandler.allListener();
     }
 }

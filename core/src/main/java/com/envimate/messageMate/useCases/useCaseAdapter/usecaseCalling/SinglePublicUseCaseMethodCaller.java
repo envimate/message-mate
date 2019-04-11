@@ -35,10 +35,23 @@ import static com.envimate.messageMate.internal.reflections.ReflectionUtils.getA
 import static com.envimate.messageMate.useCases.useCaseAdapter.methodInvoking.SerializingMethodInvoker.serializingMethodInvoker;
 import static lombok.AccessLevel.PRIVATE;
 
+/**
+ * A {@link Caller} that locates the the only public method of the use case class and invokes it, whenever a request is received.
+ *
+ * @param <U> the use case type
+ */
 @RequiredArgsConstructor(access = PRIVATE)
 public final class SinglePublicUseCaseMethodCaller<U> implements Caller<U> {
     private final UseCaseMethodInvoker methodInvoker;
 
+    /**
+     * Factory method to create a new {@code SinglePublicUseCaseMethodCaller}.
+     *
+     * @param useCaseClass the class of the use case to call
+     * @param <U>          the type of the use case
+     * @return the newly created {@code SinglePublicUseCaseMethodCaller}
+     * @throws IllegalArgumentException if not suitable method could be found
+     */
     public static <U> SinglePublicUseCaseMethodCaller<U> singlePublicUseCaseMethodCaller(final Class<U> useCaseClass) {
         final Method method = locateUseCaseMethod(useCaseClass);
         final UseCaseMethodInvoker methodInvoker = serializingMethodInvoker(method);

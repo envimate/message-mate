@@ -2,13 +2,14 @@ package com.envimate.messageMate.serializedMessageBus;
 
 import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.internal.collections.filtermap.FilterMapBuilder;
+import com.envimate.messageMate.internal.collections.predicatemap.PredicateMapBuilder;
 import com.envimate.messageMate.mapping.Demapifier;
 import com.envimate.messageMate.mapping.Deserializer;
 import com.envimate.messageMate.mapping.Mapifier;
 import com.envimate.messageMate.mapping.Serializer;
-import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
-import com.envimate.messageMate.messageBus.PayloadAndErrorPayload;
+import com.envimate.messageMate.useCases.payloadAndErrorPayload.PayloadAndErrorPayload;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.SetupAction;
 import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
@@ -25,6 +26,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static com.envimate.messageMate.internal.collections.predicatemap.PredicateMapBuilder.predicateMapBuilder;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RECEIVERS;
 import static com.envimate.messageMate.serializedMessageBus.SerializedMessageBusTestProperties.*;
@@ -54,14 +56,14 @@ public final class SerializedMessageBusSetupBuilder {
         setupActions.add((serializedMessageBus, testEnvironment) -> {
             try {
                 addMapSubscriber(serializedMessageBus, testEnvironment);
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
             }
         });
         return this;
     }
 
-    private void addMapSubscriber(SerializedMessageBus serializedMessageBus, TestEnvironment testEnvironment) {
+    private void addMapSubscriber(final SerializedMessageBus serializedMessageBus, final TestEnvironment testEnvironment) {
         final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
         final SimpleTestSubscriber<PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>>> subscriber = testSubscriber();
         testEnvironment.addToListProperty(EXPECTED_RECEIVERS, subscriber);
@@ -175,15 +177,15 @@ public final class SerializedMessageBusSetupBuilder {
     }
 
     private Serializer getSerializer() {
-        final FilterMapBuilder<Object, Void, Mapifier<Object>> serializingFilterMapBuilder = FilterMapBuilder.filterMapBuilder();
-        serializingFilterMapBuilder
-                .put((o, o2) -> o.getClass().equals(TestMessageOfInterest.class), object -> {
+        final PredicateMapBuilder<Object, Mapifier<Object>> serializingMapBuilder = predicateMapBuilder();
+        serializingMapBuilder
+                .put((o) -> o.getClass().equals(TestMessageOfInterest.class), object -> {
                     final TestMessageOfInterest message = (TestMessageOfInterest) object;
                     final HashMap<String, Object> map = new HashMap<>();
                     map.put(PAYLOAD_SERIALIZATION_KEY, message.content);
                     return map;
                 })
-                .put((o, o2) -> o.getClass().equals(ErrorTestMessage.class), object -> {
+                .put((o) -> o.getClass().equals(ErrorTestMessage.class), object -> {
                     final ErrorTestMessage message = (ErrorTestMessage) object;
                     final HashMap<String, Object> map = new HashMap<>();
                     map.put(ERROR_PAYLOAD_SERIALIZATION_KEY, message.getContent());
@@ -192,7 +194,7 @@ public final class SerializedMessageBusSetupBuilder {
                 .setDefaultValue((o) -> {
                     throw new TestMissingSerializationException("No serialization known for " + o.getClass());
                 });
-        return Serializer.responseSerializer(serializingFilterMapBuilder.build());
+        return Serializer.responseSerializer(serializingMapBuilder.build());
     }
 
     @RequiredArgsConstructor(access = PRIVATE)

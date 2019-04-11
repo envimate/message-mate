@@ -21,6 +21,19 @@
 
 package com.envimate.messageMate.useCases.building;
 
+import com.envimate.messageMate.useCases.useCaseAdapter.UseCaseInvocationBuilder;
+
+/**
+ * Configures the {@link UseCaseInvocationBuilder} with a new use case invocation definition of the given {@link Class}.
+ */
 public interface InvokingUseCaseStepBuilder {
-    <U> Step2Builder<U> invokingUseCase(Class<U> useCaseType);
+
+    /**
+     * Adds a new invocation information for a use case of the given {@code Class}.
+     *
+     * @param useCaseClass the {@code Class} of the use case
+     * @param <U>          the type of the use case
+     * @return the next step in the fluent builder interface
+     */
+    <U> Step2Builder<U> invokingUseCase(Class<U> useCaseClass);
 }

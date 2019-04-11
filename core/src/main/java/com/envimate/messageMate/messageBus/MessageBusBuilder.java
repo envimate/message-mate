@@ -46,10 +46,10 @@ import static com.envimate.messageMate.messageBus.internal.exception.ExceptionLi
 import static lombok.AccessLevel.PRIVATE;
 
 /**
- * The {@code MessageBusBuilder} class provides a fluent interface to create and configure a {@code MessageBus}.
+ * The {@code MessageBusBuilder} class provides a fluent interface to create and configure a {@link MessageBus}.
  *
  * <p>Most of the configurable properties have default values set by the builder. Per default a synchronous {@code MessageBus}
- * is created with an exception handler, that throws exception once they occur. The default {@code MessageBusChannelFactory}
+ * is created with an exception handler, that throws exception once they occur. The default {@link MessageBusChannelFactory}
  * creates synchronous class specific {@code Channels}.</p>
  *
  * @see <a href="https://github.com/envimate/configuring-the-messagebus#">Message Mate Documentation</a>

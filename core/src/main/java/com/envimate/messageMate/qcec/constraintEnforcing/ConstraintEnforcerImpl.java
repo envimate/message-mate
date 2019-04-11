@@ -21,14 +21,15 @@
 
 package com.envimate.messageMate.qcec.constraintEnforcing;
 
-import com.envimate.messageMate.messageBus.EventType;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.RequiredArgsConstructor;
 
 import java.util.function.Consumer;
 
-import static com.envimate.messageMate.qcec.EventTypeMapper.eventTypeFor;
+import static com.envimate.messageMate.processingContext.EventType.eventTypeFromClass;
+import static com.envimate.messageMate.processingContext.EventType.eventTypeFromObjectClass;
 import static lombok.AccessLevel.PACKAGE;
 
 @RequiredArgsConstructor(access = PACKAGE)
@@ -37,7 +38,7 @@ public class ConstraintEnforcerImpl implements ConstraintEnforcer {
 
     @Override
     public <T> SubscriptionId respondTo(final Class<T> aClass, final Consumer<T> responder) {
-        final EventType eventType = eventTypeFor(aClass);
+        final EventType eventType = eventTypeFromClass(aClass);
         return messageBus.subscribe(eventType, o -> {
             @SuppressWarnings("unchecked")
             final T t = (T) o;
@@ -47,7 +48,7 @@ public class ConstraintEnforcerImpl implements ConstraintEnforcer {
 
     @Override
     public void enforce(final Object constraint) {
-        final EventType eventType = eventTypeFor(constraint);
+        final EventType eventType = eventTypeFromObjectClass(constraint);
         messageBus.send(eventType, constraint);
     }
 

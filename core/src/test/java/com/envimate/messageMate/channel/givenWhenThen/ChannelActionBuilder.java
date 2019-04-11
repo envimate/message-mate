@@ -46,6 +46,7 @@ import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestActions.
 import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestProperties.*;
 import static com.envimate.messageMate.channel.givenWhenThen.FilterPosition.*;
 import static com.envimate.messageMate.processingContext.ProcessingContext.processingContext;
+import static com.envimate.messageMate.processingContext.ProcessingContext.processingContextForPayloadAndError;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.AsynchronousSendingTestUtils.sendValidMessagesAsynchronously;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.EXPECTED_CORRELATION_ID;
@@ -109,7 +110,7 @@ public final class ChannelActionBuilder {
     public static ChannelActionBuilder aMessageWithoutPayloadAndErrorPayloadIsSend() {
         return anAction((channel, testEnvironment) -> {
             final ErrorTestMessage errorTestMessage = ErrorTestMessage.errorTestMessage("some error");
-            final ProcessingContext<TestMessage> processingContext = ProcessingContext.processingContextForPayloadAndError(null, DEFAULT_TEST_MESSAGE, errorTestMessage);
+            final ProcessingContext<TestMessage> processingContext = processingContextForPayloadAndError(DEFAULT_EVENT_TYPE, DEFAULT_TEST_MESSAGE, errorTestMessage);
             testEnvironment.setProperty(EXPECTED_RESULT, processingContext);
             channel.send(processingContext);
             return null;

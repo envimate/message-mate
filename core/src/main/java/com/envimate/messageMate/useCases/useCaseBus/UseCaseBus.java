@@ -21,27 +21,67 @@
 
 package com.envimate.messageMate.useCases.useCaseBus;
 
-import com.envimate.messageMate.messageBus.EventType;
-import com.envimate.messageMate.messageBus.PayloadAndErrorPayload;
+import com.envimate.messageMate.mapping.Deserializer;
+import com.envimate.messageMate.mapping.Serializer;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.serializedMessageBus.SerializedMessageBus;
+import com.envimate.messageMate.useCases.payloadAndErrorPayload.PayloadAndErrorPayload;
+import com.envimate.messageMate.useCases.useCaseAdapter.UseCaseInvocationBuilder;
 
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+/**
+ * The use case bus invokes use cases as defined by {@link UseCaseInvocationBuilder}. Requests are serialized using the defined
+ * {@link Serializer}. All methods wait until a fitting response was received and can optionally deserialized with the defined
+ * {@link Deserializer}.
+ */
 public interface UseCaseBus {
 
     static UseCaseBus useCaseBus(final SerializedMessageBus serializedMessageBus) {
         return new UseCaseBusImpl(serializedMessageBus);
     }
 
+    /**
+     * Invokes the correct use case based on the {@code EventType} with the send data. The method waits until a response is
+     * received or an exception occurred. The response is deserialized based on the given classes.
+     *
+     * @param eventType         the {@code EventType} to send the request on
+     * @param data              the request data
+     * @param payloadClass      the class to serialize the response payload to
+     * @param errorPayloadClass the class to serialize the error response payload to
+     * @param <P>               the type to serialize the response payload to
+     * @param <E>               the type to serialize the error response payload to
+     * @return the serialized response
+     * @throws InterruptedException if the waiting {@link Thread} was interrupted
+     * @throws ExecutionException   if an exception occurred
+     */
     <P, E> PayloadAndErrorPayload<P, E> invokeAndWait(
             EventType eventType,
             Object data,
             Class<P> payloadClass,
             Class<E> errorPayloadClass) throws InterruptedException, ExecutionException;
 
+    /**
+     * Invokes the correct use case based on the {@code EventType} with the send data, which is serialized before sending it. The
+     * method waits until a response is received, an exception occurred or the timeout expired. The response is deserialized
+     * based on the given classes.
+     *
+     * @param eventType         the {@code EventType} to send the request on
+     * @param data              the request data
+     * @param payloadClass      the class to serialize the response payload to
+     * @param errorPayloadClass the class to serialize the error response payload to
+     * @param timeout           the interval to wait
+     * @param unit              the unit to define the interval
+     * @param <P>               the type to serialize the response payload to
+     * @param <E>               the type to serialize the error response payload to
+     * @return the deserialized response
+     * @throws InterruptedException if the waiting {@link Thread} was interrupted
+     * @throws ExecutionException   if an exception occurred
+     * @throws TimeoutException     if the timeout expires
+     */
     <P, E> PayloadAndErrorPayload<P, E> invokeAndWait(
             EventType eventType,
             Object data,
@@ -51,10 +91,33 @@ public interface UseCaseBus {
             TimeUnit unit)
             throws InterruptedException, ExecutionException, TimeoutException;
 
+    /**
+     * Invokes the correct use case based on the {@code EventType} with the send data, which is serialized before sending it. The
+     * method waits until a response is received or an exception occurred. The response is not deserialized.
+     *
+     * @param eventType the {@code EventType} to send the request on
+     * @param data      the request data
+     * @return the raw response
+     * @throws InterruptedException if the waiting {@link Thread} was interrupted
+     * @throws ExecutionException   if an exception occurred
+     */
     PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> invokeAndWaitNotDeserialized(
             EventType eventType,
             Object data) throws InterruptedException, ExecutionException;
 
+    /**
+     * Invokes the correct use case based on the {@code EventType} with the send data, which is serialized before sending it. The
+     * method waits until a response is received or an exception occurred. The response is not deserialized.
+     *
+     * @param eventType the {@code EventType} to send the request on
+     * @param data      the request data
+     * @param timeout   the interval to wait
+     * @param unit      the unit to define the interval
+     * @return the raw response
+     * @throws InterruptedException if the waiting {@link Thread} was interrupted
+     * @throws ExecutionException   if an exception occurred
+     * @throws TimeoutException     if the timeout expires
+     */
     PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> invokeAndWaitNotDeserialized(
             EventType eventType,
             Object data,

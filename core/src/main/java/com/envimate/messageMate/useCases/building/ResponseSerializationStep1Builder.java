@@ -26,17 +26,18 @@ import com.envimate.messageMate.mapping.Mapifier;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-import static com.envimate.messageMate.mapping.MissingSerializationException.responseMapperException;
+import static com.envimate.messageMate.mapping.MissingSerializationException.missingSerializationException;
 import static com.envimate.messageMate.mapping.SerializationFilters.areOfType;
+import static java.lang.String.format;
 
 public interface ResponseSerializationStep1Builder {
 
     /**
      * Enters a fluent builder that configures a {@link Mapifier} that will be used to serialize a use case return value
-     * to a if the use case return value matches the provided {@link Predicate filter}.
+     * to an object if the use case return value matches the provided {@link Predicate filter}.
      *
      * @param filter a {@link Predicate} that returns true if the {@link Mapifier} should be used on the
-     *               respective use case return value
+     *               respective use case response
      * @return the next step in the fluent builder
      */
     ResponseSerializationStep2Builder<Object> serializingResponseObjectsThat(Predicate<Object> filter);
@@ -50,13 +51,14 @@ public interface ResponseSerializationStep1Builder {
      * @param mapper a {@link Mapifier}
      * @return the next step in the fluent builder
      */
-    ExceptionSerializationStep1Builder serializingResponseObjectsByDefaultUsing(Mapifier<Object> mapper);
+    ExceptionSerializationStep1Builder serializingObjectsByDefaultUsing(Mapifier<Object> mapper);
 
     /**
      * Enters a fluent builder that configures a {@link Mapifier} that will be used to serialize a use case return value
-     * to a  if the use case return value is of the specified type.
+     * to an object if the use case return value is of the specified type.
      *
-     * @param type the type of use case return values that will be serialized by the {@link Mapifier}
+     * @param type the class of use case response that will be serialized by the {@link Mapifier}
+     * @param <T>  the type of the response
      * @return the next step in the fluent builder
      */
     @SuppressWarnings("unchecked")
@@ -66,11 +68,52 @@ public interface ResponseSerializationStep1Builder {
                         .using((Mapifier<Object>) mapper);
     }
 
+    /**
+     * Enters a fluent builder that configures a {@link Mapifier} that will be used to serialize a return value of type
+     * {@code null}.
+     *
+     * @param <T> the type of the follow up builder
+     * @return the next step in the fluent builder
+     */
     @SuppressWarnings("unchecked")
     default <T> ResponseSerializationStep2Builder<T> serializingResponseObjectsOfTypeVoid() {
         return mapper ->
                 serializingResponseObjectsThat(Objects::isNull)
                         .using((Mapifier<Object>) mapper);
+    }
+
+    /**
+     * Enters a fluent builder that configures a {@link Mapifier} that will be used to serialize a use case request
+     * to an object if the request matches the provided {@link Predicate filter}.
+     *
+     * @param filter a {@link Predicate} that returns true if the {@link Mapifier} should be used on the
+     *               respective use case request
+     * @return the next step in the fluent builder
+     */
+    default ResponseSerializationStep2Builder<Object> serializingUseCaseRequestThat(final Predicate<Object> filter) {
+        return serializingResponseObjectsThat(filter);
+    }
+
+    /**
+     * Enters a fluent builder that configures a {@link Mapifier} that will be used to serialize a use case request
+     * if the request is {@code null}.
+     *
+     * @return the next step in the fluent builder
+     */
+    default ResponseSerializationStep2Builder<Object> serializinguseCaseRequestsOfTypeVoid() {
+        return serializingResponseObjectsOfTypeVoid();
+    }
+
+    /**
+     * Enters a fluent builder that configures a {@link Mapifier} that will be used to serialize a use case request
+     * to an object if the use case return value is of the specified type.
+     *
+     * @param type the type of use case requests that will be serialized by the {@link Mapifier}
+     * @param <T> the type of the use case request
+     * @return the next step in the fluent builder
+     */
+    default <T> ResponseSerializationStep2Builder<T> serializingUseCaseRequestOfType(final Class<T> type) {
+        return serializingResponseObjectsOfType(type);
     }
 
     /**
@@ -80,9 +123,10 @@ public interface ResponseSerializationStep1Builder {
      *
      * @return the next step in the fluent builder
      */
-    default ExceptionSerializationStep1Builder throwingAnExceptionIfNoResponseMappingCanBeFound() {
-        return serializingResponseObjectsByDefaultUsing(object -> {
-            throw responseMapperException("No serialization found for object %s.", object);
+    default ExceptionSerializationStep1Builder throwingAnExceptionByDefaultIfNoResponseMappingCanBeApplied() {
+        return serializingObjectsByDefaultUsing(object -> {
+            final String message = format("No serialization found for object %s.", object);
+            throw missingSerializationException(message);
         });
     }
 }

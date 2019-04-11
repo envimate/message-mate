@@ -28,14 +28,16 @@ import java.util.function.BiPredicate;
 
 import static com.envimate.messageMate.mapping.DeserializationFilters.areOfType;
 import static com.envimate.messageMate.mapping.MissingDeserializationException.missingDeserializationException;
+import static java.lang.String.format;
 
 public interface DeserializationStep1Builder {
 
     /**
-     * Enters a fluent builder that configures a {@link Demapifier} that will be used to deserialize a
+     * Enters a fluent builder that configures a {@link Demapifier} that will be used to deserialize a {@link Map}
      * to a case parameter if the use case parameter is of the specified type.
      *
-     * @param type the type of use case parameters that will be deserialized by the {@link Demapifier}
+     * @param type the class of use case parameters that will be deserialized by the {@link Demapifier}
+     * @param <T>  the type of the use case parameter
      * @return the next step in the fluent builder
      */
     default <T> DeserializationStep2Builder<T> mappingRequestsToUseCaseParametersOfType(final Class<T> type) {
@@ -49,18 +51,45 @@ public interface DeserializationStep1Builder {
      *
      * @return the next step in the fluent builder
      */
-    default ResponseSerializationStep1Builder throwAnExceptionByDefault() {
-        return mappingRequestsToUseCaseParametersByDefaultUsing((targetType, metaData) -> {
-            throw missingDeserializationException("No request mapper found %s", targetType);
+    default ResponseSerializationStep1Builder throwAnExceptionByDefaultIfNoParameterMappingCanBeApplied() {
+        return deserializeObjectsPerDefault((targetType, metaData) -> {
+            throw missingDeserializationException(format("No request mapper found %s", targetType));
         });
     }
 
     /**
-     * Enters a fluent builder that configures a {@link Demapifier} that will be used to deserialize a
-     * to a use case parameter if the http request matches the provided {@link BiPredicate filter}.
+     * Enters a fluent builder that configures a {@link Demapifier} that will be used to deserialize a {@link Map}
+     * to the return value of the use case invocation.
+     *
+     * @param type the class of use case parameters that will be deserialized by the {@link Demapifier}
+     * @param <T>  the type of the use case parameter
+     * @return the next step in the fluent builder
+     */
+    default <T> DeserializationStep2Builder<T> deserializingUseCaseResponsesOfType(final Class<T> type) {
+        return mappingRequestsToUseCaseParametersOfType(type);
+    }
+
+    /**
+     * Enters a fluent builder that configures a {@link Demapifier} that will be used to deserialize a {@link Map}
+     * to the return value of the use case invocation.
      *
      * @param filter a {@link BiPredicate} that returns true if the {@link Demapifier} should be used
      *               on the respective http request
+     * @param <T>    the type of the use case response
+     * @return the next step in the fluent builder
+     */
+    default <T> DeserializationStep2Builder<T> deserializingUseCaseResponsesThat(
+            final BiPredicate<Class<?>, Map<String, Object>> filter) {
+        return mappingRequestsToUseCaseParametersThat(filter);
+    }
+
+    /**
+     * Enters a fluent builder that configures a {@link Demapifier} that will be used to deserialize a {@link Map}
+     * to a use case parameter if the object matches the provided {@link BiPredicate filter}.
+     *
+     * @param filter a {@link BiPredicate} that returns true if the {@link Demapifier} should be used
+     *               on the respective http request
+     * @param <T>    the type of the use case response
      * @return the next step in the fluent builder
      */
     <T> DeserializationStep2Builder<T> mappingRequestsToUseCaseParametersThat(BiPredicate<Class<?>, Map<String, Object>> filter);
@@ -74,5 +103,5 @@ public interface DeserializationStep1Builder {
      * @param mapper a {@link Demapifier}
      * @return the next step in the fluent builder
      */
-    ResponseSerializationStep1Builder mappingRequestsToUseCaseParametersByDefaultUsing(Demapifier<Object> mapper);
+    ResponseSerializationStep1Builder deserializeObjectsPerDefault(Demapifier<Object> mapper);
 }

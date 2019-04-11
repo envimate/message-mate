@@ -21,16 +21,33 @@
 
 package com.envimate.messageMate.useCases.building;
 
+import com.envimate.messageMate.useCases.useCaseAdapter.UseCaseInvocationBuilder;
 import com.envimate.messageMate.useCases.useCaseAdapter.usecaseInstantiating.UseCaseInstantiator;
+import com.envimate.messageMate.useCases.useCaseAdapter.usecaseInstantiating.ZeroArgumentsConstructorUseCaseInstantiator;
 
 import static com.envimate.messageMate.useCases.useCaseAdapter.usecaseInstantiating.ZeroArgumentsConstructorUseCaseInstantiator.zeroArgumentsConstructorUseCaseInstantiator;
 
+/**
+ * Defines how a instance for a use case should be instantiated, whenever a request was received.
+ */
 public interface InstantiationBuilder {
 
+    /**
+     * Configures the {@link UseCaseInvocationBuilder} to create a new use case instance by invoking the
+     * {@link ZeroArgumentsConstructorUseCaseInstantiator}.
+     *
+     * @return the next step in the fluent builder interface
+     */
     default DeserializationStep1Builder obtainingUseCaseInstancesUsingTheZeroArgumentConstructor() {
         return obtainingUseCaseInstancesUsing(zeroArgumentsConstructorUseCaseInstantiator());
     }
 
+    /**
+     * Configures the {@link UseCaseInvocationBuilder} to use the given {@code UseCaseInstantiator} for each request.
+     *
+     * @param useCaseInstantiator the {@code UseCaseInstantiator} to invoke
+     * @return the next step in the fluent builder interface
+     */
     DeserializationStep1Builder obtainingUseCaseInstancesUsing(UseCaseInstantiator useCaseInstantiator);
 
 }

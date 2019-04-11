@@ -23,6 +23,21 @@ package com.envimate.messageMate.useCases.building;
 
 import com.envimate.messageMate.mapping.Mapifier;
 
+import java.util.Map;
+
+/**
+ * Based on the conditions defined in the previous {@link ResponseSerializationStep1Builder}, this step defines how to
+ * map the matching from object into a {@link Map}.
+ *
+ * @param <T> the type to serialize into a {@code Map}
+ */
 public interface ResponseSerializationStep2Builder<T> {
+
+    /**
+     * Uses the given {@code Mapifier}, when the previous condition triggers.
+     *
+     * @param mapifier the {@code Mapifier} to use
+     * @return the next step in the fluent builder interface
+     */
     ResponseSerializationStep1Builder using(Mapifier<T> mapifier);
 }

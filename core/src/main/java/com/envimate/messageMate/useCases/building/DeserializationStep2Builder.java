@@ -23,6 +23,21 @@ package com.envimate.messageMate.useCases.building;
 
 import com.envimate.messageMate.mapping.Demapifier;
 
+import java.util.Map;
+
+/**
+ * Based on the conditions defined in the previous {@link DeserializationStep1Builder}, this step defines how to
+ * map the matching object from a {@link Map} to the type
+ *
+ * @param <T> the type to deserialize the {@code Map} into
+ */
 public interface DeserializationStep2Builder<T> {
+
+    /**
+     * Uses the given {@code Demapifier}, when the previous condition triggers.
+     *
+     * @param deMapifier the {@code Demapifier} to use
+     * @return the next step in the fluent builder interface
+     */
     DeserializationStep1Builder using(Demapifier<T> deMapifier);
 }

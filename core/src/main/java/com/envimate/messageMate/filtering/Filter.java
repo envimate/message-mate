@@ -21,8 +21,11 @@
 
 package com.envimate.messageMate.filtering;
 
+import com.envimate.messageMate.channel.Channel;
+import com.envimate.messageMate.messageBus.MessageBus;
+
 /**
- * {@code Channels} and {@code MessageBuses} can accept {@code Filter} to alter the flow of transported messages.
+ * A {@link Channel} and a {@link MessageBus} can accept {@code Filter} to alter the flow of transported messages.
  *
  * @param <T> the type of messages of the {@code Channel}
  * @see <a href="https://github.com/envimate/message-mate#adding-filter-to-channel">Message Mate Documentation</a>
@@ -32,7 +35,7 @@ public interface Filter<T> {
     /**
      * The {@code handle} method is called for each message, that traversed the {@code Channel} up to this {@code Filter}.
      * For each message the {@code Filter} should call either {@code filterActions.pass} to continue the message's propagation
-     * through the {@code Channel} or it should call {@code filterActions.block} to stop the delivery of themessage.
+     * through the {@code Channel} or it should call {@code filterActions.block} to stop the delivery of the message.
      *
      * @param message       the current message
      * @param filterActions the {@code FilterActions}

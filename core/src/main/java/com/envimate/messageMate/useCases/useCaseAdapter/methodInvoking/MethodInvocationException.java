@@ -23,12 +23,25 @@ package com.envimate.messageMate.useCases.useCaseAdapter.methodInvoking;
 
 import java.lang.reflect.Method;
 
+/**
+ * This message is thrown, when {@link UseCaseMethodInvoker} failed to invoke the method.
+ */
 public final class MethodInvocationException extends RuntimeException {
 
     private MethodInvocationException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
+    /**
+     * Factory method to create a new {@code MethodInvocationException}
+     *
+     * @param useCaseClass  the class of the use case
+     * @param useCase       the use case instance
+     * @param useCaseMethod the method to invoke
+     * @param event         the current event
+     * @param cause         the underlying exception
+     * @return the newly created {@code MethodInvocationException}
+     */
     public static MethodInvocationException methodInvocationException(final Class<?> useCaseClass,
                                                                       final Object useCase,
                                                                       final Method useCaseMethod,

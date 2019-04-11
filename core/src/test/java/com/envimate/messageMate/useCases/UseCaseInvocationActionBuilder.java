@@ -1,8 +1,8 @@
 package com.envimate.messageMate.useCases;
 
-import com.envimate.messageMate.messageBus.EventType;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
-import com.envimate.messageMate.messageBus.PayloadAndErrorPayload;
+import com.envimate.messageMate.useCases.payloadAndErrorPayload.PayloadAndErrorPayload;
 import com.envimate.messageMate.messageFunction.MessageFunction;
 import com.envimate.messageMate.messageFunction.MessageFunctionBuilder;
 import com.envimate.messageMate.messageFunction.ResponseFuture;

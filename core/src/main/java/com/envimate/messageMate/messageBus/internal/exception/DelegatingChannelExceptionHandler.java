@@ -36,12 +36,24 @@ public final class DelegatingChannelExceptionHandler<T> implements ChannelExcept
     private final MessageBusExceptionHandler messageBusExceptionHandler;
     private final DeliveryAbortDecision<T> deliveryAbortDecision;
     @Setter
-    private Channel<?> channel;
+    private Channel<Object> channel;
 
     public static <T> DelegatingChannelExceptionHandler<T> delegatingChannelExceptionHandlerForDeliveryChannel(
             final MessageBusExceptionHandler messageBusExceptionHandler) {
-        final DeliveryAbortDecision<T> d = messageBusExceptionHandler::shouldDeliveryChannelErrorBeHandledAndDeliveryAborted;
+        final DeliveryAbortDecision<T> d = delegatingDeliveryAbortingException(messageBusExceptionHandler);
         return new DelegatingChannelExceptionHandler<>(messageBusExceptionHandler, d);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static <T> DeliveryAbortDecision<T> delegatingDeliveryAbortingException(
+            final MessageBusExceptionHandler messageBusExceptionHandler) {
+        return (message, e, c) -> {
+            final ProcessingContext ungenericMessage = message;
+            final Channel ungericChannel = c;
+            //noinspection unchecked
+            return messageBusExceptionHandler
+                    .shouldDeliveryChannelErrorBeHandledAndDeliveryAborted(ungenericMessage, e, ungericChannel);
+        };
     }
 
     public static <T> DelegatingChannelExceptionHandler<T> delegatingChannelExceptionHandlerForAcceptingChannel(
@@ -57,11 +69,21 @@ public final class DelegatingChannelExceptionHandler<T> implements ChannelExcept
 
     @Override
     public void handleSubscriberException(final ProcessingContext<T> message, final Exception e) {
+        handleDeliveryException(message, e);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private void handleDeliveryException(final ProcessingContext message, final Exception e) {
         messageBusExceptionHandler.handleDeliveryChannelException(message, e, channel);
     }
 
     @Override
     public void handleFilterException(final ProcessingContext<T> message, final Exception e) {
+        handleFilterExceptionUngenerified(message, e);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private void handleFilterExceptionUngenerified(final ProcessingContext message, final Exception e) {
         messageBusExceptionHandler.handleFilterException(message, e, channel);
     }
 

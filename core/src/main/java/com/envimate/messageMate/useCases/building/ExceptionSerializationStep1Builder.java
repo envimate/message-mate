@@ -23,29 +23,30 @@ package com.envimate.messageMate.useCases.building;
 
 import com.envimate.messageMate.mapping.Mapifier;
 
+import java.util.Map;
 import java.util.function.Predicate;
 
 import static com.envimate.messageMate.mapping.ExceptionMapifier.defaultExceptionMapifier;
-import static com.envimate.messageMate.mapping.MissingSerializationException.responseMapperException;
+import static com.envimate.messageMate.mapping.MissingSerializationException.missingSerializationException;
 import static com.envimate.messageMate.mapping.SerializationFilters.areOfType;
+import static java.lang.String.format;
 
 public interface ExceptionSerializationStep1Builder {
 
     /**
-     * Enters a fluent builder that configures a {@link Mapifier} that will be used to serialize a use case return value
-     * to a if the use case return value matches the provided {@link Predicate filter}.
+     * Enters a fluent builder that configures a {@link Mapifier} that will be used to serialize an exception thrown by a use
+     * case to a {@link Map} if the exception matches the provided {@link Predicate filter}.
      *
      * @param filter a {@link Predicate} that returns true if the {@link Mapifier} should be used on the
-     *               respective use case return value
+     *               respective exception
      * @return the next step in the fluent builder
      */
     ExceptionSerializationStep2Builder<Exception> serializingExceptionsThat(Predicate<Exception> filter);
 
     /**
-     * Configures the default {@link Mapifier} that will be used to serialize a use case return value
-     * to a  if no {@link Mapifier} configured under
-     * {@link ExceptionSerializationStep1Builder#serializingResponseObjectsThat(Predicate)},
-     * {@link ExceptionSerializationStep1Builder#serializingResponseObjectsOfType(Class)}, etc. matches the use case return value.
+     * Configures the default {@link Mapifier} that will be used to serialize an exception to a {@link Map} if no
+     * {@link Mapifier} configured under {@link ExceptionSerializationStep1Builder#serializingExceptionsThat(Predicate)},
+     * {@link ExceptionSerializationStep1Builder#serializingExceptionsOfType(Class)}, etc. matches the exception.
      *
      * @param mapper a {@link Mapifier}
      * @return the next step in the fluent builder
@@ -53,10 +54,11 @@ public interface ExceptionSerializationStep1Builder {
     BuilderStepBuilder serializingExceptionsByDefaultUsing(Mapifier<Exception> mapper);
 
     /**
-     * Enters a fluent builder that configures a {@link Mapifier} that will be used to serialize a use case return value
-     * to a  if the use case return value is of the specified type.
+     * Enters a fluent builder that configures a {@link Mapifier} that will be used to serialize an exception to a {@link Map}
+     * if the exception is of the specified type.
      *
-     * @param type the type of use case return values that will be serialized by the {@link Mapifier}
+     * @param type the class of exception that will be serialized by the {@link Mapifier}
+     * @param <T> the type of exception
      * @return the next step in the fluent builder
      */
     @SuppressWarnings("unchecked")
@@ -67,18 +69,27 @@ public interface ExceptionSerializationStep1Builder {
     }
 
     /**
-     * Configures  to throw an exception if no {@link Mapifier} configured under
-     * {@link ExceptionSerializationStep1Builder#serializingResponseObjectsThat(Predicate)},
-     * {@link ExceptionSerializationStep1Builder#serializingResponseObjectsOfType(Class)}, etc. matches the use case return value.
+     * Configures to throw an exception if no {@link Mapifier} configured under
+     * {@link ExceptionSerializationStep1Builder#serializingExceptionsThat(Predicate)},
+     * {@link ExceptionSerializationStep1Builder#serializingExceptionsOfType(Class)}, etc. matches exception.
      *
      * @return the next step in the fluent builder
      */
     default BuilderStepBuilder throwingAnExceptionIfNoExceptionMappingCanBeFound() {
         return serializingExceptionsByDefaultUsing(object -> {
-            throw responseMapperException("No response mapper found for exception of class %s.", object.getClass());
+            final Class<? extends Exception> objectClass = object.getClass();
+            final String message = format("No response mapper found for exception of class %s.", objectClass);
+            throw missingSerializationException(message);
         });
     }
 
+    /**
+     * Configures the default {@link Mapifier} to take all exceptions, that have not been matched by a previous rule and
+     * serialize them into a {@link Map} by taking the {@link Exception} object and storing it under
+     * {@value com.envimate.messageMate.mapping.ExceptionMapifier#DEFAULT_EXCEPTION_MAPIFIER_KEY} key.
+     *
+     * @return the next step in the fluent builder interface
+     */
     default BuilderStepBuilder puttingExceptionObjectNamedAsExceptionIntoResponseMapByDefault() {
         return serializingExceptionsByDefaultUsing(defaultExceptionMapifier());
     }

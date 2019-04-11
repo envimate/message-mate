@@ -22,7 +22,7 @@
 package com.envimate.messageMate.channel;
 
 /**
- * Defines the type of the {@code Channel}. Can be either {@code SYNCHRONOUS} or {@code ASYNCHRONOUS}.
+ * Defines the type of the {@link Channel}. Can be either {@code SYNCHRONOUS} or {@code ASYNCHRONOUS}.
  */
 public enum ChannelType {
     SYNCHRONOUS,

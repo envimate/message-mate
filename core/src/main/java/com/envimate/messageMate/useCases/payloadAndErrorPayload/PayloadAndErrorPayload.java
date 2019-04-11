@@ -19,42 +19,40 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageBus;
+package com.envimate.messageMate.useCases.payloadAndErrorPayload;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
-import static com.envimate.messageMate.internal.enforcing.StringValidator.cleaned;
 import static lombok.AccessLevel.PRIVATE;
 
+/**
+ * Messages can have both normal and error payload. This class combines these two objects into a single one.
+ *
+ * @param <P> the type of the normal payload
+ * @param <E> the type of the error payload
+ */
 @ToString
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = PRIVATE)
-public final class EventType {
-    private final String value;
+public final class PayloadAndErrorPayload<P, E> {
+    @Getter
+    private final P payload;
+    @Getter
+    private final E errorPayload;
 
-    public static EventType eventTypeFromString(final String value) {
-        final String cleaned = cleaned(value);
-        return new EventType(cleaned);
-    }
-
-    public static EventType eventTypeFromClass(final Class<?> aClass) {
-        final String name = aClass.getName();
-        return eventTypeFromString(name);
-    }
-
-    public static EventType eventTypeFromObjectClass(final Object object) {
-        final Class<?> aClass = object.getClass();
-        return eventTypeFromClass(aClass);
-    }
-
-    public static EventType eventTypeFromUseCase(final Class<?> useCaseClass) {
-        final String name = useCaseClass.getName();
-        return eventTypeFromString(name);
-    }
-
-    public String stringValue() {
-        return value;
+    /**
+     * Factory method to create a new {@code PayloadAndErrorPayload} object for the given payloads.
+     *
+     * @param payload      the normal payload
+     * @param errorPayload the error payload
+     * @param <P>          the type of the normal payload
+     * @param <E>          the type of the error payload
+     * @return the newly created {@code PayloadAndErrorPayload} object
+     */
+    public static <P, E> PayloadAndErrorPayload<P, E> payloadAndErrorPayload(final P payload, final E errorPayload) {
+        return new PayloadAndErrorPayload<>(payload, errorPayload);
     }
 }

@@ -53,4 +53,6 @@
     <suppress checks="VisibilityModifierCheck" files="AbstractSharedAnswerImpl.java" />
     <suppress checks="ParameterNumber" files="ChannelImpl.java" />
     <suppress checks="ParameterNumber" files="ProcessingContext.java" />
+
+    <suppress checks="MethodName" files=".*Specs.java" />
 </suppressions>

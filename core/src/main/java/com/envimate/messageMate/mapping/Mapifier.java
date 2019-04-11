@@ -23,7 +23,20 @@ package com.envimate.messageMate.mapping;
 
 import java.util.Map;
 
+/**
+ * A {@code Mapifier} is takes an object and returns a {@link Map} representation from it.
+ *
+ * @param <T> the type of the object to be mapified
+ * @see <a href="https://github.com/envimate/message-mate#channel">Message Mate Documentation</a>
+ */
 @FunctionalInterface
 public interface Mapifier<T> {
+
+    /**
+     * Takes an object and returns a {@code Map} containing the object's data
+     *
+     * @param object the object to create a {@code Map} from
+     * @return a {@code Map} containing a representation of the object
+     */
     Map<String, Object> map(T object);
 }

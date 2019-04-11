@@ -23,6 +23,21 @@ package com.envimate.messageMate.useCases.building;
 
 import com.envimate.messageMate.mapping.Mapifier;
 
+import java.util.Map;
+
+/**
+ * Based on the conditions defined in the previous {@link ExceptionSerializationStep1Builder}, this step defines how to
+ * map the matching exception to a {@link Map}.
+ *
+ * @param <T> the exception type to serialize into a {@code Map}
+ */
 public interface ExceptionSerializationStep2Builder<T> {
+
+    /**
+     * Uses the given {@code Mapifier}, when the previous condition triggers.
+     *
+     * @param mapifier the {@code Mapifier} to use
+     * @return the next step in the fluent builder interface
+     */
     ExceptionSerializationStep1Builder using(Mapifier<T> mapifier);
 }

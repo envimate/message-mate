@@ -42,7 +42,7 @@ public final class MessageId {
     private final UUID value;
 
     /**
-     * Creates a new {@code MessageId} using the string representation of an {@code UUID}.
+     * Creates a new {@code MessageId} using the string representation of an {@link UUID}.
      *
      * @param value the string representation of the {@code UUID}
      * @return a new {@code MessageId}
@@ -66,6 +66,11 @@ public final class MessageId {
         return new MessageId(uuid);
     }
 
+    /**
+     * Returns a String representing the {@code MessageId}.
+     *
+     * @return a representative string
+     */
     public String stringValue() {
         return this.value.toString();
     }

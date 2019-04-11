@@ -21,8 +21,8 @@
 
 package com.envimate.messageMate.useCases.useCaseBus;
 
-import com.envimate.messageMate.messageBus.EventType;
-import com.envimate.messageMate.messageBus.PayloadAndErrorPayload;
+import com.envimate.messageMate.processingContext.EventType;
+import com.envimate.messageMate.useCases.payloadAndErrorPayload.PayloadAndErrorPayload;
 import com.envimate.messageMate.serializedMessageBus.SerializedMessageBus;
 import lombok.RequiredArgsConstructor;
 
@@ -34,7 +34,7 @@ import java.util.concurrent.TimeoutException;
 import static lombok.AccessLevel.PACKAGE;
 
 @RequiredArgsConstructor(access = PACKAGE)
-public class UseCaseBusImpl implements UseCaseBus {
+class UseCaseBusImpl implements UseCaseBus {
     private final SerializedMessageBus serializedMessageBus;
 
     @Override

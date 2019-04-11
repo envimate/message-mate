@@ -43,9 +43,9 @@ import static com.envimate.messageMate.channel.internal.statistics.PipeStatistic
 import static com.envimate.messageMate.internal.enforcing.NotNullEnforcer.ensureNotNull;
 
 /**
- * The {@code ChannelBuilder} class provides a fluent interface to create and configure a {@code Channel}.
+ * The {@code ChannelBuilder} class provides a fluent interface to create and configure a {@link Channel}.
  *
- * <p>Most of the configurable properties have default values set by the builder. Only the default {@code Action} has to
+ * <p>Most of the configurable properties have default values set by the builder. Only the default {@link Action} has to
  * be set manually. Per default a synchronous {@code Channel} is created with an exception handler, that throws
  * exception once they occur.</p>
  *
@@ -159,7 +159,7 @@ public class ChannelBuilder<T> {
     }
 
     /**
-     * Overwrites the default {@code ActionHandlerSet}, that can handle all built-in {@code Actions}.
+     * Overwrites the default {@link ActionHandlerSet}, that can handle all built-in {@code Actions}.
      *
      * <p>Actions only contain relevant data. All logic about handling {@code Actions} at the end of the {@code Channel} is done
      * by the {@code ActionHandler}. For each {@code Action} a matching {@code ActionHandler} should be contained the

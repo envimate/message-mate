@@ -24,9 +24,7 @@ package com.envimate.messageMate.messageBus.givenWhenThen;
 
 import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.filtering.Filter;
-import com.envimate.messageMate.identification.CorrelationId;
-import com.envimate.messageMate.identification.MessageId;
-import com.envimate.messageMate.messageBus.EventType;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusStatusInformation;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener;
@@ -35,7 +33,6 @@ import com.envimate.messageMate.qcec.shared.TestAction;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
 import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
-import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 
@@ -44,13 +41,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static com.envimate.messageMate.identification.CorrelationId.newUniqueCorrelationId;
-import static com.envimate.messageMate.identification.MessageId.newUniqueMessageId;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActionsOld.messageBusTestActions;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.CORRELATION_SUBSCRIPTION_ID;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.EVENT_TYPE;
 import static com.envimate.messageMate.processingContext.ProcessingContext.processingContext;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RESULT;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
 import static com.envimate.messageMate.shared.TestEventType.testEventType;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
@@ -362,7 +356,7 @@ public final class MessageBusActionBuilder {
 
     public static MessageBusActionBuilder allDynamicExceptionListenerAreQueried() {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
-            final List<MessageBusExceptionListener<?>> listeners = MessageBusTestActions.queryListOfDynamicExceptionListener(messageBus);
+            final List<MessageBusExceptionListener> listeners = MessageBusTestActions.queryListOfDynamicExceptionListener(messageBus);
             testEnvironment.setPropertyIfNotSet(RESULT, listeners);
             return null;
         });

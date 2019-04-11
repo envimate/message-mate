@@ -1,15 +1,15 @@
 package com.envimate.messageMate.useCases.exceptionThrowing;
 
 import com.envimate.messageMate.channel.Channel;
-import com.envimate.messageMate.messageBus.EventType;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionHandler;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.shared.config.AbstractTestConfigProvider;
 import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.useCases.TestUseCase;
 import com.envimate.messageMate.useCases.TestUseCaseBuilder;
 
-import static com.envimate.messageMate.mapping.ExceptionMapifier.DEFAULT_EXCEPTION_MAPFIER_KEY;
+import static com.envimate.messageMate.mapping.ExceptionMapifier.DEFAULT_EXCEPTION_MAPIFIER_KEY;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
 import static com.envimate.messageMate.useCases.UseCaseBusCallBuilder.aUseCasBusCall;
 import static com.envimate.messageMate.useCases.UseCaseInvocationTestProperties.RETRIEVE_ERROR_FROM_FUTURE;
@@ -36,7 +36,7 @@ public class ExceptionThrowingConfigurationResolver extends AbstractTestConfigPr
                 .withAUseCaseInvocationRequestSerialization(ExceptionThrowingRequest.class, (e, map) -> map.put(PARAMETER_MAP_PROPERTY_NAME, e.getExceptionToThrow()))
                 .withExpectedResponseMap(map -> map.put(PARAMETER_MAP_PROPERTY_NAME, expectedException))
                 .withParameterDeserialization(ExceptionThrowingRequest.class, map -> new ExceptionThrowingRequest((RuntimeException) map.get(PARAMETER_MAP_PROPERTY_NAME)))
-                .withAUseCaseInvocationResponseDeserialization(TestException.class, map -> (TestException) map.get(DEFAULT_EXCEPTION_MAPFIER_KEY))
+                .withAUseCaseInvocationResponseDeserialization(TestException.class, map -> (TestException) map.get(DEFAULT_EXCEPTION_MAPIFIER_KEY))
                 .callingUseCaseWith((useCase, requestMap, responseMap) -> {
                     final ExceptionThrowingUseCase exceptionthrowingusecase = (ExceptionThrowingUseCase) useCase;
                     final RuntimeException exception = (RuntimeException) requestMap.get(PARAMETER_MAP_PROPERTY_NAME);
@@ -51,19 +51,19 @@ public class ExceptionThrowingConfigurationResolver extends AbstractTestConfigPr
                     testEnvironment.setPropertyIfNotSet(RETRIEVE_ERROR_FROM_FUTURE, true);
                     messageBusBuilder.withExceptionHandler(new MessageBusExceptionHandler() {
                         @Override
-                        public boolean shouldDeliveryChannelErrorBeHandledAndDeliveryAborted(ProcessingContext<?> message, Exception e, Channel<?> channel) {
+                        public boolean shouldDeliveryChannelErrorBeHandledAndDeliveryAborted(final ProcessingContext<Object> message, final Exception e, final Channel<Object> channel) {
                             return true;
                         }
 
                         @Override
-                        public void handleDeliveryChannelException(ProcessingContext<?> message, Exception e, Channel<?> channel) {
+                        public void handleDeliveryChannelException(final ProcessingContext<Object> message, final Exception e, final Channel<Object> channel) {
                             if (e != expectedException) {
                                 throw (RuntimeException) e;
                             }
                         }
 
                         @Override
-                        public void handleFilterException(ProcessingContext<?> message, Exception e, Channel<?> channel) {
+                        public void handleFilterException(final ProcessingContext<Object> message, final Exception e, final Channel<Object> channel) {
                             if (e != expectedException) {
                                 throw (RuntimeException) e;
                             }
@@ -76,7 +76,7 @@ public class ExceptionThrowingConfigurationResolver extends AbstractTestConfigPr
                         .withSuccessResponseClass(Void.class)
                         .withErrorResponseClass(TestException.class)
                         .expectOnlyErrorPayload(expectedException)
-                        .expectedErrorPayloadNotDeserialized(map -> map.put(DEFAULT_EXCEPTION_MAPFIER_KEY, expectedException)))
+                        .expectedErrorPayloadNotDeserialized(map -> map.put(DEFAULT_EXCEPTION_MAPIFIER_KEY, expectedException)))
                 .build();
 
     }

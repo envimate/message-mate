@@ -21,16 +21,24 @@
 
 package com.envimate.messageMate.mapping;
 
-import static java.lang.String.format;
-
+/**
+ * This {@link Exception} is thrown if no deserialization for an object could be applied.
+ *
+ * @see <a href="https://github.com/envimate/message-mate#channel">Message Mate Documentation</a>
+ */
 public final class MissingDeserializationException extends RuntimeException {
 
     private MissingDeserializationException(final String message) {
         super(message);
     }
 
-    public static MissingDeserializationException missingDeserializationException(final String injectableMessage,
-                                                                                  final Class<Object> targetType) {
-        return new MissingDeserializationException(format(injectableMessage, targetType));
+    /**
+     * Creates a new {@code MissingDeserializationException} exception.
+     *
+     * @param message the {@code Exception's message}
+     * @return the new {@code MissingDeserializationException}
+     */
+    public static MissingDeserializationException missingDeserializationException(final String message) {
+        return new MissingDeserializationException(message);
     }
 }

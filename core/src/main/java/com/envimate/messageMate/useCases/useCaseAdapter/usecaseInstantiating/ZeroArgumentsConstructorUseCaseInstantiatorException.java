@@ -21,15 +21,18 @@
 
 package com.envimate.messageMate.useCases.useCaseAdapter.usecaseInstantiating;
 
-public final class ZeroArgumentsConstructorUseCaseFactoryException extends RuntimeException {
+/**
+ * An {@link Exception} indicating an error, when creating a new instance of an use case with its zero arguments constructor.
+ */
+public final class ZeroArgumentsConstructorUseCaseInstantiatorException extends RuntimeException {
 
-    private ZeroArgumentsConstructorUseCaseFactoryException(final String message, final Throwable cause) {
+    private ZeroArgumentsConstructorUseCaseInstantiatorException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    static ZeroArgumentsConstructorUseCaseFactoryException zeroArgumentsConstructorUseCaseInstantiatorException(
+    static ZeroArgumentsConstructorUseCaseInstantiatorException zeroArgumentsConstructorUseCaseInstantiatorException(
             final Class<?> type, final Throwable cause) {
-        return new ZeroArgumentsConstructorUseCaseFactoryException("Exception during instantiation " +
+        return new ZeroArgumentsConstructorUseCaseInstantiatorException("Exception during instantiation " +
                 "of " + type.getName() + " using zero argument constructor", cause);
     }
 }

@@ -24,7 +24,7 @@ package com.envimate.messageMate.messageBus.givenWhenThen;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.internal.pipe.statistics.PipeStatistics;
-import com.envimate.messageMate.messageBus.EventType;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusStatusInformation;
 import com.envimate.messageMate.messageBus.statistics.MessageBusStatistics;

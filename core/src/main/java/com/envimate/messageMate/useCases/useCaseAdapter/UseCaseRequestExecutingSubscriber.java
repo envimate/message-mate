@@ -25,14 +25,13 @@ import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.mapping.Deserializer;
 import com.envimate.messageMate.mapping.ExceptionSerializer;
 import com.envimate.messageMate.mapping.Serializer;
-import com.envimate.messageMate.messageBus.EventType;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.serializedMessageBus.SerializedMessageBus;
 import com.envimate.messageMate.subscribing.AcceptingBehavior;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import com.envimate.messageMate.useCases.useCaseAdapter.usecaseCalling.Caller;
-import com.envimate.messageMate.useCases.useCaseAdapter.usecaseCalling.UseCaseCallingInformation;
 import com.envimate.messageMate.useCases.useCaseAdapter.usecaseInstantiating.UseCaseInstantiator;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
@@ -58,7 +57,7 @@ final class UseCaseRequestExecutingSubscriber implements Subscriber<ProcessingCo
     private final SubscriptionId subscriptionId = newUniqueId();
     private SerializedMessageBus serializedMessageBus;
 
-    public static UseCaseRequestExecutingSubscriber useCaseRequestExecutingSubscriber(
+    static UseCaseRequestExecutingSubscriber useCaseRequestExecutingSubscriber(
             final UseCaseCallingInformation<?> useCaseCallingInformation,
             final UseCaseInstantiator useCaseInstantiator,
             final Deserializer requestDeserializer,

@@ -23,8 +23,9 @@ package com.envimate.messageMate.messageBus;
 
 
 import com.envimate.messageMate.exceptions.AlreadyClosedException;
+import com.envimate.messageMate.internal.enforcing.MustNotBeNullException;
 import com.envimate.messageMate.messageBus.config.MessageBusTestConfig;
-import com.envimate.messageMate.messageBus.exception.MissingEventTypeException;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 import org.junit.jupiter.api.Test;
@@ -90,7 +91,7 @@ public interface MessageBusSpecs {
         given(aConfiguredMessageBus(messageBusTestConfig)
                 .withASingleRawSubscriber())
                 .when(aMessageWithoutEventType())
-                .then(expectTheException(MissingEventTypeException.class));
+                .then(expectTheException(MustNotBeNullException.class));
     }
     //errorPayload
     @Test

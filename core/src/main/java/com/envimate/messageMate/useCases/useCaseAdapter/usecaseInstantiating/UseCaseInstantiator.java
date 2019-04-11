@@ -21,6 +21,21 @@
 
 package com.envimate.messageMate.useCases.useCaseAdapter.usecaseInstantiating;
 
+import com.envimate.messageMate.useCases.useCaseAdapter.UseCaseAdapter;
+
+/**
+ * Whenever a request for a use case is received by a {@link UseCaseAdapter}, the {@code UseCaseInstantiator} is askes to provide
+ * an instance for the use case.
+ */
 public interface UseCaseInstantiator {
+
+    /**
+     * This method is called, whenever a use case is to be invoked. It takes the use case's class and returns an instance of the
+     * use case.
+     *
+     * @param type the class of the use case
+     * @param <T>  the type of the use case
+     * @return the instance of the use case
+     */
     <T> T instantiate(Class<T> type);
 }

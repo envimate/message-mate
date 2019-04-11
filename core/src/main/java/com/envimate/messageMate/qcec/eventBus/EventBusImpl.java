@@ -21,14 +21,15 @@
 
 package com.envimate.messageMate.qcec.eventBus;
 
-import com.envimate.messageMate.messageBus.EventType;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.RequiredArgsConstructor;
 
 import java.util.function.Consumer;
 
-import static com.envimate.messageMate.qcec.EventTypeMapper.eventTypeFor;
+import static com.envimate.messageMate.processingContext.EventType.eventTypeFromClass;
+import static com.envimate.messageMate.processingContext.EventType.eventTypeFromObjectClass;
 import static lombok.AccessLevel.PACKAGE;
 
 @RequiredArgsConstructor(access = PACKAGE)
@@ -37,13 +38,13 @@ public class EventBusImpl implements EventBus {
 
     @Override
     public void publish(final Object event) {
-        final EventType eventType = eventTypeFor(event);
+        final EventType eventType = eventTypeFromObjectClass(event);
         messageBus.send(eventType, event);
     }
 
     @Override
     public <T> SubscriptionId reactTo(final Class<T> tClass, final Consumer<T> consumer) {
-        final EventType eventType = eventTypeFor(tClass);
+        final EventType eventType = eventTypeFromClass(tClass);
         return messageBus.subscribe(eventType, o -> {
             @SuppressWarnings("unchecked")
             final T t = (T) o;

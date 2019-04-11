@@ -26,6 +26,8 @@ import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
+import java.util.UUID;
+
 /**
  * Unique identifier to match all messages, that are related.
  *
@@ -38,7 +40,7 @@ public final class CorrelationId {
     private final MessageId messageId;
 
     /**
-     * Creates a new {@code CorrelationId} using the string representation of an {@code UUID}.
+     * Creates a new {@code CorrelationId} using the string representation of an {@link UUID}.
      *
      * @param value the string representation of the {@code UUID}
      * @return a new {@code CorrelationId}
@@ -49,7 +51,7 @@ public final class CorrelationId {
     }
 
     /**
-     * Creates a {@code CorrelationId} matching the given {@code MessageId}.
+     * Creates a {@code CorrelationId} matching the given {@link MessageId}.
      *
      * @param messageId the {@code MessageId} to match
      * @return a new {@code CorrelationId}
@@ -69,7 +71,7 @@ public final class CorrelationId {
     }
 
     /**
-     * Checks, if the {@code CorrelationId} is related to the given {@code MessageId}.
+     * Checks, if the {@code CorrelationId} is related to the given {@link MessageId}.
      *
      * @param messageId the {@code MessageId} to check
      * @return {@code true} if the ids are related, {@code false} otherwise
@@ -78,6 +80,11 @@ public final class CorrelationId {
         return this.messageId.equals(messageId);
     }
 
+    /**
+     * Returns the String value representing the {@code CorrelationId}.
+     *
+     * @return a representative string value
+     */
     public String stringValue() {
         return this.messageId.stringValue();
     }

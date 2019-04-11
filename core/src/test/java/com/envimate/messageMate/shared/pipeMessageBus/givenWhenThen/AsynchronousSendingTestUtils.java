@@ -21,7 +21,7 @@
 
 package com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen;
 
-import com.envimate.messageMate.messageBus.EventType;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.TestEventType;
 import com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber;

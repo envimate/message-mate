@@ -1,9 +1,8 @@
 package com.envimate.messageMate.serializedMessageBus;
 
 import com.envimate.messageMate.messageBus.MessageBus;
-import com.envimate.messageMate.messageBus.PayloadAndErrorPayload;
+import com.envimate.messageMate.useCases.payloadAndErrorPayload.PayloadAndErrorPayload;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
-import com.envimate.messageMate.qcec.shared.TestEnvironmentProperty;
 import com.envimate.messageMate.qcec.shared.TestValidation;
 import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.shared.subscriber.TestSubscriber;

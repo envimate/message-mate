@@ -33,10 +33,21 @@ import static com.envimate.messageMate.useCases.useCaseAdapter.methodInvoking.Me
 import static java.util.Arrays.stream;
 import static lombok.AccessLevel.PRIVATE;
 
+/**
+ * A {@link UseCaseMethodInvoker}, that uses the {@link Deserializer} to deserialized the event into parameters of the use case
+ * method. The {@link Serializer} is used to serialize the return value back into a {@link Map}.
+ */
+
 @RequiredArgsConstructor(access = PRIVATE)
 public final class SerializingMethodInvoker implements UseCaseMethodInvoker {
     private final Method useCaseMethod;
 
+    /**
+     * Factory method to create a new {@code SerializingMethodInvoker}.
+     *
+     * @param method the {@code method} to invoke
+     * @return the newly created {@code SerializingMethodInvoker} object
+     */
     public static SerializingMethodInvoker serializingMethodInvoker(final Method method) {
         return new SerializingMethodInvoker(method);
     }

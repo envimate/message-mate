@@ -23,7 +23,7 @@ package com.envimate.messageMate.messageFunction.givenWhenThen;
 
 
 import com.envimate.messageMate.identification.CorrelationId;
-import com.envimate.messageMate.messageBus.EventType;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageFunction.MessageFunction;
 import com.envimate.messageMate.messageFunction.ResponseFuture;

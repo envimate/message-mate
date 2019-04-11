@@ -1,14 +1,14 @@
 package com.envimate.messageMate.useCases;
 
-import com.envimate.messageMate.messageBus.EventType;
-import com.envimate.messageMate.messageBus.PayloadAndErrorPayload;
+import com.envimate.messageMate.processingContext.EventType;
+import com.envimate.messageMate.useCases.payloadAndErrorPayload.PayloadAndErrorPayload;
 import lombok.RequiredArgsConstructor;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import static com.envimate.messageMate.messageBus.PayloadAndErrorPayload.payloadAndErrorPayload;
+import static com.envimate.messageMate.useCases.payloadAndErrorPayload.PayloadAndErrorPayload.payloadAndErrorPayload;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)

@@ -22,7 +22,9 @@
 package com.envimate.messageMate.messageBus;
 
 /**
- * Defines the type of the {@code MessageBus}. Can be either {@code SYNCHRONOUS} or {@code ASYNCHRONOUS}.
+ * Defines the type of the {@link MessageBus}. Can be either {@code SYNCHRONOUS} or {@code ASYNCHRONOUS}.
+ *
+ * @see <a href="https://github.com/envimate/message-mate#messagebus">Message Mate Documentation</a>
  */
 public enum MessageBusType {
     SYNCHRONOUS,

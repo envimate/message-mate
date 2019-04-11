@@ -21,8 +21,10 @@
 
 package com.envimate.messageMate.messageBus.statistics;
 
+import com.envimate.messageMate.channel.action.Action;
+import com.envimate.messageMate.filtering.Filter;
+import com.envimate.messageMate.messageBus.MessageBus;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
@@ -37,16 +39,17 @@ import static lombok.AccessLevel.PRIVATE;
  * <p>The timestamp defines the approximate time, when the statistics were queried. But no locking during the request is
  * performed. So the values should be seen as approximations.</p>
  *
- * <p>The value of {@code getAcceptedMessages()} defines the number of messages the {@code MessageBus} has been accepted without
- * an exception. {@code getQueuedMessages()} returns, how many messages have been accepted, but due to not enough resources have
- * been queued. The processing of queued messages will automatically be continued, when resources become available and the
- * {@code MessageBus} is not closed before. {@code getBlockedMessages()} and {@code getForgottenMessages} relate to the results
- * of {@code Filters} being applied. Messages, that have been blocked by a {@code Filter} stop their propagation through the
- * {@code MessageBus}. Forgotten messages are those messages, that have not explicitly marked as passed or blocked by a
- * {@code Filter}. Usually they are the result of a bug inside on of the {@code Filters}. Once a message passed all
- * {@code Filters} the final {@code Action} is executed. The {@code getSuccessfulMessages()} returns the number of messages,
- * that have been delivered without exceptions. In case of an exception during the delivery, the message is marked as failed.
- * {@code getFailedMessges()} returns the amount of those messages.</p>
+ * <p>The value of {@link MessageBusStatistics#getAcceptedMessages()} defines the number of messages the {@link MessageBus} has
+ * been accepted without an exception. {@link MessageBusStatistics#getQueuedMessages()} returns, how many messages have been
+ * accepted, but due to not enough resources have been queued. The processing of queued messages will automatically be continued,
+ * when resources become available and the {@code MessageBus} is not closed before.
+ * {@link MessageBusStatistics#getBlockedMessages()} and {@link MessageBusStatistics#getForgottenMessages()} relate to the results
+ * of {@link Filter Filters} being applied. Messages, that have been blocked by a {@code Filter} stop their propagation
+ * through the {@code MessageBus}. Forgotten messages are those messages, that have not explicitly marked as passed or blocked by
+ * a {@code Filter}. Usually they are the result of a bug inside on of the {@code Filters}. Once a message passed all
+ * {@code Filters} the final {@link Action} is executed. The {@link MessageBusStatistics#getSuccessfulMessages()} returns the
+ * number of messages, that have been delivered without exceptions. In case of an exception during the delivery, the message is
+ * marked as failed. {@link MessageBusStatistics#getFailedMessages()} returns the amount of those messages.</p>
  *
  * @see <a href="https://github.com/envimate/message-mate#messagebus-statistics">Message Mate Documentation</a>
  */
@@ -55,17 +58,11 @@ import static lombok.AccessLevel.PRIVATE;
 @RequiredArgsConstructor(access = PRIVATE)
 public final class MessageBusStatistics {
     private final Date timestamp;
-    @Getter
     private final BigInteger acceptedMessages;
-    @Getter
     private final BigInteger successfulMessages;
-    @Getter
     private final BigInteger failedMessages;
-    @Getter
     private final BigInteger blockedMessages;
-    @Getter
     private final BigInteger forgottenMessages;
-    @Getter
     private final BigInteger queuedMessages;
 
     public static MessageBusStatistics messageBusStatistics(final Date timestamp,
@@ -84,4 +81,27 @@ public final class MessageBusStatistics {
         return new Date(copyForSafeSharing);
     }
 
+    public BigInteger getAcceptedMessages() {
+        return this.acceptedMessages;
+    }
+
+    public BigInteger getSuccessfulMessages() {
+        return this.successfulMessages;
+    }
+
+    public BigInteger getFailedMessages() {
+        return this.failedMessages;
+    }
+
+    public BigInteger getBlockedMessages() {
+        return this.blockedMessages;
+    }
+
+    public BigInteger getForgottenMessages() {
+        return this.forgottenMessages;
+    }
+
+    public BigInteger getQueuedMessages() {
+        return this.queuedMessages;
+    }
 }

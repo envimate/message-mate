@@ -23,7 +23,23 @@ package com.envimate.messageMate.mapping;
 
 import java.util.Map;
 
+/**
+ * A {@code Demapifier} is responsible to create a new object of the given {@link Class} from the date contained in the
+ * {@link Map}.
+ *
+ * @param <T> the type of the object to be created
+ *
+ * @see <a href="https://github.com/envimate/message-mate#channel">Message Mate Documentation</a>
+ */
 @FunctionalInterface
 public interface Demapifier<T> {
+
+    /**
+     * Creates a new object of the given type using the data from the {@code Map}.
+     *
+     * @param targetType the type to be created
+     * @param map        a map containing necessary data
+     * @return the newly created object
+     */
     T map(Class<T> targetType, Map<String, Object> map);
 }

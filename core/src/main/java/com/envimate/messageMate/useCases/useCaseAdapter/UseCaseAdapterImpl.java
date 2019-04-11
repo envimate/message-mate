@@ -21,12 +21,11 @@
 
 package com.envimate.messageMate.useCases.useCaseAdapter;
 
+import com.envimate.messageMate.mapping.Deserializer;
+import com.envimate.messageMate.mapping.ExceptionSerializer;
+import com.envimate.messageMate.mapping.Serializer;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.serializedMessageBus.SerializedMessageBus;
-import com.envimate.messageMate.mapping.ExceptionSerializer;
-import com.envimate.messageMate.mapping.Deserializer;
-import com.envimate.messageMate.mapping.Serializer;
-import com.envimate.messageMate.useCases.useCaseAdapter.usecaseCalling.UseCaseCallingInformation;
 import com.envimate.messageMate.useCases.useCaseAdapter.usecaseInstantiating.UseCaseInstantiator;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
@@ -42,18 +41,18 @@ import static lombok.AccessLevel.PRIVATE;
 @ToString
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = PRIVATE)
-public final class UseCaseAdapterImpl implements UseCaseAdapter {
+final class UseCaseAdapterImpl implements UseCaseAdapter {
     private final List<UseCaseCallingInformation<?>> useCaseCallingInformations;
     private final UseCaseInstantiator useCaseInstantiator;
     private final Deserializer requestDeserializer;
     private final Serializer responseSerializer;
     private final ExceptionSerializer exceptionSerializer;
 
-    public static UseCaseAdapter useCaseAdapterImpl(final List<UseCaseCallingInformation<?>> useCaseCallingInformations,
-                                                    final UseCaseInstantiator useCaseInstantiator,
-                                                    final Deserializer requestDeserializer,
-                                                    final Serializer responseSerializer,
-                                                    final ExceptionSerializer exceptionSerializer) {
+    static UseCaseAdapter useCaseAdapterImpl(final List<UseCaseCallingInformation<?>> useCaseCallingInformations,
+                                             final UseCaseInstantiator useCaseInstantiator,
+                                             final Deserializer requestDeserializer,
+                                             final Serializer responseSerializer,
+                                             final ExceptionSerializer exceptionSerializer) {
         ensureNotNull(useCaseCallingInformations, "useCaseCallingInformations");
         ensureNotNull(useCaseInstantiator, "useCaseInstantiator");
         ensureNotNull(requestDeserializer, "requestDeserializer");

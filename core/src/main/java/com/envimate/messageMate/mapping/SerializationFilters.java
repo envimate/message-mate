@@ -27,9 +27,21 @@ import java.util.function.Predicate;
 
 import static lombok.AccessLevel.PRIVATE;
 
+/**
+ * A class defining reusable filters for the serialization of objects.
+ *
+ * @see <a href="https://github.com/envimate/message-mate#channel">Message Mate Documentation</a>
+ */
 @RequiredArgsConstructor(access = PRIVATE)
 public final class SerializationFilters {
 
+    /**
+     * Returns a {@link Predicate} to check if an object is of the given {@link Class}.
+     *
+     * @param type the type to check for
+     * @param <T>  the type to check for
+     * @return a {@code Predicate} checking for the given type
+     */
     public static <T> Predicate<T> areOfType(final Class<?> type) {
         return type::isInstance;
     }

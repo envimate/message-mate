@@ -21,7 +21,7 @@
 
 package com.envimate.messageMate.qcec.queryresolving;
 
-import com.envimate.messageMate.messageBus.EventType;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.subscribing.PreemptiveSubscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
@@ -29,7 +29,8 @@ import com.envimate.messageMate.subscribing.SubscriptionId;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import static com.envimate.messageMate.qcec.EventTypeMapper.eventTypeFor;
+import static com.envimate.messageMate.processingContext.EventType.eventTypeFromClass;
+import static com.envimate.messageMate.processingContext.EventType.eventTypeFromObjectClass;
 
 public class QueryResolverImpl implements QueryResolver {
     private final MessageBus messageBus;
@@ -47,7 +48,7 @@ public class QueryResolverImpl implements QueryResolver {
             final boolean continueDelivery = !query.finished();
             return continueDelivery;
         });
-        final EventType eventType = eventTypeFor(queryClass);
+        final EventType eventType = eventTypeFromClass(queryClass);
         messageBus.subscribe(eventType, subscriber);
         final SubscriptionId subscriptionId = subscriber.getSubscriptionId();
         return subscriptionId;
@@ -55,14 +56,14 @@ public class QueryResolverImpl implements QueryResolver {
 
     @Override
     public <R> Optional<R> query(final Query<R> query) {
-        final EventType eventType = eventTypeFor(query);
+        final EventType eventType = eventTypeFromObjectClass(query);
         messageBus.send(eventType, query);
         return Optional.ofNullable(query.result());
     }
 
     @Override
     public <R> R queryRequired(final Query<R> query) {
-        final EventType eventType = eventTypeFor(query);
+        final EventType eventType = eventTypeFromObjectClass(query);
         messageBus.send(eventType, query);
         return Optional
                 .ofNullable(query.result())

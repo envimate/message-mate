@@ -36,7 +36,7 @@ import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.internal.exceptions.BubbleUpWrappedException;
 import com.envimate.messageMate.internal.pipe.Pipe;
-import com.envimate.messageMate.messageBus.EventType;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import lombok.RequiredArgsConstructor;
 
@@ -46,7 +46,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static com.envimate.messageMate.channel.ChannelProcessingFrame.processingFrame;
-import static com.envimate.messageMate.messageBus.EventType.eventTypeFromObjectClass;
+import static com.envimate.messageMate.processingContext.EventType.eventTypeFromObjectClass;
 import static com.envimate.messageMate.processingContext.ProcessingContext.processingContext;
 import static lombok.AccessLevel.PRIVATE;
 
@@ -115,7 +115,7 @@ final class ChannelImpl<T> implements Channel<T> {
             advanceChannelProcessingFrameHistory(processingContext);
             acceptingPipe.send(processingContext);
             return messageId;
-        } catch (BubbleUpWrappedException e) {
+        } catch (final BubbleUpWrappedException e) {
             exceptionHandler.handleBubbledUpException(e);
             return messageId;
         }

@@ -301,7 +301,7 @@ public final class TestMessageFunctionValidationBuilder {
             final List<Subscriber<?>> allSubscribers = statusInformation.getAllSubscribers();
             final int initialResponseSubscriber = 1;
             assertCollectionOfSize(allSubscribers, initialResponseSubscriber);
-            final List<MessageBusExceptionListener<?>> listener = statusInformation.getAllExceptionListener();
+            final List<MessageBusExceptionListener> listener = statusInformation.getAllExceptionListener();
             final int noRemainingErrorListener = 0;
             assertCollectionOfSize(listener, noRemainingErrorListener);
         });

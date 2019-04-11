@@ -1,7 +1,7 @@
 package com.envimate.messageMate.useCases;
 
 import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration;
-import com.envimate.messageMate.messageBus.EventType;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusBuilder;
 import com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler;
@@ -62,9 +62,9 @@ public final class UseCaseInvocationSetupBuilder {
                 .callingTheSingleUseCaseMethod();
         final DeserializationStep1Builder deserializationBuilder = instantiationFunction.apply(useCaseInvokingBuilder);
         testUseCase.defineDeserialization(deserializationBuilder);
-        final ResponseSerializationStep1Builder serializationStep1Builder = deserializationBuilder.throwAnExceptionByDefault();
+        final ResponseSerializationStep1Builder serializationStep1Builder = deserializationBuilder.throwAnExceptionByDefaultIfNoParameterMappingCanBeApplied();
         testUseCase.defineSerialization(serializationStep1Builder);
-        builderStepBuilder = serializationStep1Builder.throwingAnExceptionIfNoResponseMappingCanBeFound()
+        builderStepBuilder = serializationStep1Builder.throwingAnExceptionByDefaultIfNoResponseMappingCanBeApplied()
                 .puttingExceptionObjectNamedAsExceptionIntoResponseMapByDefault();
         return this;
     }
@@ -76,7 +76,7 @@ public final class UseCaseInvocationSetupBuilder {
                 .forType(eventType);
         testUseCase.useCustomInvocationLogic(callingBuilder);
         builderStepBuilder = useCaseAdapterBuilder.obtainingUseCaseInstancesUsingTheZeroArgumentConstructor()
-                .throwAnExceptionByDefault().throwingAnExceptionIfNoResponseMappingCanBeFound()
+                .throwAnExceptionByDefaultIfNoParameterMappingCanBeApplied().throwingAnExceptionByDefaultIfNoResponseMappingCanBeApplied()
                 .puttingExceptionObjectNamedAsExceptionIntoResponseMapByDefault();
         return this;
     }
@@ -88,8 +88,8 @@ public final class UseCaseInvocationSetupBuilder {
                 .forType(eventType)
                 .callingTheSingleUseCaseMethod();
         final DeserializationStep1Builder deserializationBuilder = instantiationFunction.apply(useCaseInvokingBuilder);
-        final ResponseSerializationStep1Builder serializationStep1Builder = deserializationBuilder.throwAnExceptionByDefault();
-        builderStepBuilder = serializationStep1Builder.throwingAnExceptionIfNoResponseMappingCanBeFound()
+        final ResponseSerializationStep1Builder serializationStep1Builder = deserializationBuilder.throwAnExceptionByDefaultIfNoParameterMappingCanBeApplied();
+        builderStepBuilder = serializationStep1Builder.throwingAnExceptionByDefaultIfNoResponseMappingCanBeApplied()
                 .puttingExceptionObjectNamedAsExceptionIntoResponseMapByDefault();
         messageBusBuilder.withExceptionHandler(MessageBusTestExceptionHandler.allExceptionHandlingTestExceptionHandler(testEnvironment, EXCEPTION));
         return this;
@@ -103,8 +103,8 @@ public final class UseCaseInvocationSetupBuilder {
                 .callingTheSingleUseCaseMethod();
         final DeserializationStep1Builder deserializationBuilder = instantiationFunction.apply(useCaseInvokingBuilder);
         testUseCase.defineDeserialization(deserializationBuilder);
-        final ResponseSerializationStep1Builder serializationStep1Builder = deserializationBuilder.throwAnExceptionByDefault();
-        builderStepBuilder = serializationStep1Builder.throwingAnExceptionIfNoResponseMappingCanBeFound()
+        final ResponseSerializationStep1Builder serializationStep1Builder = deserializationBuilder.throwAnExceptionByDefaultIfNoParameterMappingCanBeApplied();
+        builderStepBuilder = serializationStep1Builder.throwingAnExceptionByDefaultIfNoResponseMappingCanBeApplied()
                 .puttingExceptionObjectNamedAsExceptionIntoResponseMapByDefault();
         messageBusBuilder.withExceptionHandler(MessageBusTestExceptionHandler.allExceptionHandlingTestExceptionHandler(testEnvironment, EXCEPTION));
         return this;

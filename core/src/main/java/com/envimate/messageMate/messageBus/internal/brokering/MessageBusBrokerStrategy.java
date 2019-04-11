@@ -22,7 +22,7 @@
 package com.envimate.messageMate.messageBus.internal.brokering;
 
 import com.envimate.messageMate.channel.Channel;
-import com.envimate.messageMate.messageBus.EventType;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;

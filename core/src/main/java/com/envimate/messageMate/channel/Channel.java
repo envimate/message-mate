@@ -28,23 +28,24 @@ import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.internal.autoclosable.NoErrorAutoClosable;
 import com.envimate.messageMate.processingContext.ProcessingContext;
+import com.envimate.messageMate.subscribing.Subscriber;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
- * {@code Channel} is the concept used for transporting messages from sender to an consuming {@code Action} at the end of the
+ * {@code Channel} is the concept used for transporting messages from sender to an consuming {@link Action} at the end of the
  * {@code Channel}.
  *
- * <p>Each {@code Channel} has a default {@code Action}, which, if not changed by a {@code Filter}, is executed for every message
- * at the end of the transport. Different {@code Action} exists, that allow to add {@code Subscriber}, execute specific logic or
+ * <p>Each {@code Channel} has a default {@code Action}, which, if not changed by a {@link Filter}, is executed for every message
+ * at the end of the transport. Different {@code Action} exists, that allow to add {@link Subscriber}, execute specific logic or
  * move the message to different {@code Channels}. During the transport {@code Filter} can be added, that alter the message, its
  * flow or the {@code Action}. {@code Channels} can be synchronous or asynchronous. Synchronous {@code Channel} execute the
  * transport on the Thread calling {@code send}. Asynchronous {@code Channels} provide their own Threads and mechanism to queue
  * messages, for which no Threads is available right away. Messages collect statistics over messages, that can be queried anytime.
  * During creation exception handler can be set, that control the {@code Channel's} behavior, when an exception is thrown.</p>
  *
- * <p>The {@code Channel} implements the {@code AutoCloseable} interface, so that it can be used in try-with-resource statements.
+ * <p>The {@code Channel} implements the {@link AutoCloseable} interface, so that it can be used in try-with-resource statements.
  * </p>
  *
  * @param <T> the type of messages send over this {@code Channel}

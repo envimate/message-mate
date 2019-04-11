@@ -19,23 +19,36 @@
  * under the License.
  */
 
-package com.envimate.messageMate.qcec;
+package com.envimate.messageMate.useCases.useCaseAdapter;
 
-import com.envimate.messageMate.messageBus.EventType;
+import com.envimate.messageMate.processingContext.EventType;
+import com.envimate.messageMate.useCases.useCaseAdapter.usecaseCalling.Caller;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
-import static com.envimate.messageMate.messageBus.EventType.eventTypeFromClass;
+import static com.envimate.messageMate.internal.enforcing.NotNullEnforcer.ensureNotNull;
 import static lombok.AccessLevel.PRIVATE;
 
+@ToString
+@EqualsAndHashCode
 @RequiredArgsConstructor(access = PRIVATE)
-public final class EventTypeMapper {
+final class UseCaseCallingInformation<U> {
+    @Getter
+    private final Class<U> useCaseClass;
+    @Getter
+    private final EventType eventType;
+    @Getter
+    private final Caller<U> caller;
 
-    public static EventType eventTypeFor(final Object query) {
-        final Class<?> queryClass = query.getClass();
-        return eventTypeFromClass(queryClass);
-    }
-
-    public static EventType eventTypeFor(final Class<?> queryClass) {
-        return eventTypeFromClass(queryClass);
+    static <U> UseCaseCallingInformation<U> useCaseInvocationInformation(
+            final Class<U> useCaseClass,
+            final EventType eventType,
+            final Caller<U> caller) {
+        ensureNotNull(useCaseClass, "useCaseClass");
+        ensureNotNull(eventType, "eventType");
+        ensureNotNull(caller, "caller");
+        return new UseCaseCallingInformation<>(useCaseClass, eventType, caller);
     }
 }

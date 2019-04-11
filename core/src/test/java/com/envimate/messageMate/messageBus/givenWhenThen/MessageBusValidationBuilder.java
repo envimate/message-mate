@@ -24,7 +24,7 @@ package com.envimate.messageMate.messageBus.givenWhenThen;
 
 import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.identification.MessageId;
-import com.envimate.messageMate.messageBus.EventType;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener;
 import com.envimate.messageMate.processingContext.ProcessingContext;
@@ -291,7 +291,7 @@ public final class MessageBusValidationBuilder {
         return asValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
             final MessageBus messageBus = getMessageBus(testEnvironment);
-            final List<MessageBusExceptionListener<?>> listeners = MessageBusTestActions.queryListOfDynamicExceptionListener(messageBus);
+            final List<MessageBusExceptionListener> listeners = MessageBusTestActions.queryListOfDynamicExceptionListener(messageBus);
             assertCollectionOfSize(listeners, expectedNumberOfListener);
         });
     }
