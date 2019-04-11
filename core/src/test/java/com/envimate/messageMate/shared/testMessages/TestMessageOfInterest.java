@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -21,8 +21,9 @@
 
 package com.envimate.messageMate.shared.testMessages;
 
-
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
 @ToString
@@ -30,10 +31,12 @@ import lombok.ToString;
 public class TestMessageOfInterest implements TestMessage {
     public static final String CONTENT = "TestContent";
     public static final String ERROR_CONTENT = "ErrorContent";
-    public String content;
+    @Getter
+    @Setter
+    private String content;
 
     protected TestMessageOfInterest(final String content) {
-        this.content = content;
+        this.setContent(content);
     }
 
     public static TestMessageOfInterest messageOfInterest() {
@@ -47,4 +50,5 @@ public class TestMessageOfInterest implements TestMessage {
     public static TestMessageOfInterest messageWithErrorContent() {
         return new TestMessageOfInterest(ERROR_CONTENT);
     }
+
 }

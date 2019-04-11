@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -27,7 +27,7 @@ import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
 public final class MessageBusTestProperties {
-    public final static String EVENT_TYPE = "EVENT_TYPE";
-    public final static String CORRELATION_SUBSCRIPTION_ID = "CORRELATION_SUBSCRIPTION_ID";
-    public final static String MESSAGE_RECEIVED_BY_ERROR_LISTENER = "MESSAGE_RECEIVED_BY_ERROR_LISTENER";
+    public static final String EVENT_TYPE = "EVENT_TYPE";
+    public static final String CORRELATION_SUBSCRIPTION_ID = "CORRELATION_SUBSCRIPTION_ID";
+    public static final String MESSAGE_RECEIVED_BY_ERROR_LISTENER = "MESSAGE_RECEIVED_BY_ERROR_LISTENER";
 }

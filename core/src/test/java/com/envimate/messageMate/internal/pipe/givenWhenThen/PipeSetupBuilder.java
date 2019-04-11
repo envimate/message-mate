@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -94,8 +94,8 @@ public class PipeSetupBuilder {
     }
 
     private PipeSetupBuilder configuredWith(final PipeTestConfig testConfig) {
-        pipeBuilder.ofType(testConfig.pipeType)
-                .withAsynchronousConfiguration(testConfig.asynchronousConfiguration);
+        pipeBuilder.ofType(testConfig.getPipeType())
+                .withAsynchronousConfiguration(testConfig.getAsynchronousConfiguration());
         return this;
     }
 

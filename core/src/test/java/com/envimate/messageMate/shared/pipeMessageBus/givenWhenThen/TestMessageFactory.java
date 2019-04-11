@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -30,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.function.Supplier;
 
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.MESSAGES_SEND_OF_INTEREST;
+import static com.envimate.messageMate.shared.testMessages.InvalidTestMessage.invalidTestMessage;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
@@ -54,12 +55,13 @@ public final class TestMessageFactory implements MessageFactory {
             final int numberOfMessages,
             final TestEnvironment testEnvironment) {
         return new TestMessageFactory(() -> {
-            if (Math.random() < 0.5) {
+            final double percentageCorrectMessages = 0.5;
+            if (Math.random() < percentageCorrectMessages) {
                 final TestMessageOfInterest message = TestMessageOfInterest.messageOfInterest();
                 testEnvironment.addToListProperty(MESSAGES_SEND_OF_INTEREST, message);
                 return message;
             } else {
-                return InvalidTestMessage.invalidTestMessage();
+                return invalidTestMessage();
             }
         }, numberOfMessages);
     }

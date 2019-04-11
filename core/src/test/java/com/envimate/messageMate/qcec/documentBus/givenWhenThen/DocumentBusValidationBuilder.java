@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -85,7 +85,6 @@ public final class DocumentBusValidationBuilder {
         return (List<TestReceiver<?>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
     }
 
-
     public static DocumentBusValidationBuilder expectOnlyEventsOfInterestToBeReceived() {
         return expectOnlyObjectsOfInterestToBeReceived();
     }
@@ -97,7 +96,6 @@ public final class DocumentBusValidationBuilder {
     public static DocumentBusValidationBuilder expectOnlyQueriesOfInterestToBeReceived() {
         return expectOnlyObjectsOfInterestToBeReceived();
     }
-
 
     public static DocumentBusValidationBuilder expectTheConsumerToBeStillExecuted() {
         return expectOnlyObjectsOfInterestToBeReceived();
@@ -120,7 +118,6 @@ public final class DocumentBusValidationBuilder {
     private static List<TestReceiver<SpecificQuery>> getSpecificQueryReceivers(final TestEnvironment testEnvironment) {
         return (List<TestReceiver<SpecificQuery>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
     }
-
 
     public TestValidation build() {
         return testValidation;

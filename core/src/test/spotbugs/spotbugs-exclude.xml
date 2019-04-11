@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+  ~ Copyright (c) 2019 envimate GmbH - https://envimate.com/.
   ~
   ~ Licensed to the Apache Software Foundation (ASF) under one
   ~ or more contributor license agreements.  See the NOTICE file
@@ -77,6 +77,16 @@
         <Class name="com.envimate.messageMate.internal.pipe.statistics.PipeStatistics"/>
         <Method name="hashCode"/>
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+
+    <Match>
+        <Class name="com.envimate.messageMate.channel.givenWhenThen.TestChannelErrorHandler$3"/>
+        <Bug pattern="BC_UNCONFIRMED_CAST"/>
+    </Match>
+
+    <Match>
+        <Class name="com.envimate.messageMate.useCases.exceptionThrowing.ExceptionThrowingConfigurationResolver$ExpectedExceptionAllowMessageBusExceptionHandler"/>
+        <Bug pattern="BC_UNCONFIRMED_CAST"/>
     </Match>
 
 </FindBugsFilter>

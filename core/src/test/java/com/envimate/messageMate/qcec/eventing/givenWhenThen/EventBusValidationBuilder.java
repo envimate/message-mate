@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -62,7 +62,6 @@ public final class EventBusValidationBuilder {
     public static EventBusValidationBuilder expectNoException() {
         return new EventBusValidationBuilder(EventBusValidationBuilder::ensureNoExceptionOccurred);
     }
-
 
     public static EventBusValidationBuilder expectTheException(final Class<?> expectedExceptionClass) {
         return new EventBusValidationBuilder(testEnvironment -> {

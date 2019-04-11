@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -43,24 +43,28 @@ public class Then {
     private final MessageBusSetupBuilder setupBuilder;
     private final MessageBusActionBuilder actionBuilder;
 
-    public void then(final MessageBusValidationBuilder testValidationBuilder) throws InterruptedException {
+    public void then(final MessageBusValidationBuilder testValidationBuilder) {
         final MessageBusSetup setup = buildSetup(setupBuilder);
 
-        final TestEnvironment testEnvironment = setup.testEnvironment;
-        final MessageBus messageBus = setup.messageBus;
+        final TestEnvironment testEnvironment = setup.getTestEnvironment();
+        final MessageBus messageBus = setup.getMessageBus();
         executeTestAction(actionBuilder, messageBus, testEnvironment);
 
         final TestValidation validation = testValidationBuilder.build();
         validation.validate(testEnvironment);
-        closeSut(messageBus);
+        try {
+            closeSut(messageBus);
+        } catch (final InterruptedException e) {
+            testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
+        }
     }
 
     private MessageBusSetup buildSetup(final MessageBusSetupBuilder setupBuilder) {
         final MessageBusSetup setup = setupBuilder.build();
-        final TestEnvironment testEnvironment = setup.testEnvironment;
-        final MessageBus messageBus = setup.messageBus;
+        final TestEnvironment testEnvironment = setup.getTestEnvironment();
+        final MessageBus messageBus = setup.getMessageBus();
         testEnvironment.setProperty(SUT, messageBus);
-        final List<SetupAction<MessageBus>> setupActions = setup.setupActions;
+        final List<SetupAction<MessageBus>> setupActions = setup.getSetupActions();
         try {
             for (final SetupAction<MessageBus> setupAction : setupActions) {
                 setupAction.execute(messageBus, testEnvironment);

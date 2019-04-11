@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -21,7 +21,6 @@
 
 package com.envimate.messageMate.qcec.querying.config;
 
-
 import com.envimate.messageMate.qcec.queryresolving.Query;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.subscribing.SubscriptionId;
@@ -31,7 +30,6 @@ import java.util.function.Consumer;
 
 import static com.envimate.messageMate.qcec.shared.TestEnvironment.emptyTestEnvironment;
 
-
 public abstract class TestQueryResolver {
     private final TestEnvironment testEnvironment = emptyTestEnvironment();
 
@@ -39,9 +37,9 @@ public abstract class TestQueryResolver {
 
     public abstract <R> R executeRequiredQuery(Query<R> query);
 
-    public abstract <T extends Query<?>> SubscriptionId subscribing(final Class<T> queryClass, Consumer<T> consumer);
+    public abstract <T extends Query<?>> SubscriptionId subscribing(Class<T> queryClass, Consumer<T> consumer);
 
-    public abstract <T extends Query<?>> TestQueryResolver withASubscriber(final Class<T> queryClass, Consumer<T> consumer);
+    public abstract <T extends Query<?>> TestQueryResolver withASubscriber(Class<T> queryClass, Consumer<T> consumer);
 
     public abstract void unsubscribe(SubscriptionId subscriptionId);
 

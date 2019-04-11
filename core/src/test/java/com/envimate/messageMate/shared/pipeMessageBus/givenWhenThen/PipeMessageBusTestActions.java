@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -55,7 +55,6 @@ public final class PipeMessageBusTestActions {
         return sutActions.send(message);
     }
 
-
     public static void sendSeveralMessages(final PipeMessageBusSutActions sutActions,
                                            final TestEnvironment testEnvironment,
                                            final int numberOfMessages) {
@@ -101,7 +100,6 @@ public final class PipeMessageBusTestActions {
     public static void shutdownTheSut(final PipeMessageBusSutActions sutActions, final boolean finishRemainingTasks) {
         sutActions.close(finishRemainingTasks);
     }
-
 
     public static void shutdownTheObjectAsynchronouslyXTimes(final PipeMessageBusSutActions sutActions,
                                                              final int numberOfThreads) {
@@ -152,7 +150,8 @@ public final class PipeMessageBusTestActions {
             }).start();
             sutActions.close(true);
             final boolean terminatedSuccessful = sutActions.awaitTermination(15, MILLISECONDS);
-            MILLISECONDS.sleep(10); //Second sleep necessary for synchronous config
+            //Second sleep necessary for synchronous config
+            MILLISECONDS.sleep(10);
             testEnvironment.setProperty(RESULT, terminatedSuccessful);
             testEnvironment.setProperty(SINGLE_RECEIVER, testSubscriber);
         } catch (final InterruptedException e) {
@@ -171,7 +170,8 @@ public final class PipeMessageBusTestActions {
             MILLISECONDS.sleep(10);
             sutActions.close(true);
             final boolean terminatedSuccessful = sutActions.awaitTermination(15, MILLISECONDS);
-            MILLISECONDS.sleep(10); //Second sleep necessary for synchronous config
+            //Second sleep necessary for synchronous config
+            MILLISECONDS.sleep(10);
             testEnvironment.setProperty(RESULT, terminatedSuccessful);
             testEnvironment.setProperty(SINGLE_RECEIVER, testSubscriber);
             testEnvironment.setProperty(EXECUTION_END_SEMAPHORE, semaphore);

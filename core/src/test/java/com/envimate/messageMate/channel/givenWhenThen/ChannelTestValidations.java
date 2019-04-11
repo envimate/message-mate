@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -62,7 +62,6 @@ final class ChannelTestValidations {
         final ProcessingContext<TestMessage> result = getTestPropertyAsProcessingContext(testEnvironment, RESULT);
         processingFrameHistoryMatcher.assertCorrect(result);
     }
-
 
     static void assertFilterAsExpected(final TestEnvironment testEnvironment,
                                        final List<Filter<ProcessingContext<TestMessage>>> expectedFilter) {

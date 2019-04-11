@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -50,6 +50,9 @@ public final class ChannelTestConfig {
     public static ChannelTestConfig asynchronousChannelTestConfig() {
         final int poolSize = ASYNCHRONOUS_CHANNEL_CONFIG_POOL_SIZE;
         final AsynchronousConfiguration asynchronousConfiguration = constantPoolSizeAsynchronousPipeConfiguration(poolSize);
-        return new ChannelTestConfig(ASYNCHRONOUS, asynchronousConfiguration, 5, 20);
+        final int millisecondsSleepBetweenExecutionActionSteps = 5;
+        final int millisecondsSleepAfterExecution = 20;
+        return new ChannelTestConfig(ASYNCHRONOUS, asynchronousConfiguration, millisecondsSleepBetweenExecutionActionSteps,
+                millisecondsSleepAfterExecution);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -22,7 +22,6 @@
 package com.envimate.messageMate.serializedMessageBus.asynchronous;
 
 import com.envimate.messageMate.serializedMessageBus.SerializedMessageBusSpecs;
-import com.envimate.messageMate.serializedMessageBus.synchronous.SynchronousSerializedMessageBusConfigurationResolver;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(AsynchronousSerializedMessageBusConfigurationResolver.class)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -41,6 +41,7 @@ import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.TEST_
 import static com.envimate.messageMate.qcec.shared.testConstraints.SpecificConstraint.specificConstraintWithId;
 import static com.envimate.messageMate.qcec.shared.testEvents.SpecificEvent.specificEventWithId;
 import static com.envimate.messageMate.qcec.shared.testEvents.TestEvent.testEvent;
+import static com.envimate.messageMate.qcec.shared.testQueries.SpecificQuery.specificQueryWithId;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class DocumentBusActionBuilder {
@@ -64,13 +65,14 @@ public final class DocumentBusActionBuilder {
 
     public static DocumentBusActionBuilder oneQueryOfInterestAndSeveralOtherAreSend() {
         return new DocumentBusActionBuilder((documentBus, testEnvironment) -> {
-            for (int i = 0; i < 3; i++) {
-                documentBus.query(SpecificQuery.specificQueryWithId(i));
+            final int numberOfQueries = 3;
+            for (int i = 0; i < numberOfQueries; i++) {
+                documentBus.query(specificQueryWithId(i));
             }
             final SpecificQuery specificQuery = testEnvironment.getPropertyAsType(TEST_OBJECT, SpecificQuery.class);
             documentBus.query(specificQuery);
-            for (int i = 0; i < 3; i++) {
-                documentBus.query(SpecificQuery.specificQueryWithId(i * i));
+            for (int i = 0; i < numberOfQueries; i++) {
+                documentBus.query(specificQueryWithId(i * i));
             }
             return null;
         });
@@ -93,12 +95,13 @@ public final class DocumentBusActionBuilder {
 
     public static DocumentBusActionBuilder oneConstraintOfInterestAndSeveralOtherAreSend() {
         return new DocumentBusActionBuilder((documentBus, testEnvironment) -> {
-            for (int i = 0; i < 3; i++) {
+            final int numberOfEvents = 3;
+            for (int i = 0; i < numberOfEvents; i++) {
                 documentBus.enforce(specificConstraintWithId(i));
             }
             final SpecificConstraint constraint = testEnvironment.getPropertyAsType(TEST_OBJECT, SpecificConstraint.class);
             documentBus.enforce(constraint);
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < numberOfEvents; i++) {
                 documentBus.enforce(specificConstraintWithId(i * i));
             }
             return null;
@@ -120,15 +123,15 @@ public final class DocumentBusActionBuilder {
         });
     }
 
-
     public static DocumentBusActionBuilder oneEventOfInterestAndSeveralOtherAreSend() {
         return new DocumentBusActionBuilder((documentBus, testEnvironment) -> {
-            for (int i = 0; i < 3; i++) {
+            final int numberOfEvents = 3;
+            for (int i = 0; i < numberOfEvents; i++) {
                 documentBus.publish(specificEventWithId(i));
             }
             final SpecificEvent specificEvent = testEnvironment.getPropertyAsType(TEST_OBJECT, SpecificEvent.class);
             documentBus.publish(specificEvent);
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < numberOfEvents; i++) {
                 documentBus.publish(specificEventWithId(i * i));
             }
             return null;

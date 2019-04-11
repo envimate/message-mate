@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -22,16 +22,19 @@
 package com.envimate.messageMate.qcec.shared.testConstraints;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import static lombok.AccessLevel.PRIVATE;
 
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = PRIVATE)
-public class SpecificConstraint {
-    public final int id;
+public final class SpecificConstraint {
+    @Getter
+    private final int id;
 
     public static SpecificConstraint specificConstraintWithId(final int id) {
         return new SpecificConstraint(id);
     }
+
 }

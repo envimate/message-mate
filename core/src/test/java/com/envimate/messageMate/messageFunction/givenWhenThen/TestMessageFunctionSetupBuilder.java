@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -43,6 +43,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration.constantPoolSizeAsynchronousPipeConfiguration;
+import static com.envimate.messageMate.messageBus.MessageBusBuilder.aMessageBus;
 import static com.envimate.messageMate.messageBus.MessageBusType.ASYNCHRONOUS;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.EVENT_TYPE;
 import static com.envimate.messageMate.messageFunction.givenWhenThen.MessageFunctionTestProperties.RESPONSE_PROCESSING_CONTEXT;
@@ -55,11 +56,12 @@ import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
 public final class TestMessageFunctionSetupBuilder {
+    private static final int MB_TEST_POOL_SIZE = 5;
     private final TestEnvironment testEnvironment = TestEnvironment.emptyTestEnvironment();
     private final List<Consumer<MessageBus>> setupActions = new LinkedList<>();
-    private MessageBusBuilder messageBusBuilder = MessageBusBuilder.aMessageBus()
+    private MessageBusBuilder messageBusBuilder = aMessageBus()
             .forType(ASYNCHRONOUS)
-            .withAsynchronousConfiguration(constantPoolSizeAsynchronousPipeConfiguration(5));
+            .withAsynchronousConfiguration(constantPoolSizeAsynchronousPipeConfiguration(MB_TEST_POOL_SIZE));
     private Function<MessageBusBuilder, MessageBus> messageBusCreation = MessageBusBuilder::build;
 
     public static TestMessageFunctionSetupBuilder aMessageFunction() {

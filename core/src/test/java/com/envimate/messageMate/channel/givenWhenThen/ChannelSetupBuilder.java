@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -116,15 +116,16 @@ public final class ChannelSetupBuilder {
         final TestEnvironment testEnvironment = emptyTestEnvironment();
         final Channel<TestMessage> thirdChannel = aChannelWithDefaultAction(aReturn());
         final Jump<TestMessage> actionSecondChannel = jumpTo(thirdChannel);
+        testEnvironment.setProperty(RETURNING_CHANNEL, thirdChannel);
+
         final Channel<TestMessage> secondChannel = aChannelWithDefaultAction(actionSecondChannel);
+        testEnvironment.setProperty(CALL_TARGET_CHANNEL, secondChannel);
+
         final Channel<TestMessage> firstChannel = aChannel(TestMessage.class)
                 .withDefaultAction(consumeAsFinalResult(testEnvironment))
                 .forType(channelTestConfig.getType())
                 .withAsynchronousConfiguration(channelTestConfig.getAsynchronousConfiguration())
                 .build();
-
-        testEnvironment.setProperty(CALL_TARGET_CHANNEL, secondChannel);
-        testEnvironment.setProperty(RETURNING_CHANNEL, thirdChannel);
         return new ChannelSetupBuilder(testEnvironment, firstChannel, channelTestConfig);
     }
 
@@ -136,6 +137,7 @@ public final class ChannelSetupBuilder {
                 .withAsynchronousConfiguration(channelTestConfig.getAsynchronousConfiguration())
                 .build();
         final Channel<TestMessage> firstCallTargetChannel = aChannelWithDefaultAction(aReturn());
+        addFilterExecutingACall(initialChannel, firstCallTargetChannel);
         testEnvironment.addToListProperty(CALL_TARGET_CHANNEL, firstCallTargetChannel);
 
         final Channel<TestMessage> returnChannelAfterSecondCall = aChannelWithDefaultAction(aReturn());
@@ -143,7 +145,6 @@ public final class ChannelSetupBuilder {
         testEnvironment.addToListProperty(CALL_TARGET_CHANNEL, secondCallTargetChannel);
         testEnvironment.setProperty(RETURNING_CHANNEL, returnChannelAfterSecondCall);
 
-        addFilterExecutingACall(initialChannel, firstCallTargetChannel);
         addFilterExecutingACall(firstCallTargetChannel, secondCallTargetChannel);
         return new ChannelSetupBuilder(testEnvironment, initialChannel, channelTestConfig);
     }
@@ -233,7 +234,6 @@ public final class ChannelSetupBuilder {
         addFilterThatBlocksMessages(POST);
         return this;
     }
-
 
     private void addFilterThatBlocksMessages(final FilterPosition filterPosition) {
         alreadyBuiltChannel = channelBuilder.withDefaultAction(consumeAsFinalResult(testEnvironment))
@@ -374,6 +374,7 @@ public final class ChannelSetupBuilder {
         channelBuilder.withChannelExceptionHandler(errorRethrowingExceptionHandler(testEnvironment));
         return this;
     }
+
     public ChannelSetupBuilder withAnExceptionCatchingHandler() {
         channelBuilder.withChannelExceptionHandler(catchingChannelExceptionHandler(testEnvironment));
         return this;

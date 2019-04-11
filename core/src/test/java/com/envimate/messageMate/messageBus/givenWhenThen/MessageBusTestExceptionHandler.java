@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -37,7 +37,7 @@ import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
 public final class MessageBusTestExceptionHandler {
-    public final static String TEST_PROPERTY_TO_ENSURE_HANDLER_CALLED_ONCE = "TEST_PROPERTY_TO_ENSURE_HANDLER_CALLED_ONCE";
+    public static final String TEST_PROPERTY_TO_ENSURE_HANDLER_CALLED_ONCE = "TEST_PROPERTY_TO_ENSURE_HANDLER_CALLED_ONCE";
 
     public static MessageBusExceptionHandler allExceptionAsResultHandlingTestExceptionHandler(
             final TestEnvironment testEnvironment) {
@@ -46,7 +46,7 @@ public final class MessageBusTestExceptionHandler {
 
     public static MessageBusExceptionHandler allExceptionHandlingTestExceptionHandler(
             final TestEnvironment testEnvironment,
-                                                                                      final TestEnvironmentProperty exceptionProperty) {
+            final TestEnvironmentProperty exceptionProperty) {
         return new MessageBusExceptionHandler() {
             @Override
             public boolean shouldDeliveryChannelErrorBeHandledAndDeliveryAborted(final ProcessingContext<Object> message,

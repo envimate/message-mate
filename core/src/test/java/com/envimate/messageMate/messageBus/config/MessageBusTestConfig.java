@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -44,13 +44,19 @@ public final class MessageBusTestConfig {
     private final long millisecondsSleepAfterExecution;
 
     static MessageBusTestConfig aSynchronousMessageBus() {
-        return new MessageBusTestConfig(SYNCHRONOUS, null, 0, 0);
+        final int millisecondsSleepAfterExecution = 0;
+        final int millisecondsSleepBetweenExecutionSteps = millisecondsSleepAfterExecution;
+        return new MessageBusTestConfig(SYNCHRONOUS, null, millisecondsSleepBetweenExecutionSteps,
+                millisecondsSleepAfterExecution);
     }
 
     static MessageBusTestConfig anAsynchronousMessageBus() {
         final int poolSize = ASYNCHRONOUS_DELIVERY_POOL_SIZE;
         final AsynchronousConfiguration asynchronousConfiguration = constantPoolSizeAsynchronousPipeConfiguration(poolSize);
-        return new MessageBusTestConfig(ASYNCHRONOUS, asynchronousConfiguration, 5, 10);
+        final int millisecondsSleepBetweenExecutionSteps = 5;
+        final int millisecondsSleepAfterExecution = 10;
+        return new MessageBusTestConfig(ASYNCHRONOUS, asynchronousConfiguration, millisecondsSleepBetweenExecutionSteps,
+                millisecondsSleepAfterExecution);
     }
 
 }

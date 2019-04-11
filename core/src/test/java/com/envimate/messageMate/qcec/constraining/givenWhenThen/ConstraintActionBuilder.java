@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -21,16 +21,13 @@
 
 package com.envimate.messageMate.qcec.constraining.givenWhenThen;
 
-
 import com.envimate.messageMate.qcec.shared.TestAction;
 import com.envimate.messageMate.qcec.shared.TestReceiver;
 import com.envimate.messageMate.qcec.shared.testConstraints.TestConstraint;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.RequiredArgsConstructor;
 
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_EXCEPTION_MESSAGE;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RECEIVERS;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.TEST_OBJECT;
+import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
 import static com.envimate.messageMate.qcec.shared.TestReceiver.aTestReceiver;
 import static com.envimate.messageMate.qcec.shared.testConstraints.TestConstraint.testConstraint;
 import static lombok.AccessLevel.PRIVATE;
@@ -52,10 +49,10 @@ public final class ConstraintActionBuilder {
         return new ConstraintActionBuilder((testConstraintEnforcer, testEnvironment) -> {
             final TestConstraint testConstraint = testConstraint();
             testEnvironment.setProperty(TEST_OBJECT, testConstraint);
-            final String expected_exception_message = "Constraint exception";
-            testEnvironment.setProperty(EXPECTED_EXCEPTION_MESSAGE, expected_exception_message);
+            final String expectedExceptionMessage = "Constraint exception";
+            testEnvironment.setProperty(EXPECTED_EXCEPTION_MESSAGE, expectedExceptionMessage);
             testConstraintEnforcer.withASubscriber(TestConstraint.class, c -> {
-                throw new RuntimeException(expected_exception_message);
+                throw new RuntimeException(expectedExceptionMessage);
             });
             testConstraintEnforcer.enforce(testConstraint);
             return null;
@@ -65,13 +62,13 @@ public final class ConstraintActionBuilder {
     public static ConstraintActionBuilder anReceiverUnsubscribes() {
         return new ConstraintActionBuilder((testConstraintEnforcer, testEnvironment) -> {
             final TestReceiver<TestConstraint> unsubscribingReceiver = aTestReceiver();
-            final SubscriptionId subscriptionId = testConstraintEnforcer.subscribing(TestConstraint.class, unsubscribingReceiver);
-
             final TestReceiver<TestConstraint> remainingReceiver = aTestReceiver();
-            testConstraintEnforcer.subscribing(TestConstraint.class, remainingReceiver);
-            testEnvironment.addToListProperty(EXPECTED_RECEIVERS, remainingReceiver);
 
+            final SubscriptionId subscriptionId = testConstraintEnforcer.subscribing(TestConstraint.class, unsubscribingReceiver);
+            testConstraintEnforcer.subscribing(TestConstraint.class, remainingReceiver);
             testConstraintEnforcer.unsubscribe(subscriptionId);
+
+            testEnvironment.addToListProperty(EXPECTED_RECEIVERS, remainingReceiver);
 
             final TestConstraint testConstraint = testConstraint();
             testEnvironment.setProperty(TEST_OBJECT, testConstraint);

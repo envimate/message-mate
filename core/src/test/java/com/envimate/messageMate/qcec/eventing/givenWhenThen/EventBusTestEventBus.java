@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -21,7 +21,6 @@
 
 package com.envimate.messageMate.qcec.eventing.givenWhenThen;
 
-
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.qcec.eventBus.EventBus;
 import com.envimate.messageMate.subscribing.SubscriptionId;
@@ -30,7 +29,6 @@ import java.util.function.Consumer;
 
 import static com.envimate.messageMate.messageBus.MessageBusBuilder.aMessageBus;
 import static com.envimate.messageMate.qcec.eventBus.EventBusFactory.aEventBus;
-
 
 public final class EventBusTestEventBus extends TestEventBus {
     private final EventBus eventBus;

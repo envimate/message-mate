@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -25,20 +25,22 @@ import com.envimate.messageMate.internal.pipe.PipeType;
 import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import static com.envimate.messageMate.internal.pipe.PipeType.ASYNCHRONOUS;
 import static com.envimate.messageMate.internal.pipe.PipeType.SYNCHRONOUS;
 import static com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration.constantPoolSizeAsynchronousPipeConfiguration;
 
-
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PipeTestConfig {
     public static final int ASYNCHRONOUS_POOL_SIZE = 5;
     public static final int ASYNCHRONOUS_QUEUED_BOUND = 3;
-    public final PipeType pipeType;
-    public final AsynchronousConfiguration asynchronousConfiguration;
+    @Getter
+    private final PipeType pipeType;
+    @Getter
+    private final AsynchronousConfiguration asynchronousConfiguration;
 
     static PipeTestConfig aSynchronousPipe() {
         return new PipeTestConfig(SYNCHRONOUS, null);

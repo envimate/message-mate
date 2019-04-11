@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -95,7 +95,6 @@ final class MessageBusTestActions {
         testEnvironment.setProperty(SEND_MESSAGE_ID, messageId);
     }
 
-
     static void sendSeveralMessages(final MessageBus messageBus,
                                     final TestEnvironment testEnvironment,
                                     final int numberOfMessages) {
@@ -154,7 +153,6 @@ final class MessageBusTestActions {
         testEnvironment.setProperty(SEND_MESSAGE_ID, messageId);
     }
 
-
     static void sendMessageWithErrorPayloadIsSend(final MessageBus messageBus, final TestEnvironment testEnvironment) {
         final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
         final TestMessageOfInterest errorPayload = messageWithErrorContent();
@@ -195,7 +193,6 @@ final class MessageBusTestActions {
         }
         testEnvironment.setPropertyIfNotSet(EVENT_TYPE, eventType);
     }
-
 
     static void addASingleRawSubscriber(final MessageBus messageBus,
                                         final TestEnvironment testEnvironment) {
@@ -261,8 +258,8 @@ final class MessageBusTestActions {
         testEnvironment.setProperty(USED_SUBSCRIPTION_ID, subscriptionId);
     }
 
-    static void addTwoDynamicErrorListenerForEventType_whereTheFirstWillBeRemoved(final MessageBus messageBus
-            , final TestEnvironment testEnvironment) {
+    static void addTwoDynamicErrorListenerForEventType_whereTheFirstWillBeRemoved(final MessageBus messageBus,
+                                                                                  final TestEnvironment testEnvironment) {
         final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
         final SubscriptionId subscriptionId = messageBus.onException(eventType, (m, e) -> {
             throw new RuntimeException("Should not be called");

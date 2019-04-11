@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -41,6 +41,10 @@ public final class TestEnvironment {
         setProperty(property.name(), o);
     }
 
+    public void setProperty(final String property, final Object o) {
+        definedPropertiesMap.put(property, o);
+    }
+
     public void setPropertyIfNotSet(final TestEnvironmentProperty property, final Object o) {
         setPropertyIfNotSet(property.name(), o);
     }
@@ -63,10 +67,6 @@ public final class TestEnvironment {
         }
         final Class<?> aClass = defaultValue.getClass();
         return (T) getPropertyAsType(property, aClass);
-    }
-
-    public void setProperty(final String property, final Object o) {
-        definedPropertiesMap.put(property, o);
     }
 
     public synchronized void addToListProperty(final String property, final Object... os) {

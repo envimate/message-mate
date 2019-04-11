@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -39,7 +39,7 @@ public final class TestFilter {
 
     public static Filter<TestMessageOfInterest> aContentChangingFilter() {
         return (TestMessageOfInterest testMessageOfInterest, FilterActions<TestMessageOfInterest> filterActions) -> {
-            testMessageOfInterest.content = CHANGED_CONTENT;
+            testMessageOfInterest.setContent(CHANGED_CONTENT);
             filterActions.pass(testMessageOfInterest);
         };
     }
@@ -47,7 +47,7 @@ public final class TestFilter {
     public static <T> Filter<T> aContentAppendingFilter(final String contentToAppend) {
         return (message, filterActions) -> {
             final TestMessageOfInterest testMessageOfInterest = (TestMessageOfInterest) message;
-            testMessageOfInterest.content += contentToAppend;
+            testMessageOfInterest.setContent(testMessageOfInterest.getContent() + contentToAppend);
             filterActions.pass(message);
         };
     }
@@ -69,7 +69,6 @@ public final class TestFilter {
             throw exception;
         };
     }
-
 
     public static Filter<ProcessingContext<Object>> aRawFilterThatChangesTheCompleteProcessingContext() {
         return (processingContext, filterActions) -> {

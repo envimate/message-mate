@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -21,9 +21,7 @@
 
 package com.envimate.messageMate.messageFunction.givenWhenThen;
 
-
 import com.envimate.messageMate.identification.CorrelationId;
-import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageFunction.MessageFunction;
 import com.envimate.messageMate.messageFunction.ResponseFuture;
@@ -31,7 +29,9 @@ import com.envimate.messageMate.messageFunction.testResponses.RequestResponseFut
 import com.envimate.messageMate.messageFunction.testResponses.SimpleTestRequest;
 import com.envimate.messageMate.messageFunction.testResponses.SimpleTestResponse;
 import com.envimate.messageMate.messageFunction.testResponses.TestRequest;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.qcec.shared.TestAction;
+import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.qcec.shared.TestEnvironmentProperty;
 import lombok.RequiredArgsConstructor;
 
@@ -140,7 +140,7 @@ public final class TestMessageFunctionActionBuilder {
             final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             final ResponseFuture request = messageFunction.request(eventType, testRequest);
 
-            request.then((response,errorResponse,  exception) -> {
+            request.then((response, errorResponse, exception) -> {
                 if (!testEnvironment.has(RESULT)) {
                     if (exception != null) {
                         testEnvironment.setPropertyIfNotSet(RESULT, exception);
@@ -165,7 +165,7 @@ public final class TestMessageFunctionActionBuilder {
             testEnvironment.setProperty(TEST_OBJECT, testRequest);
             final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             final ResponseFuture responseFuture = messageFunction.request(eventType, testRequest);
-            responseFuture.then((testResponse,errorResponse,  exception) -> {
+            responseFuture.then((testResponse, errorResponse, exception) -> {
                 testEnvironment.setPropertyIfNotSet(EXCEPTION, exception);
                 testEnvironment.setPropertyIfNotSet(EXCEPTION_OCCURRED_DURING_FOLLOW_UP, true);
             });
@@ -222,7 +222,7 @@ public final class TestMessageFunctionActionBuilder {
             final SimpleTestRequest testRequest = SimpleTestRequest.testRequest();
             final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             final ResponseFuture responseFuture = messageFunction.request(eventType, testRequest);
-            responseFuture.then((testResponse,errorResponse,  exception) -> {
+            responseFuture.then((testResponse, errorResponse, exception) -> {
                 throw new RuntimeException("This FollowUpActionShouldNotBeCalled");
             });
             for (int i = 0; i < cancelCalls; i++) {
@@ -263,7 +263,7 @@ public final class TestMessageFunctionActionBuilder {
             final SimpleTestRequest testRequest = SimpleTestRequest.testRequest();
             final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             final ResponseFuture responseFuture = messageFunction.request(eventType, testRequest);
-            responseFuture.then((testResponse,errorResponse,  exception) -> {
+            responseFuture.then((testResponse, errorResponse, exception) -> {
                 throw new RuntimeException("This FollowUpActionShouldNotBeCalled");
             });
             final boolean cancelResult = responseFuture.cancel(true);
@@ -303,29 +303,13 @@ public final class TestMessageFunctionActionBuilder {
             final ResponseFuture responseFuture = messageFunction.request(eventType, testRequest);
             final Semaphore waitingSemaphoreGet = new Semaphore(0);
             final Semaphore waitingSemaphoreGetTimeout = new Semaphore(0);
-            new Thread(() -> {
-                boolean interruptedExceptionCalled = false;
-                try {
-                    responseFuture.get();
-                    final RuntimeException exception = new RuntimeException("Future should not return result");
-                    testEnvironment.setPropertyIfNotSet(EXCEPTION, exception);
-                } catch (InterruptedException e) {
-                    interruptedExceptionCalled = true;
-                } catch (ExecutionException e) {
-                    testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
-                }
-                if (!interruptedExceptionCalled) {
-                    final String message = "Future should wake waiting threads with InterruptedException";
-                    final RuntimeException exception = new RuntimeException(message);
-                    testEnvironment.setPropertyIfNotSet(EXCEPTION, exception);
-                }
-                waitingSemaphoreGet.release();
-            }).start();
+            letThreadWaitOnFuture(testEnvironment, responseFuture, waitingSemaphoreGet, false);
+            letThreadWaitOnFuture(testEnvironment, responseFuture, waitingSemaphoreGetTimeout, true);
 
             new Thread(() -> {
                 boolean interruptedExceptionCalled = false;
                 try {
-                    responseFuture.get(1000, SECONDS);
+                    responseFuture.get(5, SECONDS);
                     final RuntimeException exception = new RuntimeException("Future should not return result;");
                     testEnvironment.setPropertyIfNotSet(EXCEPTION, exception);
                 } catch (InterruptedException e) {
@@ -356,6 +340,34 @@ public final class TestMessageFunctionActionBuilder {
         });
     }
 
+    private static void letThreadWaitOnFuture(final TestEnvironment testEnvironment,
+                                              final ResponseFuture responseFuture,
+                                              final Semaphore semaphore,
+                                              final boolean withTimeout) {
+        new Thread(() -> {
+            boolean interruptedExceptionCalled = false;
+            try {
+                if (withTimeout) {
+                    responseFuture.get(5, SECONDS);
+                } else {
+                    responseFuture.get();
+                }
+                final RuntimeException exception = new RuntimeException("Future should not return result");
+                testEnvironment.setPropertyIfNotSet(EXCEPTION, exception);
+            } catch (InterruptedException e) {
+                interruptedExceptionCalled = true;
+            } catch (ExecutionException | TimeoutException e) {
+                testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
+            }
+            if (!interruptedExceptionCalled) {
+                final String message = "Future should wake waiting threads with InterruptedException";
+                final RuntimeException exception = new RuntimeException(message);
+                testEnvironment.setPropertyIfNotSet(EXCEPTION, exception);
+            }
+            semaphore.release();
+        }).start();
+    }
+
     public static TestMessageFunctionActionBuilder aFollowUpActionIsAddedToACancelledFuture() {
         return asAction((messageFunction, testEnvironment) -> {
             final SimpleTestRequest testRequest = SimpleTestRequest.testRequest();
@@ -363,7 +375,7 @@ public final class TestMessageFunctionActionBuilder {
             final ResponseFuture responseFuture = messageFunction.request(eventType, testRequest);
             responseFuture.cancel(true);
             try {
-                responseFuture.then((response,errorResponse,  exception) -> {
+                responseFuture.then((response, errorResponse, exception) -> {
                     throw new UnsupportedOperationException();
                 });
             } catch (final Exception e) {

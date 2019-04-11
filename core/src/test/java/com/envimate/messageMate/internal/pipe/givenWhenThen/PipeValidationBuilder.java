@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -164,7 +164,8 @@ public final class PipeValidationBuilder {
             final PipeStatusInformation<TestMessage> statusInformation = pipe.getStatusInformation();
             final PipeStatistics currentMessageStatistics = statusInformation.getCurrentMessageStatistics();
             final BigInteger successfulMessages = currentMessageStatistics.getSuccessfulMessages();
-            assertEquals(successfulMessages.longValueExact(), 1);
+            final long result = successfulMessages.longValueExact();
+            assertEquals(result, 1L);
         });
     }
 

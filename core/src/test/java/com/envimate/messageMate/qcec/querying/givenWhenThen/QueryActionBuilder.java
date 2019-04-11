@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -83,13 +83,14 @@ public final class QueryActionBuilder {
             final int partialResult2 = 2;
             final int expectedResult = 2;
             testEnvironment.setProperty(EXPECTED_RESULT, expectedResult);
-            final SubscriptionId subscriptionId = testQueryResolver.subscribing(TestQuery.class, testQuery -> testQuery.addPartialResult(partialResult1));
+            final SubscriptionId subscriptionId = testQueryResolver.subscribing(TestQuery.class, testQuery -> {
+                testQuery.addPartialResult(partialResult1);
+            });
             testQueryResolver.subscribing(TestQuery.class, testQuery -> testQuery.addPartialResult(partialResult2));
             testQueryResolver.unsubscribe(subscriptionId);
             return testQueryResolver.executeRequiredQuery(aTestQuery());
         });
     }
-
 
     public static QueryActionBuilder aQueryIsExecutedThatThrowsAnException() {
         return aQueryWithExceptionThrown(false);
@@ -101,7 +102,8 @@ public final class QueryActionBuilder {
 
     private static QueryActionBuilder aQueryWithExceptionThrown(final boolean resultExpected) {
         return new QueryActionBuilder((testQueryResolver, testEnvironment) -> {
-            testQueryResolver.subscribing(TestQuery.class, q -> q.addPartialResult(1));
+            final int firstPartialResult = 1;
+            testQueryResolver.subscribing(TestQuery.class, q -> q.addPartialResult(firstPartialResult));
 
             final String expectedExceptionMessage = "Expected exception message.";
             testQueryResolver.subscribing(TestQuery.class, testQuery -> {
@@ -109,7 +111,8 @@ public final class QueryActionBuilder {
             });
             testEnvironment.setProperty(EXPECTED_EXCEPTION_MESSAGE, expectedExceptionMessage);
 
-            testQueryResolver.subscribing(TestQuery.class, q -> q.addPartialResult(10));
+            final int secondPartialResult = 10;
+            testQueryResolver.subscribing(TestQuery.class, q -> q.addPartialResult(secondPartialResult));
             final TestQuery testQuery = aTestQuery();
             if (resultExpected) {
                 return testQueryResolver.executeRequiredQuery(testQuery);
@@ -120,7 +123,10 @@ public final class QueryActionBuilder {
     }
 
     public static QueryActionBuilder aQueryIsExecutedThatRequiresAResultButDoesntProvideOne() {
-        return new QueryActionBuilder((testQueryResolver, testEnvironment) -> testQueryResolver.executeRequiredQuery(aTestQueryWithoutResult()));
+        return new QueryActionBuilder((testQueryResolver, testEnvironment) -> {
+            final TestQuery query = aTestQueryWithoutResult();
+            return testQueryResolver.executeRequiredQuery(query);
+        });
     }
 
     public TestAction<TestQueryResolver> build() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -122,11 +122,6 @@ public final class MessageBusSetupBuilder {
 
     public <T> MessageBusSetupBuilder withARawSubscriberForType(final EventType eventType) {
         setupActions.add((t, testEnvironment) -> MessageBusTestActions.addASingleRawSubscriber(t, testEnvironment, eventType));
-        return this;
-    }
-
-    public MessageBusSetupBuilder withASingleSubscriber(final Class<?> clazz) {
-        setupActions.add((t, testEnvironment) -> addASingleSubscriber(sutActions(t), testEnvironment, clazz));
         return this;
     }
 

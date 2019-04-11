@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -273,10 +273,10 @@ public final class TestMessageFunctionValidationBuilder {
         }
         assertTrue(cancellationExceptionThrownForGet);
 
-
         boolean cancellationExceptionThrownForGetWithTimeout = false;
         try {
-            responseFuture.get(1000, SECONDS);
+            final int timeout = 1000;
+            responseFuture.get(timeout, SECONDS);
         } catch (final InterruptedException | ExecutionException | TimeoutException e) {
             fail(e);
         } catch (final CancellationException e) {

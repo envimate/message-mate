@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -21,7 +21,6 @@
 
 package com.envimate.messageMate.qcec.constraining.givenWhenThen;
 
-
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.qcec.constraintEnforcing.ConstraintEnforcer;
 import com.envimate.messageMate.subscribing.SubscriptionId;
@@ -35,7 +34,7 @@ public final class ConstraintEnforcingTestConstraintEnforcer extends TestConstra
     private final ConstraintEnforcer constraintEnforcer;
 
     private ConstraintEnforcingTestConstraintEnforcer() {
-        final MessageBus messageBus =  aMessageBus()
+        final MessageBus messageBus = aMessageBus()
                 .build();
         this.constraintEnforcer = aConstraintEnforcer(messageBus);
     }

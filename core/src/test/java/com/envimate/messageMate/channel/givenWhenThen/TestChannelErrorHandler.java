@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -41,7 +41,7 @@ public final class TestChannelErrorHandler {
     private static final String TEST_PROPERTY_TO_ENSURE_HANDLER_CALLED_ONCE = "TEST_PROPERTY_TO_ENSURE_HANDLER_CALLED_ONCE";
 
     public static ChannelExceptionHandler<TestMessage> ignoringChannelExceptionHandler() {
-        return new ChannelExceptionHandler<TestMessage>() {
+        return new ChannelExceptionHandler<>() {
             @Override
             public boolean shouldSubscriberErrorBeHandledAndDeliveryAborted(final ProcessingContext<TestMessage> message,
                                                                             final Exception e) {
@@ -75,7 +75,7 @@ public final class TestChannelErrorHandler {
     private static ChannelExceptionHandler<TestMessage> storingExceptionHandler(final TestEnvironment testEnvironment,
                                                                                 final TestEnvironmentProperty property,
                                                                                 final Class<?>... ignoredClasses) {
-        return new ChannelExceptionHandler<TestMessage>() {
+        return new ChannelExceptionHandler<>() {
             @Override
             public boolean shouldSubscriberErrorBeHandledAndDeliveryAborted(final ProcessingContext<TestMessage> message,
                                                                             final Exception e) {
@@ -104,7 +104,7 @@ public final class TestChannelErrorHandler {
     }
 
     public static ChannelExceptionHandler<TestMessage> errorRethrowingExceptionHandler(final TestEnvironment testEnvironment) {
-        return new ChannelExceptionHandler<TestMessage>() {
+        return new ChannelExceptionHandler<>() {
             @Override
             public boolean shouldSubscriberErrorBeHandledAndDeliveryAborted(final ProcessingContext<TestMessage> message,
                                                                             final Exception e) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -25,7 +25,6 @@ import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.qcec.shared.TestValidation;
 import lombok.RequiredArgsConstructor;
 
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,7 +32,6 @@ import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
 import static lombok.AccessLevel.PRIVATE;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.fail;
 
 @RequiredArgsConstructor(access = PRIVATE)
@@ -56,7 +54,6 @@ public final class QueryValidationBuilder {
             assertThat(result, equalTo(expectedResult));
         });
     }
-
 
     public static QueryValidationBuilder aExceptionWithMessageMatchingRegex(final String messageRegex) {
         return new QueryValidationBuilder(testEnvironment -> {

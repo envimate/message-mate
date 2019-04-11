@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -20,7 +20,6 @@
  */
 
 package com.envimate.messageMate.messageBus.givenWhenThen;
-
 
 import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.identification.MessageId;
@@ -138,7 +137,6 @@ public final class MessageBusValidationBuilder {
         });
     }
 
-
     public static MessageBusValidationBuilder expectNoMessagesToBeDelivered() {
         return asValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
@@ -200,7 +198,6 @@ public final class MessageBusValidationBuilder {
             assertSutIsShutdown(sutActions, testEnvironment);
         });
     }
-
 
     public static MessageBusValidationBuilder expectNoException() {
         return asValidation(SharedTestValidations::assertNoExceptionThrown);
@@ -287,18 +284,23 @@ public final class MessageBusValidationBuilder {
         });
     }
 
-    private static void assertAllReceiverReceivedProcessingContextWithCorrectCorrelationId(final TestEnvironment testEnvironment) {
+    private static void assertAllReceiverReceivedProcessingContextWithCorrectCorrelationId(
+            final TestEnvironment testEnvironment) {
         final List<TestSubscriber<ProcessingContext<Object>>> receivers =
                 getExpectedReceiverAsCorrelationBasedSubscriberList(testEnvironment);
-        final Object expectedResult = testEnvironment.getProperty(SINGLE_SEND_MESSAGE);
         for (final TestSubscriber<ProcessingContext<Object>> receiver : receivers) {
             final List<ProcessingContext<Object>> receivedMessages = receiver.getReceivedMessages();
             assertEquals(receivedMessages.size(), 1);
             final ProcessingContext<Object> processingContext = receivedMessages.get(0);
-            final CorrelationId expectedCorrelationId = testEnvironment.getPropertyAsType(EXPECTED_CORRELATION_ID, CorrelationId.class);
+            final CorrelationId expectedCorrelationId = getExpectedCorrelationId(testEnvironment);
             assertEquals(processingContext.getCorrelationId(), expectedCorrelationId);
+            final Object expectedResult = testEnvironment.getProperty(SINGLE_SEND_MESSAGE);
             assertEquals(processingContext.getPayload(), expectedResult);
         }
+    }
+
+    private static CorrelationId getExpectedCorrelationId(final TestEnvironment testEnvironment) {
+        return testEnvironment.getPropertyAsType(EXPECTED_CORRELATION_ID, CorrelationId.class);
     }
 
     @SuppressWarnings("unchecked")

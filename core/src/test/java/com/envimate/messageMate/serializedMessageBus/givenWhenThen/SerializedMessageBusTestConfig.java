@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -21,6 +21,7 @@
 
 package com.envimate.messageMate.serializedMessageBus.givenWhenThen;
 
+import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler;
 import lombok.RequiredArgsConstructor;
@@ -42,8 +43,10 @@ public final class SerializedMessageBusTestConfig {
     }
 
     public static SerializedMessageBusTestConfig asynchronousMessageBusTestConfig() {
+        final int poolSize = 3;
+        final AsynchronousConfiguration asynchronousConfiguration = constantPoolSizeAsynchronousPipeConfiguration(poolSize);
         final MessageBus messageBus = aMessageBus().forType(ASYNCHRONOUS)
-                .withAsynchronousConfiguration(constantPoolSizeAsynchronousPipeConfiguration(3))
+                .withAsynchronousConfiguration(asynchronousConfiguration)
                 .withExceptionHandler(MessageBusTestExceptionHandler.allExceptionIgnoringExceptionHandler())
                 .build();
         return new SerializedMessageBusTestConfig(messageBus);

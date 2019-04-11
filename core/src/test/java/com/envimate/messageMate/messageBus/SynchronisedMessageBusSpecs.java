@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -34,7 +34,6 @@ import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusValida
 
 @ExtendWith(SynchronisedMessageBusConfigurationResolver.class)
 public class SynchronisedMessageBusSpecs implements MessageBusSpecs {
-
 
     //messageStatistics
     @Test
@@ -87,7 +86,4 @@ public class SynchronisedMessageBusSpecs implements MessageBusSpecs {
                 .when(aSingleMessageIsSend())
                 .then(expectTheException(TestException.class));
     }
-
-
-
 }

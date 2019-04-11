@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -28,7 +28,6 @@ import static com.envimate.messageMate.qcec.constraining.givenWhenThen.Constrain
 import static com.envimate.messageMate.qcec.constraining.givenWhenThen.ConstraintValidationBuilder.*;
 import static com.envimate.messageMate.qcec.constraining.givenWhenThen.Given.given;
 
-
 public interface ConstraintEnforcingSpecs {
 
     @Test
@@ -45,7 +44,6 @@ public interface ConstraintEnforcingSpecs {
                 .when(anExceptionCausingConstraintIsEnforced())
                 .then(expectTheExceptionToBeThrown());
     }
-
 
     @Test
     default void testConstraintEnforcer_canUnsubscribe(final TestConstraintEnforcer aConstraintEnforcer) {

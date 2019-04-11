@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -27,9 +27,9 @@ import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
 public final class MessageFunctionTestProperties {
-    public final static String EVENT_TYPE = "EVENT_TYPE";
-    public final static String CANCEL_RESULTS = "CANCEL_RESULTS";
-    public final static String EXCEPTION_OCCURRED_DURING_SEND = "EXCEPTION_OCCURRED_DURING_SEND";
-    public final static String EXCEPTION_OCCURRED_DURING_FOLLOW_UP = "EXCEPTION_OCCURRED_DURING_FOLLOW_UP";
-    public final static String RESPONSE_PROCESSING_CONTEXT = "RESPONSE_PROCESSING_CONTEXT";
+    public static final String EVENT_TYPE = "EVENT_TYPE";
+    public static final String CANCEL_RESULTS = "CANCEL_RESULTS";
+    public static final String EXCEPTION_OCCURRED_DURING_SEND = "EXCEPTION_OCCURRED_DURING_SEND";
+    public static final String EXCEPTION_OCCURRED_DURING_FOLLOW_UP = "EXCEPTION_OCCURRED_DURING_FOLLOW_UP";
+    public static final String RESPONSE_PROCESSING_CONTEXT = "RESPONSE_PROCESSING_CONTEXT";
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -20,7 +20,6 @@
  */
 
 package com.envimate.messageMate.messageBus.givenWhenThen;
-
 
 import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.filtering.Filter;
@@ -52,7 +51,6 @@ import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeC
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestActions.*;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.TestFilter.anErrorThrowingFilter;
 import static com.envimate.messageMate.shared.subscriber.ExceptionThrowingTestSubscriber.exceptionThrowingTestSubscriber;
-
 
 public final class MessageBusActionBuilder {
     private List<TestAction<MessageBus>> actions = new ArrayList<>();
@@ -112,8 +110,9 @@ public final class MessageBusActionBuilder {
         });
     }
 
-    public static MessageBusActionBuilder severalMessagesAreSendAsynchronouslyButWillBeBlocked(final int numberOfSender,
-                                                                                               final int numberOfMessagesPerSender) {
+    public static MessageBusActionBuilder severalMessagesAreSendAsynchronouslyButWillBeBlocked(
+            final int numberOfSender,
+            final int numberOfMessagesPerSender) {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
             MessageBusTestActions.sendMessagesAsynchronously(messageBus, testEnvironment, numberOfSender,
                     numberOfMessagesPerSender, false);
@@ -235,7 +234,6 @@ public final class MessageBusActionBuilder {
             return null;
         });
     }
-
 
     public static MessageBusActionBuilder theTimestampOfTheStatisticsIsQueried() {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {

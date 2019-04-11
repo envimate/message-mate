@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -22,7 +22,6 @@
 package com.envimate.messageMate.qcec.querying.config;
 
 import com.envimate.messageMate.messageBus.MessageBus;
-import com.envimate.messageMate.messageBus.MessageBusType;
 import com.envimate.messageMate.qcec.queryresolving.Query;
 import com.envimate.messageMate.qcec.queryresolving.QueryResolver;
 import com.envimate.messageMate.qcec.queryresolving.QueryResolverFactory;
@@ -33,7 +32,6 @@ import java.util.function.Consumer;
 
 import static com.envimate.messageMate.messageBus.MessageBusBuilder.aMessageBus;
 import static com.envimate.messageMate.messageBus.MessageBusType.SYNCHRONOUS;
-
 
 public final class QueryResolverTestQueryResolver extends TestQueryResolver {
     private final QueryResolver queryResolver;

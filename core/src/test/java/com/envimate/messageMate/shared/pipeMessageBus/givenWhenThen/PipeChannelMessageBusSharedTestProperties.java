@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -44,6 +44,6 @@ public final class PipeChannelMessageBusSharedTestProperties {
     public static final String USED_SUBSCRIPTION_ID = "USED_SUBSCRIPTION_ID";
     public static final String SEND_MESSAGE_ID = "SEND_MESSAGE_ID";
     public static final String EXPECTED_CORRELATION_ID = "EXPECTED_CORRELATION_ID";
-    public final static String EXCEPTION_OCCURRED_INSIDE_FILTER = "EXCEPTION_OCCURRED_INSIDE_FILTER";
-    public final static String EXCEPTION_OCCURRED_DURING_DELIVERY = "EXCEPTION_OCCURRED_DURING_DELIVERY";
+    public static final String EXCEPTION_OCCURRED_INSIDE_FILTER = "EXCEPTION_OCCURRED_INSIDE_FILTER";
+    public static final String EXCEPTION_OCCURRED_DURING_DELIVERY = "EXCEPTION_OCCURRED_DURING_DELIVERY";
 }

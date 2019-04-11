@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -48,8 +48,8 @@ import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
 final class ChannelTestActions {
-    final static TestMessageOfInterest DEFAULT_TEST_MESSAGE = messageOfInterest();
-    final static EventType DEFAULT_EVENT_TYPE = EventType.eventTypeFromString("defaultEventType");
+    static final TestMessageOfInterest DEFAULT_TEST_MESSAGE = messageOfInterest();
+    static final EventType DEFAULT_EVENT_TYPE = EventType.eventTypeFromString("defaultEventType");
 
     static ProcessingContext<TestMessage> sendMessage(final Channel<TestMessage> channel, final TestMessage testMessage) {
         final ProcessingContext<TestMessage> processingContext = processingContext(DEFAULT_EVENT_TYPE, testMessage);

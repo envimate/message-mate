@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -21,14 +21,13 @@
 
 package com.envimate.messageMate.shared.testMessages;
 
-
 import lombok.*;
 
 @ToString
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ErrorTestMessage implements TestMessage {
-    public final static String CONTENT = "error";
+    public static final String CONTENT = "error";
     @Getter
     private final String content;
 

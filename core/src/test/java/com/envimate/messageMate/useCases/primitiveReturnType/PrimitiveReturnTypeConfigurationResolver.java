@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -56,7 +56,7 @@ public class PrimitiveReturnTypeConfigurationResolver extends AbstractTestConfig
                 .withParameterDeserialization(PrimitiveReturnTypeRequest.class, map -> {
                     return new PrimitiveReturnTypeRequest((int) map.get(PARAMETER_MAP_PROPERTY_NAME));
                 })
-                .withAUseCaseInvocationResponseDeserialization(Integer.class, map -> (int) map.get(RETURN_MAP_PROPERTY_NAME))
+                .withAUseCaseInvocationResponseDeserialization(Integer.class, map -> (Integer) map.get(RETURN_MAP_PROPERTY_NAME))
                 .callingUseCaseWith((useCase, requestMap, responseMap) -> {
                     final PrimitiveReturnTypeUseCase primitiveReturnTypeUseCase = (PrimitiveReturnTypeUseCase) useCase;
                     final int intParameter = (int) requestMap.get(PARAMETER_MAP_PROPERTY_NAME);

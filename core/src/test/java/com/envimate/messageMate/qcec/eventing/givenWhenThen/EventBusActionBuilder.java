@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -67,12 +67,11 @@ public final class EventBusActionBuilder {
             final SubscriptionId subscriptionId = testEventBus.reactTo(TestEvent.class, e -> {
                 throw new RuntimeException("This receiver should not be called");
             });
+            testEventBus.unsubscribe(subscriptionId);
 
             final TestReceiver<TestEvent> receiver = aTestReceiver();
             testEventBus.reactTo(TestEvent.class, receiver);
             testEnvironment.addToListProperty(EXPECTED_RECEIVERS, receiver);
-
-            testEventBus.unsubscribe(subscriptionId);
 
             final TestEvent testEvent = testEvent();
             testEnvironment.setProperty(TEST_OBJECT, testEvent);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -126,17 +126,15 @@ final class ProcessingFrameHistoryMatcher {
         assertThat(nextFrame, equalTo(null));
     }
 
-
     private interface ExpectedProcessingFrame {
         void assertEquals(ChannelProcessingFrame<TestMessage> channelProcessingFrame);
     }
 
     @RequiredArgsConstructor(access = PRIVATE)
     @SuppressWarnings("rawtypes")
-    private final class ExpectedProcessingFrameForActionClass implements ExpectedProcessingFrame {
+    private static final class ExpectedProcessingFrameForActionClass implements ExpectedProcessingFrame {
         private final Channel<TestMessage> expectedChannel;
         private final Class<? extends Action> expectedActionClass;
-
 
         public void assertEquals(final ChannelProcessingFrame<TestMessage> channelProcessingFrame) {
             final Channel<TestMessage> actualChannel = channelProcessingFrame.getChannel();
@@ -149,10 +147,9 @@ final class ProcessingFrameHistoryMatcher {
 
     @RequiredArgsConstructor(access = PRIVATE)
     @SuppressWarnings("rawtypes")
-    private final class ExpectedProcessingFrameForAction implements ExpectedProcessingFrame {
+    private static final class ExpectedProcessingFrameForAction implements ExpectedProcessingFrame {
         private final Channel<TestMessage> expectedChannel;
         private final Action<TestMessage> expectedAction;
-
 
         public void assertEquals(final ChannelProcessingFrame<TestMessage> channelProcessingFrame) {
             final Channel<TestMessage> actualChannel = channelProcessingFrame.getChannel();

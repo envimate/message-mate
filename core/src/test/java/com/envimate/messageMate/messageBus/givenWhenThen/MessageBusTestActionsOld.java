@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -57,11 +57,6 @@ public final class MessageBusTestActionsOld implements PipeMessageBusSutActions 
     }
 
     @Override
-    public List<?> getFilter(final TestEnvironment testEnvironment) {
-        return messageBus.getFilter();
-    }
-
-    @Override
     public <R> void subscribe(final Class<R> messageClass, final Subscriber<R> subscriber) {
         throw new UnsupportedOperationException();
     }
@@ -78,6 +73,11 @@ public final class MessageBusTestActionsOld implements PipeMessageBusSutActions 
     @Override
     public boolean awaitTermination(final int timeout, final TimeUnit timeUnit) throws InterruptedException {
         return messageBus.awaitTermination(timeout, timeUnit);
+    }
+
+    @Override
+    public List<?> getFilter(final TestEnvironment testEnvironment) {
+        return messageBus.getFilter();
     }
 
     @Override
@@ -108,7 +108,6 @@ public final class MessageBusTestActionsOld implements PipeMessageBusSutActions 
     public void queryTheNumberOfAcceptedMessages(final TestEnvironment testEnvironment) {
         queryMessageStatistics(testEnvironment, MessageBusStatistics::getAcceptedMessages);
     }
-
 
     public void queryTheNumberOfQueuedMessages(final TestEnvironment testEnvironment) {
         queryMessageStatistics(testEnvironment, MessageBusStatistics::getQueuedMessages);

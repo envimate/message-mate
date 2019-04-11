@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -63,16 +63,8 @@ public final class AsynchronousSendingTestUtils {
                                                        final int numberOfSender,
                                                        final int numberOfMessagesPerSender,
                                                        final boolean expectCleanShutdown) {
-        sendXMessagesAsynchronously(numberOfSender, testMessageFactoryForValidMessages(numberOfMessagesPerSender, testEnvironment),
-                sutSend, testEnvironment, expectCleanShutdown);
-    }
-
-    public static void sendInvalidMessagesAsynchronously(final PipeMessageBusSutActions sutActions,
-                                                         final TestEnvironment testEnvironment,
-                                                         final int numberOfSender,
-                                                         final int numberOfMessagesPerSender) {
-        sendXMessagesAsynchronously(numberOfSender, testMessageFactoryForInvalidMessages(numberOfMessagesPerSender),
-                sutActions::send, testEnvironment, true);
+        final TestMessageFactory messageFactory = testMessageFactoryForValidMessages(numberOfMessagesPerSender, testEnvironment);
+        sendXMessagesAsynchronously(numberOfSender, messageFactory, sutSend, testEnvironment, expectCleanShutdown);
     }
 
     public static void sendInvalidMessagesAsynchronously(final Consumer<TestMessage> sendConsumer,
@@ -80,15 +72,6 @@ public final class AsynchronousSendingTestUtils {
                                                          final int numberOfSender, final int numberOfMessagesPerSender) {
         sendXMessagesAsynchronously(numberOfSender, testMessageFactoryForInvalidMessages(numberOfMessagesPerSender),
                 sendConsumer, testEnvironment, true);
-    }
-
-    public static void sendMixtureOfValidAndInvalidMessagesAsynchronously(final PipeMessageBusSutActions sutActions,
-                                                                          final TestEnvironment testEnvironment,
-                                                                          final int numberOfSender,
-                                                                          final int numberOfMessagesPerSender) {
-        final TestMessageFactory messageFactory = testMessageFactoryForRandomValidOrInvalidTestMessages(numberOfMessagesPerSender,
-                testEnvironment);
-        sendXMessagesAsynchronously(numberOfSender, messageFactory, sutActions::send, testEnvironment, true);
     }
 
     public static void sendMixtureOfValidAndInvalidMessagesAsynchronously(final Consumer<TestMessage> sutSend,

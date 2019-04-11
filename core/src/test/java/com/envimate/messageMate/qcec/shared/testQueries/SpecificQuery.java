@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -23,6 +23,7 @@ package com.envimate.messageMate.qcec.shared.testQueries;
 
 import com.envimate.messageMate.qcec.queryresolving.Query;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import static lombok.AccessLevel.PRIVATE;
@@ -30,7 +31,8 @@ import static lombok.AccessLevel.PRIVATE;
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = PRIVATE)
 public final class SpecificQuery implements Query<Integer> {
-    public final int id;
+    @Getter
+    private final int id;
 
     public static SpecificQuery specificQueryWithId(final int id) {
         return new SpecificQuery(id);
@@ -45,4 +47,5 @@ public final class SpecificQuery implements Query<Integer> {
     public boolean finished() {
         return false;
     }
+
 }

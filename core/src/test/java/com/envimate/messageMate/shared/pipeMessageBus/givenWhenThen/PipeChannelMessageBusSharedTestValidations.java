@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -75,7 +75,6 @@ public final class PipeChannelMessageBusSharedTestValidations {
         }
     }
 
-
     public static void assertExpectedReceiverReceivedMessageWithErrorPayload(final TestEnvironment testEnvironment) {
         final List<SimpleTestSubscriber<?>> receivers = getExpectedReceiversAsSubscriber(testEnvironment);
         for (final SimpleTestSubscriber<?> receiver : receivers) {
@@ -117,7 +116,7 @@ public final class PipeChannelMessageBusSharedTestValidations {
             final List<TestMessageOfInterest> receivedMessages = testSubscriber.getReceivedMessages();
             assertThat(expectedMessages.size(), equalTo(receivedMessages.size()));
             for (final TestMessageOfInterest receivedMessage : receivedMessages) {
-                assertThat(receivedMessage.content, equalTo(expectedContent));
+                assertThat(receivedMessage.getContent(), equalTo(expectedContent));
             }
         }
     }
@@ -181,7 +180,8 @@ public final class PipeChannelMessageBusSharedTestValidations {
         final List<?> expectedMessages = (List<?>) testEnvironment.getProperty(MESSAGES_SEND_OF_INTEREST);
         final List<SimpleTestSubscriber<?>> receivers = getPotentialReceiver(testEnvironment);
         for (final Object expectedMessage : expectedMessages) {
-            final List<SimpleTestSubscriber<?>> subscribersThatReceivedMessage = subscribersThatReceivedMessage(receivers, expectedMessage);
+            final List<SimpleTestSubscriber<?>> subscribersThatReceivedMessage = subscribersThatReceivedMessage(receivers,
+                    expectedMessage);
             assertThat(subscribersThatReceivedMessage.size(), equalTo(1));
         }
     }

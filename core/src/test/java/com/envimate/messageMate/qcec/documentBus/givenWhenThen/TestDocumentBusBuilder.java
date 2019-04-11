@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -67,7 +67,7 @@ public class TestDocumentBusBuilder {
         for (int i = 0; i < numberOfReceiver; i++) {
             final TestReceiver<SpecificQuery> receiver = TestReceiver.aTestReceiver();
             documentBus.answer(SpecificQuery.class)
-                    .onlyIf(specificQuery -> specificQuery.id == idOfInterest)
+                    .onlyIf(specificQuery -> specificQuery.getId() == idOfInterest)
                     .using(receiver);
             testEnvironment.addToListProperty(EXPECTED_RECEIVERS, receiver);
         }
@@ -94,7 +94,7 @@ public class TestDocumentBusBuilder {
         for (int i = 0; i < numberOfReceiver; i++) {
             final TestReceiver<SpecificConstraint> receiver = TestReceiver.aTestReceiver();
             documentBus.ensure(SpecificConstraint.class)
-                    .onlyIf(specificConstraint -> specificConstraint.id == idOfInterest)
+                    .onlyIf(specificConstraint -> specificConstraint.getId() == idOfInterest)
                     .using(receiver);
             testEnvironment.addToListProperty(EXPECTED_RECEIVERS, receiver);
         }
@@ -115,14 +115,13 @@ public class TestDocumentBusBuilder {
         return this;
     }
 
-
     public TestDocumentBusBuilder withSeveralSubscriberThatOnlyTakeSpecificEvents() {
         final int numberOfReceiver = 5;
         final int idOfInterest = 123;
         for (int i = 0; i < numberOfReceiver; i++) {
             final TestReceiver<SpecificEvent> receiver = TestReceiver.aTestReceiver();
             documentBus.reactTo(SpecificEvent.class)
-                    .onlyIf(specificEvent -> specificEvent.id == idOfInterest)
+                    .onlyIf(specificEvent -> specificEvent.getId() == idOfInterest)
                     .using(receiver);
             testEnvironment.addToListProperty(EXPECTED_RECEIVERS, receiver);
         }
@@ -130,7 +129,6 @@ public class TestDocumentBusBuilder {
         testEnvironment.setProperty(TEST_OBJECT, specificEvent);
         return this;
     }
-
 
     public TestDocumentBusBuilder withASubscriberForTheUnscubscribeEvent() {
         final TestReceiver<SpecificEvent> receiver = TestReceiver.aTestReceiver();

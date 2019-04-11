@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -22,13 +22,13 @@
 package com.envimate.messageMate.serializedMessageBus.givenWhenThen;
 
 import com.envimate.messageMate.messageBus.MessageBus;
-import com.envimate.messageMate.useCases.payloadAndErrorPayload.PayloadAndErrorPayload;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.qcec.shared.TestValidation;
 import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.shared.subscriber.TestSubscriber;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 import com.envimate.messageMate.subscribing.Subscriber;
+import com.envimate.messageMate.useCases.payloadAndErrorPayload.PayloadAndErrorPayload;
 import lombok.RequiredArgsConstructor;
 
 import java.util.HashMap;
@@ -37,8 +37,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.MOCK;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
 import static com.envimate.messageMate.serializedMessageBus.givenWhenThen.SerializedMessageBusSetupBuilder.PAYLOAD_SERIALIZATION_KEY;
 import static com.envimate.messageMate.serializedMessageBus.givenWhenThen.SerializedMessageBusTestProperties.SEND_DATA;
 import static com.envimate.messageMate.serializedMessageBus.givenWhenThen.SerializedMessageBusTestProperties.SEND_ERROR_DATA;
@@ -89,7 +87,7 @@ public final class SerializedMessageBusValidationBuilder {
             assertNoExceptionThrown(testEnvironment);
             final TestMessageOfInterest sendObject = testEnvironment.getPropertyAsType(SEND_DATA, TestMessageOfInterest.class);
             final HashMap<String, Object> expectedResult = new HashMap<>();
-            expectedResult.put(PAYLOAD_SERIALIZATION_KEY, sendObject.content);
+            expectedResult.put(PAYLOAD_SERIALIZATION_KEY, sendObject.getContent());
             assertReceivedResultEqualsExpected(testEnvironment, expectedResult, null);
         });
     }
@@ -99,7 +97,7 @@ public final class SerializedMessageBusValidationBuilder {
             assertNoExceptionThrown(testEnvironment);
             final TestMessageOfInterest sendObject = testEnvironment.getPropertyAsType(SEND_DATA, TestMessageOfInterest.class);
             final HashMap<String, Object> expectedResult = new HashMap<>();
-            expectedResult.put(PAYLOAD_SERIALIZATION_KEY, sendObject.content);
+            expectedResult.put(PAYLOAD_SERIALIZATION_KEY, sendObject.getContent());
             assertReceivedAsErrorResponse(testEnvironment, expectedResult);
         });
     }
@@ -137,13 +135,13 @@ public final class SerializedMessageBusValidationBuilder {
     }
 
     private static void assertCorrectDataToBeReceived(final TestEnvironment testEnvironment) {
-        final Object expectedPayload = testEnvironment.getProperty(SEND_DATA);
         final Object expectedErrorPayload;
         if (testEnvironment.has(SEND_ERROR_DATA)) {
             expectedErrorPayload = testEnvironment.getProperty(SEND_ERROR_DATA);
         } else {
             expectedErrorPayload = null;
         }
+        final Object expectedPayload = testEnvironment.getProperty(SEND_DATA);
         final List<TestSubscriber<PayloadAndErrorPayload<?, ?>>> receivers = getExpectedPayloadsReceivers(testEnvironment);
         for (final TestSubscriber<PayloadAndErrorPayload<?, ?>> receiver : receivers) {
             final List<PayloadAndErrorPayload<?, ?>> receivedMessages = receiver.getReceivedMessages();
@@ -176,11 +174,15 @@ public final class SerializedMessageBusValidationBuilder {
     private static void assertReceivedResultEqualsExpected(final TestEnvironment testEnvironment,
                                                            final Object expectedPayload,
                                                            final Object expectedErrorPayload) {
-        final PayloadAndErrorPayload<?, ?> payloadAndErrorPayload = (PayloadAndErrorPayload<?, ?>) testEnvironment.getProperty(RESULT);
+        final PayloadAndErrorPayload<?, ?> payloadAndErrorPayload = getResultPayloads(testEnvironment);
         final Object payload = payloadAndErrorPayload.getPayload();
         assertEquals(payload, expectedPayload);
         final Object errorPayload = payloadAndErrorPayload.getErrorPayload();
         assertEquals(errorPayload, expectedErrorPayload);
+    }
+
+    private static PayloadAndErrorPayload<?, ?> getResultPayloads(final TestEnvironment testEnvironment) {
+        return (PayloadAndErrorPayload<?, ?>) testEnvironment.getProperty(RESULT);
     }
 
     public TestValidation build() {

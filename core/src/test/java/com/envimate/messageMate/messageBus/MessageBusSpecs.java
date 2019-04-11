@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -21,7 +21,6 @@
 
 package com.envimate.messageMate.messageBus;
 
-
 import com.envimate.messageMate.exceptions.AlreadyClosedException;
 import com.envimate.messageMate.internal.enforcing.MustNotBeNullException;
 import com.envimate.messageMate.messageBus.config.MessageBusTestConfig;
@@ -42,7 +41,7 @@ public interface MessageBusSpecs {
 
     //Send and subscribe
     @Test
-    default void testMessageBus_canSendAndReceiveASingleMessage(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_canSendAndReceiveASingleMessage(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withASingleSubscriber())
                 .when(aSingleMessageIsSend())
@@ -51,7 +50,7 @@ public interface MessageBusSpecs {
 
     @Test
     default void testMessageBus_canSendAndReceiveSeveralMessagesWithSeveralSubscriber(
-            final MessageBusTestConfig config) throws Exception {
+            final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withSeveralSubscriber(5))
                 .when(severalMessagesAreSend(10)
@@ -60,7 +59,7 @@ public interface MessageBusSpecs {
     }
 
     @Test
-    default void testMessageBus_canSendMessageTwice(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_canSendMessageTwice(final MessageBusTestConfig config) {
         final TestMessageOfInterest message = messageOfInterest();
         given(aConfiguredMessageBus(config)
                 .withASingleSubscriber())
@@ -69,9 +68,8 @@ public interface MessageBusSpecs {
                 .then(expectTheMessagesToBeReceivedByAllSubscriber(message, message));
     }
 
-
     @Test
-    default void testMessageBus_canSendAndReceiveMessagesAsynchronously(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_canSendAndReceiveMessagesAsynchronously(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withSeveralSubscriber(5))
                 .when(severalMessagesAreSendAsynchronously(5, 10)
@@ -80,7 +78,7 @@ public interface MessageBusSpecs {
     }
 
     @Test
-    default void testMessageBus_canSendAMessageWithoutPayload(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_canSendAMessageWithoutPayload(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withASingleRawSubscriber())
                 .when(aMessageWithoutPayloadIsSend())
@@ -88,15 +86,16 @@ public interface MessageBusSpecs {
     }
 
     @Test
-    default void testMessageBus_throwsExceptionWhenEventTypeIsNotSet(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_throwsExceptionWhenEventTypeIsNotSet(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withASingleRawSubscriber())
                 .when(aMessageWithoutEventType())
                 .then(expectTheException(MustNotBeNullException.class));
     }
+
     //errorPayload
     @Test
-    default void testMessageBus_canSendAndReceiveErrorPayload(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_canSendAndReceiveErrorPayload(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withASingleRawSubscriber())
                 .when(aSingleMessageWithErrorPayloadIsSend())
@@ -105,7 +104,7 @@ public interface MessageBusSpecs {
 
     //unsubscribe
     @Test
-    default void testMessageBus_canUnsubscribe(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_canUnsubscribe(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withSeveralSubscriber(5))
                 .when(oneSubscriberUnsubscribes())
@@ -113,7 +112,7 @@ public interface MessageBusSpecs {
     }
 
     @Test
-    default void testMessageBus_canUnsubscribeTwoSubscribers(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_canUnsubscribeTwoSubscribers(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withSeveralSubscriber(5))
                 .when(oneSubscriberUnsubscribes()
@@ -122,7 +121,7 @@ public interface MessageBusSpecs {
     }
 
     @Test
-    default void testMessageBus_canUnsubscribeTheSameSubscriberSeveralTimes(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_canUnsubscribeTheSameSubscriberSeveralTimes(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withSeveralSubscriber(5))
                 .when(oneSubscriberUnsubscribesSeveralTimes(2))
@@ -132,7 +131,7 @@ public interface MessageBusSpecs {
     //MessageId and CorrelationId
     @Test
     default void testMessageBus_sendMessageHasConstantMessageIdAndCanGenerateMatchingCorrelationId(
-            final MessageBusTestConfig config) throws Exception {
+            final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withASingleRawSubscriber())
                 .when(aSingleMessageIsSend())
@@ -140,7 +139,7 @@ public interface MessageBusSpecs {
     }
 
     @Test
-    default void testMessageBus_canSetCorrelationIdWhenSend(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_canSetCorrelationIdWhenSend(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withASingleRawSubscriber())
                 .when(aMessageWithCorrelationIdIsSend())
@@ -148,7 +147,7 @@ public interface MessageBusSpecs {
     }
 
     @Test
-    default void testMessageBus_canSendProcessingContextWithAMessageId(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_canSendProcessingContextWithAMessageId(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withASingleRawSubscriber())
                 .when(aMessageWithCorrelationIdIsSend())
@@ -156,7 +155,7 @@ public interface MessageBusSpecs {
     }
 
     @Test
-    default void testMessageBus_canSubscriberForSpecificCorrelationIds(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_canSubscriberForSpecificCorrelationIds(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withASubscriberForACorrelationId())
                 .when(aMessageWithCorrelationIdIsSend())
@@ -164,7 +163,7 @@ public interface MessageBusSpecs {
     }
 
     @Test
-    default void testMessageBus_canUnsubscribeForCorrelationId(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_canUnsubscribeForCorrelationId(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withASubscriberForACorrelationId())
                 .when(theSubscriberForTheCorrelationIdUnsubscribes()
@@ -174,7 +173,7 @@ public interface MessageBusSpecs {
 
     //filter
     @Test
-    default void testMessageBus_allowsFiltersToChangeMessages(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_allowsFiltersToChangeMessages(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withASingleSubscriber()
                 .withAFilterThatChangesTheContentOfEveryMessage())
@@ -183,7 +182,7 @@ public interface MessageBusSpecs {
     }
 
     @Test
-    default void testMessageBus_allowsFiltersToDropMessages(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_allowsFiltersToDropMessages(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withSeveralSubscriber(3)
                 .withAFilterThatDropsMessages())
@@ -192,7 +191,7 @@ public interface MessageBusSpecs {
     }
 
     @Test
-    default void testMessageBus_whenAFilterDoesNotUseAMethod_messageIsDropped(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_whenAFilterDoesNotUseAMethod_messageIsDropped(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withSeveralSubscriber(3)
                 .withAnInvalidFilterThatDoesNotUseAnyFilterMethods())
@@ -201,7 +200,7 @@ public interface MessageBusSpecs {
     }
 
     @Test
-    default void testMessageBus_throwsExceptionForPositionBelowZero(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_throwsExceptionForPositionBelowZero(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withAFilterAtAnInvalidPosition(-1))
                 .when(aSingleMessageIsSend())
@@ -209,7 +208,7 @@ public interface MessageBusSpecs {
     }
 
     @Test
-    default void testMessageBus_throwsExceptionForPositionGreaterThanAllowed(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_throwsExceptionForPositionGreaterThanAllowed(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withAFilterAtAnInvalidPosition(100))
                 .when(aSingleMessageIsSend())
@@ -217,7 +216,7 @@ public interface MessageBusSpecs {
     }
 
     @Test
-    default void testMessageBus_canQueryListOfFilter(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_canQueryListOfFilter(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withTwoFilterOnSpecificPositions())
                 .when(theListOfFiltersIsQueried())
@@ -225,7 +224,7 @@ public interface MessageBusSpecs {
     }
 
     @Test
-    default void testMessageBus_canRemoveFilter(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_canRemoveFilter(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withTwoFilterOnSpecificPositions())
                 .when(aFilterIsRemoved())
@@ -233,7 +232,7 @@ public interface MessageBusSpecs {
     }
 
     @Test
-    default void testMessageBus_allowsRawFiltersToCompleteProcessingContext(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_allowsRawFiltersToCompleteProcessingContext(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withASingleRawSubscriber()
                 .withARawFilterThatChangesCompleteProcessingContext())
@@ -243,7 +242,7 @@ public interface MessageBusSpecs {
 
     //messageStatistics
     @Test
-    default void testMessageBus_returnsCorrectNumberOfAcceptedMessages(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_returnsCorrectNumberOfAcceptedMessages(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withASingleSubscriber())
                 .when(severalMessagesAreSendAsynchronously(3, 5)
@@ -254,8 +253,7 @@ public interface MessageBusSpecs {
     // queued statistics config dependent
 
     @Test
-    default void testMessageBus_whenAFilterDoesNotUseAMethod_theMessageIsMarkedAsForgotten(
-            final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_whenAFilterDoesNotUseAMethod_theMessageIsMarkedAsForgotten(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withSeveralSubscriber(3)
                 .withAnInvalidFilterThatDoesNotUseAnyFilterMethods())
@@ -265,7 +263,7 @@ public interface MessageBusSpecs {
     }
 
     @Test
-    default void testMessageBus_returnsCorrectNumberOfDroppedMessages(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_returnsCorrectNumberOfDroppedMessages(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withASingleSubscriber()
                 .withAFilterThatDropsMessages())
@@ -274,9 +272,8 @@ public interface MessageBusSpecs {
                 .then(expectResultToBe(15));
     }
 
-
     @Test
-    default void testMessageBus_returnsCorrectNumberOfSuccessfulMessages(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_returnsCorrectNumberOfSuccessfulMessages(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withASingleSubscriber())
                 .when(severalMessagesAreSendAsynchronously(3, 5)
@@ -286,7 +283,7 @@ public interface MessageBusSpecs {
     }
 
     @Test
-    default void testMessageBus_returnsCorrectNumberOfDeliveryFailedMessages(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_returnsCorrectNumberOfDeliveryFailedMessages(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withAnExceptionThrowingSubscriber()
                 .withACustomExceptionHandlerMarkingExceptionAsIgnored())
@@ -297,17 +294,16 @@ public interface MessageBusSpecs {
     }
 
     @Test
-    default void testMessageBus_returnsAValidTimestampForStatistics(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_returnsAValidTimestampForStatistics(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withoutASubscriber())
                 .when(theTimestampOfTheStatisticsIsQueried())
                 .then(expectTimestampToBeInTheLastXSeconds(3));
     }
 
-
     //subscribers
     @Test
-    default void testMessageBus_returnsCorrectSubscribersPerType(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_returnsCorrectSubscribersPerType(final MessageBusTestConfig config) {
         final EventType eventTypeA = EventType.eventTypeFromString("A");
         final EventType eventTypeB = EventType.eventTypeFromString("B");
         given(aConfiguredMessageBus(config)
@@ -321,7 +317,7 @@ public interface MessageBusSpecs {
     }
 
     @Test
-    default void testMessageBus_returnsCorrectSubscribersInList(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_returnsCorrectSubscribersInList(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withASubscriberForTyp(EventType.eventTypeFromString("type1"))
                 .withASubscriberForTyp(EventType.eventTypeFromString("type2")))
@@ -331,7 +327,7 @@ public interface MessageBusSpecs {
 
     //channel
     @Test
-    default void testMessageBus_returnsCorrectChannel(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_returnsCorrectChannel(final MessageBusTestConfig config) {
         final EventType eventType = testEventType();
         given(aConfiguredMessageBus(config)
                 .withACustomChannelFactory()
@@ -342,7 +338,7 @@ public interface MessageBusSpecs {
 
     //shutdown
     @Test
-    default void testMessageBus_canShutdown_evenIfIsBlocked(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_canShutdown_evenIfIsBlocked(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withASubscriberThatBlocksWhenAccepting())
                 .when(severalMessagesAreSendAsynchronouslyBeforeTheMessageBusIsShutdown(3, 5)
@@ -351,7 +347,7 @@ public interface MessageBusSpecs {
     }
 
     @Test
-    default void testMessageBus_shutdownCallIsIdempotent(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_shutdownCallIsIdempotent(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withASubscriberThatBlocksWhenAccepting())
                 .when(theMessageBusIsShutdownAsynchronouslyXTimes(6)
@@ -361,8 +357,7 @@ public interface MessageBusSpecs {
 
     //error cases
     @Test
-    default void testMessageBus_throwsExceptionWhenSendOnAClosedMessageBusIsCalled(
-            final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_throwsExceptionWhenSendOnAClosedMessageBusIsCalled(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withAnExceptionAcceptingSubscriber())
                 .when(theMessageBusIsShutdown()
@@ -372,7 +367,7 @@ public interface MessageBusSpecs {
 
     @Test
     default void testMessageBus_customExceptionHandlerCanAccessExceptionsInsideFilterOfAcceptingPipe(
-            final MessageBusTestConfig config) throws Exception {
+            final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withAnExceptionThrowingFilter()
                 .withACustomExceptionHandler())
@@ -382,7 +377,7 @@ public interface MessageBusSpecs {
 
     @Test
     default void testMessageBus_customExceptionHandlerCanAccessExceptionsInsideFilterOfDeliveringPipes(
-            final MessageBusTestConfig config) throws Exception {
+            final MessageBusTestConfig config) {
         final EventType eventType = testEventType();
         given(aConfiguredMessageBus(config)
                 .withACustomExceptionHandler())
@@ -393,8 +388,7 @@ public interface MessageBusSpecs {
     }
 
     @Test
-    default void testMessageBus_customExceptionHandlerCanAccessExceptionsDuringDelivery(
-            final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_customExceptionHandlerCanAccessExceptionsDuringDelivery(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withACustomExceptionHandler())
                 .when(anExceptionThrowingSubscriberIsAdded()
@@ -403,8 +397,7 @@ public interface MessageBusSpecs {
     }
 
     @Test
-    default void testMessageBus_customExceptionHandlerCanMarkExceptionAsNotDeliveryAborting(
-            final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_customExceptionHandlerCanMarkExceptionAsNotDeliveryAborting(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withACustomExceptionHandlerMarkingExceptionAsIgnored())
                 .when(anExceptionThrowingSubscriberIsAdded()
@@ -417,7 +410,7 @@ public interface MessageBusSpecs {
     //dynamic exception listener
     @Test
     default void testMessageBus_dynamicExceptionListenerCanBeAdded_forEventType_forExceptionInFilter(
-            final MessageBusTestConfig config) throws Exception {
+            final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withAnExceptionThrowingFilter()
                 .withADynamicExceptionListenerForEventType())
@@ -427,7 +420,7 @@ public interface MessageBusSpecs {
 
     @Test
     default void testMessageBus_dynamicExceptionListenerCanBeAdded_forEventType_forExceptionInSubscriber(
-            final MessageBusTestConfig config) throws Exception {
+            final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withAnExceptionThrowingSubscriber()
                 .withADynamicExceptionListenerForEventType())
@@ -436,7 +429,7 @@ public interface MessageBusSpecs {
     }
 
     @Test
-    default void testMessageBus_dynamicErrorListenerCanBeRemoved_forEventType(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_dynamicErrorListenerCanBeRemoved_forEventType(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withAnExceptionThrowingSubscriber()
                 .withTwoDynamicExceptionListenerForEventType())
@@ -448,7 +441,7 @@ public interface MessageBusSpecs {
 
     @Test
     default void testMessageBus_dynamicExceptionListenerCanBeAdded_forCorrelationId_forExceptionInFilter(
-            final MessageBusTestConfig config) throws Exception {
+            final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withAnExceptionThrowingFilter()
                 .withADynamicCorrelationIdBasedExceptionListener())
@@ -458,7 +451,7 @@ public interface MessageBusSpecs {
 
     @Test
     default void testMessageBus_dynamicExceptionListenerCanBeAdded_forCorrelationId_forExceptionInSubscriber(
-            final MessageBusTestConfig config) throws Exception {
+            final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withAnExceptionThrowingSubscriber()
                 .withADynamicCorrelationIdBasedExceptionListener())
@@ -467,8 +460,7 @@ public interface MessageBusSpecs {
     }
 
     @Test
-    default void testMessageBus_dynamicCorrelationIdBasedErrorListenerCanBeRemoved(
-            final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_dynamicCorrelationIdBasedErrorListenerCanBeRemoved(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withAnExceptionThrowingSubscriber()
                 .withTwoDynamicCorrelationBasedExceptionListener())
@@ -479,8 +471,7 @@ public interface MessageBusSpecs {
     }
 
     @Test
-    default void testMessageBus_dynamicExceptionListenerGetsCorrectMessageTheErrorOccurredOn(
-            final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_dynamicExceptionListenerGetsCorrectMessageTheErrorOccurredOn(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withAnExceptionThrowingFilter()
                 .withADynamicExceptionListenerForEventType())
@@ -489,7 +480,7 @@ public interface MessageBusSpecs {
     }
 
     @Test
-    default void testMessageBus_canQueryForAllExceptionListener(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_canQueryForAllExceptionListener(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withADynamicExceptionListenerForEventType()
                 .withADynamicCorrelationIdBasedExceptionListener())
@@ -499,7 +490,7 @@ public interface MessageBusSpecs {
 
     //await
     @Test
-    default void testMessageBus_awaitWithoutCloseReturnsAlwaysTrue(final MessageBusTestConfig config) throws Exception {
+    default void testMessageBus_awaitWithoutCloseReturnsAlwaysTrue(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withAnExceptionAcceptingSubscriber())
                 .when(theMessageBusShutdownIsExpectedForTimeoutInSeconds(1))

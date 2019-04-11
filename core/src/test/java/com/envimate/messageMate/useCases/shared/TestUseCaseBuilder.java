@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -123,6 +123,12 @@ public class TestUseCaseBuilder {
         return withAParameterSerialization(type, serialization);
     }
 
+    public TestUseCaseBuilder withAUseCaseInvocationRequestSerialization(
+            final Predicate<Object> predicate,
+            final BiConsumer<Object, Map<String, Object>> serialization) {
+        return withAParameterSerialization(predicate, serialization);
+    }
+
     public TestUseCaseBuilder withExpectedResponse(final Function<Map<String, Object>, Object> responseProvider) {
         this.expectedResultSupplier = testEnvironment -> {
             final Map<String, Object> map = new HashMap<>();
@@ -175,12 +181,6 @@ public class TestUseCaseBuilder {
             final Class<T> type,
             final Function<Map<String, Object>, T> deserialization) {
         return withParameterDeserialization(type, deserialization);
-    }
-
-    public TestUseCaseBuilder withAUseCaseInvocationRequestSerialization(
-            final Predicate<Object> predicate,
-            final BiConsumer<Object, Map<String, Object>> serialization) {
-        return withAParameterSerialization(predicate, serialization);
     }
 
     public TestUseCaseBuilder instantiatingUseCaseWith(final Supplier<Object> useCaseInstanceSupplier) {

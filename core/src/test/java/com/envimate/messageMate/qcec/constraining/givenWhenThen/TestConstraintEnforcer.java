@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -21,7 +21,6 @@
 
 package com.envimate.messageMate.qcec.constraining.givenWhenThen;
 
-
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.qcec.shared.TestReceiver;
 import com.envimate.messageMate.qcec.shared.testConstraints.TestConstraint;
@@ -40,9 +39,9 @@ public abstract class TestConstraintEnforcer {
 
     public abstract void enforce(Object constraint);
 
-    public abstract <T> TestConstraintEnforcer withASubscriber(final Class<T> constraintClass, Consumer<T> consumer);
+    public abstract <T> TestConstraintEnforcer withASubscriber(Class<T> constraintClass, Consumer<T> consumer);
 
-    public abstract <T> SubscriptionId subscribing(final Class<T> constraintClass, Consumer<T> consumer);
+    public abstract <T> SubscriptionId subscribing(Class<T> constraintClass, Consumer<T> consumer);
 
     public abstract void unsubscribe(SubscriptionId subscriptionId);
 

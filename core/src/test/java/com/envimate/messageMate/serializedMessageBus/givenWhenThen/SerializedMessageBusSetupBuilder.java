@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -47,6 +47,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static com.envimate.messageMate.internal.collections.filtermap.FilterMapBuilder.filterMapBuilder;
 import static com.envimate.messageMate.internal.collections.predicatemap.PredicateMapBuilder.predicateMapBuilder;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RECEIVERS;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
@@ -58,8 +59,8 @@ import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
 public final class SerializedMessageBusSetupBuilder {
-    public final static String PAYLOAD_SERIALIZATION_KEY = "content";
-    public final static String ERROR_PAYLOAD_SERIALIZATION_KEY = "error";
+    public static final String PAYLOAD_SERIALIZATION_KEY = "content";
+    public static final String ERROR_PAYLOAD_SERIALIZATION_KEY = "error";
     private final TestEnvironment testEnvironment = TestEnvironment.emptyTestEnvironment();
     private final List<SetupAction<SerializedMessageBus>> setupActions = new LinkedList<>();
     private final SerializedMessageBusTestConfig testConfig;
@@ -183,7 +184,7 @@ public final class SerializedMessageBusSetupBuilder {
     }
 
     private Deserializer getDeserializer() {
-        final FilterMapBuilder<Class<?>, Map<String, Object>, Demapifier<?>> deserializingFilterMapBuilder = FilterMapBuilder.filterMapBuilder();
+        final FilterMapBuilder<Class<?>, Map<String, Object>, Demapifier<?>> deserializingFilterMapBuilder = filterMapBuilder();
         deserializingFilterMapBuilder
                 .put((o, o2) -> o.equals(TestMessageOfInterest.class), (Demapifier) (targetType, map) -> {
                     final String content = (String) map.get(PAYLOAD_SERIALIZATION_KEY);
@@ -203,26 +204,26 @@ public final class SerializedMessageBusSetupBuilder {
     private Serializer getSerializer() {
         final PredicateMapBuilder<Object, Mapifier<Object>> serializingMapBuilder = predicateMapBuilder();
         serializingMapBuilder
-                .put((o) -> o.getClass().equals(TestMessageOfInterest.class), object -> {
+                .put(o -> o.getClass().equals(TestMessageOfInterest.class), object -> {
                     final TestMessageOfInterest message = (TestMessageOfInterest) object;
                     final HashMap<String, Object> map = new HashMap<>();
-                    map.put(PAYLOAD_SERIALIZATION_KEY, message.content);
+                    map.put(PAYLOAD_SERIALIZATION_KEY, message.getContent());
                     return map;
                 })
-                .put((o) -> o.getClass().equals(ErrorTestMessage.class), object -> {
+                .put(o -> o.getClass().equals(ErrorTestMessage.class), object -> {
                     final ErrorTestMessage message = (ErrorTestMessage) object;
                     final HashMap<String, Object> map = new HashMap<>();
                     map.put(ERROR_PAYLOAD_SERIALIZATION_KEY, message.getContent());
                     return map;
                 })
-                .setDefaultValue((o) -> {
+                .setDefaultValue(o -> {
                     throw new TestMissingSerializationException("No serialization known for " + o.getClass());
                 });
         return Serializer.responseSerializer(serializingMapBuilder.build());
     }
 
     @RequiredArgsConstructor(access = PRIVATE)
-    final class SerializedMessageBusSetup {
+    static final class SerializedMessageBusSetup {
         @Getter
         private final SerializedMessageBus serializedMessageBus;
         @Getter

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -58,7 +58,6 @@ public final class SharedTestValidations {
             assertThat(result, equalTo(expectedResult));
         }
     }
-
 
     public static void assertResultOfClass(final TestEnvironment testEnvironment, final Class<?> expectedResultClass) {
         final Object result = testEnvironment.getProperty(RESULT);
