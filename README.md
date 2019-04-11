@@ -410,8 +410,30 @@ the history might be of interest for debugging purpose. Since these type of info
 should not be stored inside the payload itself, a wrapping context object is needed,
 the `ProcessingContext`. 
 
-Each message contains its own `ProcessingContext` object. The history of Channels
-is represented as a linked list of `ChannelProcessingFrames`.
+Each message contains its own `ProcessingContext` object. It wraps the message's payload
+and optional error payload. Each `ProcessingContext` creates
+a new unique `MessageId` for each message. Additionally, an optional `CorrelationId` can
+be set or derived from the `MessageId`. `CorrelationIds` are used heavily in combination 
+with a `MessageBus` to link related messages to each other. Also more used in the context 
+of a `MessageBus` is the `ProcessingContext's` `EventType`. The `MessageBus` explained 
+later uses these `EventTypes` to decide, to which subscribers the current message should 
+be routed. Each `ProcessingContext` also brings a meta data map from type
+`Map<Object, Object>` to store additional data about the message, which does not belong
+in the payload.
+
+```java
+T payload = processingContext.getPayload();
+Object errorPayload = processingContext.getErrorPayload();
+EventType eventType = processingContext.getEventType();
+Map<Object, Object> metaData = processingContext.getContextMetaData();
+
+MessageId messageId = processingContext.getMessageId();
+CorrelationId correlationId = processingContext.getCorrelationId();
+CorrelationId correlationIdForMessage = processingContext.generateCorrelationIdForAnswer();
+assertTrue(correlationIdForMessage.matches(messageId));
+```
+
+The history of Channels is represented as a linked list of `ChannelProcessingFrames`.
 This list includes a frame for each traversed Channel. Each frame contains a reference
 to its previous and next frame and to its respective Channel. When a Channel is traversed
 to its end, the actual final Action is also stored in the frame.
@@ -464,7 +486,7 @@ comes short when several formats or communications are to be supported by the sa
 transport object.
 
 The solution is a MessageBus. Any type of message can be send over a MessageBus. Subscribers
-are then able to pick the type of messages they are interested in via class-based subscription.
+are then able to pick the type of messages they are interested in via type-based subscription.
 This makes integrating distinct parts of an application possible.
 
 A MessageBus is structured as follows:
@@ -476,9 +498,9 @@ Every message is accepted by the AcceptingChannel. The AcceptingChannel is respo
 for the configuration (synchronous or asynchronous) and can also contain Filter that
 need access to all messages.
 Messages, that passed the AcceptingChannel, are distributed into subscriber-specific 
-Channels. Every class, which has at least on subscriber, corresponds t a Channel,
-that delivers all message of its class to its subscribers. On this Channel Filter 
-can be added, that are specific for this class.
+Channels. Every `EventType`, which has at least on subscriber, corresponds to a Channel,
+that delivers all message of its type to its subscribers. On this Channel Filter 
+can be added, that are specific for all messages of this `EventType`.
 
 
 #### Using the MessageBus
@@ -488,23 +510,56 @@ MessageBus messageBus = MessageBusBuilder.aMessageBus()
     .forType(MessageBusType.SYNCHRONOUS)
     .build();
 
-SubscriptionId subscriptionId = messageBus.subscribe(TestMessage.class, testMessage -> {
-    System.out.println(testMessage);
-});
 
-messageBus.send(new TestMessage());
+final EventType eventType = eventTypeFromString("requestX");
+ SubscriptionId subscriptionId = messageBus.subscribe(eventType, o -> {
+     System.out.println(o);
+ });
+        
+ messageBus.send(eventType, new TestMessage());
         
 messageBus.unsubcribe(subscriptionId);
 ```
 
 The `MessageBusBuilder` is used to configure and create a MessageBus. 
-The `subscribe` method is again overloaded to either add a Subscriber or a java 
-consumer. The first parameter defines the type of class of the subscription. 
-All messages of this class or a subclass are delivered to its subscriber. 
-The returned subscriptionId is used in case the subscriber wants to remove its 
-subscription.
+The `subscribe` method is again overloaded to either aaccept a Subscriber or a java 
+consumer. The first parameter defines the `EventType` of the subscription. 
+All messages of this type are delivered to all subscribers for this type. 
+The returned subscriptionId is used in case the subscriber should should be 
+removed to not received any more messages.
 
-#### Adding Filter to MessageBus
+As discussed in [ProcesscingContext](#Processing-Context) earlier, messages can
+contain a `CorrelationId` to express, that a set of messages are related. The 
+typical use case is sending a response/answer to a previous request. The
+`MessageBus` allows sending and subscribing messages based on `CorrelationIds`.
+
+
+```java
+CorrelationId correlationId = CorrelationId.newUniqueCorrelationId();
+messageBus.subscribe(correlationId, processingContext -> {
+    Object payload = processingContext.getPayload();
+    System.out.println(payload);
+});
+
+EventType eventType = EventType.eventTypeFromString("answerForX");
+messageBus.send(eventType, new TestMessage(), correlationId);
+```
+
+The `CorrelationId` based subscriber gets access to the complete `ProcessingContext`
+object, as it holds the `MessageId` and the `CorrelationId`. For the `EventType`
+based `subscribe` function, a `subscribeRaw` version exists, in case the normal
+subscriber needs access to the `ProcessingContext` object:
+
+
+```java
+messageBus.subscribeRaw(eventType, processingContext -> {
+    Object payload = processingContext.getPayload();
+    System.out.println(payload);
+});
+```
+
+
+#### Adding Filter to the MessageBus
 The MessageBus can add Filters, that get access to all messages:
 
 ```java
@@ -522,14 +577,27 @@ messageBus.remove(filter);
 ```
 
 In case a more fine-grained filtering is needed, the MessageBus allows to query for
-the specific Channel for a given class. On this Channel Filter can be added as already
+the specific Channel for a given tyoe. On this Channel Filter can be added as already
 described in [Filter](#Adding-Filter-to-Channel)
 ```java
 MessageBusStatusInformation statusInformation = messageBus.getStatusInformation();
-Channel<TestMessage> channel = statusInformation.getChannelFor(TestMessage.class);
+Channel<TestMessage> channel = statusInformation.getChannelFor(eventType);
 channel.addPreFilter(filter);
 channel.addProcessFilter(filter);
 channel.addPostFilter(filter);
+```
+
+In case the underlying `ProcessingContext` object is needed, an `addRaw` method 
+is provided:
+
+```java
+messageBus.addRaw(new Filter<ProcessingContext<Object>>() {
+    @Override
+    public void apply(ProcessingContext<Object> processingContext, 
+                      FilterActions<ProcessingContext<Object>> filterActions) {
+        //filterLogic
+    }
+});
 ```
 
 #### MessageBus Statistics
@@ -547,14 +615,23 @@ BigInteger failedMessages = statistics.getFailedMessages();
 Date timestamp = statistics.getTimestamp();
 ```
 
-#### Querying subscriber
-Mostly for debugging purpose the currently registered subscriber can be queried
-from the MessageBus:
+It's important to note, that these statistics count only for the accepting channel.
+Once, the message is given to the type specific channel and the `CorrelationId` 
+based subscribers, the result is no longer contained in the above statistics.
+For instance, when a message has been successfully traversed the accepting channel
+and was delivered to the type specific channel, it is marked als successful. Errors
+in the type specific channel or the correlation based subscriber are not included.
+The type specific statistic are collected as usual by the channel itself.
+
+#### MessageBus Debug Information
+the `MessageBusStatusInformation`interface provides useful debug information.
+It allows to query the currently registered subscriber and error listener.
 
 ```java
 MessageBusStatusInformation statusInformation = messageBus.getStatusInformation();
 List<Subscriber<?>> allSubscribers = statusInformation.getAllSubscribers();
 Map<Class<?>, List<Subscriber<?>>> subscribersPerType = statusInformation.getSubscribersPerType();
+List<MessageBusExceptionListener<?>> exListener = statusInformation.getAllExceptionListener();
 ```
 
 #### Closing the MessageBus
@@ -642,28 +719,27 @@ synchronisation with the `close` call has to be enforced manually.
 Once the MessageBus is created, the given `MessageBusExceptionHandler` can not be changed.
 But since subscribers are added or removed to or from a MessageBus in a highly dynamical 
 way, a static exception handler becomes a problem. Therefore the MessageBus provides a
-way to register exception listener for specific classes of messages on the fly. These 
-listener will always be called after the `MessageBusExceptionHandler`.
+way to register exception listener for specific `EventType` or `CorrelationId` on the fly. 
+These listener will always be called after the `MessageBusExceptionHandler` received the 
+exception.
 
 ```java
-SubscriptionId subscriptionId = messageBus.onException(TestMessage.class, new MessageBusExceptionListener<TestMessage>() {
+messageBus.onException(correlationId, new MessageBusExceptionListener<Object>() {
     @Override
-    public void accept(TestMessage testMessage, Exception e) {
-        System.out.println(e);
+    public void accept(ProcessingContext<Object> processingContext, Exception e) {
+                
     }
 });
 
-List<Class<?>> list = new ArrayList<>();
-SubscriptionId subscriptionId = messageBus.onException(list, customExceptionListener);
-        
+SubscriptionId subscriptionId = messageBus.onException(eventType, new MessageBusExceptionListener<Object>() {
+    @Override
+    public void accept(ProcessingContext<Object> processingContext, Exception e) {
+
+    }
+});
+
 messageBus.unregisterExceptionListener(subscriptionId);
 ```
-
-The `onException` method takes either a single class or a list of classes and a 
-`MessageBusExceptionListener<T>` as listener. Whenever an exception occurs for one of the
-given classes, the error listener is invoked. The `unregisterExceptionListener` is used to 
-remove all the listener matching the given subscriptionId.
-
 ## Advance Concepts
 
 ### QCEC
@@ -997,17 +1073,17 @@ others error responses. But also exceptions can occur and no regular response is
 sent. In case several requests are simultaneously active, responses and exceptions 
 have to be checked, if they correspond to the correct request.
 
-The `MessageFunction` class simplifies this Request-Reply communication. During its creation
-you can define, which potential success and error responses could occur. Sending the request 
-returns a future, that is fulfilled once the request was answered: may it be a successful reply,
-a reply indicating an error or an exception, that was thrown during the process.
+The `MessageFunction` class simplifies this Request-Reply communication. When sending
+a request over a `MessageFunction`, a `ResponseFuture` is returned. This will fulfill,
+once a message with a `CorrelationId` is received, that matches the request`s 
+`MessageId`, or an exception occured for either the request, or a correlated reply.
 
 The future provides the methods `get`and `await`, which block the caller until a result
 is received or the optional timeout expired. The future also allows for a non blocking
 processing. Via the `then` method follow up actions can be defined, that are executed
 once a the future is fulfilled.
 
-The following example modells the process of buying a number of apples from a farmer.
+The following example models the process of buying a number of apples from a farmer.
 The `BuyAppleRequest` starts the negotiation. The farmer can accept the offer with 
 an `AcceptOfferReply` or decline with a `DeclineOfferReply` based on his stock:
 
@@ -1016,58 +1092,36 @@ class Farmer {
     private int stock;
 
     public Farmer(MessageBus messageBus, int stock) {
-    this.stock = stock;
-    messageBus.subscribe(BuyAppleRequest.class, buyAppleRequest -> {
-        CorrelationId correlationId = buyAppleRequest.correlationId;
-        if (stock >= buyAppleRequest.numberOfApples) {
-            AcceptOfferReply reply = new AcceptOfferReply(correlationId);
-            messageBus.send(reply);
-        }else{
-            DeclineOfferReply reply = new DeclineOfferReply(correlationId);
-            messageBus.send(reply);
-        }
-    });
+        this.stock = stock;
+        messageBus.subscribeRaw(buyAppleEventType, processingContext -> {
+            BuyAppleRequest buyAppleRequest = processingContext.getPayload();
+            
+            CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();
+            
+            boolean acceptOffer = stock >= buyAppleRequest.numberOfApples;
+            BuyAppleReply reply = new BuyAppleReply(acceptOffer);
+            messageBus.send(replyEventType, reply, correlationId);
+        });
     }
 }
 
 class BuyAppleRequest {
     public int numberOfApples;
-    public CorrelationId correlationId = CorrelationId.newUniqueId();
 
     public BuyAppleRequest(int numberOfApples) {
         this.numberOfApples = numberOfApples;
     }
 }
 
-interface OfferReply {
-    CorrelationId getCorrelationId();
-}
     
-class AcceptOfferReply implements OfferReply {
-    public CorrelationId correlationId;
-
-    public AcceptOfferReply(CorrelationId correlationId) {
-        this.correlationId = correlationId;
-    }
-
-    @Override
-    public CorrelationId getCorrelationId() {
-        return correlationId;
+class BuyAppleReply  {
+    boolean accept;
+    
+    BuyAppleReply(boolean accept){
+        this.accept = accept;
     }
 }
 
-class DeclineOfferReply implements OfferReply {
-    public CorrelationId correlationId;
-
-    public DeclineOfferReply(CorrelationId correlationId) {
-        this.correlationId = correlationId;
-    }
-
-    @Override
-    public CorrelationId getCorrelationId() {
-        return correlationId;
-    }
-}
 ```
 The `CorrelationId` is necessary to match a reply to its corresponding request. Instead
 of implementing a lot of subscriber and error logic itself the client code makes use
@@ -1079,162 +1133,488 @@ MessageBus messageBus = MessageBusBuilder.aMessageBus()
     .withAsynchronousConfiguration(asyncConfig)
     .build();
 
-MessageFunction<BuyAppleRequest, OfferReply> messageFunction = MessageFunctionBuilder.aMessageFunction()
-    .forRequestType(BuyAppleRequest.class)
-    .forResponseType(OfferReply.class)
-    .with(BuyAppleRequest.class)
-    .answeredBy(AcceptOfferReply.class)
-    .orByError(DeclineOfferReply.class)
-    .obtainingCorrelationIdsOfRequestsWith(buyAppleRequest -> buyAppleRequest.correlationId)
-    .obtainingCorrelationIdsOfResponsesWith(OfferReply::getCorrelationId)
-    .usingMessageBus(messageBus)
-    .build();
+MessageFunction messageFunction = MessageFunctionBuilder.aMessageFunction(messageBus);
 
 new Farmer(messageBus, 11);
 
-ResponseFuture<OfferReply> responseFuture = messageFunction.request(new BuyAppleRequest(5));
-responseFuture.then((response, wasSuccessful, exception) -> {
+BuyAppleRequest request = new BuyAppleRequest(5);
+ResponseFutureresponseFuture = messageFunction.request(buyAppleEventType, request);
+responseFuture.then((response, errorResponse, exception) -> {
     if (exception != null) {
         System.out.println("Exception occured: " + exception);
     } else {
-        if (wasSuccessful) {
-            System.out.println("AcceptOfferReply received: " + response);
+        if (errorResponse == null) {
+            System.out.println("payload received normally: " + response);
         } else {
-            System.out.println("DeclineOfferReply received: " + response);
+            System.out.println("error payload: " + errorResponse);
         }
     }
 });
 ```
-The builder of a MessageFunction contains several Steps:
-- `forRequestType` defines the class (or superclass) for potential requests
-- `forResponseType` defines the class (or often superclass) for potential replies
-- The mapping of a request class to  its potential replies is started using the 
-`with` method. The `with` method takes the class of the request (which has to 
-extend the class given in `forRequestType`). Afterwards potential replies are
-defined.
-- The `answeredBy` method takes a reply class that counts as successful response when received
-- The `orByError` method takes a class that when received results as not successful
-- Distinguishing replies from different replies is done based on `CorrelationIds`.
-Each request creates a new, unique one. All responses should contain the same 
-`CorrelationIds`. The two `obtainingCorrelationIdsOf...` methods are used to extract 
- these identifiers out of the request and its reply.
-- Finally the MessageBus to use is set and the MessageFunction is build 
-
-The difference of `answeredBy` (and later `or`) and `orByError` is the marking the 
-message as successful in the `ResponseFuture`. Responses defined in `answeredBy` and
-`or` will fulfill the future successful. The future's method `wasSuccessful` or 
-the property `wasSuccessful` inside the `FollowUpActions` will be set to `true`.
-Responses defined in `orByError` will result `false` being the result.
+The `then` method is invoked once the future fulfils. Inside the `FollowUpAction`, the exception 
+should be checked first. It is not null, if the request or the reply caused an exception. The 
+`wasSuccessful` field is true, if no exception occurred and the `ProcessingContext` 
+error payload was null. Otherwise it is false. The `response` contains the payload of 
+the reply.
 
 #### ResponseFuture
-A request can be send with the `request` function. It returns a `ResponseFuture` object 
-specific for that request. This `ResponseFuture` instance is fulfilled, once a response
-defined by `answeredBy`, `or` and `orByError` with a matching `CorrelationId` was 
-received. Being a java `Future`, it provides methods to query or wait on the result:
+The `ResponseFuture` implements the java `Future` interface. Therefore it 
+provides methods to query or wait on the result. But it also defines additional
+get and wait methods to access the received `ProcessingContext` or error payload.
 
 ```java
-ResponseFuture<T> future = messageFunction.request(message);
 try {
-    T result = future.get();
+    Object response = responseFuture.get();
+    Object errorResponse = responseFuture.getErrorResponse();
+    ProcessingContext<Object> processingContext = responseFuture.getRaw();
 } catch (InterruptedException | ExecutionException e) {
-
+    
 }
-
 try {
-    T result = future.get(3, TimeUnit.SECONDS);
+Object response = responseFuture.get(10, MILLISECONDS);
+Object errorResponse = responseFuture.getErrorResponse(10, MILLISECONDS);
+ProcessingContext<Object> processingContext = responseFuture.getRaw(10, MILLISECONDS);
 } catch (InterruptedException | ExecutionException | TimeoutException e) {
-
+            
 }
 
-boolean isDone = future.isDone();
-
-boolean mayInterruptIfRunning = true;
-boolean cancelSucceeded = future.cancel(mayInterruptIfRunning);
-boolean cancelled = future.isCancelled();
+boolean noExceptionOrErrorResponse = responseFuture.wasSuccessful();
+boolean responseExceptionOrCancellationOccurred = responseFuture.isDone();
+responseFuture.cancel(true);
+boolean cancelled = responseFuture.isCancelled();
 ```
-These standard future methods follow the contract described in the `Future`javadoc.
 
 The `get` methods suspend the caller until a result was receied or the optional 
-timeout expired. Handling the result in a nonblocking way is provides with
-`FollowUpAction`. The `then` method allows to one `FollowUpAction`, that will be executed
-once the future fulfills. The handler logic is called on the Thread, that fulfilled
-the future. The `FollowUpAction` accepts three parameter:
-1) The response. This can be a success or failure response. Note that response is only
-available, when no exception occurred. Therefore always check for `exception == null`
-first
-2) A boolean indicating whether it was a success response (as defined by `answeredBy`
-and `or`) or an error response (as defined by `orByError`). It is also only correctly set, when
-exception is null.
-3) In case a exception occurred during any of the involved messages, the exception parameter
-is not null.
+timeout expired. Cancelling a the future, will block its fulfillment. The underlying
+request or anything except that, will not be cancelled. 
 
 A future fulfills only once. So an exception during the sending of a request will fulfill
 the future. Subsequent replies to the request will be ignored and won't trigger any 
 `FollowUpActions` twice. At any time only one `FollowUpAction` is allowed. When the future
 is cancelled, no `FollowUpActions` will be executed. 
 
+### Use case invocation
+In [qcec](#qcec) we have seen, how to use messaging in the scope of a single use case. But
+invoking use cases using messaging provides the same benefits: low coupling and high
+extensibility. Message-Mate provides several concepts to ease the configuration of the 
+application's use case invocation.
+
+#### UseCaseBus
+The `UseCaseBus` is the most convenient form of invoking use cases over an asynchronous 
+`MessageBus`. It provides an expressive builder interface to configure the invoked
+use cases, their serializing and deserializing logic. The following example should make
+the different steps more clear:
+
+We want to invoke the `SampleUseCase` class over a `MessageBus`, that is shared between
+all use cases and probably some external frameworks handling http, websockets or other
+messaging systems to foreign systems. The use case defines appropriate parameter objets:
+
 ```java
-responseFuture.then((response, wasSuccessful, exception) -> {
-    if (exception != null) {
-        System.out.println("Exception occured: " + exception);
-    } else {
-        if (wasSuccessful) {
-            System.out.println("AcceptOfferReply received: " + response);
-        } else {
-            System.out.println("DeclineOfferReply received: " + response);
-        }
+class UseCaseParameter {
+    private final int someNumber;
+
+    UseCaseParameter(int someNumber) {
+        this.someNumber = someNumber;
     }
+}
+
+class SampleUseCase {
+
+    public UseCaseReturnValue doStuff(UseCaseParameter request) {
+        String message = "Received: " + request.someNumber;
+        return new UseCaseReturnValue(message);
+    }
+}
+
+class UseCaseReturnValue {
+    private final String message;
+
+    UseCaseReturnValue(String message) {
+        this.message = message;
+    }
+}
+```
+Without any helper classes, the use case could be invoked over the `MessageBus` as
+follows:
+```java
+messageBus.subscribe(useCaseEventType, o -> {
+    SampleUseCase useCase = new SampleUseCase();
+    UseCaseReturnValue returnValue = useCase.doStuff((UseCaseParameter) o);
+    messageBus.send(useCaseResponseEventType, returnValue);
 });
+
+messageBus.send(useCaseEventType, new UseCaseParameter(5));
+```
+This solution has several problems. First of all, it becomes a burden to register 
+all of the application's use cases or adapt to changes in those use cases.
+Second, sending the parameter as it is over the message bus creates a higher 
+coupling as necessary. Each subscriber, that wants to access the objects
+of type `useCaseEventType` has to depend on the `UseCaseParameter.class`. Since
+the use case cannot know of potential users of this class, it has to take great 
+care when changing the class. Therefore it is better to send data to and from
+use cases in a serialized form: as a `Map<String,Object>`. Potential consumer
+can take these map and extract only required data from it in a form, that 
+each consumer can decide upon its own. In case of the use case it would be
+to deserialize it into a `UseCaseParameter` object:
+```java
+messageBus.subscribe(useCaseEventType, map -> {
+    SampleUseCase useCase = new SampleUseCase();
+    UseCaseParameter useCaseParameter = deserialize(map);
+    UseCaseReturnValue returnValue = useCase.doStuff(useCaseParameter);
+    Map<String, Object> serializedReturnValue = serialize(returnValue);
+    messageBus.send(useCaseResponseEventType, returnValue);
+});
+
+UseCaseParameter parameter = new UseCaseParameter(5);
+Map<String, Object> requestMap = serialize(parameter);
+messageBus.send(useCaseEventType, parameter);
 ```
 
-#### Several Request-Response Pairs
-The `with`method can be called several times to allow for more than one pair of request
-and responses. Inside each `with` flow, one `answeredBy` is also expected as next call.
-But the subsequent `or` and `orByError` calls can be called several times:
+Allthough sending the data in a serialized form, the invocatio of the
+use case became tidious, as three (de-)serialization steps have to be
+done. If the returnValue would be of interest, a fourth and final
+deserialization step would have been added to deserialize the
+`UseCaseReturnValue` back to the correct class. To make it more 
+complicated, we do not reuse the the `UseCaseParameter` and 
+`UseCaseReturnValue` classes, as they should only be owned by the use
+case itself. We introduce two additional classes: 
+
 ```java
-MessageFunctionBuilder.aMessageFunction()
-    .forRequestType(RequestSuperClass.class)
-    .forResponseType(ResponseSuperClass.class)
-    .with(RequestType1.class)
-    .answeredBy(Reply1.class).or(Reply2.class)
-    .orByError(Error1.class).orByError(Error2.class)
-    .with(RequestType2.class)
-    .answeredBy(Reply1.class).or(Reply2.class).or(Reply3.class)
-    .orByError(Error1.class)
-    .obtainingCorrelationIdsOfRequestsWith(request -> {})
-    .obtainingCorrelationIdsOfResponsesWith(response -> {})
-    .usingMessageBus(messageBus)
-    .build();
+class UseCaseRequest {
+    private final int someNumber;
+
+    UseCaseRequest(int someNumber) {
+        this.someNumber = someNumber;
+    }
+}
+    
+class UseCaseResponse {
+    private final String message;
+    
+    UseCaseResponse(String message) {
+        this.message = message;
+    }
+}
 ```
 
-#### GeneralErrorResponse
-There happen to occur cross-cutting errors, that are not part of the request-response 
-class hierarchy. Nonetheless the MessageFunction should react to these and abort the
-corresponding future. The `withGeneralErrorResponse` takes as arguments the class of 
-the error response and an optional conditional. Whenever a matching response is received,
-the future is fulfilled and marked as unsuccessful:
-```java
-MessageFunctionBuilder.aMessageFunction()
-    .forRequestType(RequestClass.class)
-    .forResponseType(ResponseClass.class)
-    .with(RequestClass.class).answeredBy(ReplyClass.class)
-    .withGeneralErrorResponse(GeneralErrorResponse.class)
-    .obtainingCorrelationIdsOfRequestsWith(request -> {})
-    .obtainingCorrelationIdsOfResponsesWith(response -> {})
-    .usingMessageBus(messageBus)
-    .build();
+Code invoking the use case will use these classes, so that the
+parameter and return classes, that the use case uses, can be 
+freely changed, as the use case requires. Invocing the use case
+requires the following 5 steps:
+1) Create a `UseCaseRequest` object, serialize it and send it on the
+`MessageBus`
+2) Take the serialized request and deserialize it to a `UseCaseParameter`.
+3) Invoke the use case with its single public method.
+4) Serialize the `UseCaseReturnValue` and send it back.
+5) Deserialize the response into a `UseCaseResponse` object.
 
-MessageFunctionBuilder.aMessageFunction()
-    .forRequestType(RequestClass.class)
-    .forResponseType(ResponseClass.class)
-    .with(RequestClass.class).answeredBy(ReplyClass.class)
-    .withGeneralErrorResponse(GeneralErrorResponse.class, (generalErrorResponse, request) -> {
-        return generalErrorResponse.getCorrelationId().equals(request.getCorrelationId())
-    })
-    .obtainingCorrelationIdsOfRequestsWith(request -> {})
-    .obtainingCorrelationIdsOfResponsesWith(response -> {})
-    .usingMessageBus(messageBus)
-    .build();
+Maintaining these 5 steps becomes a burden for several use cases. Therefore
+the `UseCaseBus` class was introduced. It provides a builder, that eases
+all the serialization/deserialization definitions and also the use case invocation.
+Taking the example from before, we can rewrite the code as follows:
+
+```java
+UseCaseBus useCaseBus = UseCaseInvocationBuilder.anUseCaseBus() 
+    .invokingUseCase(SampleUseCase.class).forType("useCase1").callingTheSingleUseCaseMethod() 
+    .obtainingUseCaseInstancesUsingTheZeroArgumentConstructor()
+    .mappingRequestsToUseCaseParametersOfType(UseCaseParameter.class).using((targetType, map) -> new UseCaseParameter((Integer) map.get("SampleUseCase.intParam")))
+    .deserializingUseCaseResponsesOfType(UseCaseResponse.class).using((targetType, map) -> new UseCaseResponse((String) map.get("SampleUseCase.returnValue")))
+    .throwAnExceptionByDefaultIfNoParameterMappingCanBeApplied()
+    .serializingUseCaseRequestOfType(UseCaseRequest.class).using(useCaseRequest -> Map.of("SampleUseCase.intParam", useCaseRequest.someNumber))
+    .serializingResponseObjectsOfType(UseCaseReturnValue.class).using(caseReturnValue -> Map.of("SampleUseCase.returnValue", caseReturnValue.message))
+    .throwingAnExceptionByDefaultIfNoResponseMappingCanBeApplied()
+    .puttingExceptionObjectNamedAsExceptionIntoResponseMapByDefault()
+    .build(messageBus);
+```
+Let's explain each line step by step:
+1) Starting the configuration of the `UseCaseBus`
+2) defining which class to invoke for which type. Als defines, that the
+only public method should be invoked. Alternatives to calling specific
+methods in case not only a single method is present will be discussed later.
+3) `obtainingUseCaseInstancesUsingTheZeroArgumentConstructor`: For each request
+a new use case instance will be created by using the constructor without parameters.
+Alternatively an injector can be set, that allows for greater control.
+4) Define the deserialization steps: `mappingRequestsToUseCaseParametersOfType`
+ is responsible to create the use case method's parameter from the map send 
+ over the `MessageBus`.
+5) `deserializingUseCaseResponsesOfType`: After the invocation and the sending
+of the serialized return value, the fourth and last deserializing step is used
+to create an object from the response map.
+6) The deserialization definitions need a default mapping. This method throws
+an exception, whenever no matching deserialization is found.
+7) `serializingUseCaseRequestOfType` takes the request object and serialized it
+on the `MessageBus`. It takes the `UseCaseRequest's` message property and
+stores it as `SampleUseCase.intParam` in the map. That's the reason, the 
+`mappingRequestsToUseCaseParametersOfType` method took the `SampleUseCase.intParam`
+property.
+8) In case the use case returns a value, the `serializingResponseObjectsOfType`
+method allows for defining, how to put the value in a map.
+9) The serialization definitions also need a default value, which would be also
+throw a exception.
+10) Use case methods can throw exceptions. These exceptions need also also to 
+be serialized, before sending them back to the caller (but as error payload).
+The `puttingExceptionObjectNamedAsExceptionIntoResponseMapByDefault` will take
+each exception and put the exception object under `Exception` in the map.
+11) Set the used `MessageBus` and create the `useCaseBus`.
+
+Once the `UseCaseBus` has been defined, it allows for invoking use cases and 
+waiting for their result with as follows:
+```jave 
+EventType eventType = EventType.eventTypeFromString("useCase1");
+UseCaseRequest useCaseRequest = new UseCaseRequest(5);
+try {
+    PayloadAndErrorPayload<UseCaseResponse, Void> result = useCaseBus.invokeAndWait(eventType, useCaseRequest, UseCaseResponse.class, Void.class);
+    final UseCaseResponse response = result.getPayload();
+    System.out.println(response);
+} catch (InterruptedException | ExecutionException e) {
+    e.printStackTrace();
+}
+```
+The `invokeAndWait` method takes the `EventType`, the data and two `Classes` as parameters. 
+The data will be serialized using the definitions from above and will be send 
+to the use case assigned to the specific `EventType`. Once a response has been received,
+the two classes are used to deserialize the response back to real objects.
+
+The `invokeAndWait` method can also take an additional timeout. Also in case no 
+final deserialization is needed, `invokeAndWaitNotDeserialized` versions exist,
+that return the serialized `Map<String, Object>` payloads:
+
+```java
+try {
+    PayloadAndErrorPayload<UseCaseResponse, ErrorResponseClass> result = useCaseBus.invokeAndWait(eventType, request, UseCaseResponse.class, ErrorResponseClass.class, 10, MILLISECONDS);
+    PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> result2 = useCaseBus.invokeAndWaitNotDeserialized(eventType, request);
+    PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> result3 = useCaseBus.invokeAndWaitNotDeserialized(eventType, request, 10, MILLISECONDS);
+} catch (InterruptedException | ExecutionException | TimeoutException e) {
+    e.printStackTrace();
+}
+```
+
+The example above demonstrated the easiest form of configuring the `UseCaseBus`.
+But in case a more complex setup is needed, most of the methods described above
+have a more customizable version. 
+
+Invoking the use case with `callingTheSingleUseCaseMethod` is the easiest way,
+as the method simplifies all of the (de)serialization and method calling.
+But there exists cases, where the method cannot be used, for instance, if a use
+case has more than one public method. Then the invocation has to be defined explicitely:
+```java
+UseCaseInvocationBuilder.anUseCaseBus()
+.invokingUseCase(SampleUseCase.class).forType("t1").calling((sampleUseCase, o) -> {
+    UseCaseParameter parameter = deserialize(o);
+    UseCaseReturnValue returnValue = sampleUseCase.doStuff(parameter);
+    Map<String, Object> responseMap = serialize(returnValue);
+    return responseMap;
+})
+.invokingUseCase(SampleUseCase.class).forType("t3").callingVoid((sampleUseCase, o) -> {
+    UseCaseParameter parameter = serialize(o);
+    sampleUseCase.doStuff(parameter);
+})
+.invokingUseCase(SampleUseCase.class).forType("t2").callingBy((useCase, event, requestDeserializer, responseSerializer) -> {
+    Map<String, Object> requestMap = (Map<String, Object>) event;
+    UseCaseParameter parameter = requestDeserializer.deserialize(UseCaseParameter.class, requestMap);
+    UseCaseReturnValue returnValue = useCase.doStuff(parameter);
+    return responseSerializer.serialize(returnValue);
+})
+```
+The `calling` method takes java `BiFunction<U, Object, Map<String, Object>>`. This 
+function gets the use case instance, the request map and should return the 
+response map. All (de)serialization and method calling is defined by the user.
+The `callingVoid` method is similar, except, that it expects the use case to not
+return a value. This results in an empty response map. The `callingBy` method
+provides access to the use case instance, the request map, the configured
+serializer and deserializer. It expects a filled response map as return value.
+
+In case a custom logic is needed, to instantiate the use cases, the
+`obtainingUseCaseInstancesUsing` method allows for defining a injector. For
+each request, the injector will be called.
+```java
+.obtainingUseCaseInstancesUsing(new UseCaseInstantiator() {
+    @Override
+    public <T> T instantiate(Class<T> type) {
+        return newInstance(type);
+    }
+})
+```
+The deserialization definitions are usually class based. But in case more
+fine grained control, the `mappingRequestsToUseCaseParametersThat` or
+`deserializingUseCaseResponsesThat` methods exist, that take an 
+`BiPredicate<Class<?>, Map<String, Object>>`, which also gets access to 
+the current map. In case a different default deserialization instead of throwing 
+an exception is needed, use the `deserializeObjectsPerDefault` method.
+
+
+For the serialization, similar functions exists: `serializingUseCaseRequestThat`
+and `serializingResponseObjectsThat` take a `Predicate<Object>`, with access
+to the current object, that should be mapped to a map. In case `null` values
+should be mapped, the `serializinguseCaseRequestsOfTypeVoid` and 
+`serializingResponseObjectsOfTypeVoid` methods exists, as `null.getClass()`
+won't work. In case a different default serialization instead of throwing 
+an exception is needed, use the `serializingObjectsByDefaultUsing` method.
+
+For the exception serializing, the same overloaded methods exist.
+`serializingExceptionsOfType` takes a class for which to include the following
+mapping defined in the `using` method. `serializingExceptionsThat` takes
+a `Predicate<Exception>` to decide, when to trigger. The 
+`puttingExceptionObjectNamedAsExceptionIntoResponseMapByDefault` can be replaced
+by `serializingExceptionsByDefaultUsing` or 
+`throwingAnExceptionIfNoExceptionMappingCanBeFound`. Please note, that the later
+will throw an exception outside the exception mapping function. This later 
+exception will not be mapped, but instead, will be thrown as exception on the
+`MessageBus`.
+
+
+#### UseCaseAdapter
+Once `UseCaseBus` is configured invoking a use case is reduced to calling
+`invokeAndWait`. Although, this is very convenient to use, there exist
+cases, where more control is needed. A good example, is the functionality
+of the `ResponseFuture's` `then` method, which allows non blocking
+handling of responses. The `invokeAndWait` method always blocks, so it
+is not a valid substitute. For these cases, where more control in the sending
+and waiting on messages is needed, the the `UseCaseInvocationBuilder`
+can output a `UseCaseAdapter`, which fulfills only the use case invocation
+part of the `UseCaseBus`: It subscribes the defined use cases for their
+specific `EventTypes` on the `MessageBus`. Whenever a fitting message
+is received, the target use case is invoked with the defined (de)serialization.
+But the sending of requests and waiting of responses is left for the user. This
+allows for a more controlled sending, for instance using a `MessageFunction`.
+The following example describes the differences, when using a `UseCaseAdapter`
+instead of a `UseCaseBus`. The methods of the `UseCaseInvocationBuilder` are
+the same as for the `UseCaseBus`.
+
+```java
+UseCaseAdapter useCaseAdapter = UseCaseInvocationBuilder.anUseCaseAdapter()
+    .invokingUseCase(SampleUseCase.class).forType("t1").callingTheSingleUseCaseMethod()
+    .obtainingUseCaseInstancesUsingTheZeroArgumentConstructor()
+    .mappingRequestsToUseCaseParametersOfType(UseCaseParameter.class).using((targetType, map) -> new UseCaseParameter((Integer) map.get("SampleUseCase.intParam")))
+    .deserializingUseCaseResponsesOfType(UseCaseResponse.class).using((targetType, map) -> new UseCaseResponse((String) map.get("SampleUseCase.returnValue")))
+    .throwAnExceptionByDefaultIfNoParameterMappingCanBeApplied()
+    .serializingResponseObjectsOfType(UseCaseReturnValue.class).using(caseReturnValue -> Map.of("SampleUseCase.returnValue", caseReturnValue.message))
+    .serializingUseCaseRequestOfType(UseCaseRequest.class).using(useCaseRequest -> Map.of("SampleUseCase.intParam", useCaseRequest.someNumber))
+    .throwingAnExceptionByDefaultIfNoResponseMappingCanBeApplied()
+    .puttingExceptionObjectNamedAsExceptionIntoResponseMapByDefault()
+    .buildAsStandaloneAdapter();
+
+useCaseAdapter.attachAndEnhance(messageBus);
+
+EventType eventType = EventType.eventTypeFromString("t1");
+MessageFunction messageFunction = MessageFunctionBuilder.aMessageFunction(messageBus);
+ResponseFuture responseFuture = messageFunction.request(eventType, mapData);        
+```
+
+The `attachAndEnhance` function registers the use cases on the given `MessageBus`.
+It returns a `SerializedMessageBus`, which is described further below:
+```java
+SerializedMessageBus serializedMessageBus = useCaseAdapter.attachAndEnhance(messageBus);
+```
+
+It can also directly take an `SerializedMessageBus`:
+```java
+useCaseAdapter.attachTo(serializedMessageBus);
+```
+
+#### Serialized MessageBus
+The `UseCaseBus` simplifies invoking use cases. In case more control is needed when
+sending requests and handling responses, the `UseCaseAdapter` can be used. This
+works for all use cases, that take parameter and return a single (or none) return 
+value. But there exists use cases, that send extra messages on the `MessageBus`
+during their execution. These messages should also be send in their serialized form to
+not brake any code, that excepts only objects of type `Map<String, Object>` on 
+the `MessageBus`. This requirement forces use cases to know, how to serialize objects.
+But this information is usually defined during the creation of the `UseCaseBus`/
+`UseCaseAdapter`. To not duplicate these kind of information, the `SerializedMessageBus`
+was created. The `SerializedMessageBus` wraps a normal `MessageBus` and provides
+methods to send messages, that are automatically serialized using the serializers
+defined in the `UseCaseInvocationBuilder`, and receive responses deserialized like
+the `UseCaseBus` would do.
+
+A `SerializedMessageBus` can be created using its factory method:
+```java
+SerializedMessageBus serializedMessageBus = SerializedMessageBus.aSerializedMessageBus(messageBus, deserializer, serializer);
+```
+
+But since the serializer and deserializer are defined in the `UseCaseAdapter`, its normally better
+to let the `UseCaseAdapter` create the wrapping `SerializedMessageBus` with the correct deserializer
+and serializer:
+```java
+SerializedMessageBus serializedMessageBus = useCaseAdapter.attachAndEnhance(messageBus);
+```
+The `attachAndEnhance` will add all necessary subscriber to the `MessageBus`. It will then 
+wrap the bus and return it with the correct (de)serializers. 
+
+The resulting `SerializedMessageBus` can send both serialized and not yet serialized data:
+```java
+//sending raw data
+Map<String, Object> data = new HashMap<>();
+serializedMessageBus.send(eventType, data);
+
+CorrelationId correlationId = newUniqueCorrelationId();
+serializedMessageBus.send(eventType, data, correlationId);
+
+Map<String, Object> errorData = new HashMap<>();
+serializedMessageBus.send(eventType, data, errorData);
+serializedMessageBus.send(eventType, data, errorData, correlationId);
+
+
+//sending data, that is serialized first
+UseCaseRequest data = new UseCaseRequest(5);
+serializedMessageBus.serializeAndSend(eventType, data);
+serializedMessageBus.serializeAndSend(eventType, data, correlationId);
+
+ErrorData errorData = new ErrorData();
+serializedMessageBus.serializeAndSend(eventType, data, errorData);
+serializedMessageBus.serializeAndSend(eventType, data, errorData, correlationId);
+```
+
+It also allows for sending requests and waiting for their response:
+```java
+//not serialized
+Map<String, Object> data = new HashMap<>();
+PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> result = serializedMessageBus.invokeAndWait(eventType, data);
+PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> result = serializedMessageBus.invokeAndWait(eventType, data, 10, MILLISECONDS);
+
+//only serialize request data
+UseCaseRequest data = new UseCaseRequest(5);
+PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> result = serializedMessageBus.invokeAndWaitSerializedOnly(eventType, data);
+PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> result = serializedMessageBus.invokeAndWaitSerializedOnly(eventType, data, 10, MILLISECONDS);
+
+//serialize request and deserialize response
+PayloadAndErrorPayload<UseCaseResponse, ErrorResponse> result = serializedMessageBus.invokeAndWaitDeserialized(eventType, data, UseCaseResponse.class, ErrorResponse.class);
+PayloadAndErrorPayload<UseCaseResponse, ErrorResponse> result = serializedMessageBus.invokeAndWaitDeserialized(eventType, data, UseCaseResponse.class, ErrorResponse.class, 10, MILLISECONDS);
+```
+
+Similar to the usual `MessageBus`, subscribers can be added and removed:
+```java
+Subscriber<PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>>> subscriber = new Subscriber<PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>>>() {
+    @Override
+    public AcceptingBehavior accept(PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> message) {
+        Map<String, Object> payload = message.getPayload();
+        Map<String, Object> errorPayload = message.getErrorPayload();
+        return AcceptingBehavior.MESSAGE_ACCEPTED;
+    }
+
+    @Override
+    public SubscriptionId getSubscriptionId() {
+        return subscriptionId;
+    }
+};
+serializedMessageBus.subscribe(eventType, subscriber);
+serializedMessageBus.subscribe(correlationId, subscriber);
+
+Subscriber<PayloadAndErrorPayload<UseCaseResponse, ErrorResponse>> subscriber = new Subscriber<PayloadAndErrorPayload<UseCaseResponse, ErrorResponse>>() {
+    @Override
+    public AcceptingBehavior accept(PayloadAndErrorPayload<UseCaseResponse, ErrorResponse> message) {
+        return AcceptingBehavior.MESSAGE_ACCEPTED;
+    }
+
+    @Override
+    public SubscriptionId getSubscriptionId() {
+        return subscriptionId;
+    }
+};
+serializedMessageBus.subscribeDeserialized(eventType, subscriber, UseCaseResponse.class, ErrorResponse.class);
+serializedMessageBus.subscribeDeserialized(correlationId, subscriber, UseCaseResponse.class, ErrorResponse.class);
+
+serializedMessageBus.unsubscribe(subscriptionId);
 ```
 
 ### Subscriber

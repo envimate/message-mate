@@ -21,6 +21,7 @@
 
 package com.envimate.messageMate.qcec.documentBus.givenWhenThen;
 
+import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.qcec.shared.TestReceiver;
 import com.envimate.messageMate.qcec.shared.TestValidation;
 import com.envimate.messageMate.qcec.shared.testEvents.EndingEvent;
@@ -58,7 +59,6 @@ public final class DocumentBusValidationBuilder {
         });
     }
 
-
     public static DocumentBusValidationBuilder expectOnlyTheFirstConstraintToBeReceived() {
         return expectOnlyTheExpectedResultToBeReceived();
     }
@@ -69,8 +69,7 @@ public final class DocumentBusValidationBuilder {
 
     private static DocumentBusValidationBuilder expectOnlyTheExpectedResultToBeReceived() {
         return new DocumentBusValidationBuilder(testEnvironment -> {
-            @SuppressWarnings("unchecked")
-            final List<TestReceiver<?>> receivers = (List<TestReceiver<?>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
+            final List<TestReceiver<?>> receivers = getExpectedReceivers(testEnvironment);
             final Object expectedReceivedEvent = testEnvironment.getProperty(EXPECTED_RESULT);
             for (final TestReceiver<?> receiver : receivers) {
                 final List<?> receivedObjects = receiver.getReceivedObjects();
@@ -79,6 +78,11 @@ public final class DocumentBusValidationBuilder {
                 assertThat(receivedEvent, equalTo(expectedReceivedEvent));
             }
         });
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<TestReceiver<?>> getExpectedReceivers(final TestEnvironment testEnvironment) {
+        return (List<TestReceiver<?>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
     }
 
 
@@ -101,8 +105,7 @@ public final class DocumentBusValidationBuilder {
 
     private static DocumentBusValidationBuilder expectOnlyObjectsOfInterestToBeReceived() {
         return new DocumentBusValidationBuilder(testEnvironment -> {
-            @SuppressWarnings("unchecked")
-            final List<TestReceiver<SpecificQuery>> receivers = (List<TestReceiver<SpecificQuery>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
+            final List<TestReceiver<SpecificQuery>> receivers = getSpecificQueryReceivers(testEnvironment);
             final Object expectedReceivedObject = testEnvironment.getProperty(TEST_OBJECT);
             for (final TestReceiver<SpecificQuery> receiver : receivers) {
                 final List<Object> receivedObjects = receiver.getReceivedObjects();
@@ -111,6 +114,11 @@ public final class DocumentBusValidationBuilder {
                 assertThat(onlyReceivedQuery, equalTo(expectedReceivedObject));
             }
         });
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<TestReceiver<SpecificQuery>> getSpecificQueryReceivers(final TestEnvironment testEnvironment) {
+        return (List<TestReceiver<SpecificQuery>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
     }
 
 

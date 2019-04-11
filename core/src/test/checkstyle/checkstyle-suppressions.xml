@@ -24,15 +24,15 @@
         "-//Puppy Crawl//DTD Suppressions 1.1//EN"
         "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
 <suppressions>
-    <suppress checks="HideUtilityClassConstructor" files="FilterApplierFactory.java" />
-    <suppress checks="HideUtilityClassConstructor" files="StringValidator.java" />
-    <suppress checks="HideUtilityClassConstructor" files="QueryResolverFactory.java" />
-    <suppress checks="HideUtilityClassConstructor" files="ConstraintEnforcerFactory.java" />
-    <suppress checks="HideUtilityClassConstructor" files="NotNullEnforcer.java" />
-    <suppress checks="HideUtilityClassConstructor" files="EventBusFactory.java" />
-    <suppress checks="HideUtilityClassConstructor" files="ResponseHandlingSubscriberFactory.java" />
-    <suppress checks="HideUtilityClassConstructor" files="ReflectionUtils.java" />
-    <suppress checks="HideUtilityClassConstructor" files="RequestResponseRelationMapFactory.java" />
+    <suppress checks="HideUtilityClassConstructor" files="FilterApplierFactory.java"/>
+    <suppress checks="HideUtilityClassConstructor" files="StringValidator.java"/>
+    <suppress checks="HideUtilityClassConstructor" files="QueryResolverFactory.java"/>
+    <suppress checks="HideUtilityClassConstructor" files="ConstraintEnforcerFactory.java"/>
+    <suppress checks="HideUtilityClassConstructor" files="NotNullEnforcer.java"/>
+    <suppress checks="HideUtilityClassConstructor" files="EventBusFactory.java"/>
+    <suppress checks="HideUtilityClassConstructor" files="ResponseHandlingSubscriberFactory.java"/>
+    <suppress checks="HideUtilityClassConstructor" files="ReflectionUtils.java"/>
+    <suppress checks="HideUtilityClassConstructor" files="RequestResponseRelationMapFactory.java"/>
     <suppress checks="HideUtilityClassConstructor" files="DefaultActionHandlerSet.java"/>
     <suppress checks="HideUtilityClassConstructor" files="ForbiddenUseCaseMethods.java"/>
     <suppress checks="HideUtilityClassConstructor" files="TransportMechanismFactory.java"/>
@@ -42,17 +42,22 @@
     <suppress checks="HideUtilityClassConstructor" files="SerializationFilters.java"/>
     <suppress checks="HideUtilityClassConstructor" files="MessageFunctionBuilder.java"/>
     <suppress checks="HideUtilityClassConstructor" files="EventTypeMapper.java"/>
-    <suppress checks="ParameterNumber" files="MessageStatistics.java" />
-    <suppress checks="IllegalCatch" files="SynchronousDelivery.java" />
+    <suppress checks="ParameterNumber" files="MessageStatistics.java"/>
+    <suppress checks="IllegalCatch" files="SynchronousDelivery.java"/>
     <suppress checks="IllegalCatch" files="EventToUseCaseDispatcherBuilder.java"/>
     <suppress checks="IllegalCatch" files="ChannelImpl.java"/>
     <suppress checks="IllegalCatch" files="SerializedMessageBusImpl.java"/>
     <suppress checks="IllegalCatch" files="UseCaseRequestExecutingSubscriber.java"/>
     <suppress checks="IllegalCatch" files="ErrorListenerDelegatingMessageBusExceptionHandler.java"/>
     <suppress checks="IllegalCatch" files="MessageFunctionImpl.java"/>
-    <suppress checks="VisibilityModifierCheck" files="AbstractSharedAnswerImpl.java" />
-    <suppress checks="ParameterNumber" files="ChannelImpl.java" />
-    <suppress checks="ParameterNumber" files="ProcessingContext.java" />
+    <suppress checks="VisibilityModifierCheck" files="AbstractSharedAnswerImpl.java"/>
+    <suppress checks="ParameterNumber" files="ChannelImpl.java"/>
+    <suppress checks="ParameterNumber" files="ProcessingContext.java"/>
 
-    <suppress checks="MethodName" files=".*Specs.java" />
+    <suppress checks="MethodName" files=".*.java"/>
+    <suppress checks="MagicNumber" files=".*Specs.java"/>
+    <suppress checks="[ExecutableStatementCount|MethodLength]" files=".*ConfigurationResolver.java"/>
+    <suppress checks="HideUtilityClassConstructor" files="[Given|When|Then].java"/>
+    <suppress checks="HideUtilityClassConstructor" files=".*TestProperties.java"/>
+    <suppress checks="[IllegalCatch|MagicNumber]" files="Then.java"/>
 </suppressions>

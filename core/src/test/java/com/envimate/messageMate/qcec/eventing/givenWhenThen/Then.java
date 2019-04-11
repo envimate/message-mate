@@ -34,7 +34,6 @@ public class Then {
     private final TestEventBus testEventBus;
     private final EventBusActionBuilder eventBusActionBuilder;
 
-
     public void then(final EventBusValidationBuilder eventBusValidationBuilder) {
         final TestAction<TestEventBus> action = eventBusActionBuilder.build();
         final TestEnvironment testEnvironment = testEventBus.getTestEnvironment();

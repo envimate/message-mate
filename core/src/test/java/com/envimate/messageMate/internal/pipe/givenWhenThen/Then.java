@@ -44,12 +44,11 @@ public class Then {
     private final PipeSetupBuilder setupBuilder;
     private final PipeActionBuilder actionBuilder;
 
-
     public void then(final PipeValidationBuilder testValidationBuilder) throws InterruptedException {
         final PipeSetup setup = buildSetup(setupBuilder);
 
-        final TestEnvironment testEnvironment = setup.testEnvironment;
-        final Pipe<TestMessage> sut = setup.sut;
+        final TestEnvironment testEnvironment = setup.getTestEnvironment();
+        final Pipe<TestMessage> sut = setup.getSut();
         executeTestAction(actionBuilder, sut, testEnvironment);
 
         final TestValidation validation = testValidationBuilder.build();
@@ -59,9 +58,9 @@ public class Then {
 
     private PipeSetup buildSetup(final PipeSetupBuilder setupBuilder) {
         final PipeSetup setup = setupBuilder.build();
-        final TestEnvironment testEnvironment = setup.testEnvironment;
-        final Pipe<TestMessage> sut = setup.sut;
-        final List<SetupAction<Pipe<TestMessage>>> setupActions = setup.setupActions;
+        final TestEnvironment testEnvironment = setup.getTestEnvironment();
+        final Pipe<TestMessage> sut = setup.getSut();
+        final List<SetupAction<Pipe<TestMessage>>> setupActions = setup.getSetupActions();
         try {
             setupActions.forEach(setupAction -> setupAction.execute(sut, testEnvironment));
         } catch (final Exception e) {
@@ -71,7 +70,9 @@ public class Then {
         return setup;
     }
 
-    private void executeTestAction(final PipeActionBuilder actionBuilder, final Pipe<TestMessage> sut, final TestEnvironment testEnvironment) {
+    private void executeTestAction(final PipeActionBuilder actionBuilder,
+                                   final Pipe<TestMessage> sut,
+                                   final TestEnvironment testEnvironment) {
         final List<TestAction<Pipe<TestMessage>>> actions = actionBuilder.build();
         try {
             for (final TestAction<Pipe<TestMessage>> testAction : actions) {
@@ -81,7 +82,7 @@ public class Then {
             testEnvironment.setProperty(EXCEPTION, e);
         }
         if (testEnvironment.has(EXECUTION_END_SEMAPHORE)) {
-            final Semaphore blockingSemaphoreToReleaseAfterExecution = testEnvironment.getPropertyAsType(EXECUTION_END_SEMAPHORE, Semaphore.class);
+            final Semaphore blockingSemaphoreToReleaseAfterExecution = getExecutionEndSemaphore(testEnvironment);
             blockingSemaphoreToReleaseAfterExecution.release(1000);
         }
 
@@ -91,6 +92,10 @@ public class Then {
         } catch (final InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    private Semaphore getExecutionEndSemaphore(final TestEnvironment testEnvironment) {
+        return testEnvironment.getPropertyAsType(EXECUTION_END_SEMAPHORE, Semaphore.class);
     }
 
     private void closeSut(final Pipe<TestMessage> pipe) throws InterruptedException {

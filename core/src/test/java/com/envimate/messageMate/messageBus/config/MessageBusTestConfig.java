@@ -39,7 +39,7 @@ public final class MessageBusTestConfig {
     @Getter
     private final AsynchronousConfiguration asynchronousConfiguration;
     @Getter
-    private final long millisecondsSleepBetweenExecutionActionSteps;
+    private final long millisecondsSleepBetweenExecutionSteps;
     @Getter
     private final long millisecondsSleepAfterExecution;
 
@@ -48,7 +48,8 @@ public final class MessageBusTestConfig {
     }
 
     static MessageBusTestConfig anAsynchronousMessageBus() {
-        final AsynchronousConfiguration asynchronousConfiguration = constantPoolSizeAsynchronousPipeConfiguration(ASYNCHRONOUS_DELIVERY_POOL_SIZE);
+        final int poolSize = ASYNCHRONOUS_DELIVERY_POOL_SIZE;
+        final AsynchronousConfiguration asynchronousConfiguration = constantPoolSizeAsynchronousPipeConfiguration(poolSize);
         return new MessageBusTestConfig(ASYNCHRONOUS, asynchronousConfiguration, 5, 10);
     }
 

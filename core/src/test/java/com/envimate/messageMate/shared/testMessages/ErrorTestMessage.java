@@ -32,7 +32,6 @@ public final class ErrorTestMessage implements TestMessage {
     @Getter
     private final String content;
 
-
     public static ErrorTestMessage errorTestMessage(final String content) {
         return new ErrorTestMessage(content);
     }

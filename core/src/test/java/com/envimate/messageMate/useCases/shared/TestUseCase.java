@@ -1,8 +1,29 @@
-package com.envimate.messageMate.useCases;
+/*
+ * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
-import com.envimate.messageMate.processingContext.EventType;
+package com.envimate.messageMate.useCases.shared;
+
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusBuilder;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.useCases.building.DeserializationStep1Builder;
 import com.envimate.messageMate.useCases.building.ResponseSerializationStep1Builder;
@@ -33,17 +54,13 @@ public final class TestUseCase {
     private final Consumer<ResponseSerializationStep1Builder> serializationEnhancer;
     @Getter
     private final Consumer<Step3Builder<?>> customCallingLogic;
-
     private final Function<TestEnvironment, Object> requestObjectSupplier;
     @Getter
     private final Function<TestEnvironment, Object> expectedResultSupplier;
-
     @Getter
     private final BiConsumer<MessageBusBuilder, TestEnvironment> messageBusEnhancer;
-
     @Getter
     private final UseCaseBusCall useCaseBusCall;
-
 
     public void performNecessaryResultSubscriptionsOn(final MessageBus messageBus, final TestEnvironment testEnvironment) {
         messageBusSetup.accept(messageBus, testEnvironment);
@@ -61,11 +78,11 @@ public final class TestUseCase {
         customCallingLogic.accept(callingBuilder);
     }
 
-    public void defineDeserialization(DeserializationStep1Builder deserializationBuilder) {
+    public void defineDeserialization(final DeserializationStep1Builder deserializationBuilder) {
         deserializationEnhancer.accept(deserializationBuilder);
     }
 
-    public void defineSerialization(ResponseSerializationStep1Builder serializationBuilder) {
+    public void defineSerialization(final ResponseSerializationStep1Builder serializationBuilder) {
         serializationEnhancer.accept(serializationBuilder);
     }
 

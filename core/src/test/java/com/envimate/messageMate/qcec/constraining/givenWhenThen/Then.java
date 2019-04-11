@@ -34,7 +34,6 @@ public class Then {
     private final TestConstraintEnforcer testConstraintEnforcer;
     private final ConstraintActionBuilder constraintActionBuilder;
 
-
     public void then(final ConstraintValidationBuilder constraintValidationBuilder) {
         final TestEnvironment testEnvironment = testConstraintEnforcer.getEnvironment();
         final TestAction<TestConstraintEnforcer> testAction = constraintActionBuilder.build();

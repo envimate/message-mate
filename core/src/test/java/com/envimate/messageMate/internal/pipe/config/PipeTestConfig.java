@@ -49,6 +49,9 @@ public final class PipeTestConfig {
     }
 
     public static PipeTestConfig anAsynchronousBoundedPipe() {
-        return new PipeTestConfig(ASYNCHRONOUS, constantPoolSizeAsynchronousPipeConfiguration(ASYNCHRONOUS_POOL_SIZE, ASYNCHRONOUS_QUEUED_BOUND));
+        final int poolSize = ASYNCHRONOUS_POOL_SIZE;
+        final int waitingQueueBound = ASYNCHRONOUS_QUEUED_BOUND;
+        final AsynchronousConfiguration config = constantPoolSizeAsynchronousPipeConfiguration(poolSize, waitingQueueBound);
+        return new PipeTestConfig(ASYNCHRONOUS, config);
     }
 }

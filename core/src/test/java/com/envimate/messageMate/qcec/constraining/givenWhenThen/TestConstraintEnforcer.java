@@ -31,7 +31,6 @@ import java.util.function.Consumer;
 
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RECEIVERS;
 
-
 public abstract class TestConstraintEnforcer {
     private final TestEnvironment testEnvironment = TestEnvironment.emptyTestEnvironment();
 

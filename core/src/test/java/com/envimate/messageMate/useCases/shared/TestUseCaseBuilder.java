@@ -1,8 +1,29 @@
-package com.envimate.messageMate.useCases;
+/*
+ * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
-import com.envimate.messageMate.processingContext.EventType;
+package com.envimate.messageMate.useCases.shared;
+
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusBuilder;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.useCases.building.DeserializationStep1Builder;
 import com.envimate.messageMate.useCases.building.ResponseSerializationStep1Builder;
@@ -44,24 +65,25 @@ public class TestUseCaseBuilder {
     }
 
     public TestUseCaseBuilder withRequest(final Function<Map<String, Object>, Object> requestProvider) {
-        this.requestObjectSupplier = (testEnvironment -> {
+        this.requestObjectSupplier = testEnvironment -> {
             final Map<String, Object> map = new HashMap<>();
             final Object request = requestProvider.apply(map);
             return request;
-        });
+        };
         return this;
     }
 
     public TestUseCaseBuilder withRequestMap(final Consumer<Map<String, Object>> requestProvider) {
-        this.requestObjectSupplier = (testEnvironment -> {
+        this.requestObjectSupplier = testEnvironment -> {
             final Map<String, Object> map = new HashMap<>();
             requestProvider.accept(map);
             return map;
-        });
+        };
         return this;
     }
 
-    public TestUseCaseBuilder withRequestProvider(final BiFunction<TestEnvironment, Map<String, Object>, Object> requestProvider) {
+    public TestUseCaseBuilder withRequestProvider(
+            final BiFunction<TestEnvironment, Map<String, Object>, Object> requestProvider) {
         this.requestObjectSupplier = testEnvironment -> {
             final Map<String, Object> map = new HashMap<>();
             return requestProvider.apply(testEnvironment, map);
@@ -69,8 +91,8 @@ public class TestUseCaseBuilder {
         return this;
     }
 
-
-    public <T> TestUseCaseBuilder withAParameterSerialization(final Class<T> type, final BiConsumer<T, Map<String, Object>> serialization) {
+    public <T> TestUseCaseBuilder withAParameterSerialization(final Class<T> type,
+                                                              final BiConsumer<T, Map<String, Object>> serialization) {
         this.serializationDefinition.add(responseSerializationStep1Builder -> {
             responseSerializationStep1Builder.serializingResponseObjectsOfType(type)
                     .using(object -> {
@@ -82,7 +104,8 @@ public class TestUseCaseBuilder {
         return this;
     }
 
-    public TestUseCaseBuilder withAParameterSerialization(final Predicate<Object> predicate, final BiConsumer<Object, Map<String, Object>> serialization) {
+    public TestUseCaseBuilder withAParameterSerialization(final Predicate<Object> predicate,
+                                                          final BiConsumer<Object, Map<String, Object>> serialization) {
         this.serializationDefinition.add(responseSerializationStep1Builder -> {
             responseSerializationStep1Builder.serializingResponseObjectsThat(predicate)
                     .using(object -> {
@@ -94,29 +117,22 @@ public class TestUseCaseBuilder {
         return this;
     }
 
-
-    public <T> TestUseCaseBuilder withAUseCaseInvocationRequestSerialization(final Class<T> type, final BiConsumer<T, Map<String, Object>> serialization) {
+    public <T> TestUseCaseBuilder withAUseCaseInvocationRequestSerialization(
+            final Class<T> type,
+            final BiConsumer<T, Map<String, Object>> serialization) {
         return withAParameterSerialization(type, serialization);
     }
 
     public TestUseCaseBuilder withExpectedResponse(final Function<Map<String, Object>, Object> responseProvider) {
-        this.expectedResultSupplier = (testEnvironment -> {
+        this.expectedResultSupplier = testEnvironment -> {
             final Map<String, Object> map = new HashMap<>();
             return responseProvider.apply(map);
-        });
+        };
         return this;
     }
 
-    public TestUseCaseBuilder withExpectedResponseMap(final Consumer<Map<String, Object>> responseProvider) {
-        this.expectedResultSupplier = (testEnvironment -> {
-            final Map<String, Object> map = new HashMap<>();
-            responseProvider.accept(map);
-            return map;
-        });
-        return this;
-    }
-
-    public TestUseCaseBuilder withExpectedResponse(final BiFunction<TestEnvironment, Map<String, Object>, Object> responseProvider) {
+    public TestUseCaseBuilder withExpectedResponse(
+            final BiFunction<TestEnvironment, Map<String, Object>, Object> responseProvider) {
         this.expectedResultSupplier = testEnvironment -> {
             final Map<String, Object> map = new HashMap<>();
             return responseProvider.apply(testEnvironment, map);
@@ -124,7 +140,17 @@ public class TestUseCaseBuilder {
         return this;
     }
 
-    public <T> TestUseCaseBuilder withParameterDeserialization(final Class<T> type, final Function<Map<String, Object>, T> deserialization) {
+    public TestUseCaseBuilder withExpectedResponseMap(final Consumer<Map<String, Object>> responseProvider) {
+        this.expectedResultSupplier = testEnvironment -> {
+            final Map<String, Object> map = new HashMap<>();
+            responseProvider.accept(map);
+            return map;
+        };
+        return this;
+    }
+
+    public <T> TestUseCaseBuilder withParameterDeserialization(final Class<T> type,
+                                                               final Function<Map<String, Object>, T> deserialization) {
         this.deserializationDefinition.add(deserializationStep1Builder -> {
             deserializationStep1Builder.mappingRequestsToUseCaseParametersOfType(type).using((targetType, map) -> {
                 return deserialization.apply(map);
@@ -133,8 +159,9 @@ public class TestUseCaseBuilder {
         return this;
     }
 
-
-    public TestUseCaseBuilder withAUseCaseInvocationResponseDeserialization(final BiPredicate<Class<?>, Map<String, Object>> predicate, final Function<Map<String, Object>, Object> deserialization) {
+    public TestUseCaseBuilder withAUseCaseInvocationResponseDeserialization(
+            final BiPredicate<Class<?>, Map<String, Object>> predicate,
+            final Function<Map<String, Object>, Object> deserialization) {
         this.deserializationDefinition.add(responseSerializationStep1Builder -> {
             responseSerializationStep1Builder.mappingRequestsToUseCaseParametersThat(predicate)
                     .using((targetType, map) -> {
@@ -144,11 +171,15 @@ public class TestUseCaseBuilder {
         return this;
     }
 
-    public <T> TestUseCaseBuilder withAUseCaseInvocationResponseDeserialization(final Class<T> type, final Function<Map<String, Object>, T> deserialization) {
+    public <T> TestUseCaseBuilder withAUseCaseInvocationResponseDeserialization(
+            final Class<T> type,
+            final Function<Map<String, Object>, T> deserialization) {
         return withParameterDeserialization(type, deserialization);
     }
 
-    public TestUseCaseBuilder withAUseCaseInvocationRequestSerialization(final Predicate<Object> predicate, final BiConsumer<Object, Map<String, Object>> serialization) {
+    public TestUseCaseBuilder withAUseCaseInvocationRequestSerialization(
+            final Predicate<Object> predicate,
+            final BiConsumer<Object, Map<String, Object>> serialization) {
         return withAParameterSerialization(predicate, serialization);
     }
 
@@ -170,11 +201,6 @@ public class TestUseCaseBuilder {
         return this;
     }
 
-    public TestUseCaseBuilder callingUseCaseWith(final Consumer<Step3Builder<?>> customUseCaseCall) {
-        this.useCaseCall = customUseCaseCall;
-        return this;
-    }
-
     public TestUseCaseBuilder withSetup(final BiConsumer<MessageBus, TestEnvironment> setup) {
         this.setup = setup;
         return this;
@@ -189,7 +215,6 @@ public class TestUseCaseBuilder {
         this.useCaseBusCall = useCaseBusCallBuilder.build(eventType);
         return this;
     }
-
 
     public TestUseCase build() {
         ensureNotNull(useCaseClass, "useCaseClass");
@@ -214,7 +239,6 @@ public class TestUseCaseBuilder {
                 serializationEnhancer, useCaseCall, requestObjectSupplier, expectedResultSupplier,
                 messageBusEnhancer, useCaseBusCall);
     }
-
 
     public interface CustomUseCaseCall {
         void call(Object useCase, Map<String, Object> requestMap, Map<String, Object> responseMap);

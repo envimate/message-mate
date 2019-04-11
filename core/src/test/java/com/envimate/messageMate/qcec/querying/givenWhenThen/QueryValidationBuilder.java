@@ -40,7 +40,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 public final class QueryValidationBuilder {
     private final TestValidation validation;
 
-
     public static QueryValidationBuilder theCorrectResult() {
         return new QueryValidationBuilder(testEnvironment -> {
             ensureNoExceptionOccurred(testEnvironment);
@@ -66,14 +65,6 @@ public final class QueryValidationBuilder {
             final Pattern pattern = Pattern.compile(messageRegex);
             final Matcher matcher = pattern.matcher(message);
             assertThat(matcher.matches(), equalTo(true));
-        });
-    }
-
-    public static QueryValidationBuilder expectNoResult() {
-        return new QueryValidationBuilder(testEnvironment -> {
-            ensureNoExceptionOccurred(testEnvironment);
-            final Optional<?> result = testEnvironment.getPropertyAsType(RESULT, Optional.class);
-            assertFalse(result.isPresent());
         });
     }
 

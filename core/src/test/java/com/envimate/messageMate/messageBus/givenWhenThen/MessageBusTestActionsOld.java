@@ -24,10 +24,10 @@ package com.envimate.messageMate.messageBus.givenWhenThen;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.internal.pipe.statistics.PipeStatistics;
-import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusStatusInformation;
 import com.envimate.messageMate.messageBus.statistics.MessageBusStatistics;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
@@ -38,7 +38,6 @@ import lombok.RequiredArgsConstructor;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
@@ -63,7 +62,7 @@ public final class MessageBusTestActionsOld implements PipeMessageBusSutActions 
     }
 
     @Override
-    public <R> void subscribe(Class<R> messageClass, Subscriber<R> subscriber) {
+    public <R> void subscribe(final Class<R> messageClass, final Subscriber<R> subscriber) {
         throw new UnsupportedOperationException();
     }
 
@@ -110,18 +109,6 @@ public final class MessageBusTestActionsOld implements PipeMessageBusSutActions 
         queryMessageStatistics(testEnvironment, MessageBusStatistics::getAcceptedMessages);
     }
 
-    public void queryTheNumberOfAcceptedMessagesAsynchronously(final TestEnvironment testEnvironment) {
-        final Semaphore semaphore = new Semaphore(0);
-        new Thread(() -> {
-            queryMessageStatistics(testEnvironment, MessageBusStatistics::getAcceptedMessages);
-            semaphore.release();
-        }).start();
-        try {
-            semaphore.acquire();
-        } catch (final InterruptedException e) {
-            //not necessary to do anything here
-        }
-    }
 
     public void queryTheNumberOfQueuedMessages(final TestEnvironment testEnvironment) {
         queryMessageStatistics(testEnvironment, MessageBusStatistics::getQueuedMessages);

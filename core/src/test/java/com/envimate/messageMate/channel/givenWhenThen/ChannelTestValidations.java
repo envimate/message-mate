@@ -22,6 +22,7 @@
 package com.envimate.messageMate.channel.givenWhenThen;
 
 import com.envimate.messageMate.channel.Channel;
+import com.envimate.messageMate.channel.action.Action;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
@@ -34,6 +35,7 @@ import java.util.Map;
 
 import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestActions.getFilterOf;
 import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestProperties.MODIFIED_META_DATUM;
+import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestProperties.PIPE;
 import static com.envimate.messageMate.channel.givenWhenThen.ProcessingFrameHistoryMatcher.aProcessingFrameHistory;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
 import static lombok.AccessLevel.PRIVATE;
@@ -43,11 +45,15 @@ import static org.hamcrest.Matchers.equalTo;
 @RequiredArgsConstructor(access = PRIVATE)
 final class ChannelTestValidations {
 
-    static void assertResultTraversedAllChannelBasedOnTheirDefaultActions(final TestEnvironment testEnvironment,
-                                                                          final List<Channel<TestMessage>> expectedTraversedChannels) {
+    static void assertResultTraversedAllChannelBasedOnTheirDefaultActions(
+            final TestEnvironment testEnvironment,
+            final List<Channel<TestMessage>> expectedTraversedChannels) {
         final ProcessingContext<TestMessage> result = getTestPropertyAsProcessingContext(testEnvironment, RESULT);
         final ProcessingFrameHistoryMatcher processingFrameHistoryMatcher = aProcessingFrameHistory();
-        expectedTraversedChannels.forEach(channel -> processingFrameHistoryMatcher.withAFrameFor(channel, channel.getDefaultAction()));
+        expectedTraversedChannels.forEach(channel -> {
+            final Action<TestMessage> defaultAction = channel.getDefaultAction();
+            processingFrameHistoryMatcher.withAFrameFor(channel, defaultAction);
+        });
         processingFrameHistoryMatcher.assertCorrect(result);
     }
 
@@ -58,8 +64,9 @@ final class ChannelTestValidations {
     }
 
 
-    static void assertFilterAsExpected(final TestEnvironment testEnvironment, final List<Filter<ProcessingContext<TestMessage>>> expectedFilter) {
-        final FilterPosition filterPosition = testEnvironment.getPropertyAsType(ChannelTestProperties.PIPE, FilterPosition.class);
+    static void assertFilterAsExpected(final TestEnvironment testEnvironment,
+                                       final List<Filter<ProcessingContext<TestMessage>>> expectedFilter) {
+        final FilterPosition filterPosition = testEnvironment.getPropertyAsType(PIPE, FilterPosition.class);
         final Channel<TestMessage> channel = getTestPropertyAsChannel(testEnvironment, SUT);
         final List<Filter<ProcessingContext<TestMessage>>> actualFilter = getFilterOf(channel, filterPosition);
         assertThat(actualFilter, equalTo(expectedFilter));
@@ -74,7 +81,8 @@ final class ChannelTestValidations {
     }
 
     @SuppressWarnings("unchecked")
-    private static Channel<TestMessage> getTestPropertyAsChannel(final TestEnvironment testEnvironment, final TestEnvironmentProperty property) {
+    private static Channel<TestMessage> getTestPropertyAsChannel(final TestEnvironment testEnvironment,
+                                                                 final TestEnvironmentProperty property) {
         return (Channel<TestMessage>) testEnvironment.getProperty(property);
     }
 

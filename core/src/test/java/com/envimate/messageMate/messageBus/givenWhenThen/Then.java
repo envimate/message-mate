@@ -43,7 +43,6 @@ public class Then {
     private final MessageBusSetupBuilder setupBuilder;
     private final MessageBusActionBuilder actionBuilder;
 
-
     public void then(final MessageBusValidationBuilder testValidationBuilder) throws InterruptedException {
         final MessageBusSetup setup = buildSetup(setupBuilder);
 
@@ -72,7 +71,9 @@ public class Then {
         return setup;
     }
 
-    private void executeTestAction(final MessageBusActionBuilder actionBuilder, final MessageBus messageBus, final TestEnvironment testEnvironment) {
+    private void executeTestAction(final MessageBusActionBuilder actionBuilder,
+                                   final MessageBus messageBus,
+                                   final TestEnvironment testEnvironment) {
         final List<TestAction<MessageBus>> actions = actionBuilder.build();
         try {
             for (final TestAction<MessageBus> testAction : actions) {
@@ -90,7 +91,7 @@ public class Then {
             testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
         }
         if (testEnvironment.has(EXECUTION_END_SEMAPHORE)) {
-            final Semaphore blockingSemaphoreToReleaseAfterExecution = testEnvironment.getPropertyAsType(EXECUTION_END_SEMAPHORE, Semaphore.class);
+            final Semaphore blockingSemaphoreToReleaseAfterExecution = getExecutionEndSemaphore(testEnvironment);
             blockingSemaphoreToReleaseAfterExecution.release(1000);
         }
 
@@ -100,6 +101,10 @@ public class Then {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    private Semaphore getExecutionEndSemaphore(final TestEnvironment testEnvironment) {
+        return testEnvironment.getPropertyAsType(EXECUTION_END_SEMAPHORE, Semaphore.class);
     }
 
     private void closeSut(final MessageBus messageBus) throws InterruptedException {

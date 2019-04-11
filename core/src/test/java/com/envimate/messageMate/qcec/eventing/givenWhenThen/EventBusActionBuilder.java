@@ -87,7 +87,6 @@ public final class EventBusActionBuilder {
                 throw new TestException();
             });
 
-            @SuppressWarnings("rawtypes")
             final TestReceiver<?> receiver = aTestReceiver();
             testEnvironment.addToListProperty(EXPECTED_RECEIVERS, receiver);
 

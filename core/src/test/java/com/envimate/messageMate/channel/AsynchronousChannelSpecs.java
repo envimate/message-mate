@@ -49,12 +49,12 @@ public class AsynchronousChannelSpecs implements ChannelSpecs {
 
     //shutdown
     @Test
-    public void testChannel_closeWithoutFinishingRemainingTasks_hasNoEffectForSynchronousConfig(final ChannelTestConfig channelTestConfig) {
+    public void testChannel_closeWithoutFinishingRemainingTasks_hasNoEffectForSynchronousConfig(final ChannelTestConfig config) {
         final int expectedQueuedMessage = 3;
-        final int numberOfSendMessages = ASYNCHRONOUS_CHANNEL_CONFIG_POOL_SIZE + expectedQueuedMessage;
-        given(aConfiguredChannel(channelTestConfig)
+        final int numberOfMessages = ASYNCHRONOUS_CHANNEL_CONFIG_POOL_SIZE + expectedQueuedMessage;
+        given(aConfiguredChannel(config)
                 .withABlockingSubscriber())
-                .when(severalMessagesAreSendAsynchronouslyBeforeTheChannelIsClosedWithoutFinishingRemainingTasks(numberOfSendMessages)
+                .when(severalMessagesAreSendAsynchronouslyBeforeTheChannelIsClosedWithoutFinishingRemainingTasks(numberOfMessages)
                         .andThen(theSubscriberLockIsReleased()
                                 .andThen(theNumberOfSuccessfulDeliveredMessagesIsQueried())))
                 .then(expectTheResult(ASYNCHRONOUS_CHANNEL_CONFIG_POOL_SIZE)
@@ -63,9 +63,9 @@ public class AsynchronousChannelSpecs implements ChannelSpecs {
 
     //await
     @Test
-    public void testChannel_awaitsWithoutFinishingTasks_succeedsDespiteNotFinished(final ChannelTestConfig channelTestConfig) {
+    public void testChannel_awaitsWithoutFinishingTasks_succeedsDespiteNotFinished(final ChannelTestConfig config) {
         final int numberOfMessages = ASYNCHRONOUS_CHANNEL_CONFIG_POOL_SIZE + 5;
-        given(aConfiguredChannel(channelTestConfig)
+        given(aConfiguredChannel(config)
                 .withABlockingSubscriber())
                 .when(sendMessagesBeforeTheShutdownIsAwaitedWithoutFinishingTasks(numberOfMessages))
                 .then(expectTheShutdownToBeFailed());

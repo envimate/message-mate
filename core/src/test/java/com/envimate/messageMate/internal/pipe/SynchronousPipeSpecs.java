@@ -35,10 +35,10 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 @ExtendWith(SynchronisedPipeConfigurationResolver.class)
 public class SynchronousPipeSpecs implements PipeSpecs {
 
-
     //messageStatistics
     @Test
-    public void testPipe_withBlockingSubscriber_whenNumberOfSuccessfulDeliveredMessagesIsQueried_returnsZero(final PipeTestConfig testConfig) throws Exception {
+    public void testPipe_withBlockingSubscriber_whenNumberOfSuccessfulDeliveredMessagesIsQueried_returnsZero(
+            final PipeTestConfig testConfig) throws Exception {
         given(aConfiguredPipe(testConfig)
                 .withASubscriberThatBlocksWhenAccepting())
                 .when(severalMessagesAreSendAsynchronouslyButWillBeBlocked(3, 5)
@@ -47,7 +47,8 @@ public class SynchronousPipeSpecs implements PipeSpecs {
     }
 
     @Test
-    public void testPipe_withBlockingSubscriber_whenNumberOfAcceptedMessagesIsQueried_returnsNumberOfThreads(final PipeTestConfig testConfig) throws Exception {
+    public void testPipe_withBlockingSubscriber_whenNumberOfAcceptedMessagesIsQueried_returnsNumberOfThreads(
+            final PipeTestConfig testConfig) throws Exception {
         final int numberOfParallelSends = 3;
         given(aConfiguredPipe(testConfig)
                 .withASubscriberThatBlocksWhenAccepting())
@@ -58,7 +59,8 @@ public class SynchronousPipeSpecs implements PipeSpecs {
     }
 
     @Test
-    public void testPipe_withBlockingSubscriber_whenNumberOfQueuedMessagesIsQueried_returnsNumberOfThreads(final PipeTestConfig testConfig) throws Exception {
+    public void testPipe_withBlockingSubscriber_whenNumberOfQueuedMessagesIsQueried_returnsNumberOfThreads(
+            final PipeTestConfig testConfig) throws Exception {
         given(aConfiguredPipe(testConfig)
                 .withASubscriberThatBlocksWhenAccepting())
                 .when(severalMessagesAreSendAsynchronouslyButWillBeBlocked(3, 5)
@@ -77,13 +79,13 @@ public class SynchronousPipeSpecs implements PipeSpecs {
     }
 
     @Test
-    public void testPipe_whenShutdownWithoutFinishingRemainingTasksIsCalled_noTasksAreFinished(final PipeTestConfig testConfig) throws Exception {
+    public void testPipe_whenShutdownWithoutFinishingRemainingTasksIsCalled_noTasksAreFinished(
+            final PipeTestConfig testConfig) throws Exception {
         final int numberOfParallelSendMessagesBeforeShutdown = 5;
         given(aConfiguredPipe(testConfig))
                 .when(thePipeIsShutdownAfterHalfOfTheMessagesWereDelivered_withoutFinishingRemainingTasks(10))
                 .then(expectXMessagesToBeDelivered_despiteTheChannelClosed(numberOfParallelSendMessagesBeforeShutdown));
     }
-
 
     //await
     @Test

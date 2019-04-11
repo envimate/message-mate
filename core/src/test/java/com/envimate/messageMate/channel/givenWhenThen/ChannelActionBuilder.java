@@ -27,8 +27,10 @@ import com.envimate.messageMate.channel.statistics.ChannelStatistics;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.identification.MessageId;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.qcec.shared.TestAction;
+import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.AsynchronousSendingTestUtils;
 import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
 import com.envimate.messageMate.shared.subscriber.TestSubscriber;
@@ -52,6 +54,7 @@ import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.Async
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.EXPECTED_CORRELATION_ID;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.SEND_MESSAGE_ID;
 import static com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber.testSubscriber;
+import static com.envimate.messageMate.shared.testMessages.ErrorTestMessage.errorTestMessage;
 import static com.envimate.messageMate.shared.testMessages.TestMessageOfInterest.messageOfInterest;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -106,11 +109,13 @@ public final class ChannelActionBuilder {
         });
     }
 
-
     public static ChannelActionBuilder aMessageWithoutPayloadAndErrorPayloadIsSend() {
         return anAction((channel, testEnvironment) -> {
-            final ErrorTestMessage errorTestMessage = ErrorTestMessage.errorTestMessage("some error");
-            final ProcessingContext<TestMessage> processingContext = processingContextForPayloadAndError(DEFAULT_EVENT_TYPE, DEFAULT_TEST_MESSAGE, errorTestMessage);
+            final ErrorTestMessage errorMessage = errorTestMessage("some error");
+            final EventType eventType = DEFAULT_EVENT_TYPE;
+            final TestMessageOfInterest message = DEFAULT_TEST_MESSAGE;
+            final ProcessingContext<TestMessage> processingContext = processingContextForPayloadAndError(
+                    eventType, message, errorMessage);
             testEnvironment.setProperty(EXPECTED_RESULT, processingContext);
             channel.send(processingContext);
             return null;
@@ -132,13 +137,15 @@ public final class ChannelActionBuilder {
         return anAction((channel, testEnvironment) -> {
             sendValidMessagesAsynchronously(channel::send, testEnvironment,
                     numberOfMessages, 1, false);
-            final long millisecondsToLetThreadsFInishAfterReleasingSemaphoreBeforeCloseIsCalled = 5;
-            testEnvironment.setProperty(SLEEP_BEFORE_CLOSE, millisecondsToLetThreadsFInishAfterReleasingSemaphoreBeforeCloseIsCalled);
+            final long millisecondsToLetThreadsFinishAfterReleasingSemaphoreBeforeCloseIsCalled = 5;
+            final String sleep = SLEEP_BEFORE_CLOSE;
+            testEnvironment.setProperty(sleep, millisecondsToLetThreadsFinishAfterReleasingSemaphoreBeforeCloseIsCalled);
             return null;
         });
     }
 
-    public static ChannelActionBuilder severalMessagesAreSendAsynchronouslyBeforeTheChannelIsClosedWithoutFinishingRemainingTasks(final int numberOfMessages) {
+    public static ChannelActionBuilder severalMessagesAreSendAsynchronouslyBeforeTheChannelIsClosedWithoutFinishingRemainingTasks(
+            final int numberOfMessages) {
         return anAction((channel, testEnvironment) -> {
             AsynchronousSendingTestUtils.sendMessagesBeforeShutdownAsynchronouslyClassBased(addSubscriber(channel), channel::send,
                     channel::close, testEnvironment, numberOfMessages, 1);
@@ -162,7 +169,8 @@ public final class ChannelActionBuilder {
         });
     }
 
-    private static BiConsumer<Class<TestMessageOfInterest>, Subscriber<TestMessageOfInterest>> addSubscriber(final Channel<TestMessage> channel) {
+    private static BiConsumer<Class<TestMessageOfInterest>, Subscriber<TestMessageOfInterest>> addSubscriber(
+            final Channel<TestMessage> channel) {
         return (testMessageOfInterestClass, subscriber) -> {
             @SuppressWarnings("unchecked")
             final Subscription<TestMessageOfInterest> subscription = (Subscription) channel.getDefaultAction();
@@ -170,16 +178,20 @@ public final class ChannelActionBuilder {
         };
     }
 
-    @SuppressWarnings("unchecked")
     public static ChannelActionBuilder aCallToTheSecondChannelIsExecuted() {
         return anAction((channel, testEnvironment) -> {
-            final Channel<TestMessage> callTargetChannel = (Channel<TestMessage>) testEnvironment.getProperty(CALL_TARGET_CHANNEL);
+            final Channel<TestMessage> callTargetChannel = getCallTargetChannel(testEnvironment);
             addFilterExecutingACall(channel, callTargetChannel);
 
             final ProcessingContext<TestMessage> sendProcessingFrame = sendMessage(channel, DEFAULT_TEST_MESSAGE);
             testEnvironment.setProperty(EXPECTED_RESULT, sendProcessingFrame);
             return null;
         });
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Channel<TestMessage> getCallTargetChannel(final TestEnvironment testEnvironment) {
+        return (Channel<TestMessage>) testEnvironment.getProperty(CALL_TARGET_CHANNEL);
     }
 
     public static ChannelActionBuilder severalPreFilterOnDifferentPositionAreAdded() {
@@ -197,7 +209,8 @@ public final class ChannelActionBuilder {
         return anAction(actionForAddingSeveralFilter(positions, POST));
     }
 
-    private static TestAction<Channel<TestMessage>> actionForAddingSeveralFilter(final int[] positions, final FilterPosition pipe) {
+    private static TestAction<Channel<TestMessage>> actionForAddingSeveralFilter(final int[] positions,
+                                                                                 final FilterPosition pipe) {
         return (channel, testEnvironment) -> {
             final List<Filter<ProcessingContext<TestMessage>>> expectedFilter = addSeveralNoopFilter(channel, positions, pipe);
             testEnvironment.setProperty(EXPECTED_RESULT, expectedFilter);
@@ -219,7 +232,8 @@ public final class ChannelActionBuilder {
     public static ChannelActionBuilder oneFilterIsRemoved() {
         return anAction((channel, testEnvironment) -> {
             final FilterPosition pipe = testEnvironment.getPropertyAsType(PIPE, FilterPosition.class);
-            final List<Filter<ProcessingContext<TestMessage>>> allFilter = (List<Filter<ProcessingContext<TestMessage>>>) testEnvironment.getProperty(EXPECTED_RESULT);
+            final List<Filter<ProcessingContext<TestMessage>>> allFilter =
+                    (List<Filter<ProcessingContext<TestMessage>>>) testEnvironment.getProperty(EXPECTED_RESULT);
             final Filter<ProcessingContext<TestMessage>> filterToRemove = allFilter.remove(1);
             removeFilter(channel, pipe, filterToRemove);
             return null;
@@ -306,12 +320,16 @@ public final class ChannelActionBuilder {
     public static ChannelActionBuilder oneSubscriberIsRemoved() {
         return anAction((channel, testEnvironment) -> {
             final Subscription<TestMessage> subscription = getDefaultActionAsSubscription(channel);
-            @SuppressWarnings("unchecked")
-            final List<TestSubscriber<TestMessage>> currentReceiver = (List<TestSubscriber<TestMessage>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
+            final List<TestSubscriber<TestMessage>> currentReceiver = getExpectedReceivers(testEnvironment);
             final TestSubscriber<TestMessage> subscriberToRemove = currentReceiver.remove(0);
             subscription.removeSubscriber(subscriberToRemove);
             return null;
         });
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<TestSubscriber<TestMessage>> getExpectedReceivers(final TestEnvironment testEnvironment) {
+        return (List<TestSubscriber<TestMessage>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
     }
 
     public static ChannelActionBuilder theChannelIsClosedSeveralTimes() {

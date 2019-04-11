@@ -56,11 +56,6 @@ public final class PipeTestActions implements PipeMessageBusSutActions {
     }
 
     @Override
-    public List<?> getFilter(final TestEnvironment testEnvironment) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public <R> void subscribe(final Class<R> messageClass, final Subscriber<R> subscriber) {
         @SuppressWarnings("unchecked")
         final Subscriber<TestMessage> messageSubscriber = (Subscriber<TestMessage>) subscriber;
@@ -75,6 +70,11 @@ public final class PipeTestActions implements PipeMessageBusSutActions {
     @Override
     public boolean awaitTermination(final int timeout, final TimeUnit timeUnit) throws InterruptedException {
         return pipe.awaitTermination(timeout, timeUnit);
+    }
+
+    @Override
+    public List<?> getFilter(final TestEnvironment testEnvironment) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

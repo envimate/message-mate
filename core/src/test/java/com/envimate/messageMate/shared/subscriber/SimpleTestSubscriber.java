@@ -62,7 +62,6 @@ public final class SimpleTestSubscriber<T> implements TestSubscriber<T> {
         return receivedMessages;
     }
 
-
     @Override
     public boolean equals(final Object o) {
         if (this == o) return true;

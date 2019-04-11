@@ -70,23 +70,25 @@ public class PipeSetupBuilder {
     }
 
     public PipeSetupBuilder withSeveralDeliveryInterruptingSubscriber(final int numberOfReceivers) {
-        setupActions.add((t, testEnvironment) -> addSeveralDeliveryInterruptingSubscriber(sutActions(t), testEnvironment, numberOfReceivers));
+        setupActions.add((t, testEnvironment) -> {
+            final PipeMessageBusSutActions sutActions = sutActions(t);
+            addSeveralDeliveryInterruptingSubscriber(sutActions, testEnvironment, numberOfReceivers);
+        });
         return this;
     }
 
     public PipeSetupBuilder withACustomErrorHandler() {
-        pipeBuilder.withErrorHandler(errorHandler((e) -> testEnvironment.setProperty(RESULT, e)));
+        pipeBuilder.withErrorHandler(errorHandler(e -> testEnvironment.setProperty(RESULT, e)));
         return this;
     }
 
     public PipeSetupBuilder withACustomErrorHandlerThatSuppressException() {
-        pipeBuilder.withErrorHandler(errorHandler((e) -> testEnvironment.setProperty(EXCEPTION, e), TestException.class));
+        pipeBuilder.withErrorHandler(errorHandler(e -> testEnvironment.setProperty(EXCEPTION, e), TestException.class));
         return this;
     }
 
-
     public PipeSetupBuilder causingErrorsWhenDelivering() {
-        pipeBuilder.withErrorHandler(errorHandler((e) -> {
+        pipeBuilder.withErrorHandler(errorHandler(e -> {
         }));
         return this;
     }

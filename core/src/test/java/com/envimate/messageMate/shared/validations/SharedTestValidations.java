@@ -83,7 +83,9 @@ public final class SharedTestValidations {
         assertExceptionThrownOfType(testEnvironment, expectedExceptionClass, EXCEPTION);
     }
 
-    public static void assertExceptionThrownOfType(final TestEnvironment testEnvironment, final Class<?> expectedExceptionClass, final TestEnvironmentProperty property) {
+    public static void assertExceptionThrownOfType(final TestEnvironment testEnvironment,
+                                                   final Class<?> expectedExceptionClass,
+                                                   final TestEnvironmentProperty property) {
         final Exception exception = testEnvironment.getPropertyAsType(property, Exception.class);
         final Class<? extends Exception> exceptionClass = exception.getClass();
         boolean assertSucceeded = false;
@@ -108,7 +110,8 @@ public final class SharedTestValidations {
         assertThat(causeClass, equalTo(expectedCauseClass));
     }
 
-    public static void assertTimestampToBeInTheLastXSeconds(final TestEnvironment testEnvironment, final long maximumSecondsDifference) {
+    public static void assertTimestampToBeInTheLastXSeconds(final TestEnvironment testEnvironment,
+                                                            final long maximumSecondsDifference) {
         final Date now = new Date();
         final Date timestamp = testEnvironment.getPropertyAsType(RESULT, Date.class);
         final long secondsDifference = (now.getTime() - timestamp.getTime()) / 1000;
@@ -130,7 +133,8 @@ public final class SharedTestValidations {
         assertTrue(condition, "Expected property " + property + " to be true, but it was false.");
     }
 
-    public static void assertPropertyFalseOrUnset(final TestEnvironment testEnvironment, final TestEnvironmentProperty property) {
+    public static void assertPropertyFalseOrUnset(final TestEnvironment testEnvironment,
+                                                  final TestEnvironmentProperty property) {
         final String name = property.name();
         assertPropertyFalseOrUnset(testEnvironment, name);
     }

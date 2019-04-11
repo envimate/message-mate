@@ -21,7 +21,6 @@
 
 package com.envimate.messageMate.internal.pipe.givenWhenThen;
 
-
 import com.envimate.messageMate.internal.pipe.Pipe;
 import com.envimate.messageMate.qcec.shared.TestAction;
 import com.envimate.messageMate.qcec.shared.TestEnvironmentProperty;
@@ -66,7 +65,8 @@ public final class PipeActionBuilder {
         });
     }
 
-    public static PipeActionBuilder severalMessagesAreSendAsynchronously(final int numberOfSender, final int numberOfMessagesPerSender) {
+    public static PipeActionBuilder severalMessagesAreSendAsynchronously(final int numberOfSender,
+                                                                         final int numberOfMessagesPerSender) {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
             final PipeMessageBusSutActions sutActions = pipeTestActions(pipe);
             sendSeveralMessagesInTheirOwnThread(sutActions, testEnvironment, numberOfSender, numberOfMessagesPerSender, true);
@@ -76,15 +76,16 @@ public final class PipeActionBuilder {
 
     public static PipeActionBuilder aMessageResultingInAnErrorIsSend() {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeMessageBusSutActions sutActions = pipeTestActions(pipe);
-            final TestSubscriber<TestMessageOfInterest> subscriber = addAnExceptionThrowingSubscriber(sutActions, testEnvironment);
+            final PipeMessageBusSutActions sutAction = pipeTestActions(pipe);
+            final TestSubscriber<TestMessageOfInterest> subscriber = addAnExceptionThrowingSubscriber(sutAction, testEnvironment);
             testEnvironment.addToListProperty(TestEnvironmentProperty.EXPECTED_RECEIVERS, subscriber);
-            sendASingleMessage(sutActions, testEnvironment);
+            sendASingleMessage(sutAction, testEnvironment);
             return null;
         });
     }
 
-    public static PipeActionBuilder severalMessagesAreSendAsynchronouslyButWillBeBlocked(final int numberOfSender, final int numberOfMessagesPerSender) {
+    public static PipeActionBuilder severalMessagesAreSendAsynchronouslyButWillBeBlocked(final int numberOfSender,
+                                                                                         final int numberOfMessagesPerSender) {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
             final PipeMessageBusSutActions sutActions = pipeTestActions(pipe);
             sendSeveralMessagesInTheirOwnThread(sutActions, testEnvironment, numberOfSender, numberOfMessagesPerSender, false);
@@ -172,10 +173,12 @@ public final class PipeActionBuilder {
         });
     }
 
-    public static PipeActionBuilder severalMessagesAreSendAsynchronouslyBeforeThePipeIsShutdown(final int numberOfSenders, final int numberOfMessages) {
+    public static PipeActionBuilder severalMessagesAreSendAsynchronouslyBeforeThePipeIsShutdown(final int numberOfSenders,
+                                                                                                final int numberOfMessages) {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
             final PipeMessageBusSutActions sutActions = pipeTestActions(pipe);
-            sendSeveralMessagesAsynchronouslyBeforeTheObjectIsShutdown(sutActions, testEnvironment, numberOfSenders, numberOfMessages);
+            sendSeveralMessagesAsynchronouslyBeforeTheObjectIsShutdown(sutActions, testEnvironment,
+                    numberOfSenders, numberOfMessages);
             return null;
         });
     }
@@ -201,17 +204,20 @@ public final class PipeActionBuilder {
         final int remainingMessages = numberOfMessages - numberOfMessagesBeforeShutdown;
         return new PipeActionBuilder((pipe, testEnvironment) -> {
             final PipeMessageBusSutActions sutActions = pipeTestActions(pipe);
-            sendXMessagesAShutdownsIsCalledThenSendsYMessage(sutActions, testEnvironment, numberOfMessagesBeforeShutdown, remainingMessages, true);
+            sendXMessagesAShutdownsIsCalledThenSendsYMessage(sutActions, testEnvironment, numberOfMessagesBeforeShutdown,
+                    remainingMessages, true);
             return null;
         });
     }
 
-    public static PipeActionBuilder thePipeIsShutdownAfterHalfOfTheMessagesWereDelivered_withoutFinishingRemainingTasks(final int numberOfMessages) {
+    public static PipeActionBuilder thePipeIsShutdownAfterHalfOfTheMessagesWereDelivered_withoutFinishingRemainingTasks(
+            final int numberOfMessages) {
         final int numberOfMessagesBeforeShutdown = numberOfMessages / 2;
         final int remainingMessages = numberOfMessages - numberOfMessagesBeforeShutdown;
         return new PipeActionBuilder((pipe, testEnvironment) -> {
             final PipeMessageBusSutActions sutActions = pipeTestActions(pipe);
-            sendXMessagesAShutdownsIsCalledThenSendsYMessage(sutActions, testEnvironment, numberOfMessagesBeforeShutdown, remainingMessages, false);
+            sendXMessagesAShutdownsIsCalledThenSendsYMessage(sutActions, testEnvironment, numberOfMessagesBeforeShutdown,
+                    remainingMessages, false);
             return null;
         });
     }
@@ -221,7 +227,8 @@ public final class PipeActionBuilder {
         final int messagesSendAfterShutdown = 3;
         return new PipeActionBuilder((pipe, testEnvironment) -> {
             final PipeMessageBusSutActions sutActions = pipeTestActions(pipe);
-            sendXMessagesAShutdownsIsCalledThenSendsYMessage(sutActions, testEnvironment, numberOfMessagesBeforeShutdown, messagesSendAfterShutdown, true);
+            sendXMessagesAShutdownsIsCalledThenSendsYMessage(sutActions, testEnvironment, numberOfMessagesBeforeShutdown,
+                    messagesSendAfterShutdown, true);
             return null;
         });
     }

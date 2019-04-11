@@ -1,4 +1,25 @@
-package com.envimate.messageMate.serializedMessageBus;
+/*
+ * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package com.envimate.messageMate.serializedMessageBus.givenWhenThen;
 
 import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.internal.collections.filtermap.FilterMapBuilder;
@@ -8,16 +29,16 @@ import com.envimate.messageMate.mapping.Deserializer;
 import com.envimate.messageMate.mapping.Mapifier;
 import com.envimate.messageMate.mapping.Serializer;
 import com.envimate.messageMate.messageBus.MessageBus;
-import com.envimate.messageMate.useCases.payloadAndErrorPayload.PayloadAndErrorPayload;
 import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
+import com.envimate.messageMate.serializedMessageBus.SerializedMessageBus;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.SetupAction;
 import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
 import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.shared.testMessages.ErrorTestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
-import com.envimate.messageMate.subscribing.ConsumerSubscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
+import com.envimate.messageMate.useCases.payloadAndErrorPayload.PayloadAndErrorPayload;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -27,11 +48,12 @@ import java.util.List;
 import java.util.Map;
 
 import static com.envimate.messageMate.internal.collections.predicatemap.PredicateMapBuilder.predicateMapBuilder;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RECEIVERS;
-import static com.envimate.messageMate.serializedMessageBus.SerializedMessageBusTestProperties.*;
+import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
+import static com.envimate.messageMate.serializedMessageBus.givenWhenThen.SerializedMessageBusTestProperties.*;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
 import static com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber.testSubscriber;
+import static com.envimate.messageMate.subscribing.ConsumerSubscriber.consumerSubscriber;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
@@ -42,7 +64,6 @@ public final class SerializedMessageBusSetupBuilder {
     private final List<SetupAction<SerializedMessageBus>> setupActions = new LinkedList<>();
     private final SerializedMessageBusTestConfig testConfig;
 
-
     public static SerializedMessageBusSetupBuilder aSerializedMessageBus(final SerializedMessageBusTestConfig testConfig) {
         return new SerializedMessageBusSetupBuilder(testConfig);
     }
@@ -52,20 +73,10 @@ public final class SerializedMessageBusSetupBuilder {
         return this;
     }
 
-    public SerializedMessageBusSetupBuilder withAMapSubscriber_expectingPotentialErrors() {
-        setupActions.add((serializedMessageBus, testEnvironment) -> {
-            try {
-                addMapSubscriber(serializedMessageBus, testEnvironment);
-            } catch (final Exception e) {
-                testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
-            }
-        });
-        return this;
-    }
-
     private void addMapSubscriber(final SerializedMessageBus serializedMessageBus, final TestEnvironment testEnvironment) {
         final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
-        final SimpleTestSubscriber<PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>>> subscriber = testSubscriber();
+        final SimpleTestSubscriber<PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>>> subscriber =
+                testSubscriber();
         testEnvironment.addToListProperty(EXPECTED_RECEIVERS, subscriber);
         testEnvironment.setProperty(SINGLE_RECEIVER, subscriber);
         final SubscriptionId subscriptionId = serializedMessageBus.subscribe(eventType, subscriber);
@@ -75,8 +86,9 @@ public final class SerializedMessageBusSetupBuilder {
     public SerializedMessageBusSetupBuilder withAMapSubscriberForACorrelationId() {
         setupActions.add((serializedMessageBus, testEnvironment) -> {
             final CorrelationId newUniqueCorrelationId = CorrelationId.newUniqueCorrelationId();
-            final CorrelationId correlationId = testEnvironment.getPropertyOrSetDefault(EXPECTED_CORRELATION_ID, newUniqueCorrelationId);
-            final SimpleTestSubscriber<PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>>> subscriber = testSubscriber();
+            final CorrelationId correlationId = getOrSetCorrelationId(testEnvironment, newUniqueCorrelationId);
+            final SimpleTestSubscriber<PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>>> subscriber =
+                    testSubscriber();
             testEnvironment.addToListProperty(EXPECTED_RECEIVERS, subscriber);
             testEnvironment.setProperty(SINGLE_RECEIVER, subscriber);
             final SubscriptionId subscriptionId = serializedMessageBus.subscribe(correlationId, subscriber);
@@ -88,10 +100,12 @@ public final class SerializedMessageBusSetupBuilder {
     public SerializedMessageBusSetupBuilder withADeserializedSubscriber() {
         setupActions.add((serializedMessageBus, testEnvironment) -> {
             final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
-            final SimpleTestSubscriber<PayloadAndErrorPayload<TestMessageOfInterest, ErrorTestMessage>> subscriber = testSubscriber();
+            final SimpleTestSubscriber<PayloadAndErrorPayload<TestMessageOfInterest, ErrorTestMessage>> subscriber =
+                    testSubscriber();
             testEnvironment.addToListProperty(EXPECTED_RECEIVERS, subscriber);
             testEnvironment.setProperty(SINGLE_RECEIVER, subscriber);
-            final SubscriptionId subscriptionId = serializedMessageBus.subscribeDeserialized(eventType, subscriber, TestMessageOfInterest.class, ErrorTestMessage.class);
+            final SubscriptionId subscriptionId = serializedMessageBus
+                    .subscribeDeserialized(eventType, subscriber, TestMessageOfInterest.class, ErrorTestMessage.class);
             testEnvironment.addToListProperty(USED_SUBSCRIPTION_ID, subscriptionId);
         });
         return this;
@@ -100,11 +114,13 @@ public final class SerializedMessageBusSetupBuilder {
     public SerializedMessageBusSetupBuilder withADeserializedSubscriberForACorrelationId() {
         setupActions.add((serializedMessageBus, testEnvironment) -> {
             final CorrelationId newUniqueCorrelationId = CorrelationId.newUniqueCorrelationId();
-            final CorrelationId correlationId = testEnvironment.getPropertyOrSetDefault(EXPECTED_CORRELATION_ID, newUniqueCorrelationId);
-            final SimpleTestSubscriber<PayloadAndErrorPayload<TestMessageOfInterest, ErrorTestMessage>> subscriber = testSubscriber();
+            final CorrelationId correlationId = getOrSetCorrelationId(testEnvironment, newUniqueCorrelationId);
+            final SimpleTestSubscriber<PayloadAndErrorPayload<TestMessageOfInterest, ErrorTestMessage>> subscriber =
+                    testSubscriber();
             testEnvironment.addToListProperty(EXPECTED_RECEIVERS, subscriber);
             testEnvironment.setProperty(SINGLE_RECEIVER, subscriber);
-            final SubscriptionId subscriptionId = serializedMessageBus.subscribeDeserialized(correlationId, subscriber, TestMessageOfInterest.class, ErrorTestMessage.class);
+            final SubscriptionId subscriptionId = serializedMessageBus
+                    .subscribeDeserialized(correlationId, subscriber, TestMessageOfInterest.class, ErrorTestMessage.class);
             testEnvironment.addToListProperty(USED_SUBSCRIPTION_ID, subscriptionId);
         });
         return this;
@@ -113,11 +129,12 @@ public final class SerializedMessageBusSetupBuilder {
     public SerializedMessageBusSetupBuilder withASubscriberSendingCorrelatedResponse() {
         setupActions.add((serializedMessageBus, testEnvironment) -> {
             final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
-            final SubscriptionId subscriptionId = serializedMessageBus.subscribeRaw(eventType, ConsumerSubscriber.consumerSubscriber(processingContext -> {
-                final CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();
-                final Map<String, Object> payload = processingContext.getPayload();
-                serializedMessageBus.send(EVENT_TYPE_WITH_NO_SUBSCRIBERS, payload, correlationId);
-            }));
+            final SubscriptionId subscriptionId = serializedMessageBus.subscribeRaw(eventType,
+                    consumerSubscriber(processingContext -> {
+                        final CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();
+                        final Map<String, Object> payload = processingContext.getPayload();
+                        serializedMessageBus.send(EVENT_TYPE_WITH_NO_SUBSCRIBERS, payload, correlationId);
+                    }));
             testEnvironment.addToListProperty(USED_SUBSCRIPTION_ID, subscriptionId);
         });
         return this;
@@ -126,11 +143,12 @@ public final class SerializedMessageBusSetupBuilder {
     public SerializedMessageBusSetupBuilder withASubscriberSendingDataBackAsErrorResponse() {
         setupActions.add((serializedMessageBus, testEnvironment) -> {
             final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
-            final SubscriptionId subscriptionId = serializedMessageBus.subscribeRaw(eventType, ConsumerSubscriber.consumerSubscriber(processingContext -> {
-                final CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();
-                final Map<String, Object> payload = processingContext.getPayload();
-                serializedMessageBus.send(EVENT_TYPE_WITH_NO_SUBSCRIBERS, null, payload, correlationId);
-            }));
+            final SubscriptionId subscriptionId = serializedMessageBus.subscribeRaw(eventType,
+                    consumerSubscriber(processingContext -> {
+                        final CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();
+                        final Map<String, Object> payload = processingContext.getPayload();
+                        serializedMessageBus.send(EVENT_TYPE_WITH_NO_SUBSCRIBERS, null, payload, correlationId);
+                    }));
             testEnvironment.addToListProperty(USED_SUBSCRIPTION_ID, subscriptionId);
         });
         return this;
@@ -139,7 +157,7 @@ public final class SerializedMessageBusSetupBuilder {
     public SerializedMessageBusSetupBuilder withASubscriberThrowingError() {
         setupActions.add((serializedMessageBus, testEnvironment) -> {
             final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
-            final SubscriptionId subscriptionId = serializedMessageBus.subscribe(eventType, ConsumerSubscriber.consumerSubscriber(ignored -> {
+            final SubscriptionId subscriptionId = serializedMessageBus.subscribe(eventType, consumerSubscriber(ignored -> {
                 throw new TestException();
             }));
             testEnvironment.addToListProperty(USED_SUBSCRIPTION_ID, subscriptionId);
@@ -151,11 +169,17 @@ public final class SerializedMessageBusSetupBuilder {
         final MessageBus messageBus = testConfig.getMessageBus();
         final Deserializer deserializer = getDeserializer();
         final Serializer serializer = getSerializer();
-        final SerializedMessageBus serializedMessageBus = SerializedMessageBus.aSerializedMessageBus(messageBus, deserializer, serializer);
+        final SerializedMessageBus serializedMessageBus = SerializedMessageBus
+                .aSerializedMessageBus(messageBus, deserializer, serializer);
         setupActions.forEach(a -> a.execute(serializedMessageBus, testEnvironment));
         testEnvironment.setPropertyIfNotSet(SUT, serializedMessageBus);
         testEnvironment.setPropertyIfNotSet(MOCK, messageBus);
         return new SerializedMessageBusSetup(serializedMessageBus, testEnvironment);
+    }
+
+    private CorrelationId getOrSetCorrelationId(final TestEnvironment testEnvironment,
+                                                final CorrelationId newUniqueCorrelationId) {
+        return testEnvironment.getPropertyOrSetDefault(EXPECTED_CORRELATION_ID, newUniqueCorrelationId);
     }
 
     private Deserializer getDeserializer() {

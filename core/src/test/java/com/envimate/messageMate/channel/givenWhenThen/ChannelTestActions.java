@@ -48,7 +48,6 @@ import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
 final class ChannelTestActions {
-
     final static TestMessageOfInterest DEFAULT_TEST_MESSAGE = messageOfInterest();
     final static EventType DEFAULT_EVENT_TYPE = EventType.eventTypeFromString("defaultEventType");
 
@@ -89,28 +88,32 @@ final class ChannelTestActions {
                                                                              final FilterPosition filterPosition) {
         final List<Filter<ProcessingContext<TestMessage>>> expectedFilter = new LinkedList<>();
         for (final int position : positions) {
-            final Filter<ProcessingContext<TestMessage>> filter = addANoopFilterToChannelAtPosition(channel, filterPosition, position);
+            final Filter<ProcessingContext<TestMessage>> filter = addANoopFilterAtPosition(channel, filterPosition, position);
             expectedFilter.add(position, filter);
         }
         return expectedFilter;
     }
 
-    static Filter<ProcessingContext<TestMessage>> addANoopFilterToChannelAtPosition(final Channel<TestMessage> channel,
-                                                                                    final FilterPosition filterPosition,
-                                                                                    final int position) {
-        final Filter<ProcessingContext<TestMessage>> filter = (processingContext, filterActions) -> filterActions.pass(processingContext);
+    static Filter<ProcessingContext<TestMessage>> addANoopFilterAtPosition(final Channel<TestMessage> channel,
+                                                                           final FilterPosition filterPosition,
+                                                                           final int position) {
+        final Filter<ProcessingContext<TestMessage>> filter = (processingContext, filterActions) -> {
+            filterActions.pass(processingContext);
+        };
         addFilterToChannelAtPosition(channel, filterPosition, filter, position);
         return filter;
     }
 
-    static long queryChannelStatistics(final Channel<TestMessage> channel, final Function<ChannelStatistics, BigInteger> extraction) {
+    static long queryChannelStatistics(final Channel<TestMessage> channel,
+                                       final Function<ChannelStatistics, BigInteger> extraction) {
         final ChannelStatusInformation statusInformation = channel.getStatusInformation();
         final ChannelStatistics statistics = statusInformation.getChannelStatistics();
         final BigInteger result = extraction.apply(statistics);
         return result.longValueExact();
     }
 
-    private static void addFilterToChannel(final Channel<TestMessage> channel, final FilterPosition filterPosition,
+    private static void addFilterToChannel(final Channel<TestMessage> channel,
+                                           final FilterPosition filterPosition,
                                            final Filter<ProcessingContext<TestMessage>> filter) {
         switch (filterPosition) {
             case PRE:
@@ -127,8 +130,10 @@ final class ChannelTestActions {
         }
     }
 
-    private static void addFilterToChannelAtPosition(final Channel<TestMessage> channel, final FilterPosition filterPosition,
-                                                     final Filter<ProcessingContext<TestMessage>> filter, final int position) {
+    private static void addFilterToChannelAtPosition(final Channel<TestMessage> channel,
+                                                     final FilterPosition filterPosition,
+                                                     final Filter<ProcessingContext<TestMessage>> filter,
+                                                     final int position) {
         switch (filterPosition) {
             case PRE:
                 channel.addPreFilter(filter, position);
@@ -144,7 +149,8 @@ final class ChannelTestActions {
         }
     }
 
-    static List<Filter<ProcessingContext<TestMessage>>> getFilterOf(final Channel<TestMessage> channel, final FilterPosition filterPosition) {
+    static List<Filter<ProcessingContext<TestMessage>>> getFilterOf(final Channel<TestMessage> channel,
+                                                                    final FilterPosition filterPosition) {
         switch (filterPosition) {
             case PRE:
                 return channel.getPreFilter();

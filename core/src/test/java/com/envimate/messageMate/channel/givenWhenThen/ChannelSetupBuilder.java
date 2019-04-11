@@ -78,7 +78,8 @@ public final class ChannelSetupBuilder {
         storeSleepTimesInTestEnvironment(channelTestConfig, testEnvironment);
     }
 
-    private ChannelSetupBuilder(final TestEnvironment testEnvironment, final Channel<TestMessage> channel, final ChannelTestConfig channelTestConfig) {
+    private ChannelSetupBuilder(final TestEnvironment testEnvironment, final Channel<TestMessage> channel,
+                                final ChannelTestConfig channelTestConfig) {
         this.testEnvironment = testEnvironment;
         this.channelTestConfig = channelTestConfig;
         this.channelBuilder = null;
@@ -151,13 +152,14 @@ public final class ChannelSetupBuilder {
         return consumeMessage(processingContext -> testEnvironment.setProperty(RESULT, processingContext));
     }
 
-    private void storeSleepTimesInTestEnvironment(final ChannelTestConfig channelTestConfig, final TestEnvironment testEnvironment) {
+    private void storeSleepTimesInTestEnvironment(final ChannelTestConfig channelTestConfig,
+                                                  final TestEnvironment testEnvironment) {
         final long millisecondsSleepAfterExecution = channelTestConfig.getMillisecondsSleepAfterExecution();
         if (millisecondsSleepAfterExecution > 0) {
             testEnvironment.setProperty(SLEEP_AFTER_EXECUTION, millisecondsSleepAfterExecution);
         }
-        final long millisecondsSleepBetweenExecutionActionSteps = channelTestConfig.getMillisecondsSleepBetweenExecutionActionSteps();
-        if (millisecondsSleepBetweenExecutionActionSteps > 0) {
+        final long millisecondsSleepBetweenActionSteps = channelTestConfig.getMillisecondsSleepBetweenExecutionActionSteps();
+        if (millisecondsSleepBetweenActionSteps > 0) {
             testEnvironment.setProperty(SLEEP_BETWEEN_EXECUTION_STEPS, millisecondsSleepAfterExecution);
         }
     }
@@ -188,7 +190,7 @@ public final class ChannelSetupBuilder {
         return this;
     }
 
-    public ChannelSetupBuilder withSubscriptionAsActionWithOnPreemptiveSubscriberAndOneErrorThrowingSubscriberThatShouldNeverBeCalled() {
+    public ChannelSetupBuilder withOnPreemptiveSubscriberAndOneErrorThrowingSubscriberThatShouldNeverBeCalled() {
         final Subscription<TestMessage> subscription = subscription();
         subscription.addSubscriber(deliveryPreemptingSubscriber());
         subscription.addSubscriber(exceptionThrowingTestSubscriber());
@@ -262,7 +264,9 @@ public final class ChannelSetupBuilder {
         addAFilterToPipe(alreadyBuiltChannel, filterPosition, filter);
     }
 
-    private void addAFilterToPipe(final Channel<TestMessage> channel, final FilterPosition filterPosition, final Filter<ProcessingContext<TestMessage>> filter) {
+    private void addAFilterToPipe(final Channel<TestMessage> channel,
+                                  final FilterPosition filterPosition,
+                                  final Filter<ProcessingContext<TestMessage>> filter) {
         switch (filterPosition) {
             case PRE:
                 channel.addPreFilter(filter);
@@ -331,7 +335,7 @@ public final class ChannelSetupBuilder {
         try {
             alreadyBuiltChannel = channelBuilder.withDefaultAction(consumeAsFinalResult(testEnvironment))
                     .build();
-            addANoopFilterToChannelAtPosition(alreadyBuiltChannel, filterPosition, position);
+            addANoopFilterAtPosition(alreadyBuiltChannel, filterPosition, position);
         } catch (final Exception e) {
             testEnvironment.setProperty(EXCEPTION, e);
         }
@@ -350,7 +354,8 @@ public final class ChannelSetupBuilder {
         final Action<TestMessage> unknownAction = UnknownAction.unknownAction();
         alreadyBuiltChannel = channelBuilder.withDefaultAction(unknownAction)
                 .build();
-        final List<Filter<ProcessingContext<TestMessage>>> expectedFilter = addSeveralNoopFilter(alreadyBuiltChannel, positions, pipe);
+        final List<Filter<ProcessingContext<TestMessage>>> expectedFilter = addSeveralNoopFilter(alreadyBuiltChannel,
+                positions, pipe);
         testEnvironment.setProperty(EXPECTED_RESULT, expectedFilter);
         testEnvironment.setProperty(PIPE, pipe);
     }
@@ -369,14 +374,6 @@ public final class ChannelSetupBuilder {
         channelBuilder.withChannelExceptionHandler(errorRethrowingExceptionHandler(testEnvironment));
         return this;
     }
-
-    public ChannelSetupBuilder withAnExceptionCatchingHandler_inCaseOfAsynchronousExecution() {
-        if (channelTestConfig.getType().equals(ChannelType.ASYNCHRONOUS)) {
-            channelBuilder.withChannelExceptionHandler(catchingChannelExceptionHandler(testEnvironment));
-        }
-        return this;
-    }
-
     public ChannelSetupBuilder withAnExceptionCatchingHandler() {
         channelBuilder.withChannelExceptionHandler(catchingChannelExceptionHandler(testEnvironment));
         return this;

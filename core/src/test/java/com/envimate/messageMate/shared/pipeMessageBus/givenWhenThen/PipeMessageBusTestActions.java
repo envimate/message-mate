@@ -22,7 +22,6 @@
 package com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen;
 
 import com.envimate.messageMate.identification.MessageId;
-import com.envimate.messageMate.internal.pipe.statistics.PipeStatistics;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
@@ -31,8 +30,6 @@ import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.RequiredArgsConstructor;
 
-import java.math.BigInteger;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -51,14 +48,17 @@ import static lombok.AccessLevel.PRIVATE;
 @RequiredArgsConstructor(access = PRIVATE)
 public final class PipeMessageBusTestActions {
 
-    public static MessageId sendASingleMessage(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
+    public static MessageId sendASingleMessage(final PipeMessageBusSutActions sutActions,
+                                               final TestEnvironment testEnvironment) {
         final TestMessageOfInterest message = TestMessageOfInterest.messageOfInterest();
         testEnvironment.setProperty(SINGLE_SEND_MESSAGE, message);
         return sutActions.send(message);
     }
 
 
-    public static void sendSeveralMessages(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment, final int numberOfMessages) {
+    public static void sendSeveralMessages(final PipeMessageBusSutActions sutActions,
+                                           final TestEnvironment testEnvironment,
+                                           final int numberOfMessages) {
         final List<TestMessageOfInterest> messages = new LinkedList<>();
         for (int i = 0; i < numberOfMessages; i++) {
             final TestMessageOfInterest message = TestMessageOfInterest.messageOfInterest();
@@ -68,21 +68,13 @@ public final class PipeMessageBusTestActions {
         testEnvironment.setProperty(MESSAGES_SEND_OF_INTEREST, messages);
     }
 
-    public static void sendSeveralMessagesInTheirOwnThread(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment,
-                                                           final int numberOfSender, final int numberOfMessagesPerSender, final boolean expectCleanShutdown) {
-        sendValidMessagesAsynchronously(sutActions, testEnvironment, numberOfSender, numberOfMessagesPerSender, expectCleanShutdown);
-    }
-
-    public static void sendBothValidAndInvalidMessagesAsynchronously(final PipeMessageBusSutActions sutActions,
-                                                                     final TestEnvironment testEnvironment,
-                                                                     final int numberOfSender, final int numberOfMessagesPerSender) {
-        sendMixtureOfValidAndInvalidMessagesAsynchronously(sutActions, testEnvironment, numberOfSender, numberOfMessagesPerSender);
-    }
-
-    public static void sendSeveralInvalidMessagesAsynchronously(final PipeMessageBusSutActions sutActions,
-                                                                final TestEnvironment testEnvironment,
-                                                                final int numberOfSender, final int numberOfMessagesPerSender) {
-        sendInvalidMessagesAsynchronously(sutActions, testEnvironment, numberOfSender, numberOfMessagesPerSender);
+    public static void sendSeveralMessagesInTheirOwnThread(final PipeMessageBusSutActions sutActions,
+                                                           final TestEnvironment testEnvironment,
+                                                           final int numberOfSender,
+                                                           final int numberOfMessagesPerSender,
+                                                           final boolean expectCleanShutdown) {
+        sendValidMessagesAsynchronously(sutActions, testEnvironment, numberOfSender,
+                numberOfMessagesPerSender, expectCleanShutdown);
     }
 
     public static void sendXMessagesAShutdownsIsCalledThenSendsYMessage(final PipeMessageBusSutActions sutActions,
@@ -96,16 +88,9 @@ public final class PipeMessageBusTestActions {
 
     public static void sendSeveralMessagesAsynchronouslyBeforeTheObjectIsShutdown(final PipeMessageBusSutActions sutActions,
                                                                                   final TestEnvironment testEnvironment,
-                                                                                  final int numberOfSenders, final int numberOfMessages) {
+                                                                                  final int numberOfSenders,
+                                                                                  final int numberOfMessages) {
         sendMessagesBeforeShutdownAsynchronouslyClassBased(sutActions::subscribe, sutActions::send, sutActions::close,
-                testEnvironment, numberOfSenders, numberOfMessages);
-    }
-
-    public static void sendSeveralMessagesAsynchronouslyBeforeTheObjectIsShutdown(final PipeMessageBusSutActions sutActions,
-                                                                                  final TestEnvironment testEnvironment,
-                                                                                  final int numberOfSenders, final int numberOfMessages,
-                                                                                  final boolean finishRemainingTasks) {
-        sendMessagesBeforeShutdownAsynchronouslyClassBased(sutActions::subscribe, sutActions::send, ignored -> sutActions.close(finishRemainingTasks),
                 testEnvironment, numberOfSenders, numberOfMessages);
     }
 
@@ -137,7 +122,8 @@ public final class PipeMessageBusTestActions {
         }
     }
 
-    public static void callAwaitWithoutACloseIsCalled(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
+    public static void callAwaitWithoutACloseIsCalled(final PipeMessageBusSutActions sutActions,
+                                                      final TestEnvironment testEnvironment) {
         try {
             final boolean terminatedSuccessful = sutActions.awaitTermination(0, SECONDS);
             testEnvironment.setProperty(RESULT, terminatedSuccessful);
@@ -221,81 +207,6 @@ public final class PipeMessageBusTestActions {
         }
     }
 
-    public static void queryTheNumberOfAcceptedMessages(final PipeMessageBusSutActions sutActions,
-                                                        final TestEnvironment testEnvironment) {
-        queryMessageStatistics(sutActions, testEnvironment, PipeStatistics::getAcceptedMessages);
-    }
-
-    public static void queryTheNumberOfAcceptedMessagesAsynchronously(final PipeMessageBusSutActions sutActions,
-                                                                      final TestEnvironment testEnvironment) {
-        final Semaphore semaphore = new Semaphore(0);
-        new Thread(() -> {
-            queryMessageStatistics(sutActions, testEnvironment, PipeStatistics::getAcceptedMessages);
-            semaphore.release();
-        }).start();
-        try {
-            semaphore.acquire();
-        } catch (final InterruptedException e) {
-            //not necessary to do anything here
-        }
-    }
-
-    public static void queryTheNumberOfQueuedMessages(final PipeMessageBusSutActions sutActions,
-                                                      final TestEnvironment testEnvironment) {
-        queryMessageStatistics(sutActions, testEnvironment, PipeStatistics::getQueuedMessages);
-    }
-
-    public static void queryTheNumberOfSuccessfulDeliveredMessages(final PipeMessageBusSutActions sutActions,
-                                                                   final TestEnvironment testEnvironment) {
-        queryMessageStatistics(sutActions, testEnvironment, PipeStatistics::getSuccessfulMessages);
-    }
-
-    public static void queryTheNumberOfFailedDeliveredMessages(final PipeMessageBusSutActions sutActions,
-                                                               final TestEnvironment testEnvironment) {
-        queryMessageStatistics(sutActions, testEnvironment, PipeStatistics::getFailedMessages);
-    }
-
-    public static void queryTheNumberOfDroppedMessages(final PipeMessageBusSutActions sutActions,
-                                                       final TestEnvironment testEnvironment) {
-        throw new UnsupportedOperationException();
-    }
-
-    public static void queryTheNumberOfReplacedMessages(final PipeMessageBusSutActions sutActions,
-                                                        final TestEnvironment testEnvironment) {
-        throw new UnsupportedOperationException();
-    }
-
-    public static void queryTheNumberOfForgottenMessages(final PipeMessageBusSutActions sutActions,
-                                                         final TestEnvironment testEnvironment) {
-        throw new UnsupportedOperationException();
-    }
-
-    public static void queryTheNumberOfCurrentlyDeliveredMessages(final PipeMessageBusSutActions sutActions,
-                                                                  final TestEnvironment testEnvironment) {
-        throw new UnsupportedOperationException();
-    }
-
-    public static void queryTheNumberOfCurrentlyTransportedMessages(final PipeMessageBusSutActions sutActions,
-                                                                    final TestEnvironment testEnvironment) {
-        throw new UnsupportedOperationException();
-    }
-
-    public static void queryTheTimestampOfTheMessageStatistics(final PipeMessageBusSutActions sutActions,
-                                                               final TestEnvironment testEnvironment) {
-        final PipeStatistics pipeStatistics = sutActions.getMessageStatistics();
-        final Date timestamp = pipeStatistics.getTimestamp();
-        testEnvironment.setProperty(RESULT, timestamp);
-    }
-
-    private static void queryMessageStatistics(final PipeMessageBusSutActions sutActions,
-                                               final TestEnvironment testEnvironment,
-                                               final MessageStatisticsQuery query) {
-        final PipeStatistics pipeStatistics = sutActions.getMessageStatistics();
-        final BigInteger statistic = query.query(pipeStatistics);
-        final long longValueExact = statistic.longValueExact();
-        testEnvironment.setProperty(RESULT, longValueExact);
-    }
-
     public static void queryTheListOfFilters(final PipeMessageBusSutActions sutActions,
                                              final TestEnvironment testEnvironment) {
         final List<?> filter = sutActions.getFilter();
@@ -307,9 +218,5 @@ public final class PipeMessageBusTestActions {
         final Object removedFilter = sutActions.removeAFilter();
         final List<?> expectedFilter = testEnvironment.getPropertyAsType(EXPECTED_FILTER, List.class);
         expectedFilter.remove(removedFilter);
-    }
-
-    private interface MessageStatisticsQuery {
-        BigInteger query(PipeStatistics pipeStatistics);
     }
 }

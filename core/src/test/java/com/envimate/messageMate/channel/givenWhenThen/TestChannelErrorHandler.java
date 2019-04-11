@@ -43,7 +43,8 @@ public final class TestChannelErrorHandler {
     public static ChannelExceptionHandler<TestMessage> ignoringChannelExceptionHandler() {
         return new ChannelExceptionHandler<TestMessage>() {
             @Override
-            public boolean shouldSubscriberErrorBeHandledAndDeliveryAborted(final ProcessingContext<TestMessage> message, final Exception e) {
+            public boolean shouldSubscriberErrorBeHandledAndDeliveryAborted(final ProcessingContext<TestMessage> message,
+                                                                            final Exception e) {
                 return true;
             }
 
@@ -57,7 +58,8 @@ public final class TestChannelErrorHandler {
         };
     }
 
-    public static ChannelExceptionHandler<TestMessage> exceptionInResultStoringChannelExceptionHandler(final TestEnvironment testEnvironment) {
+    public static ChannelExceptionHandler<TestMessage> exceptionInResultStoringChannelExceptionHandler(
+            final TestEnvironment testEnvironment) {
         return storingExceptionHandler(testEnvironment, RESULT);
     }
 
@@ -65,7 +67,8 @@ public final class TestChannelErrorHandler {
         return storingExceptionHandler(testEnvironment, EXCEPTION);
     }
 
-    public static ChannelExceptionHandler<TestMessage> testExceptionIgnoringChannelExceptionHandler(final TestEnvironment testEnvironment) {
+    public static ChannelExceptionHandler<TestMessage> testExceptionIgnoringChannelExceptionHandler(
+            final TestEnvironment testEnvironment) {
         return storingExceptionHandler(testEnvironment, EXCEPTION, TestException.class);
     }
 
@@ -74,7 +77,8 @@ public final class TestChannelErrorHandler {
                                                                                 final Class<?>... ignoredClasses) {
         return new ChannelExceptionHandler<TestMessage>() {
             @Override
-            public boolean shouldSubscriberErrorBeHandledAndDeliveryAborted(final ProcessingContext<TestMessage> message, final Exception e) {
+            public boolean shouldSubscriberErrorBeHandledAndDeliveryAborted(final ProcessingContext<TestMessage> message,
+                                                                            final Exception e) {
                 for (final Class<?> ignoredClass : ignoredClasses) {
                     if (e.getClass().equals(ignoredClass)) {
                         return false;
@@ -99,11 +103,11 @@ public final class TestChannelErrorHandler {
         };
     }
 
-
     public static ChannelExceptionHandler<TestMessage> errorRethrowingExceptionHandler(final TestEnvironment testEnvironment) {
         return new ChannelExceptionHandler<TestMessage>() {
             @Override
-            public boolean shouldSubscriberErrorBeHandledAndDeliveryAborted(final ProcessingContext<TestMessage> message, final Exception e) {
+            public boolean shouldSubscriberErrorBeHandledAndDeliveryAborted(final ProcessingContext<TestMessage> message,
+                                                                            final Exception e) {
                 return true;
             }
 

@@ -96,8 +96,8 @@ public final class DocumentBusActionBuilder {
             for (int i = 0; i < 3; i++) {
                 documentBus.enforce(specificConstraintWithId(i));
             }
-            final SpecificConstraint specificConstraint = testEnvironment.getPropertyAsType(TEST_OBJECT, SpecificConstraint.class);
-            documentBus.enforce(specificConstraint);
+            final SpecificConstraint constraint = testEnvironment.getPropertyAsType(TEST_OBJECT, SpecificConstraint.class);
+            documentBus.enforce(constraint);
             for (int i = 0; i < 3; i++) {
                 documentBus.enforce(specificConstraintWithId(i * i));
             }

@@ -33,45 +33,48 @@ import static com.envimate.messageMate.qcec.querying.givenWhenThen.QueryValidati
 public interface QueryResolvingSpecs {
 
     @Test
-    default void testQueryResolver_whenResolvingAQuery_aValidResultIsReturned(final TestQueryResolver aQueryResolver) {
-        given(aQueryResolver)
+    default void testQueryResolver_whenResolvingAQuery_aValidResultIsReturned(final TestQueryResolver resolver) {
+        given(resolver)
                 .when(aQueryIsExecuted())
                 .expect(theCorrectResult());
     }
 
     @Test
-    default void testQueryResolver_whenResolvingAQueryWithARequiredResult_aValidResultIsReturned(final TestQueryResolver aQueryResolver) {
-        given(aQueryResolver)
+    default void testQueryResolver_whenResolvingAQueryWithARequiredResult_aValidResultIsReturned(
+            final TestQueryResolver resolver) {
+        given(resolver)
                 .when(aQueryIsExecutedThatRequiresAResult())
                 .expect(theCorrectResult());
     }
 
     @Test
-    default void testQueryResolver_whenResolvingAQueryWithPartialResults_aValidResultIsReturned(final TestQueryResolver aQueryResolver) {
-        given(aQueryResolver)
+    default void testQueryResolver_whenResolvingAQueryWithPartialResults_aValidResultIsReturned(
+            final TestQueryResolver resolver) {
+        given(resolver)
                 .when(aQueryIsExecutedThatCollectsPartialResults())
                 .expect(theCorrectResult());
     }
 
     @Test
-    default void testQueryResolver_whenResolvingAQueryWithARequiredResult_throwsExceptionWhenNoResultsIsObtained(final TestQueryResolver aQueryResolver) {
-        given(aQueryResolver)
+    default void testQueryResolver_whenResolvingAQueryWithARequiredResult_throwsExceptionWhenNoResultsIsObtained(
+            final TestQueryResolver resolver) {
+        given(resolver)
                 .when(aQueryIsExecutedThatRequiresAResultButDoesntProvideOne())
                 .expect(aExceptionWithMessageMatchingRegex("^Expected a query result for query .+$"));
     }
 
     @Test
-    default void testQueryResolver_unsubscribe(final TestQueryResolver aQueryResolver) {
-        given(aQueryResolver)
+    default void testQueryResolver_unsubscribe(final TestQueryResolver resolver) {
+        given(resolver)
                 .when(anRecipientIsUnsubscribedBeforeAQueryIsExecuted())
                 .expect(theCorrectResult());
     }
 
     @Test
-    default void testQueryResolver_queryCanBeStoppedEarly(final TestQueryResolver aQueryResolver) {
+    default void testQueryResolver_queryCanBeStoppedEarly(final TestQueryResolver resolver) {
         final int expectedResult = 5;
         final int invalidResponse = 1000;
-        given(aQueryResolver
+        given(resolver
                 .withASubscriber(TestQuery.class, q -> {
                     q.setResult(expectedResult);
                     q.finishQuery();
@@ -82,23 +85,23 @@ public interface QueryResolvingSpecs {
     }
 
     @Test
-    default void testQueryResolver_returnsNoResultWhenExceptionIsThrown(final TestQueryResolver aQueryResolver) {
-        given(aQueryResolver)
+    default void testQueryResolver_returnsNoResultWhenExceptionIsThrown(final TestQueryResolver resolver) {
+        given(resolver)
                 .when(aQueryIsExecutedThatThrowsAnException())
                 .expect(theThrownException());
     }
 
     @Test
-    default void testQueryResolver_throwsExceptionWhenExceptionIsThrownButAResultIsExpected(final TestQueryResolver aQueryResolver) {
-        given(aQueryResolver)
+    default void testQueryResolver_throwsExceptionWhenExceptionIsThrownButAResultIsExpected(final TestQueryResolver resolver) {
+        given(resolver)
                 .when(aQueryIsExecutedThatExpectsAResultButDidThrowAnException())
                 .expect(aExceptionForNoResultButOneWasRequired());
     }
 
     @Test
-    default void testQueryResolver_allowsDifferentRegisteredQueries(final TestQueryResolver aQueryResolver) {
+    default void testQueryResolver_allowsDifferentRegisteredQueries(final TestQueryResolver resolver) {
         final int expectedResult = 5;
-        given(aQueryResolver
+        given(resolver
                 .withASubscriber(TestQuery.class, q -> {
                     q.setResult(expectedResult);
                     q.finishQuery();

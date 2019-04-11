@@ -43,12 +43,16 @@ public final class EventBusValidationBuilder {
         return new EventBusValidationBuilder(testEnvironment -> {
             ensureNoExceptionOccurred(testEnvironment);
             final TestEvent testEvent = testEnvironment.getPropertyAsType(TEST_OBJECT, TestEvent.class);
-            @SuppressWarnings("unchecked")
-            final List<TestReceiver<TestEvent>> receivers = (List<TestReceiver<TestEvent>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
+            final List<TestReceiver<TestEvent>> receivers = getExpectedTestEventReceivers(testEnvironment);
             for (final TestReceiver<TestEvent> receiver : receivers) {
                 assertTrue(receiver.hasReceived(testEvent));
             }
         });
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<TestReceiver<TestEvent>> getExpectedTestEventReceivers(final TestEnvironment testEnvironment) {
+        return (List<TestReceiver<TestEvent>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
     }
 
     public static EventBusValidationBuilder expectTheEventToBeReceivedByAllRemainingSubscribers() {

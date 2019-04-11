@@ -1,4 +1,25 @@
-package com.envimate.messageMate.serializedMessageBus;
+/*
+ * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package com.envimate.messageMate.serializedMessageBus.givenWhenThen;
 
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.useCases.payloadAndErrorPayload.PayloadAndErrorPayload;
@@ -18,9 +39,9 @@ import java.util.concurrent.TimeoutException;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.MOCK;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
-import static com.envimate.messageMate.serializedMessageBus.SerializedMessageBusSetupBuilder.PAYLOAD_SERIALIZATION_KEY;
-import static com.envimate.messageMate.serializedMessageBus.SerializedMessageBusTestProperties.SEND_DATA;
-import static com.envimate.messageMate.serializedMessageBus.SerializedMessageBusTestProperties.SEND_ERROR_DATA;
+import static com.envimate.messageMate.serializedMessageBus.givenWhenThen.SerializedMessageBusSetupBuilder.PAYLOAD_SERIALIZATION_KEY;
+import static com.envimate.messageMate.serializedMessageBus.givenWhenThen.SerializedMessageBusTestProperties.SEND_DATA;
+import static com.envimate.messageMate.serializedMessageBus.givenWhenThen.SerializedMessageBusTestProperties.SEND_ERROR_DATA;
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.*;
 import static lombok.AccessLevel.PRIVATE;
 
@@ -95,9 +116,9 @@ public final class SerializedMessageBusValidationBuilder {
         });
     }
 
-    public static SerializedMessageBusValidationBuilder expectAnExecutionExceptionFor(final Class<?> expectedExceptionCauseClass) {
+    public static SerializedMessageBusValidationBuilder expectAnExecutionExceptionFor(final Class<?> expectedCauseClass) {
         return new SerializedMessageBusValidationBuilder(testEnvironment -> {
-            assertExceptionThrownOfTypeWithCause(testEnvironment, ExecutionException.class, expectedExceptionCauseClass);
+            assertExceptionThrownOfTypeWithCause(testEnvironment, ExecutionException.class, expectedCauseClass);
         });
     }
 
@@ -123,8 +144,7 @@ public final class SerializedMessageBusValidationBuilder {
         } else {
             expectedErrorPayload = null;
         }
-        @SuppressWarnings("unchecked")
-        final List<TestSubscriber<PayloadAndErrorPayload<?, ?>>> receivers = (List<TestSubscriber<PayloadAndErrorPayload<?, ?>>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
+        final List<TestSubscriber<PayloadAndErrorPayload<?, ?>>> receivers = getExpectedPayloadsReceivers(testEnvironment);
         for (final TestSubscriber<PayloadAndErrorPayload<?, ?>> receiver : receivers) {
             final List<PayloadAndErrorPayload<?, ?>> receivedMessages = receiver.getReceivedMessages();
             assertCollectionOfSize(receivedMessages, 1);
@@ -134,6 +154,12 @@ public final class SerializedMessageBusValidationBuilder {
             final Object errorPayload = payloadAndErrorPayload.getErrorPayload();
             assertEquals(errorPayload, expectedErrorPayload);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<TestSubscriber<PayloadAndErrorPayload<?, ?>>> getExpectedPayloadsReceivers(
+            final TestEnvironment testEnvironment) {
+        return (List<TestSubscriber<PayloadAndErrorPayload<?, ?>>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
     }
 
     private static void assertReceivedResultEqualsExpected(final TestEnvironment testEnvironment) {
@@ -147,7 +173,9 @@ public final class SerializedMessageBusValidationBuilder {
         assertReceivedResultEqualsExpected(testEnvironment, expectedPayload, expectedErrorPayload);
     }
 
-    private static void assertReceivedResultEqualsExpected(final TestEnvironment testEnvironment, final Object expectedPayload, final Object expectedErrorPayload) {
+    private static void assertReceivedResultEqualsExpected(final TestEnvironment testEnvironment,
+                                                           final Object expectedPayload,
+                                                           final Object expectedErrorPayload) {
         final PayloadAndErrorPayload<?, ?> payloadAndErrorPayload = (PayloadAndErrorPayload<?, ?>) testEnvironment.getProperty(RESULT);
         final Object payload = payloadAndErrorPayload.getPayload();
         assertEquals(payload, expectedPayload);

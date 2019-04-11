@@ -29,14 +29,13 @@ import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
 public final class RequestResponseFuturePair {
-
     @Getter
     private final TestRequest testRequest;
-
     @Getter
     private final ResponseFuture responseFuture;
 
-    public static RequestResponseFuturePair requestResponseFuturePair(final TestRequest testRequest, final ResponseFuture responseFuture) {
+    public static RequestResponseFuturePair requestResponseFuturePair(final TestRequest testRequest,
+                                                                      final ResponseFuture responseFuture) {
         return new RequestResponseFuturePair(testRequest, responseFuture);
     }
 

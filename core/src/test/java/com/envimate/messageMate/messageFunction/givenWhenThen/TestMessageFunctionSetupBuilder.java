@@ -22,7 +22,6 @@
 package com.envimate.messageMate.messageFunction.givenWhenThen;
 
 import com.envimate.messageMate.identification.CorrelationId;
-import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusBuilder;
 import com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler;
@@ -31,13 +30,12 @@ import com.envimate.messageMate.messageFunction.MessageFunctionBuilder;
 import com.envimate.messageMate.messageFunction.testResponses.SimpleErrorResponse;
 import com.envimate.messageMate.messageFunction.testResponses.SimpleTestRequest;
 import com.envimate.messageMate.messageFunction.testResponses.SimpleTestResponse;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.subscriber.TestException;
 import lombok.RequiredArgsConstructor;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.LinkedList;
 import java.util.List;
@@ -51,8 +49,8 @@ import static com.envimate.messageMate.messageFunction.givenWhenThen.MessageFunc
 import static com.envimate.messageMate.processingContext.ProcessingContext.processingContextForPayloadAndError;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RESULT;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.MOCK;
-import static com.envimate.messageMate.shared.TestEventType.differentTestEventType;
-import static com.envimate.messageMate.shared.TestEventType.testEventType;
+import static com.envimate.messageMate.shared.eventType.TestEventType.differentTestEventType;
+import static com.envimate.messageMate.shared.eventType.TestEventType.testEventType;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
@@ -108,7 +106,8 @@ public final class TestMessageFunctionSetupBuilder {
                 final Object response = responseCreator.apply(request);
                 final Object errorResponse = errorResponseCreator.apply(request);
                 final EventType differentTestEventType = differentTestEventType();
-                final ProcessingContext<Object> responseProcessingContext = processingContextForPayloadAndError(differentTestEventType, correlationId, response, errorResponse);
+                final ProcessingContext<Object> responseProcessingContext =
+                        processingContextForPayloadAndError(differentTestEventType, correlationId, response, errorResponse);
                 testEnvironment.setPropertyIfNotSet(RESPONSE_PROCESSING_CONTEXT, responseProcessingContext);
                 messageBus.send(responseProcessingContext);
             });
@@ -206,15 +205,14 @@ public final class TestMessageFunctionSetupBuilder {
     }
 
     private static final class MessageBusMock {
-        public static MessageBus createMessageBusMock() {
-            return (MessageBus) Proxy.newProxyInstance(MessageBusMock.class.getClassLoader(), new Class<?>[]{MessageBus.class}, new InvocationHandler() {
-                @Override
-                public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                    if (method.getName().equals("send")) {
-                        throw new TestException();
-                    }
-                    return null;
+        static MessageBus createMessageBusMock() {
+            final ClassLoader classLoader = MessageBusMock.class.getClassLoader();
+            final Class<?>[] interfaces = {MessageBus.class};
+            return (MessageBus) Proxy.newProxyInstance(classLoader, interfaces, (proxy, method, args) -> {
+                if (method.getName().equals("send")) {
+                    throw new TestException();
                 }
+                return null;
             });
         }
     }

@@ -28,7 +28,6 @@ import lombok.RequiredArgsConstructor;
 public class When {
     private final PipeSetupBuilder setupBuilder;
 
-
     public Then when(final PipeActionBuilder actionBuilder) {
         return new Then(setupBuilder, actionBuilder);
     }

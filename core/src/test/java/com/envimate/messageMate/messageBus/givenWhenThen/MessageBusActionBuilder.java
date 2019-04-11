@@ -24,12 +24,13 @@ package com.envimate.messageMate.messageBus.givenWhenThen;
 
 import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.filtering.Filter;
-import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusStatusInformation;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.qcec.shared.TestAction;
+import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
 import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
@@ -41,17 +42,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActions.*;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActionsOld.messageBusTestActions;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.CORRELATION_SUBSCRIPTION_ID;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.EVENT_TYPE;
-import static com.envimate.messageMate.processingContext.ProcessingContext.processingContext;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
-import static com.envimate.messageMate.shared.TestEventType.testEventType;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
+import static com.envimate.messageMate.shared.eventType.TestEventType.testEventType;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.USED_SUBSCRIPTION_ID;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestActions.*;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.TestFilter.anErrorThrowingFilter;
 import static com.envimate.messageMate.shared.subscriber.ExceptionThrowingTestSubscriber.exceptionThrowingTestSubscriber;
-import static com.envimate.messageMate.shared.testMessages.TestMessageOfInterest.messageOfInterest;
 
 
 public final class MessageBusActionBuilder {
@@ -103,24 +103,29 @@ public final class MessageBusActionBuilder {
         });
     }
 
-    public static MessageBusActionBuilder severalMessagesAreSendAsynchronously(final int numberOfSender, final int numberOfMessagesPerSender) {
+    public static MessageBusActionBuilder severalMessagesAreSendAsynchronously(final int numberOfSender,
+                                                                               final int numberOfMessagesPerSender) {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
-            MessageBusTestActions.sendMessagesAsynchronously(messageBus, testEnvironment, numberOfSender, numberOfMessagesPerSender, true);
+            MessageBusTestActions.sendMessagesAsynchronously(messageBus, testEnvironment, numberOfSender,
+                    numberOfMessagesPerSender, true);
             return null;
         });
     }
 
-    public static MessageBusActionBuilder severalMessagesAreSendAsynchronouslyButWillBeBlocked(final int numberOfSender, final int numberOfMessagesPerSender) {
+    public static MessageBusActionBuilder severalMessagesAreSendAsynchronouslyButWillBeBlocked(final int numberOfSender,
+                                                                                               final int numberOfMessagesPerSender) {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
-            final PipeMessageBusSutActions sutActions = messageBusTestActions(messageBus);
-            MessageBusTestActions.sendMessagesAsynchronously(messageBus, testEnvironment, numberOfSender, numberOfMessagesPerSender, false);
+            MessageBusTestActions.sendMessagesAsynchronously(messageBus, testEnvironment, numberOfSender,
+                    numberOfMessagesPerSender, false);
             return null;
         });
     }
 
-    public static MessageBusActionBuilder sendSeveralMessagesBeforeTheBusIsShutdown(final int numberOfSender, final boolean finishRemainingTasks) {
+    public static MessageBusActionBuilder sendSeveralMessagesBeforeTheBusIsShutdown(final int numberOfSender,
+                                                                                    final boolean finishRemainingTasks) {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
-            MessageBusTestActions.sendMessagesBeforeAndAfterShutdownAsynchronously(messageBus, testEnvironment, numberOfSender, finishRemainingTasks);
+            MessageBusTestActions.sendMessagesBeforeAndAfterTheShutdownAsynchronously(messageBus, testEnvironment,
+                    numberOfSender, finishRemainingTasks);
             return null;
         });
     }
@@ -157,22 +162,28 @@ public final class MessageBusActionBuilder {
 
     public static MessageBusActionBuilder theSubscriberForTheCorrelationIdUnsubscribes() {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
-            final SubscriptionId subscriptionId = testEnvironment.getPropertyAsType(CORRELATION_SUBSCRIPTION_ID, SubscriptionId.class);
+            final SubscriptionId subscriptionId = getUsedSubscriptionId(testEnvironment);
             messageBus.unsubcribe(subscriptionId);
             return null;
         });
     }
 
-    public static MessageBusActionBuilder halfValidAndInvalidMessagesAreSendAsynchronously(final int numberOfSender, final int numberOfMessagesPerSender) {
+    private static SubscriptionId getUsedSubscriptionId(final TestEnvironment testEnvironment) {
+        return testEnvironment.getPropertyAsType(CORRELATION_SUBSCRIPTION_ID, SubscriptionId.class);
+    }
+
+    public static MessageBusActionBuilder halfValidAndInvalidMessagesAreSendAsynchronously(final int numberOfSender,
+                                                                                           final int numberOfMessagesPerSender) {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
-            MessageBusTestActions.sendInvalidAndInvalidMessagesAsynchronously(messageBus, testEnvironment, numberOfSender, numberOfMessagesPerSender);
+            sendInvalidAndInvalidMessagesAsynchronously(messageBus, testEnvironment, numberOfSender, numberOfMessagesPerSender);
             return null;
         });
     }
 
-    public static MessageBusActionBuilder severalInvalidMessagesAreSendAsynchronously(final int numberOfSender, final int numberOfMessagesPerSender) {
+    public static MessageBusActionBuilder severalInvalidMessagesAreSendAsynchronously(final int numberOfSender,
+                                                                                      final int numberOfMessagesPerSender) {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
-            MessageBusTestActions.sendInvalidMessagesAsynchronously(messageBus, testEnvironment, numberOfSender, numberOfMessagesPerSender);
+            sendOnlyInvalidMessagesAsynchronously(messageBus, testEnvironment, numberOfSender, numberOfMessagesPerSender);
             return null;
         });
     }
@@ -181,14 +192,6 @@ public final class MessageBusActionBuilder {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
             messageBusTestActions(messageBus)
                     .queryTheNumberOfAcceptedMessages(testEnvironment);
-            return null;
-        });
-    }
-
-    public static MessageBusActionBuilder theNumberOfAcceptedMessagesIsQueriedAsynchronously() {
-        return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
-            messageBusTestActions(messageBus)
-                    .queryTheNumberOfAcceptedMessagesAsynchronously(testEnvironment);
             return null;
         });
     }
@@ -275,9 +278,10 @@ public final class MessageBusActionBuilder {
         });
     }
 
-    public static MessageBusActionBuilder severalMessagesAreSendAsynchronouslyBeforeTheMessageBusIsShutdown(final int numberOfSenders, final int numberOfMessages) {
+    public static MessageBusActionBuilder severalMessagesAreSendAsynchronouslyBeforeTheMessageBusIsShutdown(
+            final int numberOfSenders, final int numberOfMessages) {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
-            MessageBusTestActions.sendMessagesBeforeShutdownAsynchronously(messageBus, testEnvironment, numberOfSenders, numberOfMessages);
+            sendMessagesBeforeAShutdownAsynchronously(messageBus, testEnvironment, numberOfSenders, numberOfMessages);
             return null;
         });
     }
@@ -356,7 +360,7 @@ public final class MessageBusActionBuilder {
 
     public static MessageBusActionBuilder allDynamicExceptionListenerAreQueried() {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
-            final List<MessageBusExceptionListener> listeners = MessageBusTestActions.queryListOfDynamicExceptionListener(messageBus);
+            final List<MessageBusExceptionListener> listeners = queryListOfDynamicExceptionListener(messageBus);
             testEnvironment.setPropertyIfNotSet(RESULT, listeners);
             return null;
         });

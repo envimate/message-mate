@@ -25,13 +25,11 @@ import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.channel.ChannelBuilder;
 import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration;
-import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusBuilder;
 import com.envimate.messageMate.messageBus.MessageBusType;
-import com.envimate.messageMate.messageBus.channelCreating.MessageBusChannelFactory;
 import com.envimate.messageMate.messageBus.config.MessageBusTestConfig;
-import com.envimate.messageMate.messageBus.exception.MessageBusExceptionHandler;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
@@ -63,7 +61,6 @@ public final class MessageBusSetupBuilder {
     private final List<SetupAction<MessageBus>> setupActions = new LinkedList<>();
     private final MessageBusBuilder messageBusBuilder = MessageBusBuilder.aMessageBus();
 
-
     public static MessageBusSetupBuilder aConfiguredMessageBus(final MessageBusTestConfig testConfig) {
         return new MessageBusSetupBuilder()
                 .configuredWith(testConfig);
@@ -78,13 +75,14 @@ public final class MessageBusSetupBuilder {
         return this;
     }
 
-    private void storeSleepTimesInTestEnvironment(final MessageBusTestConfig messageBusTestConfig, final TestEnvironment testEnvironment) {
+    private void storeSleepTimesInTestEnvironment(final MessageBusTestConfig messageBusTestConfig,
+                                                  final TestEnvironment testEnvironment) {
         final long millisecondsSleepAfterExecution = messageBusTestConfig.getMillisecondsSleepAfterExecution();
         if (millisecondsSleepAfterExecution > 0) {
             testEnvironment.setProperty(SLEEP_AFTER_EXECUTION, millisecondsSleepAfterExecution);
         }
-        final long millisecondsSleepBetweenExecutionActionSteps = messageBusTestConfig.getMillisecondsSleepBetweenExecutionActionSteps();
-        if (millisecondsSleepBetweenExecutionActionSteps > 0) {
+        final long milliSecondsSleep = messageBusTestConfig.getMillisecondsSleepBetweenExecutionSteps();
+        if (milliSecondsSleep > 0) {
             testEnvironment.setProperty(SLEEP_BETWEEN_EXECUTION_STEPS, millisecondsSleepAfterExecution);
         }
     }
@@ -98,15 +96,12 @@ public final class MessageBusSetupBuilder {
     }
 
     public MessageBusSetupBuilder withACustomChannelFactory() {
-        messageBusBuilder.withAChannelFactory(new MessageBusChannelFactory() {
-            @Override
-            public Channel<Object> createChannel(final EventType eventType, final Subscriber<?> subscriber, final MessageBusExceptionHandler exceptionHandler) {
-                final Channel<Object> channel = ChannelBuilder.aChannel(Object.class)
-                        .withDefaultAction(subscription())
-                        .build();
-                testEnvironment.setPropertyIfNotSet(EXPECTED_RESULT, channel);
-                return channel;
-            }
+        messageBusBuilder.withAChannelFactory((eventType, subscriber, exceptionHandler) -> {
+            final Channel<Object> channel = ChannelBuilder.aChannel(Object.class)
+                    .withDefaultAction(subscription())
+                    .build();
+            testEnvironment.setPropertyIfNotSet(EXPECTED_RESULT, channel);
+            return channel;
         });
         return this;
     }
@@ -116,14 +111,12 @@ public final class MessageBusSetupBuilder {
     }
 
     public MessageBusSetupBuilder withASingleSubscriber() {
-        setupActions.add((t, testEnvironment) -> {
-            MessageBusTestActions.addASingleSubscriber(t, testEnvironment);
-        });
+        setupActions.add(MessageBusTestActions::addASingleSubscriber);
         return this;
     }
 
     public MessageBusSetupBuilder withASingleRawSubscriber() {
-        setupActions.add((t, testEnvironment) -> MessageBusTestActions.addASingleRawSubscriber(t, testEnvironment));
+        setupActions.add(MessageBusTestActions::addASingleRawSubscriber);
         return this;
     }
 
@@ -151,7 +144,9 @@ public final class MessageBusSetupBuilder {
     }
 
     public MessageBusSetupBuilder withSeveralSubscriber(final int numberOfSubscribers) {
-        setupActions.add((t, testEnvironment) -> MessageBusTestActions.withSeveralSubscriber(t, testEnvironment, numberOfSubscribers));
+        setupActions.add((t, testEnvironment) -> {
+            MessageBusTestActions.withSeveralSubscriber(t, testEnvironment, numberOfSubscribers);
+        });
         return this;
     }
 
@@ -166,7 +161,9 @@ public final class MessageBusSetupBuilder {
     }
 
     public MessageBusSetupBuilder withAnInvalidFilterThatDoesNotUseAnyFilterMethods() {
-        setupActions.add((t, testEnvironment) -> addAnInvalidFilterThatDoesNotUseAnyFilterMethods(sutActions(t), testEnvironment));
+        setupActions.add((t, testEnvironment) -> {
+            addAnInvalidFilterThatDoesNotUseAnyFilterMethods(sutActions(t), testEnvironment);
+        });
         return this;
     }
 
@@ -191,17 +188,17 @@ public final class MessageBusSetupBuilder {
     }
 
     public MessageBusSetupBuilder withASubscriberThatBlocksWhenAccepting() {
-        setupActions.add((t, testEnvironment) -> MessageBusTestActions.addASubscriberThatBlocksWhenAccepting(t, testEnvironment));
+        setupActions.add(MessageBusTestActions::addASubscriberThatBlocksWhenAccepting);
         return this;
     }
 
     public MessageBusSetupBuilder withAnExceptionAcceptingSubscriber() {
-        setupActions.add((t, testEnvironment) -> addAnExceptionAcceptingSubscriber(sutActions(t), testEnvironment));
+        setupActions.add((t, testEnvironment) -> addAnExceptionAcceptingSubscriber(testEnvironment));
         return this;
     }
 
     public MessageBusSetupBuilder withAnExceptionThrowingSubscriber() {
-        setupActions.add((t, testEnvironment) -> MessageBusTestActions.addAErrorThrowingSubscriber(t, testEnvironment));
+        setupActions.add(MessageBusTestActions::addAErrorThrowingSubscriber);
         return this;
     }
 
@@ -217,24 +214,18 @@ public final class MessageBusSetupBuilder {
 
     public MessageBusSetupBuilder withADynamicExceptionListenerForEventType() {
         messageBusBuilder.withExceptionHandler(allExceptionIgnoringExceptionHandler());
-        setupActions.add((messageBus, testEnvironment) -> {
-            MessageBusTestActions.addDynamicErrorListenerForEventType(messageBus, testEnvironment);
-        });
+        setupActions.add(MessageBusTestActions::addDynamicErrorListenerForEventType);
         return this;
     }
 
     public MessageBusSetupBuilder withTwoDynamicExceptionListenerForEventType() {
         messageBusBuilder.withExceptionHandler(allExceptionIgnoringExceptionHandler());
-        setupActions.add((messageBus, testEnvironment) -> {
-            MessageBusTestActions.addTwoDynamicErrorListenerForEventType_whereTheFirstWillBeRemoved(messageBus, testEnvironment);
-        });
+        setupActions.add(MessageBusTestActions::addTwoDynamicErrorListenerForEventType_whereTheFirstWillBeRemoved);
         return this;
     }
 
     public MessageBusSetupBuilder withADynamicErrorListenerAndAnErrorThrowingExceptionHandler() {
-        setupActions.add((messageBus, testEnvironment) -> {
-            MessageBusTestActions.addDynamicErrorListenerForEventType(messageBus, testEnvironment);
-        });
+        setupActions.add(MessageBusTestActions::addDynamicErrorListenerForEventType);
         return this;
     }
 

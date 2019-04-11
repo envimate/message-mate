@@ -48,7 +48,8 @@ public final class PipeMessageBusSetupActions {
         addASingleSubscriber(sutActions, testEnvironment, TestMessageOfInterest.class);
     }
 
-    public static <T> void addASingleSubscriber(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment,
+    public static <T> void addASingleSubscriber(final PipeMessageBusSutActions sutActions,
+                                                final TestEnvironment testEnvironment,
                                                 final Class<T> clazz) {
         final SimpleTestSubscriber<T> subscriber = testSubscriber();
         sutActions.subscribe(clazz, subscriber);
@@ -56,29 +57,35 @@ public final class PipeMessageBusSetupActions {
         testEnvironment.addToListProperty(INITIAL_SUBSCRIBER, subscriber);
     }
 
-    public static void addSeveralSubscriber(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment, final int numberOfReceivers) {
+    public static void addSeveralSubscriber(final PipeMessageBusSutActions sutActions,
+                                            final TestEnvironment testEnvironment,
+                                            final int numberOfReceivers) {
         for (int i = 0; i < numberOfReceivers; i++) {
             addASingleSubscriber(sutActions, testEnvironment);
         }
     }
 
-    public static void addAFilterThatChangesTheContentOfEveryMessage(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
+    public static void addAFilterThatChangesTheContentOfEveryMessage(final PipeMessageBusSutActions sutActions,
+                                                                     final TestEnvironment testEnvironment) {
         testEnvironment.setProperty(EXPECTED_CHANGED_CONTENT, CHANGED_CONTENT);
         final Filter<TestMessageOfInterest> filter = aContentChangingFilter();
         sutActions.addFilter(filter);
     }
 
-    public static void addAFilterThatDropsMessages(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
+    public static void addAFilterThatDropsMessages(final PipeMessageBusSutActions sutActions,
+                                                   final TestEnvironment testEnvironment) {
         final Filter<Object> filter = aMessageDroppingFilter();
         sutActions.addFilter(filter);
     }
 
-    public static void addAnInvalidFilterThatDoesNotUseAnyFilterMethods(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
+    public static void addAnInvalidFilterThatDoesNotUseAnyFilterMethods(final PipeMessageBusSutActions sutActions,
+                                                                        final TestEnvironment testEnvironment) {
         final Filter<Object> filter = aMessageFilterThatDoesNotCallAnyMethod();
         sutActions.addFilter(filter);
     }
 
-    public static void addTwoFilterOnSpecificPositions(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
+    public static void addTwoFilterOnSpecificPositions(final PipeMessageBusSutActions sutActions,
+                                                       final TestEnvironment testEnvironment) {
         final String firstAppend = "1nd";
         final String secondAppend = "2nd";
         testEnvironment.setProperty(EXPECTED_CHANGED_CONTENT, TestMessageOfInterest.CONTENT + firstAppend + secondAppend);
@@ -90,11 +97,14 @@ public final class PipeMessageBusSetupActions {
         testEnvironment.addToListProperty(EXPECTED_FILTER, filter2);
     }
 
-    public static void addAFilterAtAnInvalidPosition(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment, final int position) {
+    public static void addAFilterAtAnInvalidPosition(final PipeMessageBusSutActions sutActions,
+                                                     final TestEnvironment testEnvironment,
+                                                     final int position) {
         sutActions.addFilter(null, position);
     }
 
-    public static void addAFilterThatThrowsExceptions(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
+    public static void addAFilterThatThrowsExceptions(final PipeMessageBusSutActions sutActions,
+                                                      final TestEnvironment testEnvironment) {
         final TestException exception = new TestException();
         final Filter<Object> filter = anErrorThrowingFilter(exception);
         sutActions.addFilter(filter);
@@ -106,7 +116,8 @@ public final class PipeMessageBusSetupActions {
         messageBus.addRaw(filter);
     }
 
-    public static void addASubscriberThatBlocksWhenAccepting(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
+    public static void addASubscriberThatBlocksWhenAccepting(final PipeMessageBusSutActions sutActions,
+                                                             final TestEnvironment testEnvironment) {
         final Semaphore semaphore = new Semaphore(0);
         final BlockingTestSubscriber<TestMessageOfInterest> subscriber = blockingTestSubscriber(semaphore);
         sutActions.subscribe(TestMessageOfInterest.class, subscriber);
@@ -114,24 +125,27 @@ public final class PipeMessageBusSetupActions {
         testEnvironment.setProperty(EXECUTION_END_SEMAPHORE, semaphore);
     }
 
-    public static void addAnExceptionAcceptingSubscriber(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
+    public static void addAnExceptionAcceptingSubscriber(final TestEnvironment testEnvironment) {
         @SuppressWarnings("rawtypes")
         final SimpleTestSubscriber<?> errorSubscriber = testSubscriber();
         testEnvironment.setProperty(ERROR_SUBSCRIBER, errorSubscriber);
     }
 
-    public static TestSubscriber<TestMessageOfInterest> addAnExceptionThrowingSubscriber(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment) {
+    public static TestSubscriber<TestMessageOfInterest> addAnExceptionThrowingSubscriber(
+            final PipeMessageBusSutActions sutActions,
+            final TestEnvironment testEnvironment) {
         final ExceptionThrowingTestSubscriber<TestMessageOfInterest> subscriber = exceptionThrowingTestSubscriber();
         sutActions.subscribe(TestMessageOfInterest.class, subscriber);
         return subscriber;
     }
 
-    public static void addSeveralDeliveryInterruptingSubscriber(final PipeMessageBusSutActions sutActions, final TestEnvironment testEnvironment, final int numberOfReceivers) {
+    public static void addSeveralDeliveryInterruptingSubscriber(final PipeMessageBusSutActions sutActions,
+                                                                final TestEnvironment testEnvironment,
+                                                                final int numberOfReceivers) {
         for (int i = 0; i < numberOfReceivers; i++) {
             final SimpleTestSubscriber<TestMessageOfInterest> subscriber = deliveryPreemptingSubscriber();
             sutActions.subscribe(TestMessageOfInterest.class, subscriber);
             testEnvironment.addToListProperty(POTENTIAL_RECEIVERS, subscriber);
         }
     }
-
 }

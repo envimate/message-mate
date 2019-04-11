@@ -19,32 +19,12 @@
  * under the License.
  */
 
-package com.envimate.messageMate.qcec.shared.testQueries;
+package com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen;
 
-import lombok.RequiredArgsConstructor;
+import com.envimate.messageMate.shared.testMessages.TestMessage;
 
-import static lombok.AccessLevel.PRIVATE;
+public interface MessageFactory {
+    TestMessage createMessage();
 
-@RequiredArgsConstructor(access = PRIVATE)
-public final class SubclassingTestQuery implements SuperclassTestQuery {
-    private int result;
-
-    public static SubclassingTestQuery aSubclassingQuery() {
-        return new SubclassingTestQuery();
-    }
-
-    @Override
-    public Integer result() {
-        return result;
-    }
-
-    @Override
-    public boolean finished() {
-        return true;
-    }
-
-    @Override
-    public void reportMatch(final int result) {
-        this.result = result;
-    }
+    int numberOfMessages();
 }

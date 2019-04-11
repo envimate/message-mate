@@ -21,8 +21,8 @@
 
 package com.envimate.messageMate.internal.pipe.givenWhenThen;
 
-import com.envimate.messageMate.internal.pipe.Pipe;
 import com.envimate.messageMate.exceptions.AlreadyClosedException;
+import com.envimate.messageMate.internal.pipe.Pipe;
 import com.envimate.messageMate.internal.pipe.PipeStatusInformation;
 import com.envimate.messageMate.internal.pipe.statistics.PipeStatistics;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
@@ -74,7 +74,8 @@ public final class PipeValidationBuilder {
         });
     }
 
-    public static PipeValidationBuilder expectXMessagesToBeDelivered_despiteTheChannelClosed(final int expectedNumberOfDeliveredMessages) {
+    public static PipeValidationBuilder expectXMessagesToBeDelivered_despiteTheChannelClosed(
+            final int expectedNumberOfDeliveredMessages) {
         return new PipeValidationBuilder(testEnvironment -> {
             assertExceptionThrownOfType(testEnvironment, AlreadyClosedException.class);
             assertNumberOfMessagesReceived(testEnvironment, expectedNumberOfDeliveredMessages);

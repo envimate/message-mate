@@ -127,7 +127,7 @@ public interface ChannelSpecs {
     @Test
     default void testChannel_subscriptionCanStopDeliveryEarly(final ChannelTestConfig channelTestConfig) {
         given(aConfiguredChannel(channelTestConfig)
-                .withSubscriptionAsActionWithOnPreemptiveSubscriberAndOneErrorThrowingSubscriberThatShouldNeverBeCalled())
+                .withOnPreemptiveSubscriberAndOneErrorThrowingSubscriberThatShouldNeverBeCalled())
                 .when(aMessageIsSend())
                 .then(expectNoException());
     }
@@ -156,7 +156,6 @@ public interface ChannelSpecs {
                 .when(aMessageWithoutPayloadAndErrorPayloadIsSend())
                 .then(expectTheMessageToBeConsumed());
     }
-
 
     //filter
     @Test
@@ -215,8 +214,8 @@ public interface ChannelSpecs {
     }
 
     @Test
-    default void testChannel_throwsExceptionForPositionGreaterThanAllowed_forPreFilter(final ChannelTestConfig channelTestConfig) {
-        given(aConfiguredChannel(channelTestConfig)
+    default void testChannel_throwsExceptionForPositionGreaterThanAllowed_forPreFilter(final ChannelTestConfig config) {
+        given(aConfiguredChannel(config)
                 .withAPreFilterAtAnInvalidPosition(100))
                 .when(aMessageIsSend())
                 .then(expectTheException(IndexOutOfBoundsException.class));
@@ -278,8 +277,8 @@ public interface ChannelSpecs {
     }
 
     @Test
-    default void testChannel_throwsExceptionForPositionGreaterThanAllowed_forProcessFilter(final ChannelTestConfig channelTestConfig) {
-        given(aConfiguredChannel(channelTestConfig)
+    default void testChannel_throwsExceptionForPositionGreaterThanAllowed_forProcessFilter(final ChannelTestConfig config) {
+        given(aConfiguredChannel(config)
                 .withAProcessFilterAtAnInvalidPosition(100))
                 .when(aMessageIsSend())
                 .then(expectTheException(IndexOutOfBoundsException.class));
@@ -341,8 +340,8 @@ public interface ChannelSpecs {
     }
 
     @Test
-    default void testChannel_throwsExceptionForPositionGreaterThanAllowed_forPostFilter(final ChannelTestConfig channelTestConfig) {
-        given(aConfiguredChannel(channelTestConfig)
+    default void testChannel_throwsExceptionForPositionGreaterThanAllowed_forPostFilter(final ChannelTestConfig config) {
+        given(aConfiguredChannel(config)
                 .withAPostFilterAtAnInvalidPosition(100))
                 .when(aMessageIsSend())
                 .then(expectTheException(IndexOutOfBoundsException.class));
@@ -350,8 +349,8 @@ public interface ChannelSpecs {
 
     //correlationId
     @Test
-    default void testChannel_sendMessageHasConstantMessageIdAndCanGenerateMatchingCorrelationId(final ChannelTestConfig channelTestConfig) {
-        given(aConfiguredChannel(channelTestConfig)
+    default void testChannel_sendMessageHasConstantMessageIdAndCanGenerateMatchingCorrelationId(final ChannelTestConfig config) {
+        given(aConfiguredChannel(config)
                 .withDefaultActionConsume())
                 .when(aMessageIsSend())
                 .then(expectTheMessageToHaveTheSameMessageIdAndAMatchingGeneratedCorrelationId());
@@ -375,7 +374,6 @@ public interface ChannelSpecs {
     }
 
     //statistics
-
     @Test
     default void testChannel_canQueryAcceptedMessages(final ChannelTestConfig channelTestConfig) {
         final int numberOfSendMessages = 5;
@@ -517,6 +515,7 @@ public interface ChannelSpecs {
                 .when(theChannelIsClosedSeveralTimes())
                 .then(expectTheChannelToBeShutdown());
     }
+
     // close without finishRemainingTasks config dependent
 
     //await

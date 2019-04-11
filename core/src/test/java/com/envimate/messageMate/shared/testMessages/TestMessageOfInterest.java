@@ -39,6 +39,7 @@ public class TestMessageOfInterest implements TestMessage {
     public static TestMessageOfInterest messageOfInterest() {
         return new TestMessageOfInterest(CONTENT);
     }
+
     public static TestMessageOfInterest messageOfInterest(final String content) {
         return new TestMessageOfInterest(content);
     }

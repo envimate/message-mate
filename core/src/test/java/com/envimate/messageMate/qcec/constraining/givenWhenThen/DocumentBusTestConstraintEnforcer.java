@@ -39,25 +39,25 @@ public final class DocumentBusTestConstraintEnforcer extends TestConstraintEnfor
     }
 
     @Override
-    public void enforce(Object constraint) {
+    public void enforce(final Object constraint) {
         documentBus.enforce(constraint);
     }
 
     @Override
-    public <T> TestConstraintEnforcer withASubscriber(Class<T> constraintClass, Consumer<T> consumer) {
+    public <T> TestConstraintEnforcer withASubscriber(final Class<T> constraintClass, final Consumer<T> consumer) {
         documentBus.ensure(constraintClass)
                 .using(consumer);
         return this;
     }
 
     @Override
-    public <T> SubscriptionId subscribing(Class<T> constraintClass, Consumer<T> consumer) {
+    public <T> SubscriptionId subscribing(final Class<T> constraintClass, final Consumer<T> consumer) {
         return documentBus.ensure(constraintClass)
                 .using(consumer);
     }
 
     @Override
-    public void unsubscribe(SubscriptionId subscriptionId) {
+    public void unsubscribe(final SubscriptionId subscriptionId) {
         documentBus.unsubscribe(subscriptionId);
     }
 }

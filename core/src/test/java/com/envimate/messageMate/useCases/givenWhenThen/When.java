@@ -19,12 +19,17 @@
  * under the License.
  */
 
-package com.envimate.messageMate.qcec.shared.testQueries;
+package com.envimate.messageMate.useCases.givenWhenThen;
 
+import lombok.RequiredArgsConstructor;
 
-import com.envimate.messageMate.qcec.queryresolving.Query;
+import static lombok.AccessLevel.PACKAGE;
 
-public interface SuperclassTestQuery extends Query<Integer> {
+@RequiredArgsConstructor(access = PACKAGE)
+public class When {
+    private final UseCaseInvocationSetupBuilder useCaseInvocationSetupBuilder;
 
-    void reportMatch(final int result);
+    public Then when(final UseCaseInvocationActionBuilder useCaseInvocationActionBuilder) {
+        return new Then(useCaseInvocationSetupBuilder, useCaseInvocationActionBuilder);
+    }
 }

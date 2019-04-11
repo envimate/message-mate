@@ -19,22 +19,18 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageFunction.testResponses;
+package com.envimate.messageMate.serializedMessageBus.givenWhenThen;
 
+import com.envimate.messageMate.processingContext.EventType;
 import lombok.RequiredArgsConstructor;
 
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
-public final class AlternativTestResponse implements TestResponse {
-    private final Object request;
-
-    public static AlternativTestResponse alternativTestResponse(final Object request) {
-        return new AlternativTestResponse(request);
-    }
-
-    @Override
-    public Object getCorrelatedRequest() {
-        return request;
-    }
+public final class SerializedMessageBusTestProperties {
+    public static final String EVENT_TYPE = "EVENT_TYPE";
+    public static final EventType DEFAULT_EVENT_TYPE = EventType.eventTypeFromString("defaultEventType");
+    public static final EventType EVENT_TYPE_WITH_NO_SUBSCRIBERS = EventType.eventTypeFromString("eventTypeWithNoSubscribers");
+    public static final String SEND_DATA = "SEND_DATA";
+    public static final String SEND_ERROR_DATA = "SEND_ERROR_DATA";
 }

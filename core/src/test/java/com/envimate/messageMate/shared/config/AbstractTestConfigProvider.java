@@ -32,7 +32,8 @@ import java.lang.reflect.Type;
 public abstract class AbstractTestConfigProvider implements ParameterResolver {
 
     @Override
-    public boolean supportsParameter(final ParameterContext parameterContext, final ExtensionContext extensionContext) throws ParameterResolutionException {
+    public boolean supportsParameter(final ParameterContext parameterContext,
+                                     final ExtensionContext extensionContext) throws ParameterResolutionException {
         final Parameter parameter = parameterContext.getParameter();
         final Type type = parameter.getAnnotatedType().getType();
         final Class<?> suitedConfigClass = forConfigClass();
@@ -42,7 +43,8 @@ public abstract class AbstractTestConfigProvider implements ParameterResolver {
     protected abstract Class<?> forConfigClass();
 
     @Override
-    public Object resolveParameter(final ParameterContext parameterContext, final ExtensionContext extensionContext) throws ParameterResolutionException {
+    public Object resolveParameter(final ParameterContext parameterContext,
+                                   final ExtensionContext extensionContext) throws ParameterResolutionException {
         return testConfig();
     }
 

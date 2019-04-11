@@ -42,7 +42,6 @@ public final class BlockingTestSubscriber<T> implements TestSubscriber<T> {
         return new BlockingTestSubscriber<>(semaphore);
     }
 
-
     @Override
     public AcceptingBehavior accept(final T message) {
         try {

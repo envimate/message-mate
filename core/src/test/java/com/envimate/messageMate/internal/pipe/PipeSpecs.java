@@ -60,7 +60,8 @@ public interface PipeSpecs {
     }
 
     @Test
-    default void testPipe_subscriberCanInterruptDeliveringMessage_whenDeliveryIsSynchronous(final PipeTestConfig testConfig) throws Exception {
+    default void testPipe_subscriberCanInterruptDeliveringMessage_whenDeliveryIsSynchronous(
+            final PipeTestConfig testConfig) throws Exception {
         given(aConfiguredPipe(testConfig)
                 .withSeveralDeliveryInterruptingSubscriber(5))
                 .when(severalMessagesAreSend(10))
@@ -153,7 +154,8 @@ public interface PipeSpecs {
     }
 
     @Test
-    default void testPipe_customErrorHandlerCanSuppressExceptionSoThatDeliveryCountsAsSuccessful(final PipeTestConfig testConfig) throws Exception {
+    default void testPipe_customErrorHandlerCanSuppressExceptionSoThatDeliveryCountsAsSuccessful(
+            final PipeTestConfig testConfig) throws Exception {
         given(aConfiguredPipe(testConfig)
                 .withACustomErrorHandlerThatSuppressException())
                 .when(aMessageResultingInAnErrorIsSend())

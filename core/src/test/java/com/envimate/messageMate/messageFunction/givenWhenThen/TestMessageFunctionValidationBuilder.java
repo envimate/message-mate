@@ -118,9 +118,9 @@ public final class TestMessageFunctionValidationBuilder {
         }
     }
 
-    private static void assertCorrectResponseProcessingContext(final ResponseFuture responseFuture, final TestEnvironment testEnvironment) {
-        @SuppressWarnings("unchecked")
-        final ProcessingContext<Object> expectedProcessingContext = (ProcessingContext<Object>) testEnvironment.getProperty(RESPONSE_PROCESSING_CONTEXT);
+    private static void assertCorrectResponseProcessingContext(final ResponseFuture responseFuture,
+                                                               final TestEnvironment testEnvironment) {
+        final ProcessingContext<Object> expectedProcessingContext = getResponseProcessingContext(testEnvironment);
         final Object errorPayload = expectedProcessingContext.getErrorPayload();
         final boolean wasSuccessfull = errorPayload == null;
         assertThat(responseFuture.wasSuccessful(), equalTo(wasSuccessfull));
@@ -132,18 +132,26 @@ public final class TestMessageFunctionValidationBuilder {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    private static ProcessingContext<Object> getResponseProcessingContext(final TestEnvironment testEnvironment) {
+        return (ProcessingContext<Object>) testEnvironment.getProperty(RESPONSE_PROCESSING_CONTEXT);
+    }
 
     public static TestMessageFunctionValidationBuilder expectCorrectResponseReceivedForEachRequest() {
         return new TestMessageFunctionValidationBuilder(testEnvironment -> {
             ensureNoExceptionThrown(testEnvironment);
-            @SuppressWarnings("unchecked")
-            final List<RequestResponseFuturePair> requestResponseFuturePairs = (List<RequestResponseFuturePair>) testEnvironment.getProperty(RESULT);
+            final List<RequestResponseFuturePair> requestResponseFuturePairs = getResultRequestResponsePair(testEnvironment);
             for (final RequestResponseFuturePair requestResponseFuturePair : requestResponseFuturePairs) {
                 final ResponseFuture responseFuture = requestResponseFuturePair.getResponseFuture();
                 final TestRequest testRequest = requestResponseFuturePair.getTestRequest();
                 assertResponseForRequest(responseFuture, testRequest);
             }
         });
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<RequestResponseFuturePair> getResultRequestResponsePair(final TestEnvironment testEnvironment) {
+        return (List<RequestResponseFuturePair>) testEnvironment.getProperty(RESULT);
     }
 
     public static TestMessageFunctionValidationBuilder expectTheFollowUpToBeExecuted() {
@@ -159,8 +167,7 @@ public final class TestMessageFunctionValidationBuilder {
         return new TestMessageFunctionValidationBuilder(testEnvironment -> {
             final Exception exception = testEnvironment.getPropertyAsType(EXCEPTION, Exception.class);
             if (testEnvironment.has(EXPECTED_EXCEPTION_MESSAGE)) {
-                final String expectedExceptionMessage = testEnvironment.getPropertyAsType(EXPECTED_EXCEPTION_MESSAGE, String.class);
-                assertEquals(exception.getMessage(), expectedExceptionMessage);
+                assertCorrectExceptionMessage(testEnvironment, exception);
             }
         });
     }
@@ -170,10 +177,14 @@ public final class TestMessageFunctionValidationBuilder {
             final Exception exception = testEnvironment.getPropertyAsType(EXCEPTION, Exception.class);
             assertEquals(exception.getClass(), expectedClass);
             if (testEnvironment.has(EXPECTED_EXCEPTION_MESSAGE)) {
-                final String expectedExceptionMessage = testEnvironment.getPropertyAsType(EXPECTED_EXCEPTION_MESSAGE, String.class);
-                assertEquals(exception.getMessage(), expectedExceptionMessage);
+                assertCorrectExceptionMessage(testEnvironment, exception);
             }
         });
+    }
+
+    private static void assertCorrectExceptionMessage(final TestEnvironment testEnvironment, final Exception exception) {
+        final String expectedExceptionMessage = testEnvironment.getPropertyAsType(EXPECTED_EXCEPTION_MESSAGE, String.class);
+        assertEquals(exception.getMessage(), expectedExceptionMessage);
     }
 
     public static TestMessageFunctionValidationBuilder expectAFutureToBeFinishedWithException(final Class<?> expectedClass) {
@@ -319,7 +330,6 @@ public final class TestMessageFunctionValidationBuilder {
             }
         });
     }
-
 
     private static void ensureNoExceptionThrown(final TestEnvironment testEnvironment) {
         if (testEnvironment.has(EXCEPTION)) {

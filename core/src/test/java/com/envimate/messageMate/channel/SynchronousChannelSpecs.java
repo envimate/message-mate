@@ -48,14 +48,14 @@ public class SynchronousChannelSpecs implements ChannelSpecs {
 
     //shutdown
     @Test
-    public void testChannel_closeWithoutFinishingRemainingTasks_hasNoEffectForSynchronousConfig(final ChannelTestConfig channelTestConfig) {
-        final int numberOfSendMessages = 5;
-        given(aConfiguredChannel(channelTestConfig)
+    public void testChannel_closeWithoutFinishingRemainingTasks_hasNoEffectForSynchronousConfig(final ChannelTestConfig config) {
+        final int numberOfMessages = 5;
+        given(aConfiguredChannel(config)
                 .withABlockingSubscriber())
-                .when(severalMessagesAreSendAsynchronouslyBeforeTheChannelIsClosedWithoutFinishingRemainingTasks(numberOfSendMessages)
+                .when(severalMessagesAreSendAsynchronouslyBeforeTheChannelIsClosedWithoutFinishingRemainingTasks(numberOfMessages)
                         .andThen(theSubscriberLockIsReleased()
                                 .andThen(theNumberOfSuccessfulDeliveredMessagesIsQueried())))
-                .then(expectTheResult(numberOfSendMessages)
+                .then(expectTheResult(numberOfMessages)
                         .and(expectTheChannelToBeShutdown()));
     }
 

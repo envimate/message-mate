@@ -24,9 +24,9 @@ package com.envimate.messageMate.messageBus.givenWhenThen;
 
 import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.identification.MessageId;
-import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.qcec.shared.TestEnvironment;
 import com.envimate.messageMate.qcec.shared.TestValidation;
@@ -34,7 +34,7 @@ import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageB
 import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.shared.subscriber.TestSubscriber;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
-import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
+import com.envimate.messageMate.shared.validations.SharedTestValidations;
 import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.RequiredArgsConstructor;
 
@@ -42,6 +42,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActions.queryListOfDynamicExceptionListener;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActionsOld.messageBusTestActions;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.MESSAGE_RECEIVED_BY_ERROR_LISTENER;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
@@ -82,7 +83,6 @@ public final class MessageBusValidationBuilder {
             assertExpectedReceiverReceivedAllMessages(testEnvironment);
         });
     }
-
 
     public static MessageBusValidationBuilder expectTheErrorPayloadToBeReceived() {
         return asValidation(testEnvironment -> {
@@ -131,22 +131,6 @@ public final class MessageBusValidationBuilder {
         });
     }
 
-    public static MessageBusValidationBuilder expectSendAndReceivedCorrelationIdsToMatch() {
-        return asValidation(testEnvironment -> {
-            assertNoExceptionThrown(testEnvironment);
-            final ProcessingContext<TestMessageOfInterest> result = getOnlyMessageOfSingleReceiver(testEnvironment);
-            assertMessageIdAndCorrelationIdsMatch(testEnvironment, result);
-        });
-    }
-
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private static ProcessingContext<TestMessageOfInterest> getOnlyMessageOfSingleReceiver(final TestEnvironment testEnvironment) {
-        final TestSubscriber testReceiver = testEnvironment.getPropertyAsType(EXPECTED_RECEIVERS, TestSubscriber.class);
-        final List<ProcessingContext<TestMessageOfInterest>> receivedObjects = testReceiver.getReceivedMessages();
-        assertEquals(receivedObjects.size(), 1);
-        return receivedObjects.get(0);
-    }
-
     public static MessageBusValidationBuilder expectXMessagesToBeDelivered(final int expectedNumberOfDeliveredMessages) {
         return asValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
@@ -190,10 +174,12 @@ public final class MessageBusValidationBuilder {
         });
     }
 
-    public static MessageBusValidationBuilder expectSubscriberOfType(final int expectedNumberOfSubscribers, final EventType eventType) {
+    public static MessageBusValidationBuilder expectSubscriberOfType(final int expectedNumberOfSubscribers,
+                                                                     final EventType eventType) {
         return asValidation(testEnvironment -> {
             @SuppressWarnings("unchecked")
-            final Map<EventType, List<Subscriber<?>>> resultMap = (Map<EventType, List<Subscriber<?>>>) testEnvironment.getProperty(RESULT);
+            final Map<EventType, List<Subscriber<?>>> resultMap =
+                    (Map<EventType, List<Subscriber<?>>>) testEnvironment.getProperty(RESULT);
             final List<Subscriber<?>> subscribersForType = resultMap.get(eventType);
             assertThat(subscribersForType.size(), equalTo(expectedNumberOfSubscribers));
         });
@@ -217,7 +203,7 @@ public final class MessageBusValidationBuilder {
 
 
     public static MessageBusValidationBuilder expectNoException() {
-        return asValidation(testEnvironment -> assertNoExceptionThrown(testEnvironment));
+        return asValidation(SharedTestValidations::assertNoExceptionThrown);
     }
 
     public static MessageBusValidationBuilder expectTheException(final Class<?> expectedExceptionClass) {
@@ -228,7 +214,7 @@ public final class MessageBusValidationBuilder {
         return asValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
             assertResultOfClass(testEnvironment, expectedExceptionClass);
-            final ProcessingContext<?> processingContext = testEnvironment.getPropertyAsType(MESSAGE_RECEIVED_BY_ERROR_LISTENER, ProcessingContext.class);
+            final ProcessingContext<?> processingContext = getReceivedErrorMessage(testEnvironment);
             final Object message = processingContext.getPayload();
             final Object expectedPayload = testEnvironment.getProperty(SINGLE_SEND_MESSAGE);
             assertEquals(message, expectedPayload);
@@ -236,6 +222,10 @@ public final class MessageBusValidationBuilder {
             final Object expectedMessageId = testEnvironment.getProperty(SEND_MESSAGE_ID);
             assertEquals(messageId, expectedMessageId);
         });
+    }
+
+    private static ProcessingContext<?> getReceivedErrorMessage(final TestEnvironment testEnvironment) {
+        return testEnvironment.getPropertyAsType(MESSAGE_RECEIVED_BY_ERROR_LISTENER, ProcessingContext.class);
     }
 
     public static MessageBusValidationBuilder expectTheExceptionHandledAsFilterException(final Class<?> expectedExceptionClass) {
@@ -258,7 +248,8 @@ public final class MessageBusValidationBuilder {
         return expectTheExceptionHandled(expectedExceptionClass);
     }
 
-    public static MessageBusValidationBuilder expectTheExceptionHandledAndTheErrorToBeThrown(final Class<?> expectedExceptionClass) {
+    public static MessageBusValidationBuilder expectTheExceptionHandledAndTheErrorToBeThrown(
+            final Class<?> expectedExceptionClass) {
         return asValidation(testEnvironment -> {
             assertExceptionThrownOfType(testEnvironment, TestException.class, RESULT);
             assertResultOfClass(testEnvironment, expectedExceptionClass);
@@ -291,13 +282,14 @@ public final class MessageBusValidationBuilder {
         return asValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
             final MessageBus messageBus = getMessageBus(testEnvironment);
-            final List<MessageBusExceptionListener> listeners = MessageBusTestActions.queryListOfDynamicExceptionListener(messageBus);
+            final List<MessageBusExceptionListener> listeners = queryListOfDynamicExceptionListener(messageBus);
             assertCollectionOfSize(listeners, expectedNumberOfListener);
         });
     }
 
     private static void assertAllReceiverReceivedProcessingContextWithCorrectCorrelationId(final TestEnvironment testEnvironment) {
-        final List<TestSubscriber<ProcessingContext<Object>>> receivers = getExpectedReceiverAsCorrelationBasedSubscriberList(testEnvironment);
+        final List<TestSubscriber<ProcessingContext<Object>>> receivers =
+                getExpectedReceiverAsCorrelationBasedSubscriberList(testEnvironment);
         final Object expectedResult = testEnvironment.getProperty(SINGLE_SEND_MESSAGE);
         for (final TestSubscriber<ProcessingContext<Object>> receiver : receivers) {
             final List<ProcessingContext<Object>> receivedMessages = receiver.getReceivedMessages();
@@ -310,7 +302,8 @@ public final class MessageBusValidationBuilder {
     }
 
     @SuppressWarnings("unchecked")
-    private static List<TestSubscriber<ProcessingContext<Object>>> getExpectedReceiverAsCorrelationBasedSubscriberList(final TestEnvironment testEnvironment) {
+    private static List<TestSubscriber<ProcessingContext<Object>>> getExpectedReceiverAsCorrelationBasedSubscriberList(
+            final TestEnvironment testEnvironment) {
         return (List<TestSubscriber<ProcessingContext<Object>>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
     }
 
@@ -324,14 +317,18 @@ public final class MessageBusValidationBuilder {
         return messageBus;
     }
 
-    @SuppressWarnings("unchecked")
     private static ProcessingContext<?> getOnlyMessageFromSingleReceiver(final TestEnvironment testEnvironment) {
-        final List<TestSubscriber<Object>> testSubscribers = (List<TestSubscriber<Object>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
+        final List<TestSubscriber<Object>> testSubscribers = getExpectedReceiver(testEnvironment);
         assertThat(testSubscribers.size(), equalTo(1));
         final TestSubscriber<?> testSubscriber = testSubscribers.get(0);
         final List<?> receivedMessages = testSubscriber.getReceivedMessages();
         assertThat(receivedMessages.size(), equalTo(1));
         return (ProcessingContext<?>) receivedMessages.get(0);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<TestSubscriber<Object>> getExpectedReceiver(final TestEnvironment testEnvironment) {
+        return (List<TestSubscriber<Object>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
     }
 
     public MessageBusValidationBuilder and(final MessageBusValidationBuilder messageBusValidationBuilder) {

@@ -30,7 +30,6 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 public final class DocumentBusTestQueryResolver extends TestQueryResolver {
-
     private final DocumentBus documentBus;
 
     private DocumentBusTestQueryResolver() {

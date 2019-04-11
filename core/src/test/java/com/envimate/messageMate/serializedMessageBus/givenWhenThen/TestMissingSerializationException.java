@@ -19,20 +19,10 @@
  * under the License.
  */
 
-package com.envimate.messageMate.shared.testMessages;
+package com.envimate.messageMate.serializedMessageBus.givenWhenThen;
 
-
-import lombok.AccessLevel;
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
-@ToString
-@EqualsAndHashCode
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public final class TestMessageToFilterOut implements TestMessage {
-
-    public static TestMessageToFilterOut testMessageToFilterOut() {
-        return new TestMessageToFilterOut();
+public class TestMissingSerializationException extends RuntimeException {
+    public TestMissingSerializationException(final String message) {
+        super(message);
     }
 }

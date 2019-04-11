@@ -19,22 +19,22 @@
  * under the License.
  */
 
-package com.envimate.messageMate.messageFunction.testResponses;
+package com.envimate.messageMate.useCases.givenWhenThen;
 
+import com.envimate.messageMate.messageBus.MessageBus;
+import com.envimate.messageMate.qcec.shared.TestEnvironment;
+import com.envimate.messageMate.useCases.shared.TestUseCase;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import static lombok.AccessLevel.PRIVATE;
+import static lombok.AccessLevel.PACKAGE;
 
-@RequiredArgsConstructor(access = PRIVATE)
-public final class ErrorTestResponse implements TestResponse {
-    private final Object request;
-
-    public static ErrorTestResponse errorTestResponse(final Object request) {
-        return new ErrorTestResponse(request);
-    }
-
-    @Override
-    public Object getCorrelatedRequest() {
-        return request;
-    }
+@RequiredArgsConstructor(access = PACKAGE)
+final class UseCaseInvocationSetup {
+    @Getter
+    private final TestEnvironment testEnvironment;
+    @Getter
+    private final TestUseCase testUseCase;
+    @Getter
+    private final MessageBus messageBus;
 }

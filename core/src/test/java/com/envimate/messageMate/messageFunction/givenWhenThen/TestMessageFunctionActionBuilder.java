@@ -47,8 +47,8 @@ import static com.envimate.messageMate.messageFunction.testResponses.RequestResp
 import static com.envimate.messageMate.messageFunction.testResponses.SimpleTestRequest.testRequest;
 import static com.envimate.messageMate.messageFunction.testResponses.SimpleTestResponse.testResponse;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
-import static com.envimate.messageMate.shared.TestEventType.differentTestEventType;
-import static com.envimate.messageMate.shared.TestEventType.testEventType;
+import static com.envimate.messageMate.shared.eventType.TestEventType.differentTestEventType;
+import static com.envimate.messageMate.shared.eventType.TestEventType.testEventType;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static lombok.AccessLevel.PRIVATE;
@@ -84,8 +84,8 @@ public final class TestMessageFunctionActionBuilder {
             for (int i = 0; i < numberOfRequests; i++) {
                 final SimpleTestRequest testRequest = testRequest();
                 final ResponseFuture responseFuture = messageFunction.request(eventType, testRequest);
-                final RequestResponseFuturePair requestResponseFuturePair = requestResponseFuturePair(testRequest, responseFuture);
-                requestResponsePairs.add(requestResponseFuturePair);
+                final RequestResponseFuturePair requestResponsePair = requestResponseFuturePair(testRequest, responseFuture);
+                requestResponsePairs.add(requestResponsePair);
             }
             return requestResponsePairs;
         });
@@ -307,7 +307,7 @@ public final class TestMessageFunctionActionBuilder {
                 boolean interruptedExceptionCalled = false;
                 try {
                     responseFuture.get();
-                    final RuntimeException exception = new RuntimeException("Future should not return result;");
+                    final RuntimeException exception = new RuntimeException("Future should not return result");
                     testEnvironment.setPropertyIfNotSet(EXCEPTION, exception);
                 } catch (InterruptedException e) {
                     interruptedExceptionCalled = true;
@@ -315,7 +315,8 @@ public final class TestMessageFunctionActionBuilder {
                     testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
                 }
                 if (!interruptedExceptionCalled) {
-                    final RuntimeException exception = new RuntimeException("Future should wake waiting threads with InterruptedException");
+                    final String message = "Future should wake waiting threads with InterruptedException";
+                    final RuntimeException exception = new RuntimeException(message);
                     testEnvironment.setPropertyIfNotSet(EXCEPTION, exception);
                 }
                 waitingSemaphoreGet.release();
@@ -333,7 +334,8 @@ public final class TestMessageFunctionActionBuilder {
                     testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
                 }
                 if (!interruptedExceptionCalled) {
-                    final RuntimeException exception = new RuntimeException("Future should wake waiting threads with InterruptedException");
+                    final String message = "Future should wake waiting threads with InterruptedException";
+                    final RuntimeException exception = new RuntimeException(message);
                     testEnvironment.setPropertyIfNotSet(EXCEPTION, exception);
                 }
                 waitingSemaphoreGetTimeout.release();

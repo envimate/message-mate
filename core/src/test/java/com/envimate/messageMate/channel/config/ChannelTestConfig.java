@@ -43,13 +43,13 @@ public final class ChannelTestConfig {
     @Getter
     private final long millisecondsSleepAfterExecution;
 
-
     public static ChannelTestConfig synchronousChannelTestConfig() {
         return new ChannelTestConfig(SYNCHRONOUS, null, 0, 0);
     }
 
     public static ChannelTestConfig asynchronousChannelTestConfig() {
-        final AsynchronousConfiguration asynchronousConfiguration = constantPoolSizeAsynchronousPipeConfiguration(ASYNCHRONOUS_CHANNEL_CONFIG_POOL_SIZE);
+        final int poolSize = ASYNCHRONOUS_CHANNEL_CONFIG_POOL_SIZE;
+        final AsynchronousConfiguration asynchronousConfiguration = constantPoolSizeAsynchronousPipeConfiguration(poolSize);
         return new ChannelTestConfig(ASYNCHRONOUS, asynchronousConfiguration, 5, 20);
     }
 }

@@ -1,24 +1,48 @@
-package com.envimate.messageMate.serializedMessageBus;
+/*
+ * Copyright (c) 2018 envimate GmbH - https://envimate.com/.
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package com.envimate.messageMate.serializedMessageBus.givenWhenThen;
 
 import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.processingContext.EventType;
-import com.envimate.messageMate.useCases.payloadAndErrorPayload.PayloadAndErrorPayload;
 import com.envimate.messageMate.qcec.shared.TestAction;
+import com.envimate.messageMate.qcec.shared.TestEnvironment;
+import com.envimate.messageMate.serializedMessageBus.SerializedMessageBus;
 import com.envimate.messageMate.shared.testMessages.ErrorTestMessage;
 import com.envimate.messageMate.shared.testMessages.InvalidTestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 import com.envimate.messageMate.subscribing.SubscriptionId;
+import com.envimate.messageMate.useCases.payloadAndErrorPayload.PayloadAndErrorPayload;
 import lombok.RequiredArgsConstructor;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXCEPTION;
 import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
-import static com.envimate.messageMate.serializedMessageBus.SerializedMessageBusTestProperties.*;
+import static com.envimate.messageMate.serializedMessageBus.givenWhenThen.SerializedMessageBusTestProperties.*;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.EXPECTED_CORRELATION_ID;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.USED_SUBSCRIPTION_ID;
 import static com.envimate.messageMate.shared.testMessages.ErrorTestMessage.errorTestMessage;
@@ -134,7 +158,8 @@ public final class SerializedMessageBusActionBuilder {
             data.put("someValue", new Object());
             testEnvironment.setPropertyIfNotSet(SEND_DATA, data);
             try {
-                final PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> result = serializedMessageBus.invokeAndWait(eventType, data);
+                final PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> result =
+                        serializedMessageBus.invokeAndWait(eventType, data);
                 testEnvironment.setPropertyIfNotSet(RESULT, result);
             } catch (final InterruptedException | ExecutionException e) {
                 testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
@@ -150,7 +175,8 @@ public final class SerializedMessageBusActionBuilder {
             data.put("someValue", new Object());
             testEnvironment.setPropertyIfNotSet(SEND_DATA, data);
             try {
-                final PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> result = serializedMessageBus.invokeAndWait(eventType, data, 10, MILLISECONDS);
+                final PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> result =
+                        serializedMessageBus.invokeAndWait(eventType, data, 10, MILLISECONDS);
                 testEnvironment.setPropertyIfNotSet(RESULT, result);
             } catch (final InterruptedException | ExecutionException | TimeoutException e) {
                 testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
@@ -165,7 +191,8 @@ public final class SerializedMessageBusActionBuilder {
             final TestMessageOfInterest message = TestMessageOfInterest.messageOfInterest();
             testEnvironment.setPropertyIfNotSet(SEND_DATA, message);
             try {
-                final PayloadAndErrorPayload<TestMessageOfInterest, TestMessageOfInterest> result = serializedMessageBus.invokeAndWaitDeserialized(eventType, message, TestMessageOfInterest.class, TestMessageOfInterest.class);
+                final PayloadAndErrorPayload<TestMessageOfInterest, TestMessageOfInterest> result = serializedMessageBus
+                        .invokeAndWaitDeserialized(eventType, message, TestMessageOfInterest.class, TestMessageOfInterest.class);
                 testEnvironment.setPropertyIfNotSet(RESULT, result);
             } catch (final InterruptedException | ExecutionException e) {
                 testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
@@ -180,7 +207,10 @@ public final class SerializedMessageBusActionBuilder {
             final TestMessageOfInterest message = TestMessageOfInterest.messageOfInterest();
             testEnvironment.setPropertyIfNotSet(SEND_DATA, message);
             try {
-                final PayloadAndErrorPayload<TestMessageOfInterest, ErrorTestMessage> result = serializedMessageBus.invokeAndWaitDeserialized(eventType, message, TestMessageOfInterest.class, ErrorTestMessage.class, 10, MILLISECONDS);
+                final Class<ErrorTestMessage> eClass = ErrorTestMessage.class;
+                final TimeUnit unit = MILLISECONDS;
+                final PayloadAndErrorPayload<TestMessageOfInterest, ErrorTestMessage> result = serializedMessageBus
+                        .invokeAndWaitDeserialized(eventType, message, TestMessageOfInterest.class, eClass, 10, unit);
                 testEnvironment.setPropertyIfNotSet(RESULT, result);
             } catch (final InterruptedException | ExecutionException | TimeoutException e) {
                 testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
@@ -195,7 +225,8 @@ public final class SerializedMessageBusActionBuilder {
             final TestMessageOfInterest message = TestMessageOfInterest.messageOfInterest();
             testEnvironment.setPropertyIfNotSet(SEND_DATA, message);
             try {
-                final PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> result = serializedMessageBus.invokeAndWaitSerializedOnly(eventType, message);
+                final PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> result = serializedMessageBus
+                        .invokeAndWaitSerializedOnly(eventType, message);
                 testEnvironment.setPropertyIfNotSet(RESULT, result);
             } catch (final InterruptedException | ExecutionException e) {
                 testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
@@ -210,7 +241,8 @@ public final class SerializedMessageBusActionBuilder {
             final TestMessageOfInterest message = TestMessageOfInterest.messageOfInterest();
             testEnvironment.setPropertyIfNotSet(SEND_DATA, message);
             try {
-                final PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> result = serializedMessageBus.invokeAndWaitSerializedOnly(eventType, message, 10, MILLISECONDS);
+                final PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> result = serializedMessageBus
+                        .invokeAndWaitSerializedOnly(eventType, message, 10, MILLISECONDS);
                 testEnvironment.setPropertyIfNotSet(RESULT, result);
             } catch (final InterruptedException | ExecutionException | TimeoutException e) {
                 testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
@@ -233,26 +265,30 @@ public final class SerializedMessageBusActionBuilder {
 
     public static SerializedMessageBusActionBuilder anObjectWithoutKnownSerializationIsSendWithTimeout() {
         return sendObjectWithoutKnownSerialization(((eventType, serializedMessageBus, object) -> {
-            return serializedMessageBus.invokeAndWaitDeserialized(eventType, object, Object.class, Object.class, 10, MILLISECONDS);
+            return serializedMessageBus.
+                    invokeAndWaitDeserialized(eventType, object, Object.class, Object.class, 10, MILLISECONDS);
         }));
     }
 
-    public static SerializedMessageBusActionBuilder anObjectWithoutKnownSerializationIsSendForInvokeAndSerializeOnlyWithTimeout() {
+    public static SerializedMessageBusActionBuilder aObjectWithoutKnownSerializationIsSendForInvokeAndSerializeOnlyWithTimeout() {
         return sendObjectWithoutKnownSerialization(((eventType, serializedMessageBus, object) -> {
             return serializedMessageBus.invokeAndWaitSerializedOnly(eventType, object, 10, MILLISECONDS);
         }));
     }
 
     public static SerializedMessageBusActionBuilder anObjectWithoutKnownReturnValueDeserializationIsSend() {
-        return sendTestMessageResultingInSomeSortOfError(((eventType, serializedMessageBus, object) -> {
-            return serializedMessageBus.invokeAndWaitDeserialized(eventType, object, InvalidTestMessage.class, InvalidTestMessage.class);
+        return sendTestMessageResultingInSomeError(((eventType, serializedMessageBus, object) -> {
+            return serializedMessageBus.
+                    invokeAndWaitDeserialized(eventType, object, InvalidTestMessage.class, InvalidTestMessage.class);
         }));
     }
 
 
     public static SerializedMessageBusActionBuilder anObjectWithoutKnownReturnValueDeserializationIsSendWithTimeout() {
-        return sendTestMessageResultingInSomeSortOfError(((eventType, serializedMessageBus, object) -> {
-            return serializedMessageBus.invokeAndWaitDeserialized(eventType, object, InvalidTestMessage.class, InvalidTestMessage.class, 10, MILLISECONDS);
+        return sendTestMessageResultingInSomeError(((eventType, serializedMessageBus, object) -> {
+            final Class<InvalidTestMessage> responseClasses = InvalidTestMessage.class;
+            return serializedMessageBus
+                    .invokeAndWaitDeserialized(eventType, object, responseClasses, responseClasses, 10, MILLISECONDS);
         }));
     }
 
@@ -270,7 +306,7 @@ public final class SerializedMessageBusActionBuilder {
         });
     }
 
-    private static SerializedMessageBusActionBuilder sendTestMessageResultingInSomeSortOfError(final InvokeAndWaitCall<Object> call) {
+    private static SerializedMessageBusActionBuilder sendTestMessageResultingInSomeError(final InvokeAndWaitCall<Object> call) {
         return new SerializedMessageBusActionBuilder((serializedMessageBus, testEnvironment) -> {
             final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
             try {
@@ -286,11 +322,15 @@ public final class SerializedMessageBusActionBuilder {
 
     public static SerializedMessageBusActionBuilder theSubscriberUnsubscribe() {
         return new SerializedMessageBusActionBuilder((serializedMessageBus, testEnvironment) -> {
-            @SuppressWarnings("unchecked")
-            final List<SubscriptionId> subscriptionIdList = (List<SubscriptionId>) testEnvironment.getProperty(USED_SUBSCRIPTION_ID);
+            final List<SubscriptionId> subscriptionIdList = getUsedSubscriptionId(testEnvironment);
             subscriptionIdList.forEach(serializedMessageBus::unsubscribe);
             return null;
         });
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<SubscriptionId> getUsedSubscriptionId(final TestEnvironment testEnvironment) {
+        return (List<SubscriptionId>) testEnvironment.getProperty(USED_SUBSCRIPTION_ID);
     }
 
     public TestAction<SerializedMessageBus> build() {
@@ -299,6 +339,8 @@ public final class SerializedMessageBusActionBuilder {
 
 
     private interface InvokeAndWaitCall<T> {
-        T execute(EventType eventType, SerializedMessageBus serializedMessageBus, T object) throws InterruptedException, ExecutionException, TimeoutException;
+        T execute(EventType eventType,
+                  SerializedMessageBus serializedMessageBus,
+                  T object) throws InterruptedException, ExecutionException, TimeoutException;
     }
 }

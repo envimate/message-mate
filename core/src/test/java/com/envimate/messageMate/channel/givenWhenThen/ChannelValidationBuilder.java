@@ -73,7 +73,8 @@ public final class ChannelValidationBuilder {
     public static ChannelValidationBuilder expectAllChannelsToBeContainedInTheHistory() {
         return aValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
-            final List<Channel<TestMessage>> expectedTraversedChannels = getTestPropertyAsListOfChannel(testEnvironment, ALL_CHANNELS);
+            final List<Channel<TestMessage>> expectedTraversedChannels = getTestPropertyAsListOfChannel(testEnvironment,
+                    ALL_CHANNELS);
             assertResultTraversedAllChannelBasedOnTheirDefaultActions(testEnvironment, expectedTraversedChannels);
         });
     }
@@ -96,7 +97,8 @@ public final class ChannelValidationBuilder {
         return aValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
             final Channel<TestMessage> initialChannel = getTestPropertyAsChannel(testEnvironment, SUT);
-            final List<Channel<TestMessage>> callTargetLists = getTestPropertyAsListOfChannel(testEnvironment, CALL_TARGET_CHANNEL);
+            final List<Channel<TestMessage>> callTargetLists = getTestPropertyAsListOfChannel(testEnvironment,
+                    CALL_TARGET_CHANNEL);
             final Channel<TestMessage> firstCallTargetChannel = callTargetLists.get(0);
             final Channel<TestMessage> secondCallTargetChannel = callTargetLists.get(1);
             final Channel<TestMessage> returningTargetChannel = getTestPropertyAsChannel(testEnvironment, RETURNING_CHANNEL);
@@ -110,14 +112,6 @@ public final class ChannelValidationBuilder {
         });
     }
 
-    public static ChannelValidationBuilder expectTheMessageToBeReplaced() {
-        return aValidation(testEnvironment -> {
-            assertNoExceptionThrown(testEnvironment);
-            final Object expectedResult = testEnvironment.getProperty(REPLACED_MESSAGE);
-            assertResultEqualsExpected(testEnvironment, expectedResult);
-        });
-    }
-
     public static ChannelValidationBuilder expectNoMessageToBeDelivered() {
         return aValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
@@ -127,13 +121,6 @@ public final class ChannelValidationBuilder {
 
     public static ChannelValidationBuilder expectAExceptionOfType(final Class<?> expectedExceptionClass) {
         return aValidation(testEnvironment -> assertExceptionThrownOfType(testEnvironment, expectedExceptionClass));
-    }
-
-    public static ChannelValidationBuilder expectAFilterExceptionOfType(final Class<?> expectedExceptionClass) {
-        return aValidation(testEnvironment -> {
-            assertExceptionThrownOfType(testEnvironment, expectedExceptionClass);
-            assertPropertyTrue(testEnvironment, EXCEPTION_OCCURRED_INSIDE_FILTER);
-        });
     }
 
     public static ChannelValidationBuilder expectADeliveryExceptionOfType(final Class<?> expectedExceptionClass) {
@@ -153,7 +140,8 @@ public final class ChannelValidationBuilder {
     public static ChannelValidationBuilder expectAllFilterToBeInCorrectOrderInChannel() {
         return aValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
-            final List<Filter<ProcessingContext<TestMessage>>> expectedFilter = getTestPropertyAsListOfFilter(testEnvironment, EXPECTED_RESULT);
+            final List<Filter<ProcessingContext<TestMessage>>> expectedFilter = getTestPropertyAsListOfFilter(testEnvironment,
+                    EXPECTED_RESULT);
             assertFilterAsExpected(testEnvironment, expectedFilter);
         });
     }
@@ -168,7 +156,8 @@ public final class ChannelValidationBuilder {
     public static ChannelValidationBuilder expectTheAllRemainingFilter() {
         return aValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
-            final List<Filter<ProcessingContext<TestMessage>>> expectedFilter = getTestPropertyAsListOfFilter(testEnvironment, EXPECTED_RESULT);
+            final List<Filter<ProcessingContext<TestMessage>>> expectedFilter = getTestPropertyAsListOfFilter(testEnvironment,
+                    EXPECTED_RESULT);
             assertFilterAsExpected(testEnvironment, expectedFilter);
         });
     }
@@ -213,20 +202,23 @@ public final class ChannelValidationBuilder {
 
     public static ChannelValidationBuilder expectTheMessageToBeReceivedByAllSubscriber() {
         return aValidation(testEnvironment -> {
-            final ProcessingContext<?> processingContext = testEnvironment.getPropertyAsType(EXPECTED_RESULT, ProcessingContext.class);
+            final ProcessingContext<?> processingContext = getExpectedProcessingContext(testEnvironment);
             final Object expectedMessage = processingContext.getPayload();
             final List<?> expectedTestMessages = Collections.singletonList(expectedMessage);
             assertExpectedReceiverReceivedAllMessages(testEnvironment, expectedTestMessages);
         });
     }
 
-
     public static ChannelValidationBuilder expectTheProcessingContextObjectToBeReceivedByAllSubscriber() {
         return aValidation(testEnvironment -> {
-            final ProcessingContext<?> processingContext = testEnvironment.getPropertyAsType(EXPECTED_RESULT, ProcessingContext.class);
+            final ProcessingContext<?> processingContext = getExpectedProcessingContext(testEnvironment);
             final List<?> expectedTestMessages = Collections.singletonList(processingContext);
             assertExpectedReceiverReceivedAllMessages(testEnvironment, expectedTestMessages);
         });
+    }
+
+    private static ProcessingContext<?> getExpectedProcessingContext(final TestEnvironment testEnvironment) {
+        return testEnvironment.getPropertyAsType(EXPECTED_RESULT, ProcessingContext.class);
     }
 
     public static ChannelValidationBuilder expectRemainingSubscriber() {
@@ -242,7 +234,6 @@ public final class ChannelValidationBuilder {
                         .filter(s -> s.getSubscriptionId().equals(expectedSubscriptionId))
                         .findAny()
                         .orElseThrow(AssertionError::new);
-
             }
         });
     }
@@ -296,23 +287,27 @@ public final class ChannelValidationBuilder {
         assertTrue(isShutdown);
     }
 
-    private static Channel<TestMessage> getTestPropertyAsChannel(final TestEnvironment testEnvironment, final TestEnvironmentProperty property) {
+    private static Channel<TestMessage> getTestPropertyAsChannel(final TestEnvironment testEnvironment,
+                                                                 final TestEnvironmentProperty property) {
         return getTestPropertyAsChannel(testEnvironment, property.name());
     }
 
     @SuppressWarnings("unchecked")
-    private static Channel<TestMessage> getTestPropertyAsChannel(final TestEnvironment testEnvironment, final String property) {
+    private static Channel<TestMessage> getTestPropertyAsChannel(final TestEnvironment testEnvironment,
+                                                                 final String property) {
         return (Channel<TestMessage>) testEnvironment.getProperty(property);
     }
 
     @SuppressWarnings("unchecked")
-    private static List<Channel<TestMessage>> getTestPropertyAsListOfChannel(final TestEnvironment testEnvironment, final String property) {
+    private static List<Channel<TestMessage>> getTestPropertyAsListOfChannel(final TestEnvironment testEnvironment,
+                                                                             final String property) {
         return (List<Channel<TestMessage>>) testEnvironment.getProperty(property);
     }
 
     @SuppressWarnings("unchecked")
-    private static List<Filter<ProcessingContext<TestMessage>>> getTestPropertyAsListOfFilter(final TestEnvironment testEnvironment,
-                                                                                              final TestEnvironmentProperty property) {
+    private static List<Filter<ProcessingContext<TestMessage>>> getTestPropertyAsListOfFilter(
+            final TestEnvironment testEnvironment,
+            final TestEnvironmentProperty property) {
         return (List<Filter<ProcessingContext<TestMessage>>>) testEnvironment.getProperty(property);
     }
 

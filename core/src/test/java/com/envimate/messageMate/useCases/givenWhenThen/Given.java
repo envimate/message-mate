@@ -19,19 +19,15 @@
  * under the License.
  */
 
-package com.envimate.messageMate.shared.testMessages;
+package com.envimate.messageMate.useCases.givenWhenThen;
 
+import lombok.RequiredArgsConstructor;
 
-import lombok.ToString;
+import static lombok.AccessLevel.PRIVATE;
 
-@ToString
-public final class SubClassingTestMessageOfInterest extends TestMessageOfInterest {
-
-    private SubClassingTestMessageOfInterest(final String content) {
-        super(content);
-    }
-
-    public static SubClassingTestMessageOfInterest subClassingTestMessageOfInterest() {
-        return new SubClassingTestMessageOfInterest(TestMessageOfInterest.CONTENT);
+@RequiredArgsConstructor(access = PRIVATE)
+public final class Given {
+    public static When given(final UseCaseInvocationSetupBuilder useCaseInvocationSetupBuilder) {
+        return new When(useCaseInvocationSetupBuilder);
     }
 }

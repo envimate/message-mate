@@ -29,7 +29,7 @@ import static lombok.AccessLevel.PACKAGE;
 public class When {
     private final TestMessageFunctionSetupBuilder testMessageFunctionSetupBuilder;
 
-    public Then when(TestMessageFunctionActionBuilder testMessageFunctionActionBuilder) {
+    public Then when(final TestMessageFunctionActionBuilder testMessageFunctionActionBuilder) {
         return new Then(testMessageFunctionSetupBuilder, testMessageFunctionActionBuilder);
     }
 }
