@@ -1,3 +1,5 @@
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.envimate/mapmate/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.envimate.message-mate/message-mate-parent)
+
 # message-mate
 Message-Mate is a library for building messaging architectures.
 
