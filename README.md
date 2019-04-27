@@ -1,11 +1,19 @@
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.envimate/mapmate/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.envimate.message-mate/message-mate-parent)
-
 # message-mate
 Message-Mate is a library for building messaging architectures.
 
 It provides components to integrate parts of your business 
 logic in a loosely coupled fashion. This allows for applications to be highly
 extensible and easily tested.
+
+## Maven Dependency
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.envimate/mapmate/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.envimate.message-mate/core)
+```
+<dependency>
+    <groupId>com.envimate.message-mate</groupId>
+    <artifactId>core</artifactId>
+    <version>...</version>
+</dependency>
+```
 
 ## Motivation
 Messaging is a form of communication, that exchanges encapsulated messages between 
