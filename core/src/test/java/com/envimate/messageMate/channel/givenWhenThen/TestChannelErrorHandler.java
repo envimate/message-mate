@@ -23,14 +23,14 @@ package com.envimate.messageMate.channel.givenWhenThen;
 
 import com.envimate.messageMate.channel.exception.ChannelExceptionHandler;
 import com.envimate.messageMate.processingContext.ProcessingContext;
-import com.envimate.messageMate.qcec.shared.TestEnvironment;
-import com.envimate.messageMate.qcec.shared.TestEnvironmentProperty;
+import com.envimate.messageMate.shared.environment.TestEnvironment;
+import com.envimate.messageMate.shared.environment.TestEnvironmentProperty;
 import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import lombok.RequiredArgsConstructor;
 
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXCEPTION;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXCEPTION;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.RESULT;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.EXCEPTION_OCCURRED_DURING_DELIVERY;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.EXCEPTION_OCCURRED_INSIDE_FILTER;
 import static lombok.AccessLevel.PRIVATE;

@@ -22,7 +22,7 @@
 package com.envimate.messageMate.useCases.givenWhenThen;
 
 import com.envimate.messageMate.messageBus.MessageBus;
-import com.envimate.messageMate.qcec.shared.TestEnvironment;
+import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.useCases.shared.TestUseCase;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

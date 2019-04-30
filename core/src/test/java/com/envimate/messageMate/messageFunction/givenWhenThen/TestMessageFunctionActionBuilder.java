@@ -30,9 +30,9 @@ import com.envimate.messageMate.messageFunction.testResponses.SimpleTestRequest;
 import com.envimate.messageMate.messageFunction.testResponses.SimpleTestResponse;
 import com.envimate.messageMate.messageFunction.testResponses.TestRequest;
 import com.envimate.messageMate.processingContext.EventType;
-import com.envimate.messageMate.qcec.shared.TestAction;
-import com.envimate.messageMate.qcec.shared.TestEnvironment;
-import com.envimate.messageMate.qcec.shared.TestEnvironmentProperty;
+import com.envimate.messageMate.shared.givenWhenThen.TestAction;
+import com.envimate.messageMate.shared.environment.TestEnvironment;
+import com.envimate.messageMate.shared.environment.TestEnvironmentProperty;
 import lombok.RequiredArgsConstructor;
 
 import java.util.LinkedList;
@@ -46,7 +46,7 @@ import static com.envimate.messageMate.messageFunction.givenWhenThen.MessageFunc
 import static com.envimate.messageMate.messageFunction.testResponses.RequestResponseFuturePair.requestResponseFuturePair;
 import static com.envimate.messageMate.messageFunction.testResponses.SimpleTestRequest.testRequest;
 import static com.envimate.messageMate.messageFunction.testResponses.SimpleTestResponse.testResponse;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.*;
 import static com.envimate.messageMate.shared.eventType.TestEventType.differentTestEventType;
 import static com.envimate.messageMate.shared.eventType.TestEventType.testEventType;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;

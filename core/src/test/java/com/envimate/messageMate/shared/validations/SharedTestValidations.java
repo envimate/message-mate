@@ -21,15 +21,15 @@
 
 package com.envimate.messageMate.shared.validations;
 
-import com.envimate.messageMate.qcec.shared.TestEnvironment;
-import com.envimate.messageMate.qcec.shared.TestEnvironmentProperty;
+import com.envimate.messageMate.shared.environment.TestEnvironment;
+import com.envimate.messageMate.shared.environment.TestEnvironmentProperty;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.*;
 import static lombok.AccessLevel.PRIVATE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -56,6 +56,16 @@ public final class SharedTestValidations {
             assertThat(resultAsDouble, equalTo(expectedAsDouble));
         } else {
             assertThat(result, equalTo(expectedResult));
+        }
+    }
+
+    public static boolean testEquals(final Object result, final Object expectedResult) {
+        if (expectedResult instanceof Number && result instanceof Number) {
+            final double resultAsDouble = ((Number) result).doubleValue();
+            final double expectedAsDouble = ((Number) expectedResult).doubleValue();
+            return resultAsDouble == expectedAsDouble;
+        } else {
+            return result.equals(expectedResult);
         }
     }
 

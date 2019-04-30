@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.envimate.messageMate.qcec.shared;
+package com.envimate.messageMate.shared.environment;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -95,6 +95,16 @@ public final class TestEnvironment {
     @SuppressWarnings("unchecked")
     public <T> T getPropertyAsType(final TestEnvironmentProperty property, final Class<T> tClass) {
         return (T) getProperty(property);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> List<T> getPropertyAsListOfType(final String property, final Class<T> tClass) {
+        return (List<T>) getProperty(property);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> List<T> getPropertyAsListOfType(final TestEnvironmentProperty property, final Class<T> tClass) {
+        return (List<T>) getProperty(property);
     }
 
     @SuppressWarnings("unchecked")

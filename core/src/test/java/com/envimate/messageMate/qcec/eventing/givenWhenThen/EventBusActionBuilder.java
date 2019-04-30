@@ -21,15 +21,15 @@
 
 package com.envimate.messageMate.qcec.eventing.givenWhenThen;
 
-import com.envimate.messageMate.qcec.shared.TestAction;
+import com.envimate.messageMate.shared.givenWhenThen.TestAction;
 import com.envimate.messageMate.qcec.shared.TestReceiver;
 import com.envimate.messageMate.qcec.shared.testEvents.TestEvent;
 import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.RequiredArgsConstructor;
 
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RECEIVERS;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.TEST_OBJECT;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXPECTED_RECEIVERS;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.TEST_OBJECT;
 import static com.envimate.messageMate.qcec.shared.TestReceiver.aTestReceiver;
 import static com.envimate.messageMate.qcec.shared.testEvents.TestEvent.testEvent;
 import static lombok.AccessLevel.PRIVATE;

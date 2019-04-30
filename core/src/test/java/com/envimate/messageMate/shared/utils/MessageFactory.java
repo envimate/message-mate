@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen;
+package com.envimate.messageMate.shared.utils;
 
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 

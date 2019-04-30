@@ -22,12 +22,12 @@
 package com.envimate.messageMate.useCases.givenWhenThen;
 
 import com.envimate.messageMate.processingContext.EventType;
-import com.envimate.messageMate.qcec.shared.TestAction;
-import com.envimate.messageMate.qcec.shared.TestEnvironment;
+import com.envimate.messageMate.shared.givenWhenThen.TestAction;
+import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.useCases.shared.TestUseCase;
 import lombok.RequiredArgsConstructor;
 
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXCEPTION;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXCEPTION;
 import static com.envimate.messageMate.useCases.givenWhenThen.UseCaseInvocationTestProperties.EVENT_TYPE;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static lombok.AccessLevel.PACKAGE;

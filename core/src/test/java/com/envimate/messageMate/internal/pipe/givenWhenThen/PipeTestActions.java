@@ -26,7 +26,7 @@ import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.internal.pipe.Pipe;
 import com.envimate.messageMate.internal.pipe.PipeStatusInformation;
 import com.envimate.messageMate.internal.pipe.statistics.PipeStatistics;
-import com.envimate.messageMate.qcec.shared.TestEnvironment;
+import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.subscribing.Subscriber;
@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.RESULT;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
@@ -136,10 +136,14 @@ public final class PipeTestActions implements PipeMessageBusSutActions {
 
     private void queryMessageStatistics(final TestEnvironment testEnvironment,
                                         final PipeStatisticsQuery query) {
+        final long longValueExact = getMessageStatistics(query);
+        testEnvironment.setProperty(RESULT, longValueExact);
+    }
+
+    public long getMessageStatistics(final PipeStatisticsQuery query) {
         final PipeStatistics pipeStatistics = getMessageStatistics();
         final BigInteger statistic = query.query(pipeStatistics);
-        final long longValueExact = statistic.longValueExact();
-        testEnvironment.setProperty(RESULT, longValueExact);
+        return statistic.longValueExact();
     }
 
     @Override
@@ -167,7 +171,7 @@ public final class PipeTestActions implements PipeMessageBusSutActions {
         return (List<Subscriber<?>>) allSubscribers;
     }
 
-    private interface PipeStatisticsQuery {
+    public interface PipeStatisticsQuery {
         BigInteger query(PipeStatistics pipeStatistics);
     }
 }

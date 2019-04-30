@@ -21,13 +21,13 @@
 
 package com.envimate.messageMate.serializedMessageBus.givenWhenThen;
 
-import com.envimate.messageMate.qcec.shared.TestAction;
-import com.envimate.messageMate.qcec.shared.TestEnvironment;
-import com.envimate.messageMate.qcec.shared.TestValidation;
+import com.envimate.messageMate.shared.givenWhenThen.TestAction;
+import com.envimate.messageMate.shared.environment.TestEnvironment;
+import com.envimate.messageMate.shared.givenWhenThen.TestValidation;
 import com.envimate.messageMate.serializedMessageBus.SerializedMessageBus;
 import lombok.RequiredArgsConstructor;
 
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXCEPTION;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXCEPTION;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static lombok.AccessLevel.PACKAGE;
 

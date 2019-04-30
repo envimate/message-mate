@@ -22,9 +22,9 @@
 package com.envimate.messageMate.internal.pipe.givenWhenThen;
 
 import com.envimate.messageMate.internal.pipe.Pipe;
-import com.envimate.messageMate.qcec.shared.TestAction;
-import com.envimate.messageMate.qcec.shared.TestEnvironment;
-import com.envimate.messageMate.qcec.shared.TestValidation;
+import com.envimate.messageMate.shared.environment.TestEnvironment;
+import com.envimate.messageMate.shared.givenWhenThen.TestAction;
+import com.envimate.messageMate.shared.givenWhenThen.TestValidation;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.SetupAction;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import lombok.AccessLevel;
@@ -33,10 +33,9 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXCEPTION;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.SUT;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXCEPTION;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.SUT;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.EXECUTION_END_SEMAPHORE;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
@@ -44,7 +43,7 @@ public class Then {
     private final PipeSetupBuilder setupBuilder;
     private final PipeActionBuilder actionBuilder;
 
-    public void then(final PipeValidationBuilder testValidationBuilder) throws InterruptedException {
+    public void then(final PipeValidationBuilder testValidationBuilder) {
         final PipeSetup setup = buildSetup(setupBuilder);
 
         final TestEnvironment testEnvironment = setup.getTestEnvironment();
@@ -86,23 +85,21 @@ public class Then {
             blockingSemaphoreToReleaseAfterExecution.release(1000);
         }
 
-        //Some Tests need a minimal sleep here
-        try {
-            MILLISECONDS.sleep(10);
-        } catch (final InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
     private Semaphore getExecutionEndSemaphore(final TestEnvironment testEnvironment) {
         return testEnvironment.getPropertyAsType(EXECUTION_END_SEMAPHORE, Semaphore.class);
     }
 
-    private void closeSut(final Pipe<TestMessage> pipe) throws InterruptedException {
+    private void closeSut(final Pipe<TestMessage> pipe) {
         final int timeout = 3;
         pipe.close(true);
-        if (!pipe.awaitTermination(timeout, SECONDS)) {
-            throw new RuntimeException("Pipe did shutdown within timeout interval.");
+        try {
+            if (!pipe.awaitTermination(timeout, SECONDS)) {
+                throw new RuntimeException("Pipe did shutdown within timeout interval.");
+            }
+        } catch (final InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 }

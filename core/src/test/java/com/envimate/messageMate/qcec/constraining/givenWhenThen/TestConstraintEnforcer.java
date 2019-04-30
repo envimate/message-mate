@@ -21,14 +21,14 @@
 
 package com.envimate.messageMate.qcec.constraining.givenWhenThen;
 
-import com.envimate.messageMate.qcec.shared.TestEnvironment;
+import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.qcec.shared.TestReceiver;
 import com.envimate.messageMate.qcec.shared.testConstraints.TestConstraint;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 
 import java.util.function.Consumer;
 
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RECEIVERS;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXPECTED_RECEIVERS;
 
 public abstract class TestConstraintEnforcer {
     private final TestEnvironment testEnvironment = TestEnvironment.emptyTestEnvironment();

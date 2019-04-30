@@ -24,7 +24,7 @@ package com.envimate.messageMate.useCases.shared;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusBuilder;
 import com.envimate.messageMate.processingContext.EventType;
-import com.envimate.messageMate.qcec.shared.TestEnvironment;
+import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.useCases.building.DeserializationStep1Builder;
 import com.envimate.messageMate.useCases.building.ResponseSerializationStep1Builder;
 import com.envimate.messageMate.useCases.building.Step3Builder;

@@ -25,8 +25,8 @@ import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.channel.action.Action;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.processingContext.ProcessingContext;
-import com.envimate.messageMate.qcec.shared.TestEnvironment;
-import com.envimate.messageMate.qcec.shared.TestEnvironmentProperty;
+import com.envimate.messageMate.shared.environment.TestEnvironment;
+import com.envimate.messageMate.shared.environment.TestEnvironmentProperty;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import lombok.RequiredArgsConstructor;
 
@@ -37,7 +37,7 @@ import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestActions.
 import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestProperties.MODIFIED_META_DATUM;
 import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestProperties.PIPE;
 import static com.envimate.messageMate.channel.givenWhenThen.ProcessingFrameHistoryMatcher.aProcessingFrameHistory;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.*;
 import static lombok.AccessLevel.PRIVATE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;

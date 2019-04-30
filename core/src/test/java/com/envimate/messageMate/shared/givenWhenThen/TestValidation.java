@@ -19,7 +19,9 @@
  * under the License.
  */
 
-package com.envimate.messageMate.qcec.shared;
+package com.envimate.messageMate.shared.givenWhenThen;
+
+import com.envimate.messageMate.shared.environment.TestEnvironment;
 
 public interface TestValidation {
 

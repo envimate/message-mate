@@ -19,11 +19,15 @@
  * under the License.
  */
 
-package com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen;
+package com.envimate.messageMate.shared.utils;
 
 import com.envimate.messageMate.processingContext.EventType;
-import com.envimate.messageMate.qcec.shared.TestEnvironment;
+import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.shared.eventType.TestEventType;
+import com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.SendingActions;
+import com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.SubscribeActions;
+import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
+import com.envimate.messageMate.shared.polling.PollingUtils;
 import com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber;
 import com.envimate.messageMate.shared.subscriber.TestSubscriber;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
@@ -40,8 +44,9 @@ import java.util.function.Consumer;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.EVENT_TYPE;
 import static com.envimate.messageMate.shared.eventType.TestEventType.testEventType;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.TestMessageFactory.*;
+import static com.envimate.messageMate.shared.utils.TestMessageFactory.*;
 import static com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber.blockingTestSubscriber;
+import static com.envimate.messageMate.shared.testMessages.TestMessageOfInterest.messageOfInterest;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static lombok.AccessLevel.PRIVATE;
@@ -83,31 +88,6 @@ public final class AsynchronousSendingTestUtils {
         sendXMessagesAsynchronously(numberOfSender, messageFactory, sutSend, testEnvironment, true);
     }
 
-    public static void sendMessagesBeforeAndAfterShutdownAsynchronously(final PipeMessageBusSutActions sutActions,
-                                                                        final TestEnvironment testEnvironment,
-                                                                        final int numberOfMessagesBeforeShutdown,
-                                                                        final int numberOfMessagesAfterShutdown,
-                                                                        final boolean finishRemainingTask) {
-        final Semaphore semaphore = new Semaphore(0);
-        final TestSubscriber<TestMessageOfInterest> subscriber = blockingTestSubscriber(semaphore);
-        sutActions.subscribe(TestMessageOfInterest.class, subscriber);
-        testEnvironment.setProperty(SINGLE_RECEIVER, subscriber);
-
-        final TestMessageFactory messageFactory = testMessageFactoryForValidMessages(1, testEnvironment);
-        sendXMessagesAsynchronously(numberOfMessagesBeforeShutdown, messageFactory, sutActions::send, testEnvironment, false);
-        try {
-            MILLISECONDS.sleep(100);
-        } catch (final InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        sutActions.close(finishRemainingTask);
-        semaphore.release(1000);
-        for (int i = 0; i < numberOfMessagesAfterShutdown; i++) {
-            final TestMessageOfInterest message = TestMessageOfInterest.messageOfInterest();
-            testEnvironment.addToListProperty(MESSAGES_SEND, message);
-            sutActions.send(message);
-        }
-    }
 
     public static void sendMessagesBeforeAndAfterShutdownAsynchronously(
             final BiConsumer<EventType, Subscriber<Object>> subscriberConsumer,
@@ -135,7 +115,7 @@ public final class AsynchronousSendingTestUtils {
         closeConsumer.accept(finishRemainingTask);
         semaphore.release(1000);
         for (int i = 0; i < numberOfMessagesAfterShutdown; i++) {
-            final TestMessageOfInterest message = TestMessageOfInterest.messageOfInterest();
+            final TestMessageOfInterest message = messageOfInterest();
             testEnvironment.addToListProperty(MESSAGES_SEND, message);
             sendConsumer.accept(eventType, message);
         }
@@ -158,7 +138,7 @@ public final class AsynchronousSendingTestUtils {
         for (int i = 0; i < numberOfSenders; i++) {
             executorService.execute(() -> {
                 for (int j = 0; j < numberOfMessages; j++) {
-                    final TestMessageOfInterest message = TestMessageOfInterest.messageOfInterest();
+                    final TestMessageOfInterest message = messageOfInterest();
                     testEnvironment.addToListProperty(MESSAGES_SEND, message);
                     sendConsumer.accept(message);
                 }
@@ -190,7 +170,7 @@ public final class AsynchronousSendingTestUtils {
         for (int i = 0; i < numberOfSenders; i++) {
             executorService.execute(() -> {
                 for (int j = 0; j < numberOfMessages; j++) {
-                    final TestMessageOfInterest message = TestMessageOfInterest.messageOfInterest();
+                    final TestMessageOfInterest message = messageOfInterest();
                     testEnvironment.addToListProperty(MESSAGES_SEND, message);
                     sendConsumer.accept(eventType, message);
                 }
@@ -245,6 +225,86 @@ public final class AsynchronousSendingTestUtils {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    public static void sendXMessagesAsynchronouslyThatWillFail(final SendingActions sendingActions,
+                                                               final int numberOfMessages,
+                                                               final TestEnvironment testEnvironment) {
+        final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+        final ExecutorService executorService = Executors.newFixedThreadPool(numberOfMessages);
+        for (int i = 0; i < numberOfMessages; i++) {
+            executorService.execute(() -> {
+                try {
+                    final TestMessageOfInterest message = messageOfInterest();
+                    sendingActions.send(eventType, message);
+                } catch (final Exception ignored) {
+                    //ignore
+                }
+            });
+        }
+        executorService.shutdown();
+    }
+
+    public static void sendXMessagesInTheirOwnThreadThatWillBeBlocked(final SendingActions sendingActions,
+                                                                      final int numberOfMessages,
+                                                                      final TestEnvironment testEnvironment) {
+        final ExecutorService executorService = Executors.newFixedThreadPool(numberOfMessages);
+        final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+        for (int i = 0; i < numberOfMessages; i++) {
+            executorService.execute(() -> {
+                final TestMessageOfInterest message = messageOfInterest();
+                testEnvironment.addToListProperty(MESSAGES_SEND, message);
+                System.out.println("message send = ");
+                sendingActions.send(eventType, message);
+            });
+        }
+    }
+
+    public static <T extends SendingActions & SubscribeActions> Semaphore addABlockingSubscriberAndThenSendXMessagesInEachThread(
+            final T sutActions,
+            final int numberOfMessages,
+            final TestEnvironment testEnvironment) {
+        final Semaphore semaphore = new Semaphore(0);
+        final BlockingTestSubscriber<TestMessage> subscriber = blockingTestSubscriber(semaphore);
+        addABlockingSubscriberAndThenSendXMessagesInEachThread(sutActions, subscriber, numberOfMessages, testEnvironment);
+        return semaphore;
+    }
+
+    public static <T extends SendingActions & SubscribeActions> void addABlockingSubscriberAndThenSendXMessagesInEachThread(
+            final T sutActions,
+            final BlockingTestSubscriber<TestMessage> subscriber,
+            final int numberOfMessages,
+            final TestEnvironment testEnvironment) {
+        addABlockingSubscriberAndThenSendXMessagesInEachThread(sutActions, subscriber, numberOfMessages, 1, testEnvironment, numberOfMessages);
+    }
+
+    public static <T extends SendingActions & SubscribeActions> void addABlockingSubscriberAndThenSendXMessagesInEachThread(
+            final T sutActions,
+            final BlockingTestSubscriber<TestMessage> subscriber,
+            final int numberOfSenders,
+            final int numberOfMessagesPerSender,
+            final TestEnvironment testEnvironment,
+            final int expectedNumberOfBlockedThreads) {
+        final EventType eventType = TestEventType.testEventType();
+        sutActions.subscribe(eventType, subscriber);
+        testEnvironment.setProperty(SINGLE_RECEIVER, subscriber);
+
+        final ExecutorService executorService = Executors.newFixedThreadPool(numberOfSenders);
+        for (int i = 0; i < numberOfSenders; i++) {
+            executorService.execute(() -> {
+                for (int j = 0; j < numberOfMessagesPerSender; j++) {
+                    final TestMessageOfInterest message = messageOfInterest();
+                    testEnvironment.addToListProperty(MESSAGES_SEND, message);
+                    System.out.println("message send = ");
+                    sutActions.send(eventType, message);
+                }
+            });
+        }
+        PollingUtils.pollUntilEquals(() -> {
+            final int blockedThreads = subscriber.getBlockedThreads();
+            System.out.println("blockedThreads = " + blockedThreads + ", expected: " + numberOfSenders);
+            return blockedThreads;
+        }, expectedNumberOfBlockedThreads);
     }
 
 }

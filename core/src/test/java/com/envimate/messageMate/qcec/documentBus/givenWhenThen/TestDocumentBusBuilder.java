@@ -23,7 +23,7 @@ package com.envimate.messageMate.qcec.documentBus.givenWhenThen;
 
 import com.envimate.messageMate.qcec.domainBus.DocumentBus;
 import com.envimate.messageMate.qcec.domainBus.DocumentBusBuilder;
-import com.envimate.messageMate.qcec.shared.TestEnvironment;
+import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.qcec.shared.TestReceiver;
 import com.envimate.messageMate.qcec.shared.testConstraints.SpecificConstraint;
 import com.envimate.messageMate.qcec.shared.testConstraints.TestConstraint;
@@ -34,7 +34,7 @@ import com.envimate.messageMate.qcec.shared.testQueries.SpecificQuery;
 import com.envimate.messageMate.qcec.shared.testQueries.TestQuery;
 import lombok.RequiredArgsConstructor;
 
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.*;
 import static com.envimate.messageMate.qcec.shared.testConstraints.SpecificConstraint.specificConstraintWithId;
 import static com.envimate.messageMate.qcec.shared.testQueries.SpecificQuery.specificQueryWithId;
 import static lombok.AccessLevel.PRIVATE;

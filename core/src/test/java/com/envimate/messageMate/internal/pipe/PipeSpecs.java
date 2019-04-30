@@ -23,20 +23,19 @@ package com.envimate.messageMate.internal.pipe;
 
 import com.envimate.messageMate.exceptions.AlreadyClosedException;
 import com.envimate.messageMate.internal.pipe.config.PipeTestConfig;
-import com.envimate.messageMate.internal.pipe.givenWhenThen.PipeActionBuilder;
 import org.junit.jupiter.api.Test;
 
+import static com.envimate.messageMate.internal.pipe.config.PipeTestConfig.ASYNCHRONOUS_POOL_SIZE;
 import static com.envimate.messageMate.internal.pipe.givenWhenThen.Given.given;
 import static com.envimate.messageMate.internal.pipe.givenWhenThen.PipeActionBuilder.*;
 import static com.envimate.messageMate.internal.pipe.givenWhenThen.PipeSetupBuilder.aConfiguredPipe;
 import static com.envimate.messageMate.internal.pipe.givenWhenThen.PipeValidationBuilder.*;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public interface PipeSpecs {
 
     //sending and subscribe
     @Test
-    default void testPipe_canSendSingleMessageToOneReceiver(final PipeTestConfig testConfig) throws Exception {
+    default void testPipe_canSendSingleMessageToOneReceiver(final PipeTestConfig testConfig) {
         given(aConfiguredPipe(testConfig)
                 .withASingleSubscriber())
                 .when(aSingleMessageIsSend())
@@ -44,7 +43,7 @@ public interface PipeSpecs {
     }
 
     @Test
-    default void testPipe_canSendSeveralMessagesToSeveralSubscriber(final PipeTestConfig testConfig) throws Exception {
+    default void testPipe_canSendSeveralMessagesToSeveralSubscriber(final PipeTestConfig testConfig) {
         given(aConfiguredPipe(testConfig)
                 .withSeveralSubscriber(5))
                 .when(severalMessagesAreSend(10))
@@ -52,7 +51,7 @@ public interface PipeSpecs {
     }
 
     @Test
-    default void testPipe_canSendMessagesAsynchronously(final PipeTestConfig testConfig) throws Exception {
+    default void testPipe_canSendMessagesAsynchronously(final PipeTestConfig testConfig) {
         given(aConfiguredPipe(testConfig)
                 .withSeveralSubscriber(8))
                 .when(severalMessagesAreSendAsynchronously(10, 10))
@@ -60,8 +59,7 @@ public interface PipeSpecs {
     }
 
     @Test
-    default void testPipe_subscriberCanInterruptDeliveringMessage_whenDeliveryIsSynchronous(
-            final PipeTestConfig testConfig) throws Exception {
+    default void testPipe_subscriberCanInterruptDeliveringMessage(final PipeTestConfig testConfig) {
         given(aConfiguredPipe(testConfig)
                 .withSeveralDeliveryInterruptingSubscriber(5))
                 .when(severalMessagesAreSend(10))
@@ -69,7 +67,7 @@ public interface PipeSpecs {
     }
 
     @Test
-    default void testPipe_canQueryAllSubscriber(final PipeTestConfig testConfig) throws Exception {
+    default void testPipe_canQueryAllSubscriber(final PipeTestConfig testConfig) {
         given(aConfiguredPipe(testConfig)
                 .withSeveralSubscriber(8))
                 .when(theListOfSubscriberIsQueried())
@@ -78,7 +76,7 @@ public interface PipeSpecs {
 
     //unsubscribe
     @Test
-    default void testPipe_canUnsubscribe(final PipeTestConfig testConfig) throws Exception {
+    default void testPipe_canUnsubscribe(final PipeTestConfig testConfig) {
         given(aConfiguredPipe(testConfig)
                 .withSeveralSubscriber(5))
                 .when(oneSubscriberUnsubscribes())
@@ -86,7 +84,7 @@ public interface PipeSpecs {
     }
 
     @Test
-    default void testPipe_canUnsubscribeTwoSubscribers(final PipeTestConfig testConfig) throws Exception {
+    default void testPipe_canUnsubscribeTwoSubscribers(final PipeTestConfig testConfig) {
         given(aConfiguredPipe(testConfig)
                 .withSeveralSubscriber(5))
                 .when(oneSubscriberUnsubscribes()
@@ -95,7 +93,7 @@ public interface PipeSpecs {
     }
 
     @Test
-    default void testPipe_canUnsubscribeTheSameSubscriberSeveralTimes(final PipeTestConfig testConfig) throws Exception {
+    default void testPipe_canUnsubscribeTheSameSubscriberSeveralTimes(final PipeTestConfig testConfig) {
         given(aConfiguredPipe(testConfig)
                 .withSeveralSubscriber(5))
                 .when(oneSubscriberUnsubscribesSeveralTimes(2))
@@ -104,7 +102,7 @@ public interface PipeSpecs {
 
     //pipeStatistics
     @Test
-    default void testPipe_returnsCorrectNumberOfAcceptedMessages(final PipeTestConfig testConfig) throws Exception {
+    default void testPipe_returnsCorrectNumberOfAcceptedMessages(final PipeTestConfig testConfig) {
         given(aConfiguredPipe(testConfig)
                 .withASingleSubscriber())
                 .when(severalMessagesAreSendAsynchronously(3, 5)
@@ -113,21 +111,19 @@ public interface PipeSpecs {
     }
 
     @Test
-    default void testPipe_returnsCorrectNumberOfSuccessfulMessages(final PipeTestConfig testConfig) throws Exception {
+    default void testPipe_returnsCorrectNumberOfSuccessfulMessages(final PipeTestConfig testConfig) {
         given(aConfiguredPipe(testConfig)
                 .withASingleSubscriber())
                 .when(severalMessagesAreSendAsynchronously(3, 5)
-                        .andThen(aShortWaitIsDone(10, MILLISECONDS))
                         .andThen(theNumberOfSuccessfulMessagesIsQueried()))
                 .then(expectResultToBe(15));
     }
 
     @Test
-    default void testPipe_returnsCorrectNumberOfDeliveryFailedMessages(final PipeTestConfig testConfig) throws Exception {
+    default void testPipe_returnsCorrectNumberOfDeliveryFailedMessages(final PipeTestConfig testConfig) {
         given(aConfiguredPipe(testConfig)
                 .causingErrorsWhenDelivering())
                 .when(severalMessagesAreSendAsynchronously(3, 5)
-                        .andThen(aShortWaitIsDone(10, MILLISECONDS))
                         .andThen(theNumberOfFailedMessagesIsQueried()))
                 .then(expectResultToBe(15));
     }
@@ -137,7 +133,7 @@ public interface PipeSpecs {
     // message statistics with blocking subscribers also config dependent
 
     @Test
-    default void testPipe_returnsAValidTimestampForStatistics(final PipeTestConfig testConfig) throws Exception {
+    default void testPipe_returnsAValidTimestampForStatistics(final PipeTestConfig testConfig) {
         given(aConfiguredPipe(testConfig)
                 .withoutASubscriber())
                 .when(theTimestampOfTheStatisticsIsQueried())
@@ -146,7 +142,7 @@ public interface PipeSpecs {
 
     //exceptions handling
     @Test
-    default void testPipe_canUseCustomErrorHandler(final PipeTestConfig testConfig) throws Exception {
+    default void testPipe_canUseCustomErrorHandler(final PipeTestConfig testConfig) {
         given(aConfiguredPipe(testConfig)
                 .withACustomErrorHandler())
                 .when(aMessageResultingInAnErrorIsSend())
@@ -154,26 +150,24 @@ public interface PipeSpecs {
     }
 
     @Test
-    default void testPipe_customErrorHandlerCanSuppressExceptionSoThatDeliveryCountsAsSuccessful(
-            final PipeTestConfig testConfig) throws Exception {
-        given(aConfiguredPipe(testConfig)
-                .withACustomErrorHandlerThatSuppressException())
+    default void testPipe_customErrorHandlerCanSuppressExceptionSoThatDeliveryCountsAsSuccessful(final PipeTestConfig config) {
+        given(aConfiguredPipe(config)
+                .withACustomErrorHandlerThatSuppressesException())
                 .when(aMessageResultingInAnErrorIsSend())
                 .then(expectTheDeliveryToBeStillSuccessful());
     }
 
     //shutdown
     @Test
-    default void testPipe_canShutdown_evenIfIsBlocked(final PipeTestConfig testConfig) throws Exception {
-        given(aConfiguredPipe(testConfig)
-                .withASubscriberThatBlocksWhenAccepting())
-                .when(severalMessagesAreSendAsynchronouslyBeforeThePipeIsShutdown(3, 5)
+    default void testPipe_canShutdown_evenIfIsBlocked(final PipeTestConfig testConfig) {
+        given(aConfiguredPipe(testConfig))
+                .when(severalMessagesAreSendAsynchronouslyBeforeThePipeIsShutdown()
                         .andThen(thePipeShutdownIsExpectedForTimeoutInSeconds(1)))
                 .then(expectThePipeToBeShutdownInTime());
     }
 
     @Test
-    default void testPipe_shutdownCallIsIdempotent(final PipeTestConfig testConfig) throws Exception {
+    default void testPipe_shutdownCallIsIdempotent(final PipeTestConfig testConfig) {
         given(aConfiguredPipe(testConfig)
                 .withASubscriberThatBlocksWhenAccepting())
                 .when(thePipeIsShutdownAsynchronouslyXTimes(6)
@@ -182,16 +176,16 @@ public interface PipeSpecs {
     }
 
     @Test
-    default void testPipe_awaitReturnsAlwaysFalse_withoutACloseCall(final PipeTestConfig testConfig) throws Exception {
+    default void testPipe_awaitReturnsAlwaysFalse_withoutACloseCall(final PipeTestConfig testConfig) {
         given(aConfiguredPipe(testConfig))
-                .when(PipeActionBuilder.awaitWithoutACloseIsCalled())
+                .when(awaitWithoutACloseIsCalled())
                 .then(expectTheResultToAlwaysBeFalse());
     }
 
     @Test
-    default void testPipe_throwsExceptionWhenSendIsCalledOnAClosedPipe(final PipeTestConfig testConfig) throws Exception {
+    default void testPipe_throwsExceptionWhenSendIsCalledOnAClosedPipe(final PipeTestConfig testConfig) {
         given(aConfiguredPipe(testConfig))
-                .when(messagesAreSendAfterTheShutdown())
+                .when(aMessageIsSendAfterTheShutdown())
                 .then(expectTheException(AlreadyClosedException.class));
     }
 
@@ -199,10 +193,10 @@ public interface PipeSpecs {
 
     //await
     @Test
-    default void testPipe_awaitsSucceedsWhenAllTasksCouldBeDone(final PipeTestConfig testConfig) throws Exception {
-        final int numberOfMessagesSend = PipeTestConfig.ASYNCHRONOUS_POOL_SIZE + 3;
+    default void testPipe_awaitsSucceedsWhenAllTasksCouldBeDone(final PipeTestConfig testConfig) {
+        final int numberOfMessagesSend = ASYNCHRONOUS_POOL_SIZE;
         given(aConfiguredPipe(testConfig))
-                .when(awaitIsCalledBeforeAllTasksAreFinished(numberOfMessagesSend))
+                .when(closeAndThenWaitForPendingTasksToFinished(numberOfMessagesSend))
                 .then(expectTheAwaitToBeTerminatedSuccessful(numberOfMessagesSend));
     }
 

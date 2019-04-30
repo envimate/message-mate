@@ -25,7 +25,7 @@ import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfigur
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusBuilder;
 import com.envimate.messageMate.processingContext.EventType;
-import com.envimate.messageMate.qcec.shared.TestEnvironment;
+import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.useCases.building.*;
 import com.envimate.messageMate.useCases.shared.TestUseCase;
 import com.envimate.messageMate.useCases.useCaseAdapter.UseCaseAdapter;
@@ -41,8 +41,8 @@ import static com.envimate.messageMate.internal.pipe.configuration.AsynchronousC
 import static com.envimate.messageMate.messageBus.MessageBusBuilder.aMessageBus;
 import static com.envimate.messageMate.messageBus.MessageBusType.ASYNCHRONOUS;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler.allExceptionHandlingTestExceptionHandler;
-import static com.envimate.messageMate.qcec.shared.TestEnvironment.emptyTestEnvironment;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
+import static com.envimate.messageMate.shared.environment.TestEnvironment.emptyTestEnvironment;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.*;
 
 public final class UseCaseInvocationSetupBuilder {
     private final TestUseCase testUseCase;

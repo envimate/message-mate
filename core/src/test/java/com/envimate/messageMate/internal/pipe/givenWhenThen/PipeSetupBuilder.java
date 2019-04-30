@@ -25,7 +25,7 @@ import com.envimate.messageMate.internal.pipe.Pipe;
 import com.envimate.messageMate.internal.pipe.PipeBuilder;
 import com.envimate.messageMate.internal.pipe.config.PipeTestConfig;
 import com.envimate.messageMate.internal.pipe.error.PipeErrorHandler;
-import com.envimate.messageMate.qcec.shared.TestEnvironment;
+import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.SetupAction;
 import com.envimate.messageMate.shared.subscriber.TestException;
@@ -36,8 +36,9 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import static com.envimate.messageMate.internal.pipe.givenWhenThen.PipeTestActions.pipeTestActions;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXCEPTION;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXCEPTION;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.RESULT;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.EXPECTED_AND_IGNORED_EXCEPTION;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSetupActions.*;
 
 public class PipeSetupBuilder {
@@ -82,7 +83,7 @@ public class PipeSetupBuilder {
         return this;
     }
 
-    public PipeSetupBuilder withACustomErrorHandlerThatSuppressException() {
+    public PipeSetupBuilder withACustomErrorHandlerThatSuppressesException() {
         pipeBuilder.withErrorHandler(errorHandler(e -> testEnvironment.setProperty(EXCEPTION, e), TestException.class));
         return this;
     }
@@ -108,13 +109,14 @@ public class PipeSetupBuilder {
         return pipeTestActions(pipe);
     }
 
-    private PipeErrorHandler<TestMessage> errorHandler(final Consumer<Exception> exceptionHandler,
+    private PipeErrorHandler<TestMessage> errorHandler(final Consumer<Exception> exceptionHandlerForNotIgnoredExceptions,
                                                        final Class<?>... ignoredExceptionsClasses) {
-        return new PipeErrorHandler<TestMessage>() {
+        return new PipeErrorHandler<>() {
             @Override
             public boolean shouldErrorBeHandledAndDeliveryAborted(final TestMessage message, final Exception e) {
                 for (final Class<?> ignoredExceptionClass : ignoredExceptionsClasses) {
                     if (e.getClass().equals(ignoredExceptionClass)) {
+                        testEnvironment.addToListProperty(EXPECTED_AND_IGNORED_EXCEPTION, e);
                         return false;
                     }
                 }
@@ -123,7 +125,7 @@ public class PipeSetupBuilder {
 
             @Override
             public void handleException(final TestMessage message, final Exception e) {
-                exceptionHandler.accept(e);
+                exceptionHandlerForNotIgnoredExceptions.accept(e);
             }
         };
     }

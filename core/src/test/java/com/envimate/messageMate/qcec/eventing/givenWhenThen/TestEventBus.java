@@ -21,13 +21,13 @@
 
 package com.envimate.messageMate.qcec.eventing.givenWhenThen;
 
-import com.envimate.messageMate.qcec.shared.TestEnvironment;
+import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.RequiredArgsConstructor;
 
 import java.util.function.Consumer;
 
-import static com.envimate.messageMate.qcec.shared.TestEnvironment.emptyTestEnvironment;
+import static com.envimate.messageMate.shared.environment.TestEnvironment.emptyTestEnvironment;
 import static lombok.AccessLevel.PACKAGE;
 
 @RequiredArgsConstructor(access = PACKAGE)

@@ -32,7 +32,7 @@ import com.envimate.messageMate.useCases.shared.TestUseCaseBuilder;
 import lombok.RequiredArgsConstructor;
 
 import static com.envimate.messageMate.mapping.ExceptionMapifier.DEFAULT_EXCEPTION_MAPIFIER_KEY;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.RESULT;
 import static com.envimate.messageMate.useCases.shared.UseCaseBusCallBuilder.aUseCasBusCall;
 import static com.envimate.messageMate.useCases.givenWhenThen.UseCaseInvocationTestProperties.RETRIEVE_ERROR_FROM_FUTURE;
 import static com.envimate.messageMate.useCases.useCaseAdapter.UseCaseInvokingResponseEventType.USE_CASE_RESPONSE_EVENT_TYPE;

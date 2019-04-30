@@ -22,10 +22,14 @@
 package com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen;
 
 import com.envimate.messageMate.identification.MessageId;
-import com.envimate.messageMate.qcec.shared.TestEnvironment;
+import com.envimate.messageMate.shared.environment.TestEnvironment;
+import com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.SendingActions;
+import com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.SendingAndReceivingActions;
+import com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.SubscribeActions;
 import com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
+import com.envimate.messageMate.shared.utils.ShutdownTestUtils;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.RequiredArgsConstructor;
@@ -37,11 +41,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RESULT;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.AsynchronousSendingTestUtils.*;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.RESULT;
+import static com.envimate.messageMate.shared.utils.AsynchronousSendingTestUtils.addABlockingSubscriberAndThenSendXMessagesInEachThread;
+import static com.envimate.messageMate.shared.utils.AsynchronousSendingTestUtils.sendValidMessagesAsynchronously;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static lombok.AccessLevel.PRIVATE;
 
@@ -65,6 +68,7 @@ public final class PipeMessageBusTestActions {
             messages.add(message);
         }
         testEnvironment.setProperty(MESSAGES_SEND_OF_INTEREST, messages);
+        testEnvironment.setProperty(MESSAGES_SEND, messages);
     }
 
     public static void sendSeveralMessagesInTheirOwnThread(final PipeMessageBusSutActions sutActions,
@@ -76,27 +80,36 @@ public final class PipeMessageBusTestActions {
                 numberOfMessagesPerSender, expectCleanShutdown);
     }
 
-    public static void sendXMessagesAShutdownsIsCalledThenSendsYMessage(final PipeMessageBusSutActions sutActions,
+    public static <T extends SendingActions & SubscribeActions> void sendSeveralMessagesInTheirOwnThreadThatWillBeBlocked(
+            final T sutActions,
+            final TestEnvironment testEnvironment,
+            final int numberOfMessages) {
+        final Semaphore semaphore = addABlockingSubscriberAndThenSendXMessagesInEachThread(sutActions, numberOfMessages, testEnvironment);
+        testEnvironment.setPropertyIfNotSet(EXECUTION_END_SEMAPHORE, semaphore);
+    }
+
+    public static <T extends SendingActions & SubscribeActions> void sendSeveralMessagesInTheirOwnThreadThatWillBeBlocked(
+            final T sutActions,
+            final TestEnvironment testEnvironment,
+            final int numberOfSenders,
+            final int numberOfMessagesPerSender,
+            final int expectedNumberOfBlockedThreads) {
+        final Semaphore semaphore = new Semaphore(0);
+        final BlockingTestSubscriber<TestMessage> subscriber = BlockingTestSubscriber.blockingTestSubscriber(semaphore);
+        addABlockingSubscriberAndThenSendXMessagesInEachThread(sutActions, subscriber, numberOfSenders, numberOfMessagesPerSender, testEnvironment, expectedNumberOfBlockedThreads);
+        testEnvironment.setPropertyIfNotSet(EXECUTION_END_SEMAPHORE, semaphore);
+    }
+
+    public static void sendXMessagesAShutdownsIsCalledThenSendsYMessage(final SendingAndReceivingActions sutActions,
                                                                         final TestEnvironment testEnvironment,
                                                                         final int numberOfMessagesBeforeShutdown,
                                                                         final int numberOfMessagesAfterShutdown,
                                                                         final boolean finishRemainingTask) {
-        sendMessagesBeforeAndAfterShutdownAsynchronously(sutActions, testEnvironment, numberOfMessagesBeforeShutdown,
+        ShutdownTestUtils.sendMessagesBeforeAndAfterShutdownAsynchronously(sutActions, testEnvironment, numberOfMessagesBeforeShutdown,
                 numberOfMessagesAfterShutdown, finishRemainingTask);
     }
 
-    public static void sendSeveralMessagesAsynchronouslyBeforeTheObjectIsShutdown(final PipeMessageBusSutActions sutActions,
-                                                                                  final TestEnvironment testEnvironment,
-                                                                                  final int numberOfSenders,
-                                                                                  final int numberOfMessages) {
-        sendMessagesBeforeShutdownAsynchronouslyClassBased(sutActions::subscribe, sutActions::send, sutActions::close,
-                testEnvironment, numberOfSenders, numberOfMessages);
-    }
-
-    public static void shutdownTheSut(final PipeMessageBusSutActions sutActions) {
-        shutdownTheSut(sutActions, true);
-    }
-
+    //TODO: all shutdowns should be moved to ShutdownTestUtils
     public static void shutdownTheSut(final PipeMessageBusSutActions sutActions, final boolean finishRemainingTasks) {
         sutActions.close(finishRemainingTasks);
     }
@@ -107,6 +120,15 @@ public final class PipeMessageBusTestActions {
         for (int i = 0; i < numberOfThreads; i++) {
             executorService.execute(() -> sutActions.close(false));
         }
+        executorService.shutdown();
+        try {
+            final boolean terminationSuccessful = executorService.awaitTermination(1, SECONDS);
+            if (!terminationSuccessful) {
+                throw new RuntimeException("Executor service did not shutdown in a clean way.");
+            }
+        } catch (final InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static void awaitTheShutdownTimeoutInSeconds(final PipeMessageBusSutActions sutActions,
@@ -115,66 +137,6 @@ public final class PipeMessageBusTestActions {
         try {
             final boolean terminatedSuccessful = sutActions.awaitTermination(timeoutInSeconds, SECONDS);
             testEnvironment.setProperty(RESULT, terminatedSuccessful);
-        } catch (final InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static void callAwaitWithoutACloseIsCalled(final PipeMessageBusSutActions sutActions,
-                                                      final TestEnvironment testEnvironment) {
-        try {
-            final boolean terminatedSuccessful = sutActions.awaitTermination(0, SECONDS);
-            testEnvironment.setProperty(RESULT, terminatedSuccessful);
-            testEnvironment.setProperty(EXPECTED_RESULT, false);
-        } catch (final InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static void callCloseThenAwaitWithBlockedSubscriberButReleaseLockAfterAwait(final PipeMessageBusSutActions sutActions,
-                                                                                       final TestEnvironment testEnvironment,
-                                                                                       final int numberOfMessagesSend) {
-        try {
-            final Semaphore semaphore = new Semaphore(0);
-            final BlockingTestSubscriber<TestMessage> testSubscriber = BlockingTestSubscriber.blockingTestSubscriber(semaphore);
-            sutActions.subscribe(TestMessage.class, testSubscriber);
-            sendSeveralMessagesInTheirOwnThread(sutActions, testEnvironment, numberOfMessagesSend, 1, false);
-            MILLISECONDS.sleep(10);
-            new Thread(() -> {
-                try {
-                    MILLISECONDS.sleep(10);
-                    semaphore.release(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }).start();
-            sutActions.close(true);
-            final boolean terminatedSuccessful = sutActions.awaitTermination(15, MILLISECONDS);
-            //Second sleep necessary for synchronous config
-            MILLISECONDS.sleep(10);
-            testEnvironment.setProperty(RESULT, terminatedSuccessful);
-            testEnvironment.setProperty(SINGLE_RECEIVER, testSubscriber);
-        } catch (final InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static void callCloseThenAwaitWithBlockedSubscriberWithoutReleasingLock(final PipeMessageBusSutActions sutActions,
-                                                                                   final TestEnvironment testEnvironment,
-                                                                                   final int numberOfMessagesSend) {
-        try {
-            final Semaphore semaphore = new Semaphore(0);
-            final BlockingTestSubscriber<TestMessage> testSubscriber = BlockingTestSubscriber.blockingTestSubscriber(semaphore);
-            sutActions.subscribe(TestMessage.class, testSubscriber);
-            sendSeveralMessagesInTheirOwnThread(sutActions, testEnvironment, numberOfMessagesSend, 1, false);
-            MILLISECONDS.sleep(10);
-            sutActions.close(true);
-            final boolean terminatedSuccessful = sutActions.awaitTermination(15, MILLISECONDS);
-            //Second sleep necessary for synchronous config
-            MILLISECONDS.sleep(10);
-            testEnvironment.setProperty(RESULT, terminatedSuccessful);
-            testEnvironment.setProperty(SINGLE_RECEIVER, testSubscriber);
-            testEnvironment.setProperty(EXECUTION_END_SEMAPHORE, semaphore);
         } catch (final InterruptedException e) {
             throw new RuntimeException(e);
         }

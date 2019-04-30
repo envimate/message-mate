@@ -21,13 +21,13 @@
 
 package com.envimate.messageMate.qcec.constraining.givenWhenThen;
 
-import com.envimate.messageMate.qcec.shared.TestAction;
+import com.envimate.messageMate.shared.givenWhenThen.TestAction;
 import com.envimate.messageMate.qcec.shared.TestReceiver;
 import com.envimate.messageMate.qcec.shared.testConstraints.TestConstraint;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.RequiredArgsConstructor;
 
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.*;
 import static com.envimate.messageMate.qcec.shared.TestReceiver.aTestReceiver;
 import static com.envimate.messageMate.qcec.shared.testConstraints.TestConstraint.testConstraint;
 import static lombok.AccessLevel.PRIVATE;

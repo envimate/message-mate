@@ -30,8 +30,8 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RESULT;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXPECTED_RESULT;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.RESULT;
 import static com.envimate.messageMate.useCases.shared.UseCaseBusCallBuilder.aUseCasBusCall;
 import static com.envimate.messageMate.useCases.givenWhenThen.UseCaseInvocationTestProperties.MESSAGE_FUNCTION_USED;
 import static com.envimate.messageMate.useCases.voidReturn.CallbackTestRequest.callbackTestRequest;

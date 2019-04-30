@@ -22,9 +22,13 @@
 package com.envimate.messageMate.internal.pipe.givenWhenThen;
 
 import com.envimate.messageMate.internal.pipe.Pipe;
-import com.envimate.messageMate.qcec.shared.TestAction;
-import com.envimate.messageMate.qcec.shared.TestEnvironmentProperty;
+import com.envimate.messageMate.internal.pipe.statistics.PipeStatistics;
+import com.envimate.messageMate.shared.environment.TestEnvironmentProperty;
+import com.envimate.messageMate.shared.givenWhenThen.TestAction;
+import com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.PipeTestActionsNew;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
+import com.envimate.messageMate.shared.utils.ShutdownTestUtils;
+import com.envimate.messageMate.shared.polling.PollingUtils;
 import com.envimate.messageMate.shared.subscriber.TestSubscriber;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
@@ -35,10 +39,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static com.envimate.messageMate.internal.pipe.config.PipeTestConfig.ASYNCHRONOUS_POOL_SIZE;
 import static com.envimate.messageMate.internal.pipe.givenWhenThen.PipeTestActions.pipeTestActions;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.RESULT;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.MESSAGES_SEND;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSetupActions.addAnExceptionThrowingSubscriber;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusTestActions.*;
+import static com.envimate.messageMate.shared.utils.ShutdownTestUtils.*;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
@@ -84,11 +91,19 @@ public final class PipeActionBuilder {
         });
     }
 
+    public static PipeActionBuilder severalMessagesAreSendAsynchronouslyButWillBeBlocked(final int numberOfMessages) {
+        return new PipeActionBuilder((pipe, testEnvironment) -> {
+            final PipeTestActionsNew testActions = PipeTestActionsNew.pipeTestActions(pipe);
+            sendSeveralMessagesInTheirOwnThreadThatWillBeBlocked(testActions, testEnvironment, numberOfMessages);
+            return null;
+        });
+    }
+
     public static PipeActionBuilder severalMessagesAreSendAsynchronouslyButWillBeBlocked(final int numberOfSender,
                                                                                          final int numberOfMessagesPerSender) {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeMessageBusSutActions sutActions = pipeTestActions(pipe);
-            sendSeveralMessagesInTheirOwnThread(sutActions, testEnvironment, numberOfSender, numberOfMessagesPerSender, false);
+            final PipeTestActionsNew testActions = PipeTestActionsNew.pipeTestActions(pipe);
+            sendSeveralMessagesInTheirOwnThreadThatWillBeBlocked(testActions, testEnvironment, numberOfSender, numberOfMessagesPerSender, ASYNCHRONOUS_POOL_SIZE);
             return null;
         });
     }
@@ -111,48 +126,60 @@ public final class PipeActionBuilder {
 
     public static PipeActionBuilder theNumberOfAcceptedMessagesIsQueried() {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            pipeTestActions(pipe)
-                    .queryTheNumberOfAcceptedMessages(testEnvironment);
+            final List<?> sendMessages = testEnvironment.getPropertyAsType(MESSAGES_SEND, List.class);
+            final PipeTestActions pipeTestActions = pipeTestActions(pipe);
+            PollingUtils.pollUntilEquals(() -> pipeTestActions.getMessageStatistics(PipeStatistics::getAcceptedMessages), sendMessages.size());
+            pipeTestActions.queryTheNumberOfAcceptedMessages(testEnvironment);
             return null;
         });
     }
 
     public static PipeActionBuilder theNumberOfAcceptedMessagesIsQueriedAsynchronously() {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            pipeTestActions(pipe)
-                    .queryTheNumberOfAcceptedMessagesAsynchronously(testEnvironment);
+            pipeTestActions(pipe).queryTheNumberOfAcceptedMessagesAsynchronously(testEnvironment);
             return null;
         });
     }
 
     public static PipeActionBuilder theNumberOfQueuedMessagesIsQueried() {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            pipeTestActions(pipe)
-                    .queryTheNumberOfQueuedMessages(testEnvironment);
+            pipeTestActions(pipe).queryTheNumberOfQueuedMessages(testEnvironment);
             return null;
         });
     }
 
     public static PipeActionBuilder theNumberOfSuccessfulMessagesIsQueried() {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            pipeTestActions(pipe)
-                    .queryTheNumberOfSuccessfulDeliveredMessages(testEnvironment);
+            final List<?> sendMessages = testEnvironment.getPropertyAsType(MESSAGES_SEND, List.class);
+            final PipeTestActions pipeTestActions = pipeTestActions(pipe);
+            PollingUtils.pollUntilEquals(() -> pipeTestActions.getMessageStatistics(PipeStatistics::getAcceptedMessages), sendMessages.size());
+            pipeTestActions.queryTheNumberOfSuccessfulDeliveredMessages(testEnvironment);
             return null;
         });
     }
 
     public static PipeActionBuilder theNumberOfFailedMessagesIsQueried() {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            pipeTestActions(pipe)
-                    .queryTheNumberOfFailedDeliveredMessages(testEnvironment);
+            final List<?> sendMessages = testEnvironment.getPropertyAsType(MESSAGES_SEND, List.class);
+            final PipeTestActions pipeTestActions = pipeTestActions(pipe);
+            PollingUtils.pollUntilEquals(() -> pipeTestActions.getMessageStatistics(PipeStatistics::getFailedMessages), sendMessages.size());
+            pipeTestActions.queryTheNumberOfFailedDeliveredMessages(testEnvironment);
+            return null;
+        });
+    }
+
+    public static PipeActionBuilder theNumberOfFailedMessagesIsQueried(final int expectedResultToPollFor) {
+        return new PipeActionBuilder((pipe, testEnvironment) -> {
+            final PipeTestActions pipeTestActions = pipeTestActions(pipe);
+            PollingUtils.pollUntilEquals(() -> pipeTestActions.getMessageStatistics(PipeStatistics::getFailedMessages), expectedResultToPollFor);
+            pipeTestActions.queryTheNumberOfFailedDeliveredMessages(testEnvironment);
             return null;
         });
     }
 
     public static PipeActionBuilder theTimestampOfTheStatisticsIsQueried() {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            pipeTestActions(pipe)
-                    .queryTheTimestampOfTheMessageStatistics(testEnvironment);
+            pipeTestActions(pipe).queryTheTimestampOfTheMessageStatistics(testEnvironment);
             return null;
         });
     }
@@ -173,28 +200,26 @@ public final class PipeActionBuilder {
         });
     }
 
-    public static PipeActionBuilder severalMessagesAreSendAsynchronouslyBeforeThePipeIsShutdown(final int numberOfSenders,
-                                                                                                final int numberOfMessages) {
+    public static PipeActionBuilder severalMessagesAreSendAsynchronouslyBeforeThePipeIsShutdown() {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeMessageBusSutActions sutActions = pipeTestActions(pipe);
-            sendSeveralMessagesAsynchronouslyBeforeTheObjectIsShutdown(sutActions, testEnvironment,
-                    numberOfSenders, numberOfMessages);
+            final PipeTestActionsNew testActions = PipeTestActionsNew.pipeTestActions(pipe);
+            sendMessagesBeforeShutdownAsynchronously(testActions, testEnvironment, ASYNCHRONOUS_POOL_SIZE, true);
             return null;
         });
     }
 
     public static PipeActionBuilder thePipeIsShutdownAsynchronouslyXTimes(final int numberOfThreads) {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeMessageBusSutActions sutActions = pipeTestActions(pipe);
-            shutdownTheObjectAsynchronouslyXTimes(sutActions, numberOfThreads);
+            final PipeTestActionsNew testActions = PipeTestActionsNew.pipeTestActions(pipe);
+            shutdownTheSutAsynchronouslyXTimes(testActions, numberOfThreads);
             return null;
         });
     }
 
     public static PipeActionBuilder thePipeIsShutdown() {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeMessageBusSutActions sutActions = pipeTestActions(pipe);
-            shutdownTheSut(sutActions);
+            final PipeTestActionsNew testActions = PipeTestActionsNew.pipeTestActions(pipe);
+            ShutdownTestUtils.shutdownTheSut(testActions);
             return null;
         });
     }
@@ -203,8 +228,8 @@ public final class PipeActionBuilder {
         final int numberOfMessagesBeforeShutdown = numberOfMessages / 2;
         final int remainingMessages = numberOfMessages - numberOfMessagesBeforeShutdown;
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeMessageBusSutActions sutActions = pipeTestActions(pipe);
-            sendXMessagesAShutdownsIsCalledThenSendsYMessage(sutActions, testEnvironment, numberOfMessagesBeforeShutdown,
+            final PipeTestActionsNew testActions = PipeTestActionsNew.pipeTestActions(pipe);
+            sendMessagesBeforeAndAfterShutdownAsynchronously(testActions, testEnvironment, numberOfMessagesBeforeShutdown,
                     remainingMessages, true);
             return null;
         });
@@ -215,20 +240,17 @@ public final class PipeActionBuilder {
         final int numberOfMessagesBeforeShutdown = numberOfMessages / 2;
         final int remainingMessages = numberOfMessages - numberOfMessagesBeforeShutdown;
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeMessageBusSutActions sutActions = pipeTestActions(pipe);
-            sendXMessagesAShutdownsIsCalledThenSendsYMessage(sutActions, testEnvironment, numberOfMessagesBeforeShutdown,
+            final PipeTestActionsNew testActions = PipeTestActionsNew.pipeTestActions(pipe);
+            sendMessagesBeforeAndAfterShutdownAsynchronously(testActions, testEnvironment, numberOfMessagesBeforeShutdown,
                     remainingMessages, false);
             return null;
         });
     }
 
-    public static PipeActionBuilder messagesAreSendAfterTheShutdown() {
-        final int numberOfMessagesBeforeShutdown = 0;
-        final int messagesSendAfterShutdown = 3;
+    public static PipeActionBuilder aMessageIsSendAfterTheShutdown() {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeMessageBusSutActions sutActions = pipeTestActions(pipe);
-            sendXMessagesAShutdownsIsCalledThenSendsYMessage(sutActions, testEnvironment, numberOfMessagesBeforeShutdown,
-                    messagesSendAfterShutdown, true);
+            final PipeTestActionsNew testActions = PipeTestActionsNew.pipeTestActions(pipe);
+            shutDownTheSutThenSendAMessage(testActions, testEnvironment);
             return null;
         });
     }
@@ -243,24 +265,24 @@ public final class PipeActionBuilder {
 
     public static PipeActionBuilder awaitWithoutACloseIsCalled() {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeMessageBusSutActions sutActions = pipeTestActions(pipe);
-            callAwaitWithoutACloseIsCalled(sutActions, testEnvironment);
+            final PipeTestActionsNew testActions = PipeTestActionsNew.pipeTestActions(pipe);
+            ShutdownTestUtils.callAwaitWithoutACloseIsCalled(testActions, testEnvironment);
             return null;
         });
     }
 
-    public static PipeActionBuilder awaitIsCalledBeforeAllTasksAreFinished(final int numberOfMessagesSend) {
+    public static PipeActionBuilder closeAndThenWaitForPendingTasksToFinished(final int numberOfMessagesSend) {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeMessageBusSutActions sutActions = pipeTestActions(pipe);
-            callCloseThenAwaitWithBlockedSubscriberButReleaseLockAfterAwait(sutActions, testEnvironment, numberOfMessagesSend);
+            final PipeTestActionsNew testActions = PipeTestActionsNew.pipeTestActions(pipe);
+            ShutdownTestUtils.closeAndThenWaitForPendingTasksToFinished(testActions, numberOfMessagesSend, testEnvironment);
             return null;
         });
     }
 
-    public static PipeActionBuilder awaitIsCalledWithoutExpectingTasksToFinish(final int numberOfMessagesSend) {
+    public static PipeActionBuilder awaitIsCalledWithoutAllowingRemainingTasksToFinish(final int numberOfMessagesSend) {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeMessageBusSutActions sutActions = pipeTestActions(pipe);
-            callCloseThenAwaitWithBlockedSubscriberWithoutReleasingLock(sutActions, testEnvironment, numberOfMessagesSend);
+            final PipeTestActionsNew testActions = PipeTestActionsNew.pipeTestActions(pipe);
+            callCloseThenAwaitWithBlockedSubscriberWithoutReleasingLock(testActions, testEnvironment, numberOfMessagesSend, ASYNCHRONOUS_POOL_SIZE);
             return null;
         });
     }

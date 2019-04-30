@@ -22,13 +22,13 @@
 package com.envimate.messageMate.qcec.querying.config;
 
 import com.envimate.messageMate.qcec.queryresolving.Query;
-import com.envimate.messageMate.qcec.shared.TestEnvironment;
+import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import static com.envimate.messageMate.qcec.shared.TestEnvironment.emptyTestEnvironment;
+import static com.envimate.messageMate.shared.environment.TestEnvironment.emptyTestEnvironment;
 
 public abstract class TestQueryResolver {
     private final TestEnvironment testEnvironment = emptyTestEnvironment();

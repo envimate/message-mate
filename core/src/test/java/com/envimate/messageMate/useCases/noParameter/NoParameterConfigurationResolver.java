@@ -28,7 +28,7 @@ import com.envimate.messageMate.useCases.shared.TestUseCaseBuilder;
 
 import java.util.Objects;
 
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.RESULT;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.RESULT;
 import static com.envimate.messageMate.useCases.shared.UseCaseBusCallBuilder.aUseCasBusCall;
 import static com.envimate.messageMate.useCases.noParameter.NoParameterUseCase.NO_PARAMETER_USE_CASE_RETURN_VALUE;
 import static com.envimate.messageMate.useCases.useCaseAdapter.UseCaseInvokingResponseEventType.USE_CASE_RESPONSE_EVENT_TYPE;

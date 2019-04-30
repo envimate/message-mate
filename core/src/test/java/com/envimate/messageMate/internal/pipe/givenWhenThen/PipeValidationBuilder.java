@@ -21,22 +21,26 @@
 
 package com.envimate.messageMate.internal.pipe.givenWhenThen;
 
-import com.envimate.messageMate.exceptions.AlreadyClosedException;
 import com.envimate.messageMate.internal.pipe.Pipe;
 import com.envimate.messageMate.internal.pipe.PipeStatusInformation;
 import com.envimate.messageMate.internal.pipe.statistics.PipeStatistics;
-import com.envimate.messageMate.qcec.shared.TestEnvironment;
-import com.envimate.messageMate.qcec.shared.TestValidation;
+import com.envimate.messageMate.shared.environment.TestEnvironment;
+import com.envimate.messageMate.shared.givenWhenThen.TestValidation;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
+import com.envimate.messageMate.shared.polling.PollingUtils;
 import com.envimate.messageMate.shared.subscriber.TestException;
+import com.envimate.messageMate.shared.subscriber.TestSubscriber;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.shared.validations.SharedTestValidations;
 import lombok.RequiredArgsConstructor;
 
 import java.math.BigInteger;
+import java.util.List;
 
 import static com.envimate.messageMate.internal.pipe.givenWhenThen.PipeTestActions.pipeTestActions;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.SUT;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.RESULT;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.SUT;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestValidations.*;
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.*;
 import static lombok.AccessLevel.PRIVATE;
@@ -47,6 +51,9 @@ public final class PipeValidationBuilder {
 
     public static PipeValidationBuilder expectTheMessageToBeReceived() {
         return new PipeValidationBuilder(testEnvironment -> {
+
+            final List<TestSubscriber<?>> subscribers = (List<TestSubscriber<?>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
+            PollingUtils.pollUntil(() -> subscribers.stream().allMatch(s -> s.getReceivedMessages().size() == 1));
             assertNoExceptionThrown(testEnvironment);
             assertExpectedReceiverReceivedSingleMessage(testEnvironment);
         });
@@ -54,8 +61,23 @@ public final class PipeValidationBuilder {
 
     public static PipeValidationBuilder expectAllMessagesToBeReceivedByAllSubscribers() {
         return new PipeValidationBuilder(testEnvironment -> {
+            final List<TestSubscriber<?>> subscribers = (List<TestSubscriber<?>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
+            final List<?> sendMessages = testEnvironment.getPropertyAsListOfType(MESSAGES_SEND, Object.class);
+            final int expectedNumberOfMessages = sendMessages.size();
+            PollingUtils.pollUntil(() -> subscribers.stream().allMatch(s -> s.getReceivedMessages().size() == expectedNumberOfMessages));
             assertNoExceptionThrown(testEnvironment);
             assertExpectedReceiverReceivedAllMessages(testEnvironment);
+        });
+    }
+
+    public static PipeValidationBuilder expectEachMessagesToBeReceivedByOnlyOneSubscriber() {
+        return new PipeValidationBuilder(testEnvironment -> {
+            final List<TestSubscriber<?>> subscribers = (List<TestSubscriber<?>>) testEnvironment.getProperty(POTENTIAL_RECEIVERS);
+            final List<?> sendMessages = testEnvironment.getPropertyAsListOfType(MESSAGES_SEND, Object.class);
+            final int expectedNumberOfMessages = sendMessages.size();
+            PollingUtils.pollUntilEquals(() -> subscribers.stream().mapToInt(s -> s.getReceivedMessages().size()).sum(), expectedNumberOfMessages);
+            assertNoExceptionThrown(testEnvironment);
+            assertEachMessagesToBeReceivedByOnlyOneSubscriber(testEnvironment);
         });
     }
 
@@ -74,11 +96,12 @@ public final class PipeValidationBuilder {
         });
     }
 
-    public static PipeValidationBuilder expectXMessagesToBeDelivered_despiteTheChannelClosed(
-            final int expectedNumberOfDeliveredMessages) {
+    public static PipeValidationBuilder expectXMessagesToBeDelivered_despiteTheChannelClosed(final int expectedNumberOfMessages) {
         return new PipeValidationBuilder(testEnvironment -> {
-            assertExceptionThrownOfType(testEnvironment, AlreadyClosedException.class);
-            assertNumberOfMessagesReceived(testEnvironment, expectedNumberOfDeliveredMessages);
+            final TestSubscriber<?> subscriber = testEnvironment.getPropertyAsType(SINGLE_RECEIVER, TestSubscriber.class);
+            PollingUtils.pollUntilEquals(() -> subscriber.getReceivedMessages().size(), expectedNumberOfMessages);
+            assertNoExceptionThrown(testEnvironment);
+            assertNumberOfMessagesReceived(testEnvironment, expectedNumberOfMessages);
         });
     }
 
@@ -112,13 +135,6 @@ public final class PipeValidationBuilder {
         });
     }
 
-    public static PipeValidationBuilder expectEachMessagesToBeReceivedByOnlyOneSubscriber() {
-        return new PipeValidationBuilder(testEnvironment -> {
-            assertNoExceptionThrown(testEnvironment);
-            assertEachMessagesToBeReceivedByOnlyOneSubscriber(testEnvironment);
-        });
-    }
-
     public static PipeValidationBuilder expectTheException(final Class<?> expectedExceptionClass) {
         return new PipeValidationBuilder(testEnvironment -> assertExceptionThrownOfType(testEnvironment, expectedExceptionClass));
     }
@@ -142,6 +158,13 @@ public final class PipeValidationBuilder {
         });
     }
 
+    public static PipeValidationBuilder expectTheAwaitToBeTerminatedSuccessful() {
+        return new PipeValidationBuilder(testEnvironment -> {
+            assertNoExceptionThrown(testEnvironment);
+            assertResultEqualsExpected(testEnvironment, true);
+        });
+    }
+
     public static PipeValidationBuilder expectTheAwaitToBeTerminatedWithFailure() {
         return new PipeValidationBuilder(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
@@ -151,6 +174,7 @@ public final class PipeValidationBuilder {
 
     public static PipeValidationBuilder expectTheExceptionToBeHandled() {
         return new PipeValidationBuilder(testEnvironment -> {
+            PollingUtils.pollUntil(() -> testEnvironment.has(RESULT));
             assertNoExceptionThrown(testEnvironment);
             assertResultOfClass(testEnvironment, TestException.class);
         });
@@ -158,6 +182,7 @@ public final class PipeValidationBuilder {
 
     public static PipeValidationBuilder expectTheDeliveryToBeStillSuccessful() {
         return new PipeValidationBuilder(testEnvironment -> {
+            PollingUtils.pollUntil(() -> testEnvironment.has(EXPECTED_AND_IGNORED_EXCEPTION));
             assertNoExceptionThrown(testEnvironment);
             assertNumberOfMessagesReceived(testEnvironment, 0);
             final Pipe<TestMessage> pipe = getPipe(testEnvironment);

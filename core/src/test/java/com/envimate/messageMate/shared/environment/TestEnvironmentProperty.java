@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.envimate.messageMate.qcec.shared;
+package com.envimate.messageMate.shared.environment;
 
 public enum TestEnvironmentProperty {
     SUT,

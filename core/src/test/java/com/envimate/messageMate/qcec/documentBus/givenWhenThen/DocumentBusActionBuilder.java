@@ -22,7 +22,7 @@
 package com.envimate.messageMate.qcec.documentBus.givenWhenThen;
 
 import com.envimate.messageMate.qcec.domainBus.DocumentBus;
-import com.envimate.messageMate.qcec.shared.TestAction;
+import com.envimate.messageMate.shared.givenWhenThen.TestAction;
 import com.envimate.messageMate.qcec.shared.testConstraints.SpecificConstraint;
 import com.envimate.messageMate.qcec.shared.testConstraints.TestConstraint;
 import com.envimate.messageMate.qcec.shared.testEvents.EndingEvent;
@@ -36,8 +36,8 @@ import lombok.RequiredArgsConstructor;
 import java.util.LinkedList;
 import java.util.List;
 
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RESULT;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.TEST_OBJECT;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXPECTED_RESULT;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.TEST_OBJECT;
 import static com.envimate.messageMate.qcec.shared.testConstraints.SpecificConstraint.specificConstraintWithId;
 import static com.envimate.messageMate.qcec.shared.testEvents.SpecificEvent.specificEventWithId;
 import static com.envimate.messageMate.qcec.shared.testEvents.TestEvent.testEvent;

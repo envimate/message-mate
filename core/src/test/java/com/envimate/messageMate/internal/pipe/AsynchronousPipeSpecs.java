@@ -28,19 +28,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static com.envimate.messageMate.internal.pipe.config.PipeTestConfig.*;
-import static com.envimate.messageMate.internal.pipe.config.PipeTestConfig.anAsynchronousBoundedPipe;
 import static com.envimate.messageMate.internal.pipe.givenWhenThen.Given.given;
 import static com.envimate.messageMate.internal.pipe.givenWhenThen.PipeActionBuilder.*;
 import static com.envimate.messageMate.internal.pipe.givenWhenThen.PipeSetupBuilder.aConfiguredPipe;
 import static com.envimate.messageMate.internal.pipe.givenWhenThen.PipeValidationBuilder.*;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @ExtendWith(AsynchronousPipeConfigurationProvider.class)
 public class AsynchronousPipeSpecs implements PipeSpecs {
 
     //send
     @Test
-    public void testPipe_doesNotFailForFullWaitingQueue() throws Exception {
+    public void testPipe_doesNotFailForFullWaitingQueue() {
         final int completeCapacity = ASYNCHRONOUS_QUEUED_BOUND + ASYNCHRONOUS_POOL_SIZE;
         given(aConfiguredPipe(anAsynchronousBoundedPipe())
                 .withASubscriberThatBlocksWhenAccepting())
@@ -49,7 +47,7 @@ public class AsynchronousPipeSpecs implements PipeSpecs {
     }
 
     @Test
-    public void testPipe_failsWhenBoundedQueueOverflows() throws Exception {
+    public void testPipe_failsWhenBoundedQueueOverflows() {
         final int completeCapacity = ASYNCHRONOUS_QUEUED_BOUND + ASYNCHRONOUS_POOL_SIZE;
         final int messagesSend = completeCapacity + 1;
         given(aConfiguredPipe(anAsynchronousBoundedPipe())
@@ -61,64 +59,58 @@ public class AsynchronousPipeSpecs implements PipeSpecs {
     //statistics
     @Test
     public void testPipe_withBlockingSubscriber_whenNumberOfSuccessfulDeliveredMessagesIsQueried_returnsZero(
-            final PipeTestConfig testConfig) throws Exception {
-        given(aConfiguredPipe(testConfig)
-                .withASubscriberThatBlocksWhenAccepting())
-                .when(severalMessagesAreSendAsynchronouslyButWillBeBlocked(3, 5)
+            final PipeTestConfig testConfig) {
+        final int numberOfMessages = ASYNCHRONOUS_POOL_SIZE;
+        given(aConfiguredPipe(testConfig))
+                .when(severalMessagesAreSendAsynchronouslyButWillBeBlocked(numberOfMessages)
                         .andThen(theNumberOfSuccessfulMessagesIsQueried()))
                 .then(expectResultToBe(0));
     }
 
     @Test
     public void testPipe_withBlockingSubscriber_whenNumberOfFailedDeliveredMessagesIsQueried_returnsZero(
-            final PipeTestConfig testConfig) throws Exception {
-        given(aConfiguredPipe(testConfig)
-                .withASubscriberThatBlocksWhenAccepting())
-                .when(severalMessagesAreSendAsynchronouslyButWillBeBlocked(3, 5)
-                        .andThen(theNumberOfFailedMessagesIsQueried()))
-                .then(expectResultToBe(0));
+            final PipeTestConfig testConfig) {
+        final int numberOfMessages = ASYNCHRONOUS_POOL_SIZE;
+        final int expectedResult = 0;
+        given(aConfiguredPipe(testConfig))
+                .when(severalMessagesAreSendAsynchronouslyButWillBeBlocked(numberOfMessages)
+                        .andThen(theNumberOfFailedMessagesIsQueried(expectedResult)))
+                .then(expectResultToBe(expectedResult));
     }
 
     @Test
-    public void testPipe_withBlockingSubscriber_whenNumberOfAcceptedMessagesIsQueried_returnsAll(
-            final PipeTestConfig testConfig) throws Exception {
+    public void testPipe_withBlockingSubscriber_whenNumberOfAcceptedMessagesIsQueried_returnsAll(final PipeTestConfig testConfig) {
         final int numberOfParallelSender = 3;
         final int numberOfMessagesPerSender = 5;
         final int expectedAcceptedMessages = numberOfParallelSender * numberOfMessagesPerSender;
-        given(aConfiguredPipe(testConfig)
-                .withASubscriberThatBlocksWhenAccepting())
+        given(aConfiguredPipe(testConfig))
                 .when(severalMessagesAreSendAsynchronouslyButWillBeBlocked(numberOfParallelSender, numberOfMessagesPerSender)
-                        .andThen(aShortWaitIsDone(10, MILLISECONDS))
                         .andThen(theNumberOfAcceptedMessagesIsQueriedAsynchronously()))
                 .then(expectResultToBe(expectedAcceptedMessages));
     }
 
     @Test
-    public void testPipe_withBlockingSubscriber_whenNumberOfQueuedMessagesIsQueried(
-            final PipeTestConfig testConfig) throws Exception {
+    public void testPipe_withBlockingSubscriber_whenNumberOfQueuedMessagesIsQueried(final PipeTestConfig testConfig) {
         final int numberOfParallelSender = 3;
         final int numberOfMessagesPerSender = 5;
         final int sumOfMessages = numberOfParallelSender * numberOfMessagesPerSender;
         final int expectedQueuedMessages = sumOfMessages - ASYNCHRONOUS_POOL_SIZE;
-        given(aConfiguredPipe(testConfig)
-                .withASubscriberThatBlocksWhenAccepting())
+        given(aConfiguredPipe(testConfig))
                 .when(severalMessagesAreSendAsynchronouslyButWillBeBlocked(numberOfParallelSender, numberOfMessagesPerSender)
-                        .andThen(aShortWaitIsDone(10, MILLISECONDS))
                         .andThen(theNumberOfQueuedMessagesIsQueried()))
                 .then(expectResultToBe(expectedQueuedMessages));
     }
 
     //shutdown
     @Test
-    public void testPipe_whenShutdown_deliversRemainingMessagesButNoNewAdded(final PipeTestConfig testConfig) throws Exception {
+    public void testPipe_whenShutdown_deliversRemainingMessagesButNoNewAdded(final PipeTestConfig testConfig) {
         given(aConfiguredPipe(testConfig))
                 .when(thePipeIsShutdownAfterHalfOfTheMessagesWereDelivered(10))
                 .then(expectXMessagesToBeDelivered_despiteTheChannelClosed(5));
     }
 
     @Test
-    public void testPipe_whenShutdownWithoutFinishingRemainingTasksIsCalled_noTasksAreFinished(
-            final PipeTestConfig testConfig) throws Exception {
+    public void testPipe_whenShutdownWithoutFinishingRemainingTasksIsCalled_noTasksAreFinished(final PipeTestConfig testConfig) {
         final int numberOfParallelSendMessage = 5;
         given(aConfiguredPipe(testConfig))
                 .when(thePipeIsShutdownAfterHalfOfTheMessagesWereDelivered_withoutFinishingRemainingTasks(10))
@@ -127,10 +119,10 @@ public class AsynchronousPipeSpecs implements PipeSpecs {
 
     //await
     @Test
-    public void testPipe_awaitsFailsWhenAllTasksCouldBeDone(final PipeTestConfig testConfig) throws Exception {
+    public void testPipe_awaitsFailsWhenAllTasksCouldBeDone(final PipeTestConfig testConfig) {
         final int numberOfMessagesSend = ASYNCHRONOUS_POOL_SIZE + 3;
         given(aConfiguredPipe(testConfig))
-                .when(awaitIsCalledWithoutExpectingTasksToFinish(numberOfMessagesSend))
+                .when(awaitIsCalledWithoutAllowingRemainingTasksToFinish(numberOfMessagesSend))
                 .then(expectTheAwaitToBeTerminatedWithFailure());
     }
 

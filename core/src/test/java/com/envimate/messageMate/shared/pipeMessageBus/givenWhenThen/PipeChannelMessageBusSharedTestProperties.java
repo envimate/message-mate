@@ -46,4 +46,5 @@ public final class PipeChannelMessageBusSharedTestProperties {
     public static final String EXPECTED_CORRELATION_ID = "EXPECTED_CORRELATION_ID";
     public static final String EXCEPTION_OCCURRED_INSIDE_FILTER = "EXCEPTION_OCCURRED_INSIDE_FILTER";
     public static final String EXCEPTION_OCCURRED_DURING_DELIVERY = "EXCEPTION_OCCURRED_DURING_DELIVERY";
+    public static final String EXPECTED_AND_IGNORED_EXCEPTION = "EXPECTED_AND_IGNORED_EXCEPTION";
 }

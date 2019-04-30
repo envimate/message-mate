@@ -23,15 +23,15 @@ package com.envimate.messageMate.qcec.querying.givenWhenThen;
 
 import com.envimate.messageMate.qcec.querying.config.TestQueryResolver;
 import com.envimate.messageMate.qcec.queryresolving.Query;
-import com.envimate.messageMate.qcec.shared.TestAction;
+import com.envimate.messageMate.shared.givenWhenThen.TestAction;
 import com.envimate.messageMate.qcec.shared.testQueries.TestQuery;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Optional;
 
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_EXCEPTION_MESSAGE;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.EXPECTED_RESULT;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXPECTED_EXCEPTION_MESSAGE;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXPECTED_RESULT;
 import static com.envimate.messageMate.qcec.shared.testQueries.TestQuery.aTestQuery;
 import static com.envimate.messageMate.qcec.shared.testQueries.TestQuery.aTestQueryWithoutResult;
 import static lombok.AccessLevel.PRIVATE;

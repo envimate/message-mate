@@ -30,8 +30,8 @@ import com.envimate.messageMate.messageFunction.testResponses.SimpleErrorRespons
 import com.envimate.messageMate.messageFunction.testResponses.TestRequest;
 import com.envimate.messageMate.messageFunction.testResponses.TestResponse;
 import com.envimate.messageMate.processingContext.ProcessingContext;
-import com.envimate.messageMate.qcec.shared.TestEnvironment;
-import com.envimate.messageMate.qcec.shared.TestValidation;
+import com.envimate.messageMate.shared.environment.TestEnvironment;
+import com.envimate.messageMate.shared.givenWhenThen.TestValidation;
 import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +42,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import static com.envimate.messageMate.messageFunction.givenWhenThen.MessageFunctionTestProperties.*;
-import static com.envimate.messageMate.qcec.shared.TestEnvironmentProperty.*;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.*;
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.*;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
