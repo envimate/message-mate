@@ -6,7 +6,7 @@ logic in a loosely coupled fashion. This allows for applications to be highly
 extensible and easily tested.
 
 ## Maven Dependency
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.envimate/mapmate/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.envimate.message-mate/core)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.envimate.message-mate/core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.envimate.message-mate/core)
 ```
 <dependency>
     <groupId>com.envimate.message-mate</groupId>
