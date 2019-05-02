@@ -37,33 +37,35 @@ import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusValida
 public class AsynchronousDeliveryMessageBusSpecs implements MessageBusSpecs {
 
     @Test
-    public void testMessageBus_queryingNumberOfQueuedMessages(final MessageBusTestConfig config) throws Exception {
+    public void testMessageBus_queryingNumberOfQueuedMessages(final MessageBusTestConfig config) {
         final int expectedQueuedMessages = 5;
-        final int messagesSendParallel = MessageBusTestConfig.ASYNCHRONOUS_DELIVERY_POOL_SIZE + expectedQueuedMessages;
-        given(aConfiguredMessageBus(config)
-                .withASubscriberThatBlocksWhenAccepting())
-                .when(severalMessagesAreSendAsynchronouslyButWillBeBlocked(messagesSendParallel, 1)
+        final int messagesSendParallel = ASYNCHRONOUS_DELIVERY_POOL_SIZE + expectedQueuedMessages;
+        final int expectedNumberOfBlockedThreads = ASYNCHRONOUS_DELIVERY_POOL_SIZE;
+        given(aConfiguredMessageBus(config))
+                .when(severalMessagesAreSendAsynchronouslyButWillBeBlocked(messagesSendParallel, expectedNumberOfBlockedThreads)
                         .andThen(theNumberOfQueuedMessagesIsQueried()))
                 .then(expectResultToBe(expectedQueuedMessages));
     }
 
     //shutdown
     @Test
-    public void testMessageBus_whenShutdownAllRemainingTasksAreFinished(final MessageBusTestConfig config) throws Exception {
+    public void testMessageBus_whenShutdownAllRemainingTasksAreFinished(final MessageBusTestConfig config) {
         final int numberOfParallelSendMessages = 10;
         final boolean finishRemainingTasks = true;
+        final int expectedNumberOfBlockedThreads = ASYNCHRONOUS_DELIVERY_POOL_SIZE;
         given(aConfiguredMessageBus(config))
-                .when(sendSeveralMessagesBeforeTheBusIsShutdown(numberOfParallelSendMessages, finishRemainingTasks))
+                .when(sendSeveralMessagesBeforeTheBusIsShutdown(numberOfParallelSendMessages, finishRemainingTasks, expectedNumberOfBlockedThreads))
                 .then(expectXMessagesToBeDelivered(10));
     }
 
     @Test
     public void testMessageBus_whenShutdownWithoutFinishingRemainingTasks_allTasksAreStillFinished(
-            final MessageBusTestConfig config) throws Exception {
+            final MessageBusTestConfig config) {
         final int numberOfParallelSendMessages = ASYNCHRONOUS_DELIVERY_POOL_SIZE + 3;
         final boolean finishRemainingTasks = false;
+        final int expectedNumberOfBlockedThreads = ASYNCHRONOUS_DELIVERY_POOL_SIZE;
         given(aConfiguredMessageBus(config))
-                .when(sendSeveralMessagesBeforeTheBusIsShutdown(numberOfParallelSendMessages, finishRemainingTasks))
+                .when(sendSeveralMessagesBeforeTheBusIsShutdown(numberOfParallelSendMessages, finishRemainingTasks, expectedNumberOfBlockedThreads))
                 .then(expectXMessagesToBeDelivered(ASYNCHRONOUS_DELIVERY_POOL_SIZE));
     }
 }

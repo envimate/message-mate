@@ -12,11 +12,11 @@ import static lombok.AccessLevel.PRIVATE;
 
 //TODO: rename and maybe move
 @RequiredArgsConstructor(access = PRIVATE)
-public final class PipeTestActionsNew implements SendingAndReceivingActions {
+public final class PipeSutActions implements SendingAndReceivingActions {
     private final Pipe<TestMessage> pipe;
 
-    public static PipeTestActionsNew pipeTestActions(final Pipe<TestMessage> pipe) {
-        return new PipeTestActionsNew(pipe);
+    public static PipeSutActions pipeSutActions(final Pipe<TestMessage> pipe) {
+        return new PipeSutActions(pipe);
     }
 
     @Override

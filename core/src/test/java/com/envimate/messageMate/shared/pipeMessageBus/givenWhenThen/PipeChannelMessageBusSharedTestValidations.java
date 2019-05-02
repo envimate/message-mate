@@ -26,6 +26,8 @@ import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
+import com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.SubscriberQueryActions;
+import com.envimate.messageMate.shared.polling.PollingUtils;
 import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
 import com.envimate.messageMate.shared.subscriber.TestSubscriber;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
@@ -39,6 +41,7 @@ import java.util.stream.Collectors;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXPECTED_RECEIVERS;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.RESULT;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
+import static com.envimate.messageMate.shared.polling.PollingUtils.pollUntilEquals;
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.assertEquals;
 import static lombok.AccessLevel.PRIVATE;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -52,7 +55,7 @@ public final class PipeChannelMessageBusSharedTestValidations {
         final List<SimpleTestSubscriber<?>> receivers = getExpectedReceiversAsSubscriber(testEnvironment);
         for (final SimpleTestSubscriber<?> receiver : receivers) {
             final List<?> receivedMessages = receiver.getReceivedMessages();
-            assertEquals(receivedMessages.size(), 1);
+            pollUntilEquals(receivedMessages::size, 1);
             final Object receivedMessage = receivedMessages.get(0);
             final Object expectedMessage = testEnvironment.getProperty(SINGLE_SEND_MESSAGE);
             assertEquals(receivedMessage, expectedMessage);
@@ -69,7 +72,7 @@ public final class PipeChannelMessageBusSharedTestValidations {
         final List<SimpleTestSubscriber<?>> receivers = getExpectedReceiversAsSubscriber(testEnvironment);
         for (final SimpleTestSubscriber<?> receiver : receivers) {
             final List<?> receivedMessages = receiver.getReceivedMessages();
-            assertEquals(receivedMessages.size(), expectedMessages.size());
+            pollUntilEquals(receivedMessages::size, expectedMessages.size());
             final Object[] ar = expectedMessages.toArray();
             assertThat(receivedMessages, containsInAnyOrder(ar));
         }
@@ -80,7 +83,7 @@ public final class PipeChannelMessageBusSharedTestValidations {
         for (final SimpleTestSubscriber<?> receiver : receivers) {
             @SuppressWarnings("unchecked")
             final List<ProcessingContext<?>> receivedMessages = (List<ProcessingContext<?>>) receiver.getReceivedMessages();
-            assertEquals(receivedMessages.size(), 1);
+            pollUntilEquals(receivedMessages::size, 1);
             final ProcessingContext<?> receivedMessage = receivedMessages.get(0);
             final Object errorPayload = receivedMessage.getErrorPayload();
             final Object expectedMessage = testEnvironment.getProperty(SINGLE_SEND_MESSAGE);
@@ -106,15 +109,16 @@ public final class PipeChannelMessageBusSharedTestValidations {
         assertEquals(subscriber, expectedSubscriber);
     }
 
-    public static void assertAllMessagesHaveContentChanged(final PipeMessageBusSutActions sutActions,
+    //TODO: warum nur vom MB benutzt und nicht Channel?
+    public static void assertAllMessagesHaveContentChanged(final SubscriberQueryActions subscriberQueryActions,
                                                            final TestEnvironment testEnvironment) {
         final List<?> expectedMessages = (List<?>) testEnvironment.getProperty(MESSAGES_SEND_OF_INTEREST);
-        final List<Subscriber<?>> subscribers = sutActions.getAllSubscribers();
+        final List<Subscriber<?>> subscribers = subscriberQueryActions.getAllSubscribers();
         final String expectedContent = testEnvironment.getPropertyAsType(EXPECTED_CHANGED_CONTENT, String.class);
         for (final Subscriber<?> subscriber : subscribers) {
             final TestSubscriber<TestMessageOfInterest> testSubscriber = castToTestSubscriber(subscriber);
             final List<TestMessageOfInterest> receivedMessages = testSubscriber.getReceivedMessages();
-            assertThat(expectedMessages.size(), equalTo(receivedMessages.size()));
+            PollingUtils.pollUntilEquals(receivedMessages::size, expectedMessages.size());
             for (final TestMessageOfInterest receivedMessage : receivedMessages) {
                 assertThat(receivedMessage.getContent(), equalTo(expectedContent));
             }
@@ -128,7 +132,7 @@ public final class PipeChannelMessageBusSharedTestValidations {
         for (final Subscriber<?> subscriber : subscribers) {
             final TestSubscriber<ProcessingContext<Object>> testSubscriber = castToRawTestSubscriber(subscriber);
             final List<ProcessingContext<Object>> receivedContexts = testSubscriber.getReceivedMessages();
-            assertThat(expectedMessages.size(), equalTo(receivedContexts.size()));
+            pollUntilEquals(receivedContexts::size, expectedMessages.size());
             for (final ProcessingContext<Object> processingContext : receivedContexts) {
                 assertThat(processingContext.getPayload(), equalTo(TestFilter.CHANGED_CONTENT));
                 assertThat(processingContext.getErrorPayload(), equalTo(TestFilter.ADDED_ERROR_CONTENT));
@@ -158,7 +162,7 @@ public final class PipeChannelMessageBusSharedTestValidations {
         }
         for (final TestSubscriber<?> currentReceiver : receiver) {
             final List<?> receivedMessages = currentReceiver.getReceivedMessages();
-            assertEquals(expectedNumberOfDeliveredMessages, receivedMessages.size());
+            pollUntilEquals(receivedMessages::size, expectedNumberOfDeliveredMessages);
         }
     }
 

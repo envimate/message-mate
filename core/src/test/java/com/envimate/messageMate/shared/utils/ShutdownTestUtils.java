@@ -17,6 +17,7 @@ import static com.envimate.messageMate.shared.eventType.TestEventType.testEventT
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.EXECUTION_END_SEMAPHORE;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.SINGLE_RECEIVER;
 import static com.envimate.messageMate.shared.polling.PollingUtils.pollUntilEquals;
+import static com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber.blockingTestSubscriber;
 import static com.envimate.messageMate.shared.testMessages.TestMessageOfInterest.messageOfInterest;
 import static com.envimate.messageMate.shared.utils.AsynchronousSendingTestUtils.*;
 import static com.envimate.messageMate.useCases.givenWhenThen.UseCaseInvocationTestProperties.EVENT_TYPE;
@@ -55,8 +56,17 @@ public final class ShutdownTestUtils {
                                                                 final TestEnvironment testEnvironment,
                                                                 final int numberOfMessages,
                                                                 final boolean finishRemainingTasks) {
-        final Semaphore semaphore = addABlockingSubscriberAndThenSendXMessagesInEachThread(sutActions,
-                numberOfMessages, testEnvironment);
+        sendMessagesBeforeShutdownAsynchronously(sutActions, testEnvironment, numberOfMessages, finishRemainingTasks, numberOfMessages);
+    }
+
+    public static void sendMessagesBeforeShutdownAsynchronously(final SendingAndReceivingActions sutActions,
+                                                                final TestEnvironment testEnvironment,
+                                                                final int numberOfMessages,
+                                                                final boolean finishRemainingTasks,
+                                                                final int expectedNumberOfBlockedThreads) {
+        final Semaphore semaphore = new Semaphore(0);
+        final BlockingTestSubscriber<TestMessage> subscriber = blockingTestSubscriber(semaphore);
+        addABlockingSubscriberAndThenSendXMessagesInEachThread(sutActions, subscriber, numberOfMessages, 1, testEnvironment, expectedNumberOfBlockedThreads);
         sutActions.close(finishRemainingTasks);
         semaphore.release(1337);
     }
@@ -124,7 +134,7 @@ public final class ShutdownTestUtils {
                                                                                         final int expectedNumberOfBlockedThreads,
                                                                                         final TestEnvironment testEnvironment,
                                                                                         final Semaphore semaphore) {
-        final BlockingTestSubscriber<TestMessage> subscriber = BlockingTestSubscriber.blockingTestSubscriber(semaphore);
+        final BlockingTestSubscriber<TestMessage> subscriber = blockingTestSubscriber(semaphore);
         testEnvironment.setProperty(SINGLE_RECEIVER, subscriber);
         final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
         sutActions.subscribe(eventType, subscriber);
@@ -139,7 +149,7 @@ public final class ShutdownTestUtils {
                                                                         final int numberOfMessagesAfterShutdown,
                                                                         final boolean finishRemainingTask) {
         final Semaphore semaphore = new Semaphore(0);
-        final BlockingTestSubscriber<TestMessage> subscriber = BlockingTestSubscriber.blockingTestSubscriber(semaphore);
+        final BlockingTestSubscriber<TestMessage> subscriber = blockingTestSubscriber(semaphore);
         addABlockingSubscriberAndThenSendXMessagesInEachThread(sutActions, subscriber, numberOfMessagesBeforeShutdown, testEnvironment);
         sutActions.close(finishRemainingTask);
         sendXMessagesAsynchronouslyThatWillFail(sutActions, numberOfMessagesAfterShutdown, testEnvironment);

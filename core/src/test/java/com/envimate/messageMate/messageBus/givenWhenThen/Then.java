@@ -82,14 +82,6 @@ public class Then {
         try {
             for (final TestAction<MessageBus> testAction : actions) {
                 testAction.execute(messageBus, testEnvironment);
-                if (testEnvironment.has(SLEEP_BETWEEN_EXECUTION_STEPS)) {
-                    final Long sleepDuration = testEnvironment.getPropertyAsType(SLEEP_BETWEEN_EXECUTION_STEPS, Long.class);
-                    MILLISECONDS.sleep(sleepDuration);
-                }
-            }
-            if (testEnvironment.has(SLEEP_AFTER_EXECUTION)) {
-                final Long sleepDuration = testEnvironment.getPropertyAsType(SLEEP_AFTER_EXECUTION, Long.class);
-                MILLISECONDS.sleep(sleepDuration);
             }
         } catch (final Exception e) {
             testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
@@ -97,13 +89,6 @@ public class Then {
         if (testEnvironment.has(EXECUTION_END_SEMAPHORE)) {
             final Semaphore blockingSemaphoreToReleaseAfterExecution = getExecutionEndSemaphore(testEnvironment);
             blockingSemaphoreToReleaseAfterExecution.release(1000);
-        }
-
-        //Some Tests need a minimal sleep here
-        try {
-            Thread.sleep(10);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
 

@@ -38,18 +38,17 @@ public class SynchronisedMessageBusSpecs implements MessageBusSpecs {
     //messageStatistics
     @Test
     public void testMessageBus_queryingNumberOfQueuedMessages_alwaysReturnsZero(
-            final MessageBusTestConfig config) throws Exception {
-        final int messagesSendParallel = 3;
-        given(aConfiguredMessageBus(config)
-                .withASubscriberThatBlocksWhenAccepting())
-                .when(severalMessagesAreSendAsynchronouslyButWillBeBlocked(messagesSendParallel, 1)
+            final MessageBusTestConfig config) {
+        final int messagesSend = 3;
+        given(aConfiguredMessageBus(config))
+                .when(severalMessagesAreSendAsynchronouslyButWillBeBlocked(messagesSend)
                         .andThen(theNumberOfQueuedMessagesIsQueried()))
                 .then(expectResultToBe(0));
     }
 
     //shutdown
     @Test
-    public void testMessageBus_whenShutdownAllRemainingTasksAreFinished(final MessageBusTestConfig config) throws Exception {
+    public void testMessageBus_whenShutdownAllRemainingTasksAreFinished(final MessageBusTestConfig config) {
         final int numberOfParallelSendMessages = 10;
         final boolean finishRemainingTasks = true;
         given(aConfiguredMessageBus(config))
@@ -59,7 +58,7 @@ public class SynchronisedMessageBusSpecs implements MessageBusSpecs {
 
     @Test
     public void testMessageBus_whenShutdownWithoutFinishingRemainingTasks_allTasksAreStillFinished(
-            final MessageBusTestConfig config) throws Exception {
+            final MessageBusTestConfig config) {
         final int numberOfParallelSendMessages = 10;
         final boolean finishRemainingTasks = false;
         given(aConfiguredMessageBus(config))
@@ -70,7 +69,7 @@ public class SynchronisedMessageBusSpecs implements MessageBusSpecs {
     //errors
     @Test
     public void testMessageBus_dynamicErrorHandlerIsCalledOnceIfMessageBusExceptionHandlerRethrowsException(
-            final MessageBusTestConfig config) throws Exception {
+            final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withAnExceptionThrowingSubscriber()
                 .withADynamicErrorListenerAndAnErrorThrowingExceptionHandler())
@@ -79,7 +78,7 @@ public class SynchronisedMessageBusSpecs implements MessageBusSpecs {
     }
 
     @Test
-    public void testMessageBus_exceptionIsAlsoThrownBySendMethod(final MessageBusTestConfig config) throws Exception {
+    public void testMessageBus_exceptionIsAlsoThrownBySendMethod(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withAnExceptionThrowingSubscriber()
                 .withAnErrorThrowingExceptionHandler())

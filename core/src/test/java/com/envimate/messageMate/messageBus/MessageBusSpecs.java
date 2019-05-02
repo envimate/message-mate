@@ -35,7 +35,6 @@ import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusSetupB
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusValidationBuilder.*;
 import static com.envimate.messageMate.shared.eventType.TestEventType.testEventType;
 import static com.envimate.messageMate.shared.testMessages.TestMessageOfInterest.messageOfInterest;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public interface MessageBusSpecs {
 
@@ -53,8 +52,7 @@ public interface MessageBusSpecs {
             final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withSeveralSubscriber(5))
-                .when(severalMessagesAreSend(10)
-                        .andThen(aShortWaitIsDone(5, MILLISECONDS)))
+                .when(severalMessagesAreSend(10))
                 .then(expectAllMessagesToBeReceivedByAllSubscribers());
     }
 
@@ -72,8 +70,7 @@ public interface MessageBusSpecs {
     default void testMessageBus_canSendAndReceiveMessagesAsynchronously(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withSeveralSubscriber(5))
-                .when(severalMessagesAreSendAsynchronously(5, 10)
-                        .andThen(aShortWaitIsDone(5, MILLISECONDS)))
+                .when(severalMessagesAreSendAsynchronously(5, 10))
                 .then(expectAllMessagesToBeReceivedByAllSubscribers());
     }
 
@@ -87,8 +84,7 @@ public interface MessageBusSpecs {
 
     @Test
     default void testMessageBus_throwsExceptionWhenEventTypeIsNotSet(final MessageBusTestConfig config) {
-        given(aConfiguredMessageBus(config)
-                .withASingleRawSubscriber())
+        given(aConfiguredMessageBus(config))
                 .when(aMessageWithoutEventType())
                 .then(expectTheException(MustNotBeNullException.class));
     }
@@ -159,7 +155,7 @@ public interface MessageBusSpecs {
         given(aConfiguredMessageBus(config)
                 .withASubscriberForACorrelationId())
                 .when(aMessageWithCorrelationIdIsSend())
-                .then(expectTheMessageWrappedInProcessingContextToBeReceived());
+                .then(expectTheMessageWrappedInProcessingContextWithCorrectCorrelationIdToBeReceived());
     }
 
     @Test
@@ -277,7 +273,6 @@ public interface MessageBusSpecs {
         given(aConfiguredMessageBus(config)
                 .withASingleSubscriber())
                 .when(severalMessagesAreSendAsynchronously(3, 5)
-                        .andThen(aShortWaitIsDone(10, MILLISECONDS))
                         .andThen(theNumberOfSuccessfulMessagesIsQueried()))
                 .then(expectResultToBe(15));
     }
@@ -298,7 +293,7 @@ public interface MessageBusSpecs {
         given(aConfiguredMessageBus(config)
                 .withoutASubscriber())
                 .when(theTimestampOfTheStatisticsIsQueried())
-                .then(expectTimestampToBeInTheLastXSeconds(3));
+                .then(expectTimestampToBeInTheLastXSeconds(1));
     }
 
     //subscribers
@@ -339,9 +334,8 @@ public interface MessageBusSpecs {
     //shutdown
     @Test
     default void testMessageBus_canShutdown_evenIfIsBlocked(final MessageBusTestConfig config) {
-        given(aConfiguredMessageBus(config)
-                .withASubscriberThatBlocksWhenAccepting())
-                .when(severalMessagesAreSendAsynchronouslyBeforeTheMessageBusIsShutdown(3, 5)
+        given(aConfiguredMessageBus(config))
+                .when(severalMessagesAreSendAsynchronouslyBeforeTheMessageBusIsShutdown(3)
                         .andThen(theMessageBusShutdownIsExpectedForTimeoutInSeconds(1)))
                 .then(expectTheMessageBusToBeShutdownInTime());
     }
@@ -467,7 +461,7 @@ public interface MessageBusSpecs {
                 .when(theDynamicExceptionHandlerToBeRemoved()
                         .andThen(aMessageWithCorrelationIdIsSend()))
                 .then(expectNumberOfErrorListener(1)
-                        .and(expectTheExceptionHandledOnlyBeTheRemaining(TestException.class)));
+                        .and(expectTheExceptionHandledOnlyByTheRemainingHandlers(TestException.class)));
     }
 
     @Test

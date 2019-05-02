@@ -52,7 +52,7 @@ public final class PipeValidationBuilder {
     public static PipeValidationBuilder expectTheMessageToBeReceived() {
         return new PipeValidationBuilder(testEnvironment -> {
 
-            final List<TestSubscriber<?>> subscribers = (List<TestSubscriber<?>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
+            final List<TestSubscriber<?>> subscribers = getAsSubscriberList(testEnvironment, EXPECTED_RECEIVERS);
             PollingUtils.pollUntil(() -> subscribers.stream().allMatch(s -> s.getReceivedMessages().size() == 1));
             assertNoExceptionThrown(testEnvironment);
             assertExpectedReceiverReceivedSingleMessage(testEnvironment);
@@ -61,7 +61,7 @@ public final class PipeValidationBuilder {
 
     public static PipeValidationBuilder expectAllMessagesToBeReceivedByAllSubscribers() {
         return new PipeValidationBuilder(testEnvironment -> {
-            final List<TestSubscriber<?>> subscribers = (List<TestSubscriber<?>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
+            final List<TestSubscriber<?>> subscribers = getAsSubscriberList(testEnvironment, EXPECTED_RECEIVERS);
             final List<?> sendMessages = testEnvironment.getPropertyAsListOfType(MESSAGES_SEND, Object.class);
             final int expectedNumberOfMessages = sendMessages.size();
             PollingUtils.pollUntil(() -> subscribers.stream().allMatch(s -> s.getReceivedMessages().size() == expectedNumberOfMessages));
@@ -72,7 +72,7 @@ public final class PipeValidationBuilder {
 
     public static PipeValidationBuilder expectEachMessagesToBeReceivedByOnlyOneSubscriber() {
         return new PipeValidationBuilder(testEnvironment -> {
-            final List<TestSubscriber<?>> subscribers = (List<TestSubscriber<?>>) testEnvironment.getProperty(POTENTIAL_RECEIVERS);
+            final List<TestSubscriber<?>> subscribers = getAsSubscriberList(testEnvironment, POTENTIAL_RECEIVERS);
             final List<?> sendMessages = testEnvironment.getPropertyAsListOfType(MESSAGES_SEND, Object.class);
             final int expectedNumberOfMessages = sendMessages.size();
             PollingUtils.pollUntilEquals(() -> subscribers.stream().mapToInt(s -> s.getReceivedMessages().size()).sum(), expectedNumberOfMessages);
@@ -202,6 +202,12 @@ public final class PipeValidationBuilder {
     @SuppressWarnings("unchecked")
     private static Pipe<TestMessage> getPipe(final TestEnvironment testEnvironment) {
         return (Pipe<TestMessage>) testEnvironment.getProperty(SUT);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<TestSubscriber<?>> getAsSubscriberList(final TestEnvironment testEnvironment,
+                                                               final String property) {
+        return (List<TestSubscriber<?>>) testEnvironment.getProperty(property);
     }
 
     public TestValidation build() {

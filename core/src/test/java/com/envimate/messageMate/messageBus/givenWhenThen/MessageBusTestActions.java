@@ -28,11 +28,13 @@ import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener
 import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
+import com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.MessageBusSutActions;
 import com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber;
 import com.envimate.messageMate.shared.subscriber.ExceptionThrowingTestSubscriber;
 import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
+import com.envimate.messageMate.shared.utils.ShutdownTestUtils;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.RequiredArgsConstructor;
@@ -49,13 +51,13 @@ import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestPr
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXPECTED_RECEIVERS;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.*;
 import static com.envimate.messageMate.shared.eventType.TestEventType.testEventType;
-import static com.envimate.messageMate.shared.utils.AsynchronousSendingTestUtils.*;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
 import static com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber.blockingTestSubscriber;
 import static com.envimate.messageMate.shared.subscriber.ExceptionThrowingTestSubscriber.exceptionThrowingTestSubscriber;
 import static com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber.testSubscriber;
 import static com.envimate.messageMate.shared.testMessages.TestMessageOfInterest.messageOfInterest;
 import static com.envimate.messageMate.shared.testMessages.TestMessageOfInterest.messageWithErrorContent;
+import static com.envimate.messageMate.shared.utils.AsynchronousSendingTestUtils.*;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
@@ -71,6 +73,7 @@ final class MessageBusTestActions {
                                            final EventType eventType) {
         final TestMessageOfInterest message = messageOfInterest();
         testEnvironment.setProperty(SINGLE_SEND_MESSAGE, message);
+        testEnvironment.setProperty(NUMBER_OF_MESSAGES_SHOULD_BE_SEND, 1);
         final MessageId messageId = messageBus.send(eventType, message);
         testEnvironment.setProperty(SEND_MESSAGE_ID, messageId);
     }
@@ -226,16 +229,11 @@ final class MessageBusTestActions {
         messageBus.subscribe(eventType, subscriber);
     }
 
-    static void sendMessagesBeforeAShutdownAsynchronously(final MessageBus messageBus, final TestEnvironment testEnvironment,
-                                                          final int numberOfSenders, final int numberOfMessages) {
-        final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
-        final BiConsumer<EventType, Subscriber<Object>> subscriberConsumer = (e, subscriber) -> {
-            messageBus.subscribe(eventType, subscriber);
-        };
-        final BiConsumer<EventType, TestMessage> sendConsumer = (e, testMessage) -> messageBus.send(eventType, testMessage);
-        final Consumer<Boolean> closeConsumer = finishRemainingTasks -> messageBus.close(false);
-        sendMessagesBeforeShutdownAsynchronously(subscriberConsumer, sendConsumer, closeConsumer, testEnvironment,
-                numberOfSenders, numberOfMessages);
+    static void sendMessagesBeforeAShutdownAsynchronously(final MessageBus messageBus,
+                                                          final TestEnvironment testEnvironment,
+                                                          final int numberOfMessages) {
+        final MessageBusSutActions sutActions = MessageBusSutActions.messageBusSutActions(messageBus);
+        ShutdownTestUtils.sendMessagesBeforeShutdownAsynchronously(sutActions, testEnvironment, numberOfMessages, false);
     }
 
     static void sendMessagesBeforeAndAfterTheShutdownAsynchronously(final MessageBus messageBus,

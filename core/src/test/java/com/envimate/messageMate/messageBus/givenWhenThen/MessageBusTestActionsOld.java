@@ -129,6 +129,30 @@ public final class MessageBusTestActionsOld implements PipeMessageBusSutActions 
         queryMessageStatistics(testEnvironment, MessageBusStatistics::getForgottenMessages);
     }
 
+    public long getTheNumberOfAcceptedMessages() {
+        return getMessageStatistics(MessageBusStatistics::getAcceptedMessages);
+    }
+
+    public long getTheNumberOfQueuedMessages() {
+        return getMessageStatistics(MessageBusStatistics::getQueuedMessages);
+    }
+
+    public long getTheNumberOfSuccessfulDeliveredMessages() {
+        return getMessageStatistics(MessageBusStatistics::getSuccessfulMessages);
+    }
+
+    public long getTheNumberOfFailedDeliveredMessages() {
+        return getMessageStatistics(MessageBusStatistics::getFailedMessages);
+    }
+
+    public long getTheNumberOfBlockedMessages() {
+        return getMessageStatistics(MessageBusStatistics::getBlockedMessages);
+    }
+
+    public long getTheNumberOfForgottenMessages() {
+        return getMessageStatistics(MessageBusStatistics::getForgottenMessages);
+    }
+
     public void queryTheTimestampOfTheMessageStatistics(final TestEnvironment testEnvironment) {
         final MessageBusStatistics messageBusStatistics = getMessageStatistics_real();
         final Date timestamp = messageBusStatistics.getTimestamp();
@@ -137,10 +161,15 @@ public final class MessageBusTestActionsOld implements PipeMessageBusSutActions 
 
     private void queryMessageStatistics(final TestEnvironment testEnvironment,
                                         final MessageBusStatisticsQuery query) {
+        final long longValueExact = getMessageStatistics(query);
+        testEnvironment.setProperty(RESULT, longValueExact);
+    }
+
+    private long getMessageStatistics(final MessageBusStatisticsQuery query) {
         final MessageBusStatistics messageBusStatistics = getMessageStatistics_real();
         final BigInteger statistic = query.query(messageBusStatistics);
         final long longValueExact = statistic.longValueExact();
-        testEnvironment.setProperty(RESULT, longValueExact);
+        return longValueExact;
     }
 
     @Override

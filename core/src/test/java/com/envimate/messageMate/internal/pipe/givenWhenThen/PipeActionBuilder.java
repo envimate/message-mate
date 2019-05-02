@@ -25,7 +25,7 @@ import com.envimate.messageMate.internal.pipe.Pipe;
 import com.envimate.messageMate.internal.pipe.statistics.PipeStatistics;
 import com.envimate.messageMate.shared.environment.TestEnvironmentProperty;
 import com.envimate.messageMate.shared.givenWhenThen.TestAction;
-import com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.PipeTestActionsNew;
+import com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.PipeSutActions;
 import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
 import com.envimate.messageMate.shared.utils.ShutdownTestUtils;
 import com.envimate.messageMate.shared.polling.PollingUtils;
@@ -93,7 +93,7 @@ public final class PipeActionBuilder {
 
     public static PipeActionBuilder severalMessagesAreSendAsynchronouslyButWillBeBlocked(final int numberOfMessages) {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeTestActionsNew testActions = PipeTestActionsNew.pipeTestActions(pipe);
+            final PipeSutActions testActions = PipeSutActions.pipeSutActions(pipe);
             sendSeveralMessagesInTheirOwnThreadThatWillBeBlocked(testActions, testEnvironment, numberOfMessages);
             return null;
         });
@@ -102,7 +102,7 @@ public final class PipeActionBuilder {
     public static PipeActionBuilder severalMessagesAreSendAsynchronouslyButWillBeBlocked(final int numberOfSender,
                                                                                          final int numberOfMessagesPerSender) {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeTestActionsNew testActions = PipeTestActionsNew.pipeTestActions(pipe);
+            final PipeSutActions testActions = PipeSutActions.pipeSutActions(pipe);
             sendSeveralMessagesInTheirOwnThreadThatWillBeBlocked(testActions, testEnvironment, numberOfSender, numberOfMessagesPerSender, ASYNCHRONOUS_POOL_SIZE);
             return null;
         });
@@ -202,7 +202,7 @@ public final class PipeActionBuilder {
 
     public static PipeActionBuilder severalMessagesAreSendAsynchronouslyBeforeThePipeIsShutdown() {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeTestActionsNew testActions = PipeTestActionsNew.pipeTestActions(pipe);
+            final PipeSutActions testActions = PipeSutActions.pipeSutActions(pipe);
             sendMessagesBeforeShutdownAsynchronously(testActions, testEnvironment, ASYNCHRONOUS_POOL_SIZE, true);
             return null;
         });
@@ -210,7 +210,7 @@ public final class PipeActionBuilder {
 
     public static PipeActionBuilder thePipeIsShutdownAsynchronouslyXTimes(final int numberOfThreads) {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeTestActionsNew testActions = PipeTestActionsNew.pipeTestActions(pipe);
+            final PipeSutActions testActions = PipeSutActions.pipeSutActions(pipe);
             shutdownTheSutAsynchronouslyXTimes(testActions, numberOfThreads);
             return null;
         });
@@ -218,7 +218,7 @@ public final class PipeActionBuilder {
 
     public static PipeActionBuilder thePipeIsShutdown() {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeTestActionsNew testActions = PipeTestActionsNew.pipeTestActions(pipe);
+            final PipeSutActions testActions = PipeSutActions.pipeSutActions(pipe);
             ShutdownTestUtils.shutdownTheSut(testActions);
             return null;
         });
@@ -228,7 +228,7 @@ public final class PipeActionBuilder {
         final int numberOfMessagesBeforeShutdown = numberOfMessages / 2;
         final int remainingMessages = numberOfMessages - numberOfMessagesBeforeShutdown;
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeTestActionsNew testActions = PipeTestActionsNew.pipeTestActions(pipe);
+            final PipeSutActions testActions = PipeSutActions.pipeSutActions(pipe);
             sendMessagesBeforeAndAfterShutdownAsynchronously(testActions, testEnvironment, numberOfMessagesBeforeShutdown,
                     remainingMessages, true);
             return null;
@@ -240,7 +240,7 @@ public final class PipeActionBuilder {
         final int numberOfMessagesBeforeShutdown = numberOfMessages / 2;
         final int remainingMessages = numberOfMessages - numberOfMessagesBeforeShutdown;
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeTestActionsNew testActions = PipeTestActionsNew.pipeTestActions(pipe);
+            final PipeSutActions testActions = PipeSutActions.pipeSutActions(pipe);
             sendMessagesBeforeAndAfterShutdownAsynchronously(testActions, testEnvironment, numberOfMessagesBeforeShutdown,
                     remainingMessages, false);
             return null;
@@ -249,7 +249,7 @@ public final class PipeActionBuilder {
 
     public static PipeActionBuilder aMessageIsSendAfterTheShutdown() {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeTestActionsNew testActions = PipeTestActionsNew.pipeTestActions(pipe);
+            final PipeSutActions testActions = PipeSutActions.pipeSutActions(pipe);
             shutDownTheSutThenSendAMessage(testActions, testEnvironment);
             return null;
         });
@@ -265,7 +265,7 @@ public final class PipeActionBuilder {
 
     public static PipeActionBuilder awaitWithoutACloseIsCalled() {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeTestActionsNew testActions = PipeTestActionsNew.pipeTestActions(pipe);
+            final PipeSutActions testActions = PipeSutActions.pipeSutActions(pipe);
             ShutdownTestUtils.callAwaitWithoutACloseIsCalled(testActions, testEnvironment);
             return null;
         });
@@ -273,7 +273,7 @@ public final class PipeActionBuilder {
 
     public static PipeActionBuilder closeAndThenWaitForPendingTasksToFinished(final int numberOfMessagesSend) {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeTestActionsNew testActions = PipeTestActionsNew.pipeTestActions(pipe);
+            final PipeSutActions testActions = PipeSutActions.pipeSutActions(pipe);
             ShutdownTestUtils.closeAndThenWaitForPendingTasksToFinished(testActions, numberOfMessagesSend, testEnvironment);
             return null;
         });
@@ -281,7 +281,7 @@ public final class PipeActionBuilder {
 
     public static PipeActionBuilder awaitIsCalledWithoutAllowingRemainingTasksToFinish(final int numberOfMessagesSend) {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
-            final PipeTestActionsNew testActions = PipeTestActionsNew.pipeTestActions(pipe);
+            final PipeSutActions testActions = PipeSutActions.pipeSutActions(pipe);
             callCloseThenAwaitWithBlockedSubscriberWithoutReleasingLock(testActions, testEnvironment, numberOfMessagesSend, ASYNCHRONOUS_POOL_SIZE);
             return null;
         });

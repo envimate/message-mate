@@ -71,20 +71,7 @@ public final class MessageBusSetupBuilder {
         final AsynchronousConfiguration asynchronousConfiguration = testConfig.getAsynchronousConfiguration();
         messageBusBuilder.forType(type)
                 .withAsynchronousConfiguration(asynchronousConfiguration);
-        storeSleepTimesInTestEnvironment(testConfig, testEnvironment);
         return this;
-    }
-
-    private void storeSleepTimesInTestEnvironment(final MessageBusTestConfig messageBusTestConfig,
-                                                  final TestEnvironment testEnvironment) {
-        final long millisecondsSleepAfterExecution = messageBusTestConfig.getMillisecondsSleepAfterExecution();
-        if (millisecondsSleepAfterExecution > 0) {
-            testEnvironment.setProperty(SLEEP_AFTER_EXECUTION, millisecondsSleepAfterExecution);
-        }
-        final long milliSecondsSleep = messageBusTestConfig.getMillisecondsSleepBetweenExecutionSteps();
-        if (milliSecondsSleep > 0) {
-            testEnvironment.setProperty(SLEEP_BETWEEN_EXECUTION_STEPS, millisecondsSleepAfterExecution);
-        }
     }
 
     public <T> MessageBusSetupBuilder withASubscriberForTyp(final EventType eventType) {

@@ -34,13 +34,12 @@ public final class PipeChannelMessageBusSharedTestProperties {
     public static final String POTENTIAL_RECEIVERS = "POTENTIAL_RECEIVERS";
     public static final String SINGLE_RECEIVER = "SINGLE_RECEIVER";
     public static final String MESSAGES_SEND = "MESSAGES_SEND";
+    public static final String NUMBER_OF_MESSAGES_SHOULD_BE_SEND = "NUMBER_OF_MESSAGES_SHOULD_BE_SEND";
     public static final String MESSAGES_SEND_OF_INTEREST = "MESSAGES_SEND_OF_INTEREST";
     public static final String EXPECTED_CHANGED_CONTENT = "EXPECTED_CHANGED_CONTENT";
     public static final String EXECUTION_END_SEMAPHORE = "EXECUTION_END_SEMAPHORE";
     public static final String ERROR_SUBSCRIBER = "ERROR_SUBSCRIBER";
     public static final String EXPECTED_FILTER = "EXPECTED_FILTER";
-    public static final String SLEEP_BETWEEN_EXECUTION_STEPS = "SLEEP_BETWEEN_EXECUTION_STEPS";
-    public static final String SLEEP_AFTER_EXECUTION = "SLEEP_AFTER_EXECUTION";
     public static final String USED_SUBSCRIPTION_ID = "USED_SUBSCRIPTION_ID";
     public static final String SEND_MESSAGE_ID = "SEND_MESSAGE_ID";
     public static final String EXPECTED_CORRELATION_ID = "EXPECTED_CORRELATION_ID";

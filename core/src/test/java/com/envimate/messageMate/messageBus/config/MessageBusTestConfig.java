@@ -21,13 +21,13 @@
 
 package com.envimate.messageMate.messageBus.config;
 
-import com.envimate.messageMate.messageBus.MessageBusType;
 import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration;
+import com.envimate.messageMate.messageBus.MessageBusType;
 import lombok.*;
 
+import static com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration.constantPoolSizeAsynchronousPipeConfiguration;
 import static com.envimate.messageMate.messageBus.MessageBusType.ASYNCHRONOUS;
 import static com.envimate.messageMate.messageBus.MessageBusType.SYNCHRONOUS;
-import static com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration.constantPoolSizeAsynchronousPipeConfiguration;
 
 @ToString
 @EqualsAndHashCode
@@ -38,25 +38,15 @@ public final class MessageBusTestConfig {
     private final MessageBusType type;
     @Getter
     private final AsynchronousConfiguration asynchronousConfiguration;
-    @Getter
-    private final long millisecondsSleepBetweenExecutionSteps;
-    @Getter
-    private final long millisecondsSleepAfterExecution;
 
     static MessageBusTestConfig aSynchronousMessageBus() {
-        final int millisecondsSleepAfterExecution = 0;
-        final int millisecondsSleepBetweenExecutionSteps = millisecondsSleepAfterExecution;
-        return new MessageBusTestConfig(SYNCHRONOUS, null, millisecondsSleepBetweenExecutionSteps,
-                millisecondsSleepAfterExecution);
+        return new MessageBusTestConfig(SYNCHRONOUS, null);
     }
 
     static MessageBusTestConfig anAsynchronousMessageBus() {
         final int poolSize = ASYNCHRONOUS_DELIVERY_POOL_SIZE;
         final AsynchronousConfiguration asynchronousConfiguration = constantPoolSizeAsynchronousPipeConfiguration(poolSize);
-        final int millisecondsSleepBetweenExecutionSteps = 5;
-        final int millisecondsSleepAfterExecution = 10;
-        return new MessageBusTestConfig(ASYNCHRONOUS, asynchronousConfiguration, millisecondsSleepBetweenExecutionSteps,
-                millisecondsSleepAfterExecution);
+        return new MessageBusTestConfig(ASYNCHRONOUS, asynchronousConfiguration);
     }
 
 }
