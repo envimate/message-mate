@@ -50,14 +50,6 @@ public class Then {
         try {
             for (final TestAction<Channel<TestMessage>> testAction : testActions) {
                 testAction.execute(channel, testEnvironment);
-                if (testEnvironment.has(SLEEP_BETWEEN_EXECUTION_STEPS)) {
-                    final Long sleepDuration = testEnvironment.getPropertyAsType(SLEEP_BETWEEN_EXECUTION_STEPS, Long.class);
-                    MILLISECONDS.sleep(sleepDuration);
-                }
-            }
-            if (testEnvironment.has(SLEEP_AFTER_EXECUTION)) {
-                final Long sleepDuration = testEnvironment.getPropertyAsType(SLEEP_AFTER_EXECUTION, Long.class);
-                MILLISECONDS.sleep(sleepDuration);
             }
         } catch (final Exception e) {
             testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
@@ -67,14 +59,6 @@ public class Then {
         if (testEnvironment.has(SEMAPHORE_TO_CLEAN_UP)) {
             final Semaphore semaphore = testEnvironment.getPropertyAsType(SEMAPHORE_TO_CLEAN_UP, Semaphore.class);
             semaphore.release(100);
-        }
-        if (testEnvironment.has(SLEEP_BEFORE_CLOSE)) {
-            final Long sleepDuration = testEnvironment.getPropertyAsType(SLEEP_BEFORE_CLOSE, Long.class);
-            try {
-                MILLISECONDS.sleep(sleepDuration);
-            } catch (final InterruptedException e) {
-                testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
-            }
         }
         channel.close(false);
     }

@@ -26,7 +26,8 @@ import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
-import com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.SubscriberQueryActions;
+import com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.CloseActions;
+import com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.SubscribeActions;
 import com.envimate.messageMate.shared.polling.PollingUtils;
 import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
 import com.envimate.messageMate.shared.subscriber.TestSubscriber;
@@ -41,8 +42,12 @@ import java.util.stream.Collectors;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXPECTED_RECEIVERS;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.RESULT;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.TestFilter.ADDED_ERROR_CONTENT;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.TestFilter.CHANGED_CONTENT;
+import static com.envimate.messageMate.shared.polling.PollingUtils.pollUntil;
 import static com.envimate.messageMate.shared.polling.PollingUtils.pollUntilEquals;
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.assertEquals;
+import static com.envimate.messageMate.shared.validations.SharedTestValidations.testEquals;
 import static lombok.AccessLevel.PRIVATE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -63,7 +68,7 @@ public final class PipeChannelMessageBusSharedTestValidations {
     }
 
     public static void assertExpectedReceiverReceivedAllMessages(final TestEnvironment testEnvironment) {
-        final List<?> expectedReceivedMessages = testEnvironment.getPropertyAsType(MESSAGES_SEND_OF_INTEREST, List.class);
+        final List<?> expectedReceivedMessages = testEnvironment.getPropertyAsType(MESSAGES_SEND, List.class);
         assertExpectedReceiverReceivedAllMessages(testEnvironment, expectedReceivedMessages);
     }
 
@@ -86,20 +91,20 @@ public final class PipeChannelMessageBusSharedTestValidations {
             pollUntilEquals(receivedMessages::size, 1);
             final ProcessingContext<?> receivedMessage = receivedMessages.get(0);
             final Object errorPayload = receivedMessage.getErrorPayload();
-            final Object expectedMessage = testEnvironment.getProperty(SINGLE_SEND_MESSAGE);
+            final Object expectedMessage = testEnvironment.getProperty(SEND_ERROR_PAYLOAD);
             assertEquals(errorPayload, expectedMessage);
         }
     }
 
-    public static void assertSutStillHasExpectedSubscriber(final PipeMessageBusSutActions sutActions,
+    public static void assertSutStillHasExpectedSubscriber(final SubscribeActions subscribeActions,
                                                            final TestEnvironment testEnvironment) {
         final List<Subscriber<?>> expectedSubscriber = getExpectedSubscriber(testEnvironment);
-        assertSutStillHasExpectedSubscriber(sutActions, expectedSubscriber);
+        assertSutStillHasExpectedSubscriber(subscribeActions, expectedSubscriber);
     }
 
-    private static void assertSutStillHasExpectedSubscriber(final PipeMessageBusSutActions sutActions,
+    private static void assertSutStillHasExpectedSubscriber(final SubscribeActions subscribeActions,
                                                             final List<Subscriber<?>> expectedSubscriber) {
-        final List<Subscriber<?>> allSubscribers = sutActions.getAllSubscribers();
+        final List<Subscriber<?>> allSubscribers = subscribeActions.getAllSubscribers();
         assertThat(allSubscribers, containsInAnyOrder(expectedSubscriber.toArray()));
     }
 
@@ -109,11 +114,10 @@ public final class PipeChannelMessageBusSharedTestValidations {
         assertEquals(subscriber, expectedSubscriber);
     }
 
-    //TODO: warum nur vom MB benutzt und nicht Channel?
-    public static void assertAllMessagesHaveContentChanged(final SubscriberQueryActions subscriberQueryActions,
+    public static void assertAllMessagesHaveContentChanged(final SubscribeActions subscribeActions,
                                                            final TestEnvironment testEnvironment) {
-        final List<?> expectedMessages = (List<?>) testEnvironment.getProperty(MESSAGES_SEND_OF_INTEREST);
-        final List<Subscriber<?>> subscribers = subscriberQueryActions.getAllSubscribers();
+        final List<?> expectedMessages = (List<?>) testEnvironment.getProperty(MESSAGES_SEND);
+        final List<Subscriber<?>> subscribers = subscribeActions.getAllSubscribers();
         final String expectedContent = testEnvironment.getPropertyAsType(EXPECTED_CHANGED_CONTENT, String.class);
         for (final Subscriber<?> subscriber : subscribers) {
             final TestSubscriber<TestMessageOfInterest> testSubscriber = castToTestSubscriber(subscriber);
@@ -127,15 +131,15 @@ public final class PipeChannelMessageBusSharedTestValidations {
 
     public static void assertAllReceivedProcessingContextsWereChanged(final MessageBus messageBus,
                                                                       final TestEnvironment testEnvironment) {
-        final List<?> expectedMessages = (List<?>) testEnvironment.getProperty(MESSAGES_SEND_OF_INTEREST);
+        final List<?> expectedMessages = (List<?>) testEnvironment.getProperty(MESSAGES_SEND);
         final List<Subscriber<?>> subscribers = messageBus.getStatusInformation().getAllSubscribers();
         for (final Subscriber<?> subscriber : subscribers) {
             final TestSubscriber<ProcessingContext<Object>> testSubscriber = castToRawTestSubscriber(subscriber);
             final List<ProcessingContext<Object>> receivedContexts = testSubscriber.getReceivedMessages();
             pollUntilEquals(receivedContexts::size, expectedMessages.size());
             for (final ProcessingContext<Object> processingContext : receivedContexts) {
-                assertThat(processingContext.getPayload(), equalTo(TestFilter.CHANGED_CONTENT));
-                assertThat(processingContext.getErrorPayload(), equalTo(TestFilter.ADDED_ERROR_CONTENT));
+                assertThat(processingContext.getPayload(), equalTo(CHANGED_CONTENT));
+                assertThat(processingContext.getErrorPayload(), equalTo(ADDED_ERROR_CONTENT));
             }
         }
     }
@@ -166,22 +170,39 @@ public final class PipeChannelMessageBusSharedTestValidations {
         }
     }
 
-    public static void assertSutWasShutdownInTime(final PipeMessageBusSutActions sutActions,
+    public static void assertNoMessagesReceived(final TestEnvironment testEnvironment) {
+        pollUntil(() -> {
+            if (testEnvironment.has(SINGLE_SEND_MESSAGE)) {
+                return true;
+            } else {
+                if (testEnvironment.has(NUMBER_OF_MESSAGES_SHOULD_BE_SEND)) {
+                    final Object expectedNumberOfMessages = testEnvironment.getProperty(NUMBER_OF_MESSAGES_SHOULD_BE_SEND);
+                    final List<?> actualSendMessages = testEnvironment.getPropertyAsType(MESSAGES_SEND, List.class);
+                    return testEquals(expectedNumberOfMessages, actualSendMessages.size());
+                } else {
+                    return false;
+                }
+            }
+        });
+        assertNumberOfMessagesReceived(testEnvironment, 0);
+    }
+
+    public static void assertSutWasShutdownInTime(final CloseActions closeActions,
                                                   final TestEnvironment testEnvironment) {
+        pollUntil(() -> testEnvironment.has(RESULT));
         final boolean wasTerminatedInTime = testEnvironment.getPropertyAsType(RESULT, Boolean.class);
-        final boolean isShutdown = sutActions.isClosed(testEnvironment);
+        final boolean isShutdown = closeActions.isClosed();
         assertTrue(isShutdown);
         assertTrue(wasTerminatedInTime);
     }
 
-    public static void assertSutIsShutdown(final PipeMessageBusSutActions sutActions,
-                                           final TestEnvironment testEnvironment) {
-        final boolean isShutdown = sutActions.isClosed(testEnvironment);
+    public static void assertSutIsShutdown(final CloseActions closeActions) {
+        final boolean isShutdown = closeActions.isClosed();
         assertTrue(isShutdown);
     }
 
     public static void assertEachMessagesToBeReceivedByOnlyOneSubscriber(final TestEnvironment testEnvironment) {
-        final List<?> expectedMessages = (List<?>) testEnvironment.getProperty(MESSAGES_SEND_OF_INTEREST);
+        final List<?> expectedMessages = (List<?>) testEnvironment.getProperty(MESSAGES_SEND);
         final List<SimpleTestSubscriber<?>> receivers = getPotentialReceiver(testEnvironment);
         for (final Object expectedMessage : expectedMessages) {
             final List<SimpleTestSubscriber<?>> subscribersThatReceivedMessage = subscribersThatReceivedMessage(receivers,
@@ -203,12 +224,6 @@ public final class PipeChannelMessageBusSharedTestValidations {
         assertThat(list, containsInAnyOrder(expectedFilter.toArray()));
     }
 
-    public static void assertSutHasExpectedFilter(final PipeMessageBusSutActions sutActions,
-                                                  final TestEnvironment testEnvironment) {
-        final List<?> expectedFilter = (List<?>) testEnvironment.getProperty(EXPECTED_FILTER);
-        final List<?> list = sutActions.getFilter(testEnvironment);
-        assertThat(list, containsInAnyOrder(expectedFilter.toArray()));
-    }
 
     public static void assertTheMessageToHaveTheSameMessageIdAndAMatchingGeneratedCorrelationId(
             final TestEnvironment testEnvironment,

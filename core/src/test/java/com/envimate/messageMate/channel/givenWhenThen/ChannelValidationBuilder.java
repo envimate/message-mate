@@ -28,8 +28,8 @@ import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.shared.environment.TestEnvironmentProperty;
 import com.envimate.messageMate.shared.givenWhenThen.TestValidation;
+import com.envimate.messageMate.shared.polling.PollingUtils;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
-import com.envimate.messageMate.shared.validations.SharedTestValidations;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.RequiredArgsConstructor;
@@ -40,10 +40,11 @@ import java.util.List;
 import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestProperties.*;
 import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestValidations.*;
 import static com.envimate.messageMate.channel.givenWhenThen.ProcessingFrameHistoryMatcher.aProcessingFrameHistory;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXPECTED_RECEIVERS;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.*;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.EXCEPTION_OCCURRED_DURING_DELIVERY;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.EXCEPTION_OCCURRED_INSIDE_FILTER;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestValidations.*;
+import static com.envimate.messageMate.shared.polling.PollingUtils.pollUntil;
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.*;
 import static lombok.AccessLevel.PRIVATE;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -115,6 +116,7 @@ public final class ChannelValidationBuilder {
     public static ChannelValidationBuilder expectNoMessageToBeDelivered() {
         return aValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
+            pollUntil(() -> testEnvironment.has(SINGLE_SEND_MESSAGE));
             assertNoResultSet(testEnvironment);
         });
     }
@@ -211,6 +213,7 @@ public final class ChannelValidationBuilder {
 
     public static ChannelValidationBuilder expectTheProcessingContextObjectToBeReceivedByAllSubscriber() {
         return aValidation(testEnvironment -> {
+            assertNoExceptionThrown(testEnvironment);
             final ProcessingContext<?> processingContext = getExpectedProcessingContext(testEnvironment);
             final List<?> expectedTestMessages = Collections.singletonList(processingContext);
             assertExpectedReceiverReceivedAllMessages(testEnvironment, expectedTestMessages);
@@ -261,14 +264,17 @@ public final class ChannelValidationBuilder {
         });
     }
 
-    public static ChannelValidationBuilder expectNoException() {
-        return aValidation(SharedTestValidations::assertNoExceptionThrown);
+    public static ChannelValidationBuilder expectOnlyTheFirstSubscriberToBeCalled() {
+        return aValidation(testEnvironment -> {
+            assertNoExceptionThrown(testEnvironment);
+            assertOnlyFirstSubscriberReceivedMessage(testEnvironment);
+        });
     }
 
     public static ChannelValidationBuilder expectTheMessageToHaveTheSameMessageIdAndAMatchingGeneratedCorrelationId() {
         return aValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
-            final ProcessingContext<?> result = testEnvironment.getPropertyAsType(RESULT, ProcessingContext.class);
+            final ProcessingContext<?> result = getResultProcessingContext(testEnvironment);
             assertTheMessageToHaveTheSameMessageIdAndAMatchingGeneratedCorrelationId(testEnvironment, result);
         });
     }
@@ -276,9 +282,14 @@ public final class ChannelValidationBuilder {
     public static ChannelValidationBuilder expectTheCorrelationIdToBeSetWhenReceived() {
         return aValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
-            final ProcessingContext<?> result = testEnvironment.getPropertyAsType(RESULT, ProcessingContext.class);
+            final ProcessingContext<?> result = getResultProcessingContext(testEnvironment);
             assertTheCorrelationIdToBeSetWhenReceived(testEnvironment, result);
         });
+    }
+
+    private static ProcessingContext getResultProcessingContext(final TestEnvironment testEnvironment) {
+        PollingUtils.pollUntil(() -> testEnvironment.has(RESULT));
+        return testEnvironment.getPropertyAsType(RESULT, ProcessingContext.class);
     }
 
     private static void assertIsShutdown(final TestEnvironment testEnvironment) {

@@ -487,7 +487,7 @@ public interface MessageBusSpecs {
     default void testMessageBus_awaitWithoutCloseReturnsAlwaysTrue(final MessageBusTestConfig config) {
         given(aConfiguredMessageBus(config)
                 .withAnExceptionAcceptingSubscriber())
-                .when(theMessageBusShutdownIsExpectedForTimeoutInSeconds(1))
+                .when(theMessageBusShutdownIsAwaitedWithoutCloseCall())
                 .then(expectResultToBe(true));
     }
 }

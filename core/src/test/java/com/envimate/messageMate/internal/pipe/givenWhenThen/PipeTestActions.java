@@ -1,33 +1,11 @@
-/*
- * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
- *
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-
 package com.envimate.messageMate.internal.pipe.givenWhenThen;
 
-import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.internal.pipe.Pipe;
 import com.envimate.messageMate.internal.pipe.PipeStatusInformation;
 import com.envimate.messageMate.internal.pipe.statistics.PipeStatistics;
-import com.envimate.messageMate.shared.environment.TestEnvironment;
-import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
+import com.envimate.messageMate.processingContext.EventType;
+import com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.SendingAndReceivingActions;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
@@ -36,30 +14,18 @@ import lombok.RequiredArgsConstructor;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
-import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.RESULT;
+import static com.envimate.messageMate.identification.MessageId.newUniqueMessageId;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
-public final class PipeTestActions implements PipeMessageBusSutActions {
+public final class PipeTestActions implements SendingAndReceivingActions {
     private final Pipe<TestMessage> pipe;
 
     public static PipeTestActions pipeTestActions(final Pipe<TestMessage> pipe) {
         return new PipeTestActions(pipe);
-    }
-
-    @Override
-    public boolean isClosed(final TestEnvironment testEnvironment) {
-        return pipe.isShutdown();
-    }
-
-    @Override
-    public <R> void subscribe(final Class<R> messageClass, final Subscriber<R> subscriber) {
-        @SuppressWarnings("unchecked")
-        final Subscriber<TestMessage> messageSubscriber = (Subscriber<TestMessage>) subscriber;
-        pipe.subscribe(messageSubscriber);
     }
 
     @Override
@@ -68,18 +34,33 @@ public final class PipeTestActions implements PipeMessageBusSutActions {
     }
 
     @Override
-    public boolean awaitTermination(final int timeout, final TimeUnit timeUnit) throws InterruptedException {
+    public boolean await(final int timeout, final TimeUnit timeUnit) throws InterruptedException {
         return pipe.awaitTermination(timeout, timeUnit);
     }
 
     @Override
-    public List<?> getFilter(final TestEnvironment testEnvironment) {
-        throw new UnsupportedOperationException();
+    public boolean isClosed() {
+        return pipe.isClosed();
+    }
+
+
+    @Override
+    public MessageId send(final EventType eventType, final TestMessage message) {
+        pipe.send(message);
+        return newUniqueMessageId();
     }
 
     @Override
-    public List<?> getFilter() {
-        throw new UnsupportedOperationException();
+    public void subscribe(final EventType eventType, final Subscriber<TestMessage> subscriber) {
+        pipe.subscribe(subscriber);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<Subscriber<?>> getAllSubscribers() {
+        final PipeStatusInformation<TestMessage> statusInformation = pipe.getStatusInformation();
+        final List<?> subscribers = statusInformation.getAllSubscribers();
+        return (List<Subscriber<?>>) subscribers;
     }
 
     @Override
@@ -87,91 +68,36 @@ public final class PipeTestActions implements PipeMessageBusSutActions {
         pipe.unsubscribe(subscriptionId);
     }
 
-    @Override
-    public MessageId send(final TestMessage message) {
-        pipe.send(message);
-        return null;
+    public long getTheNumberOfAcceptedMessages() {
+        return getMessageStatistics(PipeStatistics::getAcceptedMessages);
     }
 
-    @Override
-    public PipeStatistics getMessageStatistics() {
-        final PipeStatusInformation<TestMessage> statusInformation = pipe.getStatusInformation();
-        return statusInformation.getCurrentMessageStatistics();
+    public long getTheNumberOfQueuedMessages() {
+        return getMessageStatistics(PipeStatistics::getQueuedMessages);
     }
 
-    public void queryTheNumberOfAcceptedMessages(final TestEnvironment testEnvironment) {
-        queryMessageStatistics(testEnvironment, PipeStatistics::getAcceptedMessages);
+    public long getTheNumberOfSuccessfulDeliveredMessages() {
+        return getMessageStatistics(PipeStatistics::getSuccessfulMessages);
     }
 
-    public void queryTheNumberOfAcceptedMessagesAsynchronously(final TestEnvironment testEnvironment) {
-        final Semaphore semaphore = new Semaphore(0);
-        new Thread(() -> {
-            queryMessageStatistics(testEnvironment, PipeStatistics::getAcceptedMessages);
-            semaphore.release();
-        }).start();
-        try {
-            semaphore.acquire();
-        } catch (final InterruptedException e) {
-            //not necessary to do anything here
-        }
+    public long getTheNumberOfFailedDeliveredMessages() {
+        return getMessageStatistics(PipeStatistics::getFailedMessages);
     }
 
-    public void queryTheNumberOfQueuedMessages(final TestEnvironment testEnvironment) {
-        queryMessageStatistics(testEnvironment, PipeStatistics::getQueuedMessages);
-    }
-
-    public void queryTheNumberOfSuccessfulDeliveredMessages(final TestEnvironment testEnvironment) {
-        queryMessageStatistics(testEnvironment, PipeStatistics::getSuccessfulMessages);
-    }
-
-    public void queryTheNumberOfFailedDeliveredMessages(final TestEnvironment testEnvironment) {
-        queryMessageStatistics(testEnvironment, PipeStatistics::getFailedMessages);
-    }
-
-    public void queryTheTimestampOfTheMessageStatistics(final TestEnvironment testEnvironment) {
-        final PipeStatistics pipeStatistics = getMessageStatistics();
+    public Date getTheTimestampOfTheMessageStatistics() {
+        final PipeStatistics pipeStatistics = getPipeStatistics();
         final Date timestamp = pipeStatistics.getTimestamp();
-        testEnvironment.setProperty(RESULT, timestamp);
+        return timestamp;
     }
 
-    private void queryMessageStatistics(final TestEnvironment testEnvironment,
-                                        final PipeStatisticsQuery query) {
-        final long longValueExact = getMessageStatistics(query);
-        testEnvironment.setProperty(RESULT, longValueExact);
-    }
-
-    public long getMessageStatistics(final PipeStatisticsQuery query) {
-        final PipeStatistics pipeStatistics = getMessageStatistics();
-        final BigInteger statistic = query.query(pipeStatistics);
+    private long getMessageStatistics(final Function<PipeStatistics, BigInteger> query) {
+        final PipeStatistics pipeStatistics = getPipeStatistics();
+        final BigInteger statistic = query.apply(pipeStatistics);
         return statistic.longValueExact();
     }
 
-    @Override
-    public Object removeAFilter() {
-        throw new UnsupportedOperationException();
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public void addFilter(final Filter<?> filter) {
-        throw new UnsupportedOperationException();
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public void addFilter(final Filter<?> filter, final int position) {
-        throw new UnsupportedOperationException();
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public List<Subscriber<?>> getAllSubscribers() {
+    private PipeStatistics getPipeStatistics() {
         final PipeStatusInformation<TestMessage> statusInformation = pipe.getStatusInformation();
-        final List<?> allSubscribers = statusInformation.getAllSubscribers();
-        return (List<Subscriber<?>>) allSubscribers;
-    }
-
-    public interface PipeStatisticsQuery {
-        BigInteger query(PipeStatistics pipeStatistics);
+        return statusInformation.getCurrentMessageStatistics();
     }
 }

@@ -111,7 +111,7 @@ public final class PipeImpl<T> implements Pipe<T> {
     }
 
     @Override
-    public boolean isShutdown() {
+    public boolean isClosed() {
         if (!closedAlreadyCalled) {
             return false;
         } else {

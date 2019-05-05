@@ -38,9 +38,10 @@ public class SynchronousPipeSpecs implements PipeSpecs {
     @Test
     public void testPipe_withBlockingSubscriber_whenNumberOfSuccessfulDeliveredMessagesIsQueried_returnsZero(
             final PipeTestConfig testConfig) {
+        final int numberOfMessages = 5;
         given(aConfiguredPipe(testConfig))
-                .when(severalMessagesAreSendAsynchronouslyButWillBeBlocked(5)
-                        .andThen(theNumberOfSuccessfulMessagesIsQueried()))
+                .when(severalMessagesAreSendAsynchronouslyButWillBeBlocked(numberOfMessages)
+                        .andThen(theNumberOfSuccessfulMessagesIsQueriedWhenSubscriberBlocked()))
                 .then(expectResultToBe(0));
     }
 
@@ -50,7 +51,7 @@ public class SynchronousPipeSpecs implements PipeSpecs {
         final int numberOfMessages = 3;
         given(aConfiguredPipe(testConfig))
                 .when(severalMessagesAreSendAsynchronouslyButWillBeBlocked(numberOfMessages)
-                        .andThen(theNumberOfAcceptedMessagesIsQueriedAsynchronously()))
+                        .andThen(theNumberOfAcceptedMessagesIsQueried()))
                 .then(expectResultToBe(numberOfMessages));
     }
 

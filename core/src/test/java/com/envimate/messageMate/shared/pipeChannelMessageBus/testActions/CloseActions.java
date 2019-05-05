@@ -7,4 +7,6 @@ public interface CloseActions {
     void close(boolean finishRemainingTasks);
 
     boolean await(final int timeout, final TimeUnit timeUnit) throws InterruptedException;
+
+    boolean isClosed();
 }

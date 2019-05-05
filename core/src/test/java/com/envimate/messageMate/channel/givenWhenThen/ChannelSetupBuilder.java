@@ -34,6 +34,7 @@ import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfigur
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber;
+import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
 import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 
@@ -53,19 +54,18 @@ import static com.envimate.messageMate.channel.givenWhenThen.FilterPosition.*;
 import static com.envimate.messageMate.channel.givenWhenThen.TestChannelErrorHandler.*;
 import static com.envimate.messageMate.shared.environment.TestEnvironment.emptyTestEnvironment;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.*;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.ERROR_SUBSCRIBER;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.IS_ASYNCHRONOUS;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.TestFilter.aMessageDroppingFilter;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.TestFilter.aMessageFilterThatDoesNotCallAnyMethod;
-import static com.envimate.messageMate.shared.subscriber.ExceptionThrowingTestSubscriber.exceptionThrowingTestSubscriber;
 import static com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber.deliveryPreemptingSubscriber;
 
 public final class ChannelSetupBuilder {
     private final TestEnvironment testEnvironment;
     private final ChannelBuilder<TestMessage> channelBuilder;
-    private final ChannelTestConfig channelTestConfig;
     private Channel<TestMessage> alreadyBuiltChannel;
 
     private ChannelSetupBuilder(final ChannelTestConfig channelTestConfig) {
-        this.channelTestConfig = channelTestConfig;
         this.testEnvironment = emptyTestEnvironment();
         final Consume<TestMessage> noopConsume = consumeMessage(processingContext -> {
         });
@@ -75,19 +75,14 @@ public final class ChannelSetupBuilder {
                 .forType(type)
                 .withAsynchronousConfiguration(asynchronousConfiguration)
                 .withDefaultAction(noopConsume);
-        storeSleepTimesInTestEnvironment(channelTestConfig, testEnvironment);
+        final boolean testIsAsynchronous = channelTestConfig.isAsynchronous();
+        this.testEnvironment.setProperty(IS_ASYNCHRONOUS, testIsAsynchronous);
     }
 
-    private ChannelSetupBuilder(final TestEnvironment testEnvironment, final Channel<TestMessage> channel,
-                                final ChannelTestConfig channelTestConfig) {
+    private ChannelSetupBuilder(final TestEnvironment testEnvironment, final Channel<TestMessage> channel) {
         this.testEnvironment = testEnvironment;
-        this.channelTestConfig = channelTestConfig;
         this.channelBuilder = null;
         this.alreadyBuiltChannel = channel;
-        final long millisecondsSleepAfterExecution = channelTestConfig.getMillisecondsSleepAfterExecution();
-        if (millisecondsSleepAfterExecution > 0) {
-            testEnvironment.setProperty(SLEEP_AFTER_EXECUTION, millisecondsSleepAfterExecution);
-        }
     }
 
     public static ChannelSetupBuilder aConfiguredChannel(final ChannelTestConfig channelTestConfig) {
@@ -109,7 +104,7 @@ public final class ChannelSetupBuilder {
         testEnvironment.addToListProperty(ALL_CHANNELS, firstChannel);
         testEnvironment.addToListProperty(ALL_CHANNELS, secondChannel);
         testEnvironment.addToListProperty(ALL_CHANNELS, thirdChannel);
-        return new ChannelSetupBuilder(testEnvironment, firstChannel, channelTestConfig);
+        return new ChannelSetupBuilder(testEnvironment, firstChannel);
     }
 
     public static ChannelSetupBuilder aChannelCallingASecondThatReturnsBack(final ChannelTestConfig channelTestConfig) {
@@ -126,7 +121,7 @@ public final class ChannelSetupBuilder {
                 .forType(channelTestConfig.getType())
                 .withAsynchronousConfiguration(channelTestConfig.getAsynchronousConfiguration())
                 .build();
-        return new ChannelSetupBuilder(testEnvironment, firstChannel, channelTestConfig);
+        return new ChannelSetupBuilder(testEnvironment, firstChannel);
     }
 
     public static ChannelSetupBuilder aChannelSetupWithNestedCalls(final ChannelTestConfig channelTestConfig) {
@@ -146,23 +141,11 @@ public final class ChannelSetupBuilder {
         testEnvironment.setProperty(RETURNING_CHANNEL, returnChannelAfterSecondCall);
 
         addFilterExecutingACall(firstCallTargetChannel, secondCallTargetChannel);
-        return new ChannelSetupBuilder(testEnvironment, initialChannel, channelTestConfig);
+        return new ChannelSetupBuilder(testEnvironment, initialChannel);
     }
 
     private static Consume<TestMessage> consumeAsFinalResult(final TestEnvironment testEnvironment) {
         return consumeMessage(processingContext -> testEnvironment.setProperty(RESULT, processingContext));
-    }
-
-    private void storeSleepTimesInTestEnvironment(final ChannelTestConfig channelTestConfig,
-                                                  final TestEnvironment testEnvironment) {
-        final long millisecondsSleepAfterExecution = channelTestConfig.getMillisecondsSleepAfterExecution();
-        if (millisecondsSleepAfterExecution > 0) {
-            testEnvironment.setProperty(SLEEP_AFTER_EXECUTION, millisecondsSleepAfterExecution);
-        }
-        final long millisecondsSleepBetweenActionSteps = channelTestConfig.getMillisecondsSleepBetweenExecutionActionSteps();
-        if (millisecondsSleepBetweenActionSteps > 0) {
-            testEnvironment.setProperty(SLEEP_BETWEEN_EXECUTION_STEPS, millisecondsSleepAfterExecution);
-        }
     }
 
     public ChannelSetupBuilder withDefaultActionConsume() {
@@ -191,10 +174,14 @@ public final class ChannelSetupBuilder {
         return this;
     }
 
-    public ChannelSetupBuilder withOnPreemptiveSubscriberAndOneErrorThrowingSubscriberThatShouldNeverBeCalled() {
+    public ChannelSetupBuilder withOnPreemptiveSubscriberAndOneSubscriberThatShouldNeverBeCalled() {
         final Subscription<TestMessage> subscription = subscription();
-        subscription.addSubscriber(deliveryPreemptingSubscriber());
-        subscription.addSubscriber(exceptionThrowingTestSubscriber());
+        final SimpleTestSubscriber<TestMessage> subscriber = deliveryPreemptingSubscriber();
+        subscription.addSubscriber(subscriber);
+        final SimpleTestSubscriber<TestMessage> subscriberThatShouldNotBeCalled = SimpleTestSubscriber.testSubscriber();
+        subscription.addSubscriber(subscriberThatShouldNotBeCalled);
+        testEnvironment.setProperty(EXPECTED_RECEIVERS, subscriber);
+        testEnvironment.setProperty(ERROR_SUBSCRIBER, subscriberThatShouldNotBeCalled);
         channelBuilder.withDefaultAction(subscription);
         return this;
     }
@@ -393,15 +380,6 @@ public final class ChannelSetupBuilder {
             testEnvironment.setProperty(SUT, channel);
         }
         return testEnvironment;
-    }
-
-    public ChannelSetupBuilder withABlockingSubscriber() {
-        final Subscription<TestMessage> subscription = subscription();
-        final Semaphore semaphore = new Semaphore(0);
-        subscription.addSubscriber(BlockingTestSubscriber.blockingTestSubscriber(semaphore));
-        channelBuilder.withDefaultAction(subscription);
-        testEnvironment.setProperty(SEMAPHORE_TO_CLEAN_UP, semaphore);
-        return this;
     }
 
     private static class UnknownAction implements Action<TestMessage> {

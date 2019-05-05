@@ -38,21 +38,18 @@ public final class ChannelTestConfig {
     private final ChannelType type;
     @Getter
     private final AsynchronousConfiguration asynchronousConfiguration;
-    @Getter
-    private final long millisecondsSleepBetweenExecutionActionSteps;
-    @Getter
-    private final long millisecondsSleepAfterExecution;
 
     public static ChannelTestConfig synchronousChannelTestConfig() {
-        return new ChannelTestConfig(SYNCHRONOUS, null, 0, 0);
+        return new ChannelTestConfig(SYNCHRONOUS, null);
     }
 
     public static ChannelTestConfig asynchronousChannelTestConfig() {
         final int poolSize = ASYNCHRONOUS_CHANNEL_CONFIG_POOL_SIZE;
         final AsynchronousConfiguration asynchronousConfiguration = constantPoolSizeAsynchronousPipeConfiguration(poolSize);
-        final int millisecondsSleepBetweenExecutionActionSteps = 5;
-        final int millisecondsSleepAfterExecution = 20;
-        return new ChannelTestConfig(ASYNCHRONOUS, asynchronousConfiguration, millisecondsSleepBetweenExecutionActionSteps,
-                millisecondsSleepAfterExecution);
+        return new ChannelTestConfig(ASYNCHRONOUS, asynchronousConfiguration);
+    }
+
+    public boolean isAsynchronous() {
+        return type == ASYNCHRONOUS;
     }
 }

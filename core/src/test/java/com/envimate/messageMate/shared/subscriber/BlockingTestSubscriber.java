@@ -68,7 +68,7 @@ public final class BlockingTestSubscriber<T> implements TestSubscriber<T> {
         return receivedMessages;
     }
 
-    public synchronized int getBlockedThreads() {
+    public synchronized int getNumberOfBlockedThreads() {
         return blockedThreads.get();
     }
 }

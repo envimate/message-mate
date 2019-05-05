@@ -30,6 +30,7 @@ import java.util.Date;
 import java.util.List;
 
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.*;
+import static com.envimate.messageMate.shared.polling.PollingUtils.pollUntil;
 import static lombok.AccessLevel.PRIVATE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -45,6 +46,7 @@ public final class SharedTestValidations {
     }
 
     public static void assertResultEqualsExpected(final TestEnvironment testEnvironment, final Object expectedResult) {
+        pollUntil(() -> testEnvironment.has(RESULT));
         final Object result = testEnvironment.getProperty(RESULT);
         assertEquals(result, expectedResult);
     }
@@ -70,6 +72,7 @@ public final class SharedTestValidations {
     }
 
     public static void assertResultOfClass(final TestEnvironment testEnvironment, final Class<?> expectedResultClass) {
+        pollUntil(() -> testEnvironment.has(RESULT));
         final Object result = testEnvironment.getProperty(RESULT);
         assertThat(result.getClass(), equalTo(expectedResultClass));
     }
@@ -95,6 +98,7 @@ public final class SharedTestValidations {
     public static void assertExceptionThrownOfType(final TestEnvironment testEnvironment,
                                                    final Class<?> expectedExceptionClass,
                                                    final TestEnvironmentProperty property) {
+        pollUntil(() -> testEnvironment.has(property));
         final Exception exception = testEnvironment.getPropertyAsType(property, Exception.class);
         final Class<? extends Exception> exceptionClass = exception.getClass();
         boolean assertSucceeded = false;
@@ -127,8 +131,12 @@ public final class SharedTestValidations {
         assertThat(secondsDifference, lessThanOrEqualTo(maximumSecondsDifference));
     }
 
-    public static void assertListOfSize(final TestEnvironment testEnvironment, final int expectedSize) {
+    public static void assertResultIsListOfSize(final TestEnvironment testEnvironment, final int expectedSize) {
         final List<?> list = testEnvironment.getPropertyAsType(RESULT, List.class);
+        assertListOfSize(list, expectedSize);
+    }
+
+    public static void assertListOfSize(final List<?> list, final int expectedSize) {
         assertThat(list.size(), equalTo(expectedSize));
     }
 

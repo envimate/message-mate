@@ -127,9 +127,9 @@ public interface ChannelSpecs {
     @Test
     default void testChannel_subscriptionCanStopDeliveryEarly(final ChannelTestConfig channelTestConfig) {
         given(aConfiguredChannel(channelTestConfig)
-                .withOnPreemptiveSubscriberAndOneErrorThrowingSubscriberThatShouldNeverBeCalled())
+                .withOnPreemptiveSubscriberAndOneSubscriberThatShouldNeverBeCalled())
                 .when(aMessageIsSend())
-                .then(expectNoException());
+                .then(expectOnlyTheFirstSubscriberToBeCalled());
     }
 
     @Test
@@ -243,7 +243,7 @@ public interface ChannelSpecs {
         given(aConfiguredChannel(channelTestConfig)
                 .withAProcessFilterThatForgetsMessages())
                 .when(aMessageIsSend())
-                .then(expectNoMessageToBeDelivered());
+                .then(expectNoMessageToBeDelivered()); //TODO: maybe check for FILTER_APPLIED = true --> 3x
     }
 
     @Test
@@ -380,7 +380,7 @@ public interface ChannelSpecs {
         final int numberOfSendMessages = 5;
         given(aConfiguredChannel(channelTestConfig)
                 .withDefaultActionConsume())
-                .when(severalMessagesAreSend(numberOfSendMessages)
+                .when(severalMessagesAreSendAsynchronously(numberOfSendMessages)
                         .andThen(theNumberOfAcceptedMessagesIsQueried()))
                 .then(expectTheResult(numberOfSendMessages));
     }
@@ -392,7 +392,7 @@ public interface ChannelSpecs {
         final int numberOfSendMessages = 5;
         given(aConfiguredChannel(channelTestConfig)
                 .withAPreFilterThatBlocksMessages())
-                .when(severalMessagesAreSend(numberOfSendMessages)
+                .when(severalMessagesAreSendAsynchronously(numberOfSendMessages)
                         .andThen(theNumberOfBlockedMessagesIsQueried()))
                 .then(expectTheResult(numberOfSendMessages));
     }
@@ -402,7 +402,7 @@ public interface ChannelSpecs {
         final int numberOfSendMessages = 5;
         given(aConfiguredChannel(channelTestConfig)
                 .withAProcessFilterThatBlocksMessages())
-                .when(severalMessagesAreSend(numberOfSendMessages)
+                .when(severalMessagesAreSendAsynchronously(numberOfSendMessages)
                         .andThen(theNumberOfBlockedMessagesIsQueried()))
                 .then(expectTheResult(numberOfSendMessages));
     }
@@ -412,7 +412,7 @@ public interface ChannelSpecs {
         final int numberOfSendMessages = 5;
         given(aConfiguredChannel(channelTestConfig)
                 .withAPostFilterThatBlocksMessages())
-                .when(severalMessagesAreSend(numberOfSendMessages)
+                .when(severalMessagesAreSendAsynchronously(numberOfSendMessages)
                         .andThen(theNumberOfBlockedMessagesIsQueried()))
                 .then(expectTheResult(numberOfSendMessages));
     }
@@ -422,7 +422,7 @@ public interface ChannelSpecs {
         final int numberOfSendMessages = 5;
         given(aConfiguredChannel(channelTestConfig)
                 .withAPreFilterThatForgetsMessages())
-                .when(severalMessagesAreSend(numberOfSendMessages)
+                .when(severalMessagesAreSendAsynchronously(numberOfSendMessages)
                         .andThen(theNumberOfForgottenMessagesIsQueried()))
                 .then(expectTheResult(numberOfSendMessages));
     }
@@ -432,7 +432,7 @@ public interface ChannelSpecs {
         final int numberOfSendMessages = 5;
         given(aConfiguredChannel(channelTestConfig)
                 .withAProcessFilterThatForgetsMessages())
-                .when(severalMessagesAreSend(numberOfSendMessages)
+                .when(severalMessagesAreSendAsynchronously(numberOfSendMessages)
                         .andThen(theNumberOfForgottenMessagesIsQueried()))
                 .then(expectTheResult(numberOfSendMessages));
     }
@@ -442,7 +442,7 @@ public interface ChannelSpecs {
         final int numberOfSendMessages = 5;
         given(aConfiguredChannel(channelTestConfig)
                 .withAPostFilterThatForgetsMessages())
-                .when(severalMessagesAreSend(numberOfSendMessages)
+                .when(severalMessagesAreSendAsynchronously(numberOfSendMessages)
                         .andThen(theNumberOfForgottenMessagesIsQueried()))
                 .then(expectTheResult(numberOfSendMessages));
     }
@@ -452,7 +452,7 @@ public interface ChannelSpecs {
         final int numberOfSendMessages = 5;
         given(aConfiguredChannel(channelTestConfig)
                 .withDefaultActionConsume())
-                .when(severalMessagesAreSend(numberOfSendMessages)
+                .when(severalMessagesAreSendAsynchronously(numberOfSendMessages)
                         .andThen(theNumberOfSuccessfulDeliveredMessagesIsQueried()))
                 .then(expectTheResult(numberOfSendMessages));
     }
@@ -463,7 +463,7 @@ public interface ChannelSpecs {
         given(aConfiguredChannel(channelTestConfig)
                 .withAnExceptionInFinalAction()
                 .withAnExceptionHandlerIgnoringExceptions())
-                .when(severalMessagesAreSend(numberOfSendMessages)
+                .when(severalMessagesAreSendAsynchronously(numberOfSendMessages)
                         .andThen(theNumberOfFailedDeliveredMessagesIsQueried()))
                 .then(expectTheResult(numberOfSendMessages));
     }
@@ -474,7 +474,7 @@ public interface ChannelSpecs {
         given(aConfiguredChannel(channelTestConfig)
                 .withAnExceptionHandlerIgnoringExceptions()
                 .withAnErrorThrowingFilter())
-                .when(severalMessagesAreSend(numberOfSendMessages)
+                .when(severalMessagesAreSendAsynchronously(numberOfSendMessages)
                         .andThen(theNumberOfFailedDeliveredMessagesIsQueried()))
                 .then(expectTheResult(numberOfSendMessages));
     }
@@ -504,7 +504,7 @@ public interface ChannelSpecs {
         given(aConfiguredChannel(channelTestConfig)
                 .withAnExceptionInFinalAction()
                 .withAnErrorHandlerDeclaringErrorsInDeliveryAsNotDeliveryAborting())
-                .when(severalMessagesAreSend(numberOfSendMessages)
+                .when(severalMessagesAreSendAsynchronously(numberOfSendMessages)
                         .andThen(theNumberOfSuccessfulDeliveredMessagesIsQueried()))
                 .then(expectTheResult(numberOfSendMessages));
     }

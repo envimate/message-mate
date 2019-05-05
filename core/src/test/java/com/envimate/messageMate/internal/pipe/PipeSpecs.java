@@ -25,7 +25,7 @@ import com.envimate.messageMate.exceptions.AlreadyClosedException;
 import com.envimate.messageMate.internal.pipe.config.PipeTestConfig;
 import org.junit.jupiter.api.Test;
 
-import static com.envimate.messageMate.internal.pipe.config.PipeTestConfig.ASYNCHRONOUS_POOL_SIZE;
+import static com.envimate.messageMate.internal.pipe.config.PipeTestConfig.ASYNCHRONOUS_PIPE_POOL_SIZE;
 import static com.envimate.messageMate.internal.pipe.givenWhenThen.Given.given;
 import static com.envimate.messageMate.internal.pipe.givenWhenThen.PipeActionBuilder.*;
 import static com.envimate.messageMate.internal.pipe.givenWhenThen.PipeSetupBuilder.aConfiguredPipe;
@@ -194,7 +194,7 @@ public interface PipeSpecs {
     //await
     @Test
     default void testPipe_awaitsSucceedsWhenAllTasksCouldBeDone(final PipeTestConfig testConfig) {
-        final int numberOfMessagesSend = ASYNCHRONOUS_POOL_SIZE;
+        final int numberOfMessagesSend = ASYNCHRONOUS_PIPE_POOL_SIZE;
         given(aConfiguredPipe(testConfig))
                 .when(closeAndThenWaitForPendingTasksToFinished(numberOfMessagesSend))
                 .then(expectTheAwaitToBeTerminatedSuccessful(numberOfMessagesSend));

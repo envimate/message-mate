@@ -42,7 +42,7 @@ public interface Pipe<T> extends NoErrorAutoClosable {
 
     void close(boolean finishRemainingTasks);
 
-    boolean isShutdown();
+    boolean isClosed();
 
     boolean awaitTermination(int timeout, TimeUnit timeUnit) throws InterruptedException;
 

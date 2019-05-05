@@ -52,9 +52,8 @@ public class AsynchronousDeliveryMessageBusSpecs implements MessageBusSpecs {
     public void testMessageBus_whenShutdownAllRemainingTasksAreFinished(final MessageBusTestConfig config) {
         final int numberOfParallelSendMessages = 10;
         final boolean finishRemainingTasks = true;
-        final int expectedNumberOfBlockedThreads = ASYNCHRONOUS_DELIVERY_POOL_SIZE;
         given(aConfiguredMessageBus(config))
-                .when(sendSeveralMessagesBeforeTheBusIsShutdown(numberOfParallelSendMessages, finishRemainingTasks, expectedNumberOfBlockedThreads))
+                .when(sendSeveralMessagesBeforeTheBusIsShutdown(numberOfParallelSendMessages, finishRemainingTasks))
                 .then(expectXMessagesToBeDelivered(10));
     }
 
@@ -63,9 +62,8 @@ public class AsynchronousDeliveryMessageBusSpecs implements MessageBusSpecs {
             final MessageBusTestConfig config) {
         final int numberOfParallelSendMessages = ASYNCHRONOUS_DELIVERY_POOL_SIZE + 3;
         final boolean finishRemainingTasks = false;
-        final int expectedNumberOfBlockedThreads = ASYNCHRONOUS_DELIVERY_POOL_SIZE;
         given(aConfiguredMessageBus(config))
-                .when(sendSeveralMessagesBeforeTheBusIsShutdown(numberOfParallelSendMessages, finishRemainingTasks, expectedNumberOfBlockedThreads))
+                .when(sendSeveralMessagesBeforeTheBusIsShutdown(numberOfParallelSendMessages, finishRemainingTasks))
                 .then(expectXMessagesToBeDelivered(ASYNCHRONOUS_DELIVERY_POOL_SIZE));
     }
 }

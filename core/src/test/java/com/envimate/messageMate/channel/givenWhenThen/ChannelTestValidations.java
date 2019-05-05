@@ -27,6 +27,8 @@ import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.shared.environment.TestEnvironmentProperty;
+import com.envimate.messageMate.shared.polling.PollingUtils;
+import com.envimate.messageMate.shared.subscriber.TestSubscriber;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import lombok.RequiredArgsConstructor;
 
@@ -38,6 +40,10 @@ import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestProperti
 import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestProperties.PIPE;
 import static com.envimate.messageMate.channel.givenWhenThen.ProcessingFrameHistoryMatcher.aProcessingFrameHistory;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.*;
+import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.ERROR_SUBSCRIBER;
+import static com.envimate.messageMate.shared.polling.PollingUtils.pollUntil;
+import static com.envimate.messageMate.shared.polling.PollingUtils.pollUntilListHasSize;
+import static com.envimate.messageMate.shared.validations.SharedTestValidations.assertListOfSize;
 import static lombok.AccessLevel.PRIVATE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -79,15 +85,25 @@ final class ChannelTestValidations {
         assertThat(actualMetaDatum, equalTo(expectedMetaDatum));
     }
 
+    static void assertOnlyFirstSubscriberReceivedMessage(final TestEnvironment testEnvironment) {
+        final TestSubscriber<?> subscriber = testEnvironment.getPropertyAsType(EXPECTED_RECEIVERS, TestSubscriber.class);
+        pollUntilListHasSize(subscriber::getReceivedMessages, 1);
+        final TestSubscriber<?> subscriberNotCalled = testEnvironment.getPropertyAsType(ERROR_SUBSCRIBER, TestSubscriber.class);
+        final List<?> receivedMessages = subscriberNotCalled.getReceivedMessages();
+        assertListOfSize(receivedMessages, 0);
+    }
+
     @SuppressWarnings("unchecked")
     private static Channel<TestMessage> getTestPropertyAsChannel(final TestEnvironment testEnvironment,
                                                                  final TestEnvironmentProperty property) {
+        pollUntil(() -> testEnvironment.has(property));
         return (Channel<TestMessage>) testEnvironment.getProperty(property);
     }
 
     @SuppressWarnings("unchecked")
     private static ProcessingContext<TestMessage> getTestPropertyAsProcessingContext(final TestEnvironment testEnvironment,
                                                                                      final TestEnvironmentProperty property) {
+        pollUntil(() -> testEnvironment.has(property));
         return (ProcessingContext<TestMessage>) testEnvironment.getProperty(property);
     }
 

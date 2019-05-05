@@ -4,7 +4,6 @@ import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.CloseActions;
 import com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.SendingAndReceivingActions;
-import com.envimate.messageMate.shared.polling.PollingUtils;
 import com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
@@ -17,9 +16,10 @@ import static com.envimate.messageMate.shared.eventType.TestEventType.testEventT
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.EXECUTION_END_SEMAPHORE;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.SINGLE_RECEIVER;
 import static com.envimate.messageMate.shared.polling.PollingUtils.pollUntilEquals;
+import static com.envimate.messageMate.shared.polling.PollingUtils.pollUntilListHasSize;
 import static com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber.blockingTestSubscriber;
 import static com.envimate.messageMate.shared.testMessages.TestMessageOfInterest.messageOfInterest;
-import static com.envimate.messageMate.shared.utils.AsynchronousSendingTestUtils.*;
+import static com.envimate.messageMate.shared.utils.SendingTestUtils.*;
 import static com.envimate.messageMate.useCases.givenWhenThen.UseCaseInvocationTestProperties.EVENT_TYPE;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -71,6 +71,22 @@ public final class ShutdownTestUtils {
         semaphore.release(1337);
     }
 
+    public static void awaitTermination(final CloseActions closeActions, final TestEnvironment testEnvironment) {
+        final int seconds = 1;
+        awaitTermination(closeActions, testEnvironment, seconds);
+    }
+
+    public static void awaitTermination(final CloseActions closeActions,
+                                        final TestEnvironment testEnvironment,
+                                        final int seconds) {
+        try {
+            final boolean terminatedSuccessful = closeActions.await(seconds, SECONDS);
+            testEnvironment.setProperty(RESULT, terminatedSuccessful);
+        } catch (final InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static void callAwaitWithoutACloseIsCalled(final CloseActions closeActions, final TestEnvironment testEnvironment) {
         try {
             final boolean terminatedSuccessful = closeActions.await(0, SECONDS);
@@ -91,6 +107,24 @@ public final class ShutdownTestUtils {
             sutActions.send(eventType, message);
         } catch (final Exception e) {
             testEnvironment.setProperty(EXCEPTION, e);
+        }
+    }
+
+    public static void closeAndThenAwaitTermination(final SendingAndReceivingActions sutActions,
+                                                    final TestEnvironment testEnvironment) {
+        final int timeoutInSeconds = 1;
+        closeAndThenAwaitTermination(sutActions, testEnvironment, timeoutInSeconds);
+    }
+
+    public static void closeAndThenAwaitTermination(final SendingAndReceivingActions sutActions,
+                                                    final TestEnvironment testEnvironment,
+                                                    final int timeoutInSeconds) {
+        try {
+            sutActions.close(true);
+            final boolean terminatedSuccessful = sutActions.await(timeoutInSeconds, SECONDS);
+            testEnvironment.setProperty(RESULT, terminatedSuccessful);
+        } catch (final InterruptedException e) {
+            testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
         }
     }
 
@@ -115,7 +149,7 @@ public final class ShutdownTestUtils {
             }).start();
             cyclicBarrier.await();
             final boolean terminatedSuccessful = sutActions.await(1, SECONDS);
-            pollUntilEquals(() -> subscriber.getReceivedMessages().size(), numberOfPendingMessages);
+            pollUntilListHasSize(subscriber::getReceivedMessages, numberOfPendingMessages);
             testEnvironment.setProperty(RESULT, terminatedSuccessful);
         } catch (final InterruptedException | BrokenBarrierException e) {
             testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
@@ -139,7 +173,7 @@ public final class ShutdownTestUtils {
         final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
         sutActions.subscribe(eventType, subscriber);
         sendXMessagesInTheirOwnThreadThatWillBeBlocked(sutActions, numberOfPendingMessages, testEnvironment);
-        pollUntilEquals(subscriber::getBlockedThreads, expectedNumberOfBlockedThreads);
+        pollUntilEquals(subscriber::getNumberOfBlockedThreads, expectedNumberOfBlockedThreads);
         return subscriber;
     }
 
@@ -155,14 +189,8 @@ public final class ShutdownTestUtils {
         sendXMessagesAsynchronouslyThatWillFail(sutActions, numberOfMessagesAfterShutdown, testEnvironment);
         semaphore.release(1337);
         if (finishRemainingTask) {
-            PollingUtils.pollUntilEquals(() -> subscriber.getReceivedMessages().size(), numberOfMessagesBeforeShutdown);
+            pollUntilListHasSize(subscriber::getReceivedMessages, numberOfMessagesBeforeShutdown);
         }
-    }
-
-    public static void callCloseThenAwaitWithBlockedSubscriberWithoutReleasingLock(final SendingAndReceivingActions sutActions,
-                                                                                   final TestEnvironment testEnvironment,
-                                                                                   final int numberOfMessagesSend) {
-        callCloseThenAwaitWithBlockedSubscriberWithoutReleasingLock(sutActions, testEnvironment, numberOfMessagesSend, numberOfMessagesSend);
     }
 
     public static void callCloseThenAwaitWithBlockedSubscriberWithoutReleasingLock(final SendingAndReceivingActions sutActions,

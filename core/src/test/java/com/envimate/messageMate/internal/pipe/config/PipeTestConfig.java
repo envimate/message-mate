@@ -35,7 +35,7 @@ import static com.envimate.messageMate.internal.pipe.configuration.AsynchronousC
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PipeTestConfig {
-    public static final int ASYNCHRONOUS_POOL_SIZE = 5;
+    public static final int ASYNCHRONOUS_PIPE_POOL_SIZE = 5;
     public static final int ASYNCHRONOUS_QUEUED_BOUND = 3;
     @Getter
     private final PipeType pipeType;
@@ -47,13 +47,17 @@ public final class PipeTestConfig {
     }
 
     static PipeTestConfig anAsynchronousPipe() {
-        return new PipeTestConfig(ASYNCHRONOUS, constantPoolSizeAsynchronousPipeConfiguration(ASYNCHRONOUS_POOL_SIZE));
+        return new PipeTestConfig(ASYNCHRONOUS, constantPoolSizeAsynchronousPipeConfiguration(ASYNCHRONOUS_PIPE_POOL_SIZE));
     }
 
     public static PipeTestConfig anAsynchronousBoundedPipe() {
-        final int poolSize = ASYNCHRONOUS_POOL_SIZE;
+        final int poolSize = ASYNCHRONOUS_PIPE_POOL_SIZE;
         final int waitingQueueBound = ASYNCHRONOUS_QUEUED_BOUND;
         final AsynchronousConfiguration config = constantPoolSizeAsynchronousPipeConfiguration(poolSize, waitingQueueBound);
         return new PipeTestConfig(ASYNCHRONOUS, config);
+    }
+
+    public boolean isAsynchronous() {
+        return pipeType == PipeType.ASYNCHRONOUS;
     }
 }

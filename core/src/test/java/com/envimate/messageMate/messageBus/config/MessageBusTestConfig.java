@@ -49,4 +49,8 @@ public final class MessageBusTestConfig {
         return new MessageBusTestConfig(ASYNCHRONOUS, asynchronousConfiguration);
     }
 
+    public boolean isAsynchronous() {
+        return type == ASYNCHRONOUS;
+    }
+
 }

@@ -222,7 +222,7 @@ final class ChannelImpl<T> implements Channel<T> {
 
     @Override
     public boolean isClosed() {
-        return acceptingPipe.isShutdown();
+        return acceptingPipe.isClosed();
     }
 
     @Override

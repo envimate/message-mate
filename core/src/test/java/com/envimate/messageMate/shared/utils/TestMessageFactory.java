@@ -21,7 +21,6 @@
 
 package com.envimate.messageMate.shared.utils;
 
-import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.shared.testMessages.InvalidTestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
@@ -29,7 +28,6 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.function.Supplier;
 
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.MESSAGES_SEND_OF_INTEREST;
 import static com.envimate.messageMate.shared.testMessages.InvalidTestMessage.invalidTestMessage;
 import static lombok.AccessLevel.PRIVATE;
 
@@ -38,27 +36,20 @@ public final class TestMessageFactory implements MessageFactory {
     private final Supplier<TestMessage> messageSupplier;
     private final int numberOfMessages;
 
-    public static TestMessageFactory testMessageFactoryForValidMessages(final int numberOfMessages,
-                                                                        final TestEnvironment testEnvironment) {
-        return new TestMessageFactory(() -> {
-            final TestMessageOfInterest message = TestMessageOfInterest.messageOfInterest();
-            testEnvironment.addToListProperty(MESSAGES_SEND_OF_INTEREST, message);
-            return message;
-        }, numberOfMessages);
+    public static TestMessageFactory messageFactoryForValidMessages(final int numberOfMessages) {
+        return new TestMessageFactory(TestMessageOfInterest::messageOfInterest, numberOfMessages);
     }
 
-    public static TestMessageFactory testMessageFactoryForInvalidMessages(final int numberOfMessages) {
+    public static TestMessageFactory messageFactoryForInvalidMessages(final int numberOfMessages) {
         return new TestMessageFactory(InvalidTestMessage::invalidTestMessage, numberOfMessages);
     }
 
-    public static TestMessageFactory testMessageFactoryForRandomValidOrInvalidTestMessages(
-            final int numberOfMessages,
-            final TestEnvironment testEnvironment) {
+    public static TestMessageFactory messageFactoryForRandomValidOrInvalidTestMessages(
+            final int numberOfMessages) {
         return new TestMessageFactory(() -> {
             final double percentageCorrectMessages = 0.5;
             if (Math.random() < percentageCorrectMessages) {
                 final TestMessageOfInterest message = TestMessageOfInterest.messageOfInterest();
-                testEnvironment.addToListProperty(MESSAGES_SEND_OF_INTEREST, message);
                 return message;
             } else {
                 return invalidTestMessage();

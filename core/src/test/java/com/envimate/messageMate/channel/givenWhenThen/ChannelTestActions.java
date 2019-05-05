@@ -25,18 +25,30 @@ import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.channel.ChannelProcessingFrame;
 import com.envimate.messageMate.channel.ChannelStatusInformation;
 import com.envimate.messageMate.channel.action.Action;
+import com.envimate.messageMate.channel.action.Subscription;
 import com.envimate.messageMate.channel.statistics.ChannelStatistics;
 import com.envimate.messageMate.filtering.Filter;
+import com.envimate.messageMate.identification.CorrelationId;
+import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.processingContext.ProcessingContext;
+import com.envimate.messageMate.shared.environment.TestEnvironment;
+import com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.CorrelationIdSendingActions;
+import com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.ProcessingContextSendingActions;
+import com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.RawSubscribeActions;
+import com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.SendingAndReceivingActions;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
+import com.envimate.messageMate.shared.utils.SendingTestUtils;
+import com.envimate.messageMate.subscribing.Subscriber;
+import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.RequiredArgsConstructor;
 
 import java.math.BigInteger;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import static com.envimate.messageMate.channel.action.Call.callTo;
@@ -47,13 +59,23 @@ import static com.envimate.messageMate.shared.testMessages.TestMessageOfInterest
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
-final class ChannelTestActions {
+public final class ChannelTestActions implements SendingAndReceivingActions, ProcessingContextSendingActions,
+        CorrelationIdSendingActions, RawSubscribeActions {
     static final TestMessageOfInterest DEFAULT_TEST_MESSAGE = messageOfInterest();
     static final EventType DEFAULT_EVENT_TYPE = EventType.eventTypeFromString("defaultEventType");
 
-    static ProcessingContext<TestMessage> sendMessage(final Channel<TestMessage> channel, final TestMessage testMessage) {
-        final ProcessingContext<TestMessage> processingContext = processingContext(DEFAULT_EVENT_TYPE, testMessage);
-        channel.send(processingContext);
+    private final Channel<TestMessage> channel;
+
+    public static ChannelTestActions channelTestActions(final Channel<TestMessage> channel) {
+        return new ChannelTestActions(channel);
+    }
+
+    static ProcessingContext<TestMessage> sendMessage(final Channel<TestMessage> channel,
+                                                      final TestEnvironment testEnvironment,
+                                                      final TestMessage message) {
+        final ChannelTestActions testActions = ChannelTestActions.channelTestActions(channel);
+        final ProcessingContext<TestMessage> processingContext = processingContext(DEFAULT_EVENT_TYPE, message);
+        SendingTestUtils.sendProcessingContext(testActions, testEnvironment, processingContext);
         return processingContext;
     }
 
@@ -64,7 +86,8 @@ final class ChannelTestActions {
         });
     }
 
-    static void addChangingActionFilterToPipe(final Channel<TestMessage> channel, final FilterPosition filterPosition,
+    static void addChangingActionFilterToPipe(final Channel<TestMessage> channel,
+                                              final FilterPosition filterPosition,
                                               final Action<TestMessage> action) {
         final Filter<ProcessingContext<TestMessage>> filter = (processingContext, filterActions) -> {
             final ChannelProcessingFrame<TestMessage> currentProcessingFrame = processingContext.getCurrentProcessingFrame();
@@ -179,5 +202,63 @@ final class ChannelTestActions {
             default:
                 throw new UnsupportedOperationException("Unknown filterPosition " + filterPosition + ".");
         }
+    }
+
+    @Override
+    public void close(final boolean finishRemainingTasks) {
+        channel.close(finishRemainingTasks);
+    }
+
+    @Override
+    public boolean await(final int timeout, final TimeUnit timeUnit) throws InterruptedException {
+        return channel.awaitTermination(timeout, timeUnit);
+    }
+
+    @Override
+    public boolean isClosed() {
+        return channel.isClosed();
+    }
+
+    @Override
+    public MessageId send(final EventType eventType, final TestMessage message) {
+        return channel.send(message);
+    }
+
+    @Override
+    public MessageId send(final ProcessingContext<TestMessage> processingContext) {
+        return channel.send(processingContext);
+    }
+
+    @Override
+    public MessageId send(final EventType eventType, final TestMessage message, final CorrelationId correlationId) {
+        return channel.send(message, correlationId);
+    }
+
+    @Override
+    public void subscribe(final EventType eventType, final Subscriber<TestMessage> subscriber) {
+        final Subscription<TestMessage> subscription = getActionAsSubscription();
+        subscription.addSubscriber(subscriber);
+    }
+
+    @Override
+    public void unsubscribe(final SubscriptionId subscriptionId) {
+        final Subscription<TestMessage> subscription = getActionAsSubscription();
+        subscription.removeSubscriber(subscriptionId);
+    }
+
+    @Override
+    public List<Subscriber<?>> getAllSubscribers() {
+        final Subscription<TestMessage> subscription = getActionAsSubscription();
+        return subscription.getAllSubscribers();
+    }
+
+    @Override
+    public SubscriptionId subscribeRaw(final EventType eventType, final Subscriber<ProcessingContext<TestMessage>> subscriber) {
+        final Subscription<TestMessage> subscription = getActionAsSubscription();
+        return subscription.addRawSubscriber(subscriber);
+    }
+
+    private Subscription<TestMessage> getActionAsSubscription() {
+        return (Subscription<TestMessage>) channel.getDefaultAction();
     }
 }

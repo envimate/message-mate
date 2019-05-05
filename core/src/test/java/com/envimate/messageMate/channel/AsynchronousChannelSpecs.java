@@ -41,22 +41,21 @@ public class AsynchronousChannelSpecs implements ChannelSpecs {
         final int expectedQueuedMessage = 3;
         final int numberOfSendMessages = ASYNCHRONOUS_CHANNEL_CONFIG_POOL_SIZE + expectedQueuedMessage;
         given(aConfiguredChannel(channelTestConfig)
-                .withABlockingSubscriber())
-                .when(severalMessagesAreSendAsynchronously(numberOfSendMessages)
+                .withSubscriptionAsAction())
+                .when(severalMessagesAreSendAsynchronouslyThatWillBeBlocked(numberOfSendMessages)
                         .andThen(theNumberOfQueuedMessagesIsQueried()))
                 .then(expectTheResult(expectedQueuedMessage));
     }
 
     //shutdown
     @Test
-    public void testChannel_closeWithoutFinishingRemainingTasks_hasNoEffectForSynchronousConfig(final ChannelTestConfig config) {
+    public void testChannel_closeWithoutFinishingRemainingTasks(final ChannelTestConfig config) {
         final int expectedQueuedMessage = 3;
         final int numberOfMessages = ASYNCHRONOUS_CHANNEL_CONFIG_POOL_SIZE + expectedQueuedMessage;
         given(aConfiguredChannel(config)
-                .withABlockingSubscriber())
+                .withSubscriptionAsAction())
                 .when(severalMessagesAreSendAsynchronouslyBeforeTheChannelIsClosedWithoutFinishingRemainingTasks(numberOfMessages)
-                        .andThen(theSubscriberLockIsReleased()
-                                .andThen(theNumberOfSuccessfulDeliveredMessagesIsQueried())))
+                        .andThen(theNumberOfMessagesIsQueriedThatAreStillDeliveredSuccessfully()))
                 .then(expectTheResult(ASYNCHRONOUS_CHANNEL_CONFIG_POOL_SIZE)
                         .and(expectTheChannelToBeShutdown()));
     }
@@ -66,7 +65,7 @@ public class AsynchronousChannelSpecs implements ChannelSpecs {
     public void testChannel_awaitsWithoutFinishingTasks_succeedsDespiteNotFinished(final ChannelTestConfig config) {
         final int numberOfMessages = ASYNCHRONOUS_CHANNEL_CONFIG_POOL_SIZE + 5;
         given(aConfiguredChannel(config)
-                .withABlockingSubscriber())
+                .withSubscriptionAsAction())
                 .when(sendMessagesBeforeTheShutdownIsAwaitedWithoutFinishingTasks(numberOfMessages))
                 .then(expectTheShutdownToBeFailed());
     }

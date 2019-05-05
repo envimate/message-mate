@@ -37,11 +37,11 @@ public class SynchronousChannelSpecs implements ChannelSpecs {
 
     //statistics
     @Test
-    public void testChannel_canQueuedMessages(final ChannelTestConfig channelTestConfig) {
-        final int numberOfSendMessages = 5;
+    public void testChannel_synchronousConfigDoesNotQueueMessages(final ChannelTestConfig channelTestConfig) {
+        final int numberOfSendMessages = 7;
         given(aConfiguredChannel(channelTestConfig)
-                .withABlockingSubscriber())
-                .when(severalMessagesAreSendAsynchronously(numberOfSendMessages)
+                .withSubscriptionAsAction())
+                .when(severalMessagesAreSendAsynchronouslyThatWillBeBlocked(numberOfSendMessages)
                         .andThen(theNumberOfQueuedMessagesIsQueried()))
                 .then(expectTheResult(0));
     }
@@ -49,12 +49,11 @@ public class SynchronousChannelSpecs implements ChannelSpecs {
     //shutdown
     @Test
     public void testChannel_closeWithoutFinishingRemainingTasks_hasNoEffectForSynchronousConfig(final ChannelTestConfig config) {
-        final int numberOfMessages = 5;
+        final int numberOfMessages = 7;
         given(aConfiguredChannel(config)
-                .withABlockingSubscriber())
+                .withSubscriptionAsAction())
                 .when(severalMessagesAreSendAsynchronouslyBeforeTheChannelIsClosedWithoutFinishingRemainingTasks(numberOfMessages)
-                        .andThen(theSubscriberLockIsReleased()
-                                .andThen(theNumberOfSuccessfulDeliveredMessagesIsQueried())))
+                        .andThen(theNumberOfMessagesIsQueriedThatAreStillDeliveredSuccessfully()))
                 .then(expectTheResult(numberOfMessages)
                         .and(expectTheChannelToBeShutdown()));
     }
@@ -81,9 +80,9 @@ public class SynchronousChannelSpecs implements ChannelSpecs {
     //await
     @Test
     public void testChannel_awaitsWithoutFinishingTasks_succeedsDespiteNotFinished(final ChannelTestConfig channelTestConfig) {
-        final int numberOfMessages = 5;
+        final int numberOfMessages = 7;
         given(aConfiguredChannel(channelTestConfig)
-                .withABlockingSubscriber())
+                .withSubscriptionAsAction())
                 .when(severalMessagesAreSendAsynchronouslyBeforeTheChannelIsClosedWithoutFinishingRemainingTasks(numberOfMessages)
                         .andThen(theShutdownIsAwaited()))
                 .then(expectTheShutdownToBeSucceededInTime());

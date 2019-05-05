@@ -21,40 +21,32 @@
 
 package com.envimate.messageMate.messageBus.givenWhenThen;
 
-import com.envimate.messageMate.identification.CorrelationId;
-import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionListener;
 import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.shared.givenWhenThen.TestValidation;
-import com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.MessageBusSutActions;
-import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeMessageBusSutActions;
-import com.envimate.messageMate.shared.polling.PollingUtils;
 import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.shared.subscriber.TestSubscriber;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.shared.validations.SharedTestValidations;
-import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActions.queryListOfDynamicExceptionListener;
-import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActionsOld.messageBusTestActions;
-import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.MESSAGE_RECEIVED_BY_ERROR_LISTENER;
+import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestValidations.*;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.RESULT;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.SUT;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
 import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestValidations.*;
-import static com.envimate.messageMate.shared.polling.PollingUtils.pollUntil;
-import static com.envimate.messageMate.shared.polling.PollingUtils.pollUntilEquals;
+import static com.envimate.messageMate.shared.polling.PollingUtils.pollUntilListHasSize;
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.*;
 import static lombok.AccessLevel.PRIVATE;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 
 @RequiredArgsConstructor(access = PRIVATE)
@@ -97,15 +89,15 @@ public final class MessageBusValidationBuilder {
     public static MessageBusValidationBuilder expectAllRemainingSubscribersToStillBeSubscribed() {
         return asValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
-            final PipeMessageBusSutActions sutActions = sutActions(testEnvironment); //TODO: müssem hier alle weg
-            assertSutStillHasExpectedSubscriber(sutActions, testEnvironment);
+            final MessageBusTestActions testActions = getMessageBusTestActions(testEnvironment);
+            assertSutStillHasExpectedSubscriber(testActions, testEnvironment);
         });
     }
 
     public static MessageBusValidationBuilder expectAllMessagesToHaveTheContentChanged() {
         return asValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
-            final MessageBusSutActions sutActions = sutActionsNew(testEnvironment);
+            final MessageBusTestActions sutActions = getMessageBusTestActions(testEnvironment);
             assertAllMessagesHaveContentChanged(sutActions, testEnvironment);
         });
     }
@@ -144,22 +136,7 @@ public final class MessageBusValidationBuilder {
     public static MessageBusValidationBuilder expectNoMessagesToBeDelivered() {
         return asValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
-            //TODO: reusable
-            pollUntil(() -> {
-
-                if (testEnvironment.has(SINGLE_SEND_MESSAGE)) {
-                    return true;
-                } else {
-                    if (testEnvironment.has(NUMBER_OF_MESSAGES_SHOULD_BE_SEND)) {
-                        final Object expectedNumberOfMessages = testEnvironment.getProperty(NUMBER_OF_MESSAGES_SHOULD_BE_SEND);
-                        final List<?> actualSendMessages = testEnvironment.getPropertyAsType(MESSAGES_SEND, List.class);
-                        return testEquals(expectedNumberOfMessages, actualSendMessages.size());
-                    } else {
-                        return false;
-                    }
-                }
-            });
-            assertNumberOfMessagesReceived(testEnvironment, 0);
+            assertNoMessagesReceived(testEnvironment);
         });
     }
 
@@ -180,7 +157,7 @@ public final class MessageBusValidationBuilder {
     public static MessageBusValidationBuilder expectAListOfSize(final int expectedSize) {
         return asValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
-            assertListOfSize(testEnvironment, expectedSize);
+            assertResultIsListOfSize(testEnvironment, expectedSize);
         });
     }
 
@@ -194,27 +171,24 @@ public final class MessageBusValidationBuilder {
     public static MessageBusValidationBuilder expectSubscriberOfType(final int expectedNumberOfSubscribers,
                                                                      final EventType eventType) {
         return asValidation(testEnvironment -> {
-            @SuppressWarnings("unchecked")
-            final Map<EventType, List<Subscriber<?>>> resultMap =
-                    (Map<EventType, List<Subscriber<?>>>) testEnvironment.getProperty(RESULT);
-            final List<Subscriber<?>> subscribersForType = resultMap.get(eventType);
-            assertThat(subscribersForType.size(), equalTo(expectedNumberOfSubscribers));
+            assertNoExceptionThrown(testEnvironment);
+            assertAmountOfSubscriberForType(expectedNumberOfSubscribers, eventType, testEnvironment);
         });
     }
 
     public static MessageBusValidationBuilder expectTheMessageBusToBeShutdownInTime() {
         return asValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
-            final PipeMessageBusSutActions sutActions = sutActions(testEnvironment);
-            assertSutWasShutdownInTime(sutActions, testEnvironment);
+            final MessageBusTestActions testActions = getMessageBusTestActions(testEnvironment);
+            assertSutWasShutdownInTime(testActions, testEnvironment);
         });
     }
 
     public static MessageBusValidationBuilder expectTheMessageBusToBeShutdown() {
         return asValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
-            final PipeMessageBusSutActions sutActions = sutActions(testEnvironment);
-            assertSutIsShutdown(sutActions, testEnvironment);
+            final MessageBusTestActions testActions = getMessageBusTestActions(testEnvironment);
+            assertSutIsShutdown(testActions);
         });
     }
 
@@ -229,20 +203,8 @@ public final class MessageBusValidationBuilder {
     public static MessageBusValidationBuilder expectTheExceptionHandled(final Class<?> expectedExceptionClass) {
         return asValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
-            pollUntil(() -> testEnvironment.has(RESULT));
-            assertResultOfClass(testEnvironment, expectedExceptionClass);
-            final ProcessingContext<?> processingContext = getReceivedErrorMessage(testEnvironment);
-            final Object message = processingContext.getPayload();
-            final Object expectedPayload = testEnvironment.getProperty(SINGLE_SEND_MESSAGE);
-            assertEquals(message, expectedPayload);
-            final MessageId messageId = processingContext.getMessageId();
-            final Object expectedMessageId = testEnvironment.getProperty(SEND_MESSAGE_ID);
-            assertEquals(messageId, expectedMessageId);
+            assertTheExceptionHandled(expectedExceptionClass, testEnvironment);
         });
-    }
-
-    private static ProcessingContext<?> getReceivedErrorMessage(final TestEnvironment testEnvironment) {
-        return testEnvironment.getPropertyAsType(MESSAGE_RECEIVED_BY_ERROR_LISTENER, ProcessingContext.class);
     }
 
     public static MessageBusValidationBuilder expectTheExceptionHandledAsFilterException(final Class<?> expectedExceptionClass) {
@@ -257,7 +219,6 @@ public final class MessageBusValidationBuilder {
                                                                            final String expectedExceptionProperty) {
         return asValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
-            pollUntil(() -> testEnvironment.has(RESULT));
             assertResultOfClass(testEnvironment, expectedExceptionClass);
             assertPropertyTrue(testEnvironment, expectedExceptionProperty);
         });
@@ -285,9 +246,15 @@ public final class MessageBusValidationBuilder {
     public static MessageBusValidationBuilder expectTheRemainingFilter() {
         return asValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
-            final PipeMessageBusSutActions sutActions = sutActions(testEnvironment);
-            assertSutHasExpectedFilter(sutActions, testEnvironment);
+            assertSutHasExpectedFilter(testEnvironment);
         });
+    }
+
+    private static void assertSutHasExpectedFilter(final TestEnvironment testEnvironment) {
+        final List<?> expectedFilter = (List<?>) testEnvironment.getProperty(EXPECTED_FILTER);
+        final MessageBus messageBus = getMessageBus(testEnvironment);
+        final List<?> list = messageBus.getFilter();
+        assertThat(list, containsInAnyOrder(expectedFilter.toArray()));
     }
 
     public static MessageBusValidationBuilder expectTheMessageWrappedInProcessingContextWithCorrectCorrelationIdToBeReceived() {
@@ -306,42 +273,6 @@ public final class MessageBusValidationBuilder {
         });
     }
 
-    private static void assertAllReceiverReceivedProcessingContextWithCorrectCorrelationId(
-            final TestEnvironment testEnvironment) {
-        final List<TestSubscriber<ProcessingContext<Object>>> receivers =
-                getExpectedReceiverAsCorrelationBasedSubscriberList(testEnvironment);
-        for (final TestSubscriber<ProcessingContext<Object>> receiver : receivers) {
-            final List<ProcessingContext<Object>> receivedMessages = receiver.getReceivedMessages();
-            pollUntilEquals(receivedMessages::size, 1);
-            final ProcessingContext<Object> processingContext = receivedMessages.get(0);
-            final CorrelationId expectedCorrelationId = getExpectedCorrelationId(testEnvironment);
-            assertEquals(processingContext.getCorrelationId(), expectedCorrelationId);
-            final Object expectedResult = testEnvironment.getProperty(SINGLE_SEND_MESSAGE);
-            assertEquals(processingContext.getPayload(), expectedResult);
-        }
-    }
-
-    private static CorrelationId getExpectedCorrelationId(final TestEnvironment testEnvironment) {
-        return testEnvironment.getPropertyAsType(EXPECTED_CORRELATION_ID, CorrelationId.class);
-    }
-
-    @SuppressWarnings("unchecked")
-    private static List<TestSubscriber<ProcessingContext<Object>>> getExpectedReceiverAsCorrelationBasedSubscriberList(
-            final TestEnvironment testEnvironment) {
-        return (List<TestSubscriber<ProcessingContext<Object>>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
-    }
-
-    private static PipeMessageBusSutActions sutActions(final TestEnvironment testEnvironment) {
-        final MessageBus messageBus = getMessageBus(testEnvironment);
-        return messageBusTestActions(messageBus);
-    }
-
-
-    private static MessageBusSutActions sutActionsNew(final TestEnvironment testEnvironment) {
-        final MessageBus messageBus = getMessageBus(testEnvironment);
-        return MessageBusSutActions.messageBusSutActions(messageBus);
-    }
-
     private static MessageBus getMessageBus(final TestEnvironment testEnvironment) {
         final MessageBus messageBus = testEnvironment.getPropertyAsType(SUT, MessageBus.class);
         return messageBus;
@@ -351,14 +282,19 @@ public final class MessageBusValidationBuilder {
         final List<TestSubscriber<Object>> testSubscribers = getExpectedReceiver(testEnvironment);
         assertThat(testSubscribers.size(), equalTo(1));
         final TestSubscriber<?> testSubscriber = testSubscribers.get(0);
+        pollUntilListHasSize(testSubscriber::getReceivedMessages, 1);
         final List<?> receivedMessages = testSubscriber.getReceivedMessages();
-        pollUntilEquals(receivedMessages::size, 1);
         return (ProcessingContext<?>) receivedMessages.get(0);
     }
 
     @SuppressWarnings("unchecked")
     private static List<TestSubscriber<Object>> getExpectedReceiver(final TestEnvironment testEnvironment) {
         return (List<TestSubscriber<Object>>) testEnvironment.getProperty(EXPECTED_RECEIVERS);
+    }
+
+    private static MessageBusTestActions getMessageBusTestActions(final TestEnvironment testEnvironment) {
+        final MessageBus messageBus = getMessageBus(testEnvironment);
+        return MessageBusTestActions.messageBusTestActions(messageBus);
     }
 
     public MessageBusValidationBuilder and(final MessageBusValidationBuilder messageBusValidationBuilder) {
