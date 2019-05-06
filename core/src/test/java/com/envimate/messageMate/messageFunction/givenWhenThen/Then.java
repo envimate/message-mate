@@ -46,7 +46,6 @@ public class Then {
             if (result != null) {
                 testEnvironment.setProperty(RESULT, result);
             }
-            MILLISECONDS.sleep(10);
         } catch (final Exception e) {
             testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
         }

@@ -111,7 +111,7 @@ public class MessageFunctionSpecs {
         given(aMessageFunction()
                 .definedWithResponseThrowingAnException())
                 .when(aFollowUpActionForAnExceptionIsAdded())
-                .then(expectAExceptionToBeThrown());
+                .then(expectAExceptionToBeReceivedInFollowUp());
     }
 
     @Test
@@ -219,7 +219,7 @@ public class MessageFunctionSpecs {
     public void testMessageFunction_errorOfMessageBusSendIsNotPropagatedToCallerOfMessageFunction() {
         given(aMessageFunction()
                 .throwingAnExceptionDuringSend())
-                .when(aFollowUpExpectingExceptionBeforeSendIsAdded())
+                .when(aFollowUpExpectingExceptionIsAdded())
                 .then(expectTheExceptionToBeSetOnlyDuringByFuture());
     }
 
@@ -230,7 +230,7 @@ public class MessageFunctionSpecs {
         given(aMessageFunction()
                 .withTheRequestAnsweredByACorrelatedResponse())
                 .when(aRequestIsSend())
-                .then(expectNoUnecssarySubscribersOnTheMessageBus());
+                .then(expectNoUnnecssarySubscribersOnTheMessageBus());
     }
 
     @Test
@@ -238,6 +238,14 @@ public class MessageFunctionSpecs {
         given(aMessageFunction()
                 .definedWithResponseThrowingAnException())
                 .when(aRequestIsSend())
-                .then(expectNoUnecssarySubscribersOnTheMessageBus());
+                .then(expectNoUnnecssarySubscribersOnTheMessageBus());
+    }
+
+    @Test
+    public void testMessageFunction_unregistersAllSubscriber_whenCancelled() {
+        given(aMessageFunction()
+                .definedWithAnUnansweredResponse())
+                .when(aRequestIsCancelled())
+                .then(expectNoUnnecssarySubscribersOnTheMessageBus());
     }
 }

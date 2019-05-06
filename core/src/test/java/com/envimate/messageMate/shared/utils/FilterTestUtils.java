@@ -33,10 +33,9 @@ import lombok.RequiredArgsConstructor;
 import java.util.LinkedList;
 import java.util.List;
 
-import static com.envimate.messageMate.shared.properties.SharedTestProperties.*;
 import static com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.TestFilter.*;
+import static com.envimate.messageMate.shared.properties.SharedTestProperties.*;
 import static lombok.AccessLevel.PRIVATE;
-
 
 @RequiredArgsConstructor(access = PRIVATE)
 public final class FilterTestUtils {
@@ -46,7 +45,8 @@ public final class FilterTestUtils {
                                                                                     final FilterPosition filterPosition) {
         final List<Filter<ProcessingContext<TestMessage>>> filters = new LinkedList<>();
         for (final int position : positions) {
-            final Filter<ProcessingContext<TestMessage>> filter = addANoopFilterAtPosition(filterTestActions, filterPosition, position);
+            final Filter<ProcessingContext<TestMessage>> filter = addANoopFilterAtPosition(filterTestActions, filterPosition,
+                    position);
             filters.add(position, filter);
         }
         return filters;

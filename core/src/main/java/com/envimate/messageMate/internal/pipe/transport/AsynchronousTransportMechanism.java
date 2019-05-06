@@ -49,7 +49,7 @@ public final class AsynchronousTransportMechanism<T> implements TransportMechani
                 eventListener.messageDequeued(message);
                 try {
                     synchronousDelivery.deliver(message, subscribers);
-                } catch (BubbleUpWrappedException e) {
+                } catch (final BubbleUpWrappedException e) {
                     throw (RuntimeException) e.getCause();
                 }
             });

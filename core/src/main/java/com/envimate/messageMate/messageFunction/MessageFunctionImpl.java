@@ -24,9 +24,10 @@ package com.envimate.messageMate.messageFunction;
 import com.envimate.messageMate.exceptions.AlreadyClosedException;
 import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.identification.MessageId;
-import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageFunction.internal.ExpectedResponseFuture;
+import com.envimate.messageMate.messageFunction.internal.SubscriptionContainer;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.Getter;
@@ -35,6 +36,7 @@ import lombok.NonNull;
 import static com.envimate.messageMate.identification.CorrelationId.correlationIdFor;
 import static com.envimate.messageMate.identification.MessageId.newUniqueMessageId;
 import static com.envimate.messageMate.messageFunction.internal.ExpectedResponseFuture.expectedResponseFuture;
+import static com.envimate.messageMate.messageFunction.internal.SubscriptionContainer.subscriptionContainer;
 import static com.envimate.messageMate.processingContext.ProcessingContext.processingContext;
 
 final class MessageFunctionImpl implements MessageFunction {
@@ -74,25 +76,20 @@ final class MessageFunctionImpl implements MessageFunction {
 
         RequestHandle(final MessageBus messageBus) {
             this.messageBus = messageBus;
-            this.responseFuture = expectedResponseFuture();
-            this.subscriptionContainer = new SubscriptionContainer();
+            this.subscriptionContainer = subscriptionContainer(messageBus);
+            this.responseFuture = expectedResponseFuture(this.subscriptionContainer);
         }
 
         public synchronized void send(final EventType eventType, final Object request) {
             final MessageId messageId = newUniqueMessageId();
             final CorrelationId correlationId = correlationIdFor(messageId);
-            final SubscriptionId answerSubscriptionId = messageBus.subscribe(correlationId, processingContext -> {
-                fulFillFuture(processingContext);
-                subscriptionContainer.unsubscribe(messageBus);
-            });
+            final SubscriptionId answerSubscriptionId = messageBus.subscribe(correlationId, this::fulFillFuture);
             final SubscriptionId errorSubscriptionId1 = messageBus.onException(correlationId, (processingContext, e) -> {
                 fulFillFuture(e);
-                subscriptionContainer.unsubscribe(messageBus);
             });
             final SubscriptionId errorSubscriptionId2 = messageBus.onException(eventType, (processingContext, e) -> {
                 if (processingContext.getPayload() == request) {
                     fulFillFuture(e);
-                    subscriptionContainer.unsubscribe(messageBus);
                 }
             });
             subscriptionContainer.setSubscriptionIds(answerSubscriptionId, errorSubscriptionId1, errorSubscriptionId2);
@@ -102,7 +99,6 @@ final class MessageFunctionImpl implements MessageFunction {
                 messageBus.send(processingContext);
             } catch (final Exception e) {
                 fulFillFuture(e);
-                subscriptionContainer.unsubscribe(messageBus);
             }
         }
 
@@ -123,30 +119,4 @@ final class MessageFunctionImpl implements MessageFunction {
         }
     }
 
-    private static final class SubscriptionContainer {
-        private volatile SubscriptionId answerSubscriptionId;
-        private volatile SubscriptionId errorSubscriptionId1;
-
-        private volatile SubscriptionId errorSubscriptionId2;
-
-        public void setSubscriptionIds(final SubscriptionId answerSubscriptionId, final SubscriptionId errorSubscriptionId1,
-                                       final SubscriptionId errorSubscriptionId2) {
-            this.answerSubscriptionId = answerSubscriptionId;
-            this.errorSubscriptionId1 = errorSubscriptionId1;
-            this.errorSubscriptionId2 = errorSubscriptionId2;
-        }
-
-        public void unsubscribe(final MessageBus messageBus) {
-            if (answerSubscriptionId != null) {
-                messageBus.unsubcribe(answerSubscriptionId);
-            }
-            if (errorSubscriptionId1 != null) {
-                messageBus.unregisterExceptionListener(errorSubscriptionId1);
-            }
-            if (errorSubscriptionId2 != null) {
-                messageBus.unregisterExceptionListener(errorSubscriptionId2);
-            }
-        }
-
-    }
 }

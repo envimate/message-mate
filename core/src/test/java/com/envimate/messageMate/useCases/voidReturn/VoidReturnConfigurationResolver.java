@@ -23,6 +23,7 @@ package com.envimate.messageMate.useCases.voidReturn;
 
 import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.shared.config.AbstractTestConfigProvider;
+import com.envimate.messageMate.shared.polling.PollingUtils;
 import com.envimate.messageMate.useCases.shared.TestUseCase;
 import com.envimate.messageMate.useCases.shared.TestUseCaseBuilder;
 
@@ -32,8 +33,8 @@ import java.util.function.Consumer;
 
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXPECTED_RESULT;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.RESULT;
-import static com.envimate.messageMate.useCases.shared.UseCaseBusCallBuilder.aUseCasBusCall;
 import static com.envimate.messageMate.useCases.givenWhenThen.UseCaseInvocationTestProperties.MESSAGE_FUNCTION_USED;
+import static com.envimate.messageMate.useCases.shared.UseCaseBusCallBuilder.aUseCasBusCall;
 import static com.envimate.messageMate.useCases.voidReturn.CallbackTestRequest.callbackTestRequest;
 
 public class VoidReturnConfigurationResolver extends AbstractTestConfigProvider {
@@ -71,6 +72,7 @@ public class VoidReturnConfigurationResolver extends AbstractTestConfigProvider 
                     if (testEnvironment.getPropertyAsType(MESSAGE_FUNCTION_USED, Boolean.class)) {
                         return Collections.emptyMap();
                     } else {
+                        PollingUtils.pollUntil(() -> testEnvironment.has(EXPECTED_RESULT));
                         return testEnvironment.getProperty(EXPECTED_RESULT);
                     }
                 })

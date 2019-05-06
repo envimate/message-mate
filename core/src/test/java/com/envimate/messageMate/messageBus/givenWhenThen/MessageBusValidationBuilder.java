@@ -40,9 +40,9 @@ import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestAc
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestValidations.*;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.RESULT;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.SUT;
-import static com.envimate.messageMate.shared.properties.SharedTestProperties.*;
 import static com.envimate.messageMate.shared.pipeChannelMessageBus.PipeChannelMessageBusSharedTestValidations.*;
 import static com.envimate.messageMate.shared.polling.PollingUtils.pollUntilListHasSize;
+import static com.envimate.messageMate.shared.properties.SharedTestProperties.*;
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.*;
 import static lombok.AccessLevel.PRIVATE;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -224,7 +224,8 @@ public final class MessageBusValidationBuilder {
         });
     }
 
-    public static MessageBusValidationBuilder expectTheExceptionHandledOnlyByTheRemainingHandlers(final Class<?> expectedExceptionClass) {
+    public static MessageBusValidationBuilder expectTheExceptionHandledOnlyByTheRemainingHandlers(
+            final Class<?> expectedExceptionClass) {
         return expectTheExceptionHandled(expectedExceptionClass);
     }
 

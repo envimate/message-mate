@@ -32,6 +32,7 @@ import java.util.function.Supplier;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ExpectedResponseFuture implements ResponseFuture {
+    private final SubscriptionContainer subscriptionContainer;
     private final CountDownLatch countDownLatch = new CountDownLatch(1);
     private volatile boolean isCancelled;
     private volatile ProcessingContext<Object> response;
@@ -39,8 +40,8 @@ public final class ExpectedResponseFuture implements ResponseFuture {
     private volatile FollowUpAction followUpAction;
     private volatile Exception thrownException;
 
-    public static ExpectedResponseFuture expectedResponseFuture() {
-        return new ExpectedResponseFuture();
+    public static ExpectedResponseFuture expectedResponseFuture(final SubscriptionContainer subscriptionContainer) {
+        return new ExpectedResponseFuture(subscriptionContainer);
     }
 
     public synchronized void fullFill(final ProcessingContext<Object> response) {
@@ -48,7 +49,7 @@ public final class ExpectedResponseFuture implements ResponseFuture {
             final Object errorPayload = response.getErrorPayload();
             this.successful = errorPayload == null;
             this.response = response;
-            countDownLatch.countDown();
+            finishFuture();
             if (followUpAction != null) {
                 final Object payload = response.getPayload();
                 followUpAction.apply(payload, errorPayload, null);
@@ -56,15 +57,20 @@ public final class ExpectedResponseFuture implements ResponseFuture {
         }
     }
 
-    public void fullFillWithException(final Exception e) {
+    public synchronized void fullFillWithException(final Exception e) {
         if (!isCancelled()) {
             this.thrownException = e;
             this.successful = false;
-            countDownLatch.countDown();
+            finishFuture();
             if (followUpAction != null) {
                 followUpAction.apply(null, null, e);
             }
         }
+    }
+
+    private void finishFuture() {
+        countDownLatch.countDown();
+        subscriptionContainer.unsubscribe();
     }
 
     @Override
@@ -77,7 +83,7 @@ public final class ExpectedResponseFuture implements ResponseFuture {
         if (!isDone()) {
             isCancelled = true;
         }
-        countDownLatch.countDown();
+        finishFuture();
         return !alreadyCompleted();
     }
 

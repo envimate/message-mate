@@ -63,9 +63,9 @@ public class Then {
         try {
             setupActions.forEach(setupAction -> setupAction.execute(sut, testEnvironment));
         } catch (final Exception e) {
-            testEnvironment.setProperty(EXCEPTION, e);
+            testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
         }
-        testEnvironment.setProperty(SUT, sut);
+        testEnvironment.setPropertyIfNotSet(SUT, sut);
         return setup;
     }
 

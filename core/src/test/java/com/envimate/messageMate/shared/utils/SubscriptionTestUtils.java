@@ -92,7 +92,8 @@ public final class SubscriptionTestUtils {
         testEnvironment.setPropertyIfNotSet(EXECUTION_END_SEMAPHORE, semaphore);
     }
 
-    public static void addAnExceptionAcceptingSubscriber(final SubscribeActions subscribeActions, final TestEnvironment testEnvironment) {
+    public static void addAnExceptionAcceptingSubscriber(final SubscribeActions subscribeActions,
+                                                         final TestEnvironment testEnvironment) {
         final SimpleTestSubscriber<TestMessage> errorSubscriber = testSubscriber();
         final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
         addASingleSubscriber(subscribeActions, testEnvironment, errorSubscriber, eventType);

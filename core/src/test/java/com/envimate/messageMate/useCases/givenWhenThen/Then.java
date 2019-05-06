@@ -49,12 +49,6 @@ public class Then {
         } catch (final Exception e) {
             testEnvironment.setProperty(EXCEPTION, e);
         }
-        try {
-            final int timeout = 10;
-            MILLISECONDS.sleep(timeout);
-        } catch (final InterruptedException e) {
-            testEnvironment.setProperty(EXCEPTION, e);
-        }
         final UseCaseInvocationValidationBuilder.UseCaseAdapterTestValidation validation = validationBuilder.build();
         validation.validate(testUseCase, testEnvironment);
     }

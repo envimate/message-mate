@@ -112,7 +112,9 @@ public final class MessageBusActionBuilder {
                                                                                final int numberOfMessagesPerSender) {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
             final MessageBusTestActions testActions = messageBusTestActions(messageBus);
-            sendValidMessagesAsynchronouslyNew(testActions, testEnvironment, numberOfSender, numberOfMessagesPerSender, true);
+            final boolean cleanShutdown = true;
+            sendValidMessagesAsynchronouslyNew(testActions, testEnvironment, numberOfSender,
+                    numberOfMessagesPerSender, cleanShutdown);
             return null;
         });
     }
@@ -138,7 +140,8 @@ public final class MessageBusActionBuilder {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
             final MessageBusTestActions testActions = messageBusTestActions(messageBus);
             final int expectedNumberOfBlockedThreads = determineExpectedNumberOfBlockedThreads(numberOfSender, testEnvironment);
-            sendMessagesBeforeShutdownAsynchronously(testActions, testEnvironment, numberOfSender, finishRemainingTasks, expectedNumberOfBlockedThreads);
+            sendMessagesBeforeShutdownAsynchronously(testActions, testEnvironment, numberOfSender, finishRemainingTasks,
+                    expectedNumberOfBlockedThreads);
             return null;
         });
     }
@@ -203,7 +206,8 @@ public final class MessageBusActionBuilder {
                                                                                            final int numberOfMessagesPerSender) {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
             final MessageBusTestActions testActions = messageBusTestActions(messageBus);
-            sendMixtureOfValidAndInvalidMessagesAsynchronouslyNew(testActions, testEnvironment, numberOfSender, numberOfMessagesPerSender);
+            sendMixtureOfValidAndInvalidMessagesAsynchronouslyNew(testActions, testEnvironment,
+                    numberOfSender, numberOfMessagesPerSender);
             return null;
         });
     }
@@ -220,7 +224,8 @@ public final class MessageBusActionBuilder {
     public static MessageBusActionBuilder theNumberOfAcceptedMessagesIsQueried() {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
             final MessageBusTestActions testActions = messageBusTestActions(messageBus);
-            pollUntilEquals(testActions::queryTheNumberOfAcceptedMessages, testEnvironment.getProperty(NUMBER_OF_MESSAGES_SHOULD_BE_SEND));
+            final Object expectedNumberOfSendMessages = testEnvironment.getProperty(NUMBER_OF_MESSAGES_SHOULD_BE_SEND);
+            pollUntilEquals(testActions::queryTheNumberOfAcceptedMessages, expectedNumberOfSendMessages);
             final long result = messageBusTestActions(messageBus).queryTheNumberOfAcceptedMessages();
             testEnvironment.setProperty(RESULT, result);
             return null;
@@ -238,7 +243,8 @@ public final class MessageBusActionBuilder {
     public static MessageBusActionBuilder theNumberOfSuccessfulMessagesIsQueried() {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
             final MessageBusTestActions testActions = messageBusTestActions(messageBus);
-            pollUntilEquals(testActions::queryTheNumberOfSuccessfulDeliveredMessages, testEnvironment.getProperty(NUMBER_OF_MESSAGES_SHOULD_BE_SEND));
+            final Object expectedNumberOfSendMessages = testEnvironment.getProperty(NUMBER_OF_MESSAGES_SHOULD_BE_SEND);
+            pollUntilEquals(testActions::queryTheNumberOfSuccessfulDeliveredMessages, expectedNumberOfSendMessages);
             final long result = messageBusTestActions(messageBus).queryTheNumberOfSuccessfulDeliveredMessages();
             testEnvironment.setProperty(RESULT, result);
             return null;
@@ -258,7 +264,8 @@ public final class MessageBusActionBuilder {
     public static MessageBusActionBuilder theNumberOfBlockedMessagesIsQueried() {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
             final MessageBusTestActions testActions = messageBusTestActions(messageBus);
-            pollUntilEquals(testActions::queryTheNumberOfBlockedMessages, testEnvironment.getProperty(NUMBER_OF_MESSAGES_SHOULD_BE_SEND));
+            final Object expectedNumberOfSendMessages = testEnvironment.getProperty(NUMBER_OF_MESSAGES_SHOULD_BE_SEND);
+            pollUntilEquals(testActions::queryTheNumberOfBlockedMessages, expectedNumberOfSendMessages);
             final long result = messageBusTestActions(messageBus).queryTheNumberOfBlockedMessages();
             testEnvironment.setProperty(RESULT, result);
             return null;
@@ -268,7 +275,8 @@ public final class MessageBusActionBuilder {
     public static MessageBusActionBuilder theNumberOfForgottenMessagesIsQueried() {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
             final MessageBusTestActions testActions = messageBusTestActions(messageBus);
-            pollUntilEquals(testActions::queryTheNumberOfForgottenMessages, testEnvironment.getProperty(NUMBER_OF_MESSAGES_SHOULD_BE_SEND));
+            final Object expectedNumberOfSendMessages = testEnvironment.getProperty(NUMBER_OF_MESSAGES_SHOULD_BE_SEND);
+            pollUntilEquals(testActions::queryTheNumberOfForgottenMessages, expectedNumberOfSendMessages);
             final long result = messageBusTestActions(messageBus).queryTheNumberOfForgottenMessages();
             testEnvironment.setProperty(RESULT, result);
             return null;
@@ -308,7 +316,8 @@ public final class MessageBusActionBuilder {
         });
     }
 
-    public static MessageBusActionBuilder severalMessagesAreSendAsynchronouslyBeforeTheMessageBusIsShutdown(final int numberOfMessages) {
+    public static MessageBusActionBuilder severalMessagesAreSendAsynchronouslyBeforeTheMessageBusIsShutdown(
+            final int numberOfMessages) {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
             final MessageBusTestActions testActions = messageBusTestActions(messageBus);
             sendMessagesBeforeShutdownAsynchronously(testActions, testEnvironment, numberOfMessages, false);

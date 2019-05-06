@@ -30,6 +30,7 @@ import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
 import java.util.concurrent.*;
 
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.*;
@@ -154,27 +155,31 @@ public final class ShutdownTestUtils {
                                                                  final TestEnvironment testEnvironment) {
         try {
             final Semaphore semaphore = new Semaphore(0);
-            final BlockingTestSubscriber<TestMessage> subscriber = sendMessagesToBlockingSubscriber(sutActions,
-                    numberOfPendingMessages, testEnvironment, semaphore);
-            sutActions.close(true);
+            sendMessagesToBlockingSubscriber(sutActions, numberOfPendingMessages, testEnvironment, semaphore);
 
-            final CyclicBarrier cyclicBarrier = new CyclicBarrier(2);
-            new Thread(() -> {
-                try {
-                    cyclicBarrier.await();
-                    MILLISECONDS.sleep(10);
-                    semaphore.release(1000);
-                } catch (InterruptedException | BrokenBarrierException e) {
-                    testEnvironment.setProperty(EXCEPTION, e);
-                }
-            }).start();
-            cyclicBarrier.await();
+            sutActions.close(true);
+            releaseSemaphoreDelayedInDifferentThread(testEnvironment, semaphore);
             final boolean terminatedSuccessful = sutActions.await(1, SECONDS);
-            pollUntilListHasSize(subscriber::getReceivedMessages, numberOfPendingMessages);
             testEnvironment.setProperty(RESULT, terminatedSuccessful);
         } catch (final InterruptedException | BrokenBarrierException e) {
             testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
         }
+    }
+
+    private static void releaseSemaphoreDelayedInDifferentThread(final TestEnvironment testEnvironment,
+                                                                 final Semaphore semaphore)
+            throws InterruptedException, BrokenBarrierException {
+        final CyclicBarrier cyclicBarrier = new CyclicBarrier(2);
+        new Thread(() -> {
+            try {
+                cyclicBarrier.await();
+                MILLISECONDS.sleep(10);
+                semaphore.release(1000);
+            } catch (InterruptedException | BrokenBarrierException e) {
+                testEnvironment.setProperty(EXCEPTION, e);
+            }
+        }).start();
+        cyclicBarrier.await();
     }
 
     private static BlockingTestSubscriber<TestMessage> sendMessagesToBlockingSubscriber(
@@ -182,7 +187,8 @@ public final class ShutdownTestUtils {
             final int numberOfPendingMessages,
             final TestEnvironment testEnvironment,
             final Semaphore semaphore) {
-        return sendMessagesToBlockingSubscriber(sutActions, numberOfPendingMessages, numberOfPendingMessages, testEnvironment, semaphore);
+        return sendMessagesToBlockingSubscriber(sutActions, numberOfPendingMessages, numberOfPendingMessages,
+                testEnvironment, semaphore);
     }
 
     private static BlockingTestSubscriber<TestMessage> sendMessagesToBlockingSubscriber(
@@ -225,6 +231,11 @@ public final class ShutdownTestUtils {
             final Semaphore semaphore = new Semaphore(0);
             final BlockingTestSubscriber<TestMessage> subscriber = sendMessagesToBlockingSubscriber(sutActions,
                     numberOfMessagesSend, expectedNumberOfBlockedThreads, testEnvironment, semaphore);
+            pollUntilEquals(subscriber::getNumberOfBlockedThreads, expectedNumberOfBlockedThreads);
+            final List<?> messagesSend = testEnvironment.getPropertyAsType(MESSAGES_SEND, List.class);
+            pollUntilListHasSize(messagesSend, numberOfMessagesSend);
+            final int expectedNumberOfQueuedMessages = numberOfMessagesSend - expectedNumberOfBlockedThreads;
+            pollUntilEquals(sutActions::numberOfQueuedMessages, expectedNumberOfQueuedMessages);
             sutActions.close(true);
             final boolean terminatedSuccessful = sutActions.await(15, MILLISECONDS);
             testEnvironment.setProperty(RESULT, terminatedSuccessful);

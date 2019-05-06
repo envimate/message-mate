@@ -22,6 +22,7 @@
 package com.envimate.messageMate.serializedMessageBus.givenWhenThen;
 
 import com.envimate.messageMate.messageBus.MessageBus;
+import com.envimate.messageMate.messageBus.MessageBusStatusInformation;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.shared.givenWhenThen.TestValidation;
 import com.envimate.messageMate.shared.subscriber.TestException;
@@ -36,10 +37,12 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
-import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.*;
 import static com.envimate.messageMate.serializedMessageBus.givenWhenThen.SerializedMessageBusSetupBuilder.PAYLOAD_SERIALIZATION_KEY;
 import static com.envimate.messageMate.serializedMessageBus.givenWhenThen.SerializedMessageBusTestProperties.SEND_DATA;
 import static com.envimate.messageMate.serializedMessageBus.givenWhenThen.SerializedMessageBusTestProperties.SEND_ERROR_DATA;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.*;
+import static com.envimate.messageMate.shared.polling.PollingUtils.pollUntil;
+import static com.envimate.messageMate.shared.polling.PollingUtils.pollUntilListHasSize;
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.*;
 import static lombok.AccessLevel.PRIVATE;
 
@@ -77,6 +80,7 @@ public final class SerializedMessageBusValidationBuilder {
     }
 
     private static void assertReceivedAsErrorResponse(final TestEnvironment testEnvironment, final Object expectedResult) {
+        pollUntil(() -> testEnvironment.has(RESULT));
         final PayloadAndErrorPayload<?, ?> result = (PayloadAndErrorPayload<?, ?>) testEnvironment.getProperty(RESULT);
         final Object errorPayload = result.getErrorPayload();
         assertEquals(errorPayload, expectedResult);
@@ -129,7 +133,8 @@ public final class SerializedMessageBusValidationBuilder {
     public static SerializedMessageBusValidationBuilder expectNoRemainingSubscriber() {
         return new SerializedMessageBusValidationBuilder(testEnvironment -> {
             final MessageBus underlyingMessageBus = testEnvironment.getPropertyAsType(MOCK, MessageBus.class);
-            final List<Subscriber<?>> allSubscribers = underlyingMessageBus.getStatusInformation().getAllSubscribers();
+            final MessageBusStatusInformation statusInformation = underlyingMessageBus.getStatusInformation();
+            final List<Subscriber<?>> allSubscribers = statusInformation.getAllSubscribers();
             assertCollectionOfSize(allSubscribers, 0);
         });
     }
@@ -145,7 +150,7 @@ public final class SerializedMessageBusValidationBuilder {
         final List<TestSubscriber<PayloadAndErrorPayload<?, ?>>> receivers = getExpectedPayloadsReceivers(testEnvironment);
         for (final TestSubscriber<PayloadAndErrorPayload<?, ?>> receiver : receivers) {
             final List<PayloadAndErrorPayload<?, ?>> receivedMessages = receiver.getReceivedMessages();
-            assertCollectionOfSize(receivedMessages, 1);
+            pollUntilListHasSize(receivedMessages, 1);
             final PayloadAndErrorPayload<?, ?> payloadAndErrorPayload = receivedMessages.get(0);
             final Object payload = payloadAndErrorPayload.getPayload();
             assertEquals(payload, expectedPayload);
@@ -182,6 +187,7 @@ public final class SerializedMessageBusValidationBuilder {
     }
 
     private static PayloadAndErrorPayload<?, ?> getResultPayloads(final TestEnvironment testEnvironment) {
+        pollUntil(() -> testEnvironment.has(RESULT));
         return (PayloadAndErrorPayload<?, ?>) testEnvironment.getProperty(RESULT);
     }
 

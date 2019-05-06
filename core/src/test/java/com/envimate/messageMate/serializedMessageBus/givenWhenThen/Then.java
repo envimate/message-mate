@@ -47,11 +47,6 @@ public final class Then {
         } catch (final Exception e) {
             testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
         }
-        try {
-            MILLISECONDS.sleep(15);
-        } catch (final InterruptedException e) {
-            testEnvironment.setPropertyIfNotSet(EXCEPTION, e);
-        }
         final TestValidation testValidation = validationBuilder.build();
         testValidation.validate(testEnvironment);
     }

@@ -48,7 +48,6 @@ public final class BlockingTestSubscriber<T> implements TestSubscriber<T> {
     @Override
     public AcceptingBehavior accept(final T message) {
         blockedThreads.incrementAndGet();
-        System.out.println("blockedThreads = " + blockedThreads);
         try {
             semaphoreToWaitUntilExecutionIsDone.acquire();
             blockedThreads.decrementAndGet();

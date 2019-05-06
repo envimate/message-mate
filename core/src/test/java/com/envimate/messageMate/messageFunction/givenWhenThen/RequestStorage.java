@@ -19,12 +19,34 @@
  * under the License.
  */
 
-package com.envimate.messageMate.shared.pipeChannelMessageBus.testActions;
+package com.envimate.messageMate.messageFunction.givenWhenThen;
 
-import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.processingContext.ProcessingContext;
-import com.envimate.messageMate.shared.testMessages.TestMessage;
+import lombok.RequiredArgsConstructor;
 
-public interface ProcessingContextSendingActions {
-    MessageId send(ProcessingContext<TestMessage> processingContext);
+import static lombok.AccessLevel.PRIVATE;
+
+@RequiredArgsConstructor(access = PRIVATE)
+public final class RequestStorage<T> {
+    private volatile ProcessingContext<T> request;
+
+    public static <T> RequestStorage<T> requestStorage() {
+        return new RequestStorage<>();
+    }
+
+    public synchronized void storeRequest(final ProcessingContext<T> request) {
+        if (this.request == null) {
+            this.request = request;
+        } else {
+            throw new IllegalStateException("Already stored a request.");
+        }
+    }
+
+    public synchronized ProcessingContext<T> getRequest() {
+        return request;
+    }
+
+    public synchronized boolean hasRequestStored() {
+        return request != null;
+    }
 }

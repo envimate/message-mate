@@ -24,7 +24,6 @@ package com.envimate.messageMate.messageFunction.givenWhenThen;
 import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusBuilder;
-import com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler;
 import com.envimate.messageMate.messageFunction.MessageFunction;
 import com.envimate.messageMate.messageFunction.MessageFunctionBuilder;
 import com.envimate.messageMate.messageFunction.testResponses.SimpleErrorResponse;
@@ -45,6 +44,8 @@ import java.util.function.Function;
 import static com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration.constantPoolSizeAsynchronousPipeConfiguration;
 import static com.envimate.messageMate.messageBus.MessageBusBuilder.aMessageBus;
 import static com.envimate.messageMate.messageBus.MessageBusType.ASYNCHRONOUS;
+import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler.allExceptionIgnoringExceptionHandler;
+import static com.envimate.messageMate.messageFunction.givenWhenThen.MessageFunctionTestProperties.NUMBER_OF_INITIAL_SUBSCRIBERS;
 import static com.envimate.messageMate.messageFunction.givenWhenThen.MessageFunctionTestProperties.RESPONSE_PROCESSING_CONTEXT;
 import static com.envimate.messageMate.processingContext.ProcessingContext.processingContextForPayloadAndError;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXPECTED_RESULT;
@@ -94,6 +95,7 @@ public final class TestMessageFunctionSetupBuilder {
                 final EventType differentTestEventType = differentTestEventType();
                 messageBus.send(differentTestEventType, response, correlationId);
             });
+            testEnvironment.setProperty(NUMBER_OF_INITIAL_SUBSCRIBERS, 1);
         });
         return this;
     }
@@ -122,16 +124,18 @@ public final class TestMessageFunctionSetupBuilder {
     }
 
     public TestMessageFunctionSetupBuilder definedWithAnUnansweredResponse() {
+        testEnvironment.setProperty(NUMBER_OF_INITIAL_SUBSCRIBERS, 0);
         return this;
     }
 
     public TestMessageFunctionSetupBuilder definedWithResponseThrowingAnException() {
-        messageBusBuilder.withExceptionHandler(MessageBusTestExceptionHandler.allExceptionIgnoringExceptionHandler());
+        messageBusBuilder.withExceptionHandler(allExceptionIgnoringExceptionHandler());
         setupActions.add(messageBus -> {
             final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             messageBus.subscribe(eventType, simpleTestRequest -> {
-                throw new RuntimeException("Expected exception in subcriber");
+                throw new RuntimeException("Expected exception in subscriber");
             });
+            testEnvironment.setProperty(NUMBER_OF_INITIAL_SUBSCRIBERS, 1);
         });
         return this;
     }
@@ -153,7 +157,7 @@ public final class TestMessageFunctionSetupBuilder {
     }
 
     public TestMessageFunctionSetupBuilder withRequestAnsweredByResponseThenByException() {
-        messageBusBuilder.withExceptionHandler(MessageBusTestExceptionHandler.allExceptionIgnoringExceptionHandler());
+        messageBusBuilder.withExceptionHandler(allExceptionIgnoringExceptionHandler());
         setupActions.add(messageBus -> {
             final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             messageBus.subscribeRaw(eventType, processingContext -> {
@@ -170,7 +174,7 @@ public final class TestMessageFunctionSetupBuilder {
     }
 
     public TestMessageFunctionSetupBuilder withRequestAnsweredByExceptionThenByMessage() {
-        messageBusBuilder.withExceptionHandler(MessageBusTestExceptionHandler.allExceptionIgnoringExceptionHandler());
+        messageBusBuilder.withExceptionHandler(allExceptionIgnoringExceptionHandler());
         setupActions.add(messageBus -> {
             final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             messageBus.subscribeRaw(eventType, processingContext -> {

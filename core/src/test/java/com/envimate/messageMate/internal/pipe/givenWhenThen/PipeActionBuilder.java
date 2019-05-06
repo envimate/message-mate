@@ -100,7 +100,8 @@ public final class PipeActionBuilder {
             final Semaphore semaphore = new Semaphore(0);
             final BlockingTestSubscriber<TestMessage> subscriber = blockingTestSubscriber(semaphore);
             final int expectedNumberOfBlockedThreads = determineExpectedNumberOfBlockedThreads(numberOfSender, testEnvironment);
-            addABlockingSubscriberAndThenSendXMessagesInEachThread(testActions, subscriber, numberOfSender, numberOfMessagesPerSender, testEnvironment, expectedNumberOfBlockedThreads);
+            addABlockingSubscriberAndThenSendXMessagesInEachThread(testActions, subscriber, numberOfSender,
+                    numberOfMessagesPerSender, testEnvironment, expectedNumberOfBlockedThreads);
             testEnvironment.setPropertyIfNotSet(EXECUTION_END_SEMAPHORE, semaphore);
             return null;
         });
@@ -294,7 +295,8 @@ public final class PipeActionBuilder {
     public static PipeActionBuilder awaitIsCalledWithoutAllowingRemainingTasksToFinish(final int numberOfMessagesSend) {
         return new PipeActionBuilder((pipe, testEnvironment) -> {
             final PipeTestActions testActions = pipeTestActions(pipe);
-            callCloseThenAwaitWithBlockedSubscriberWithoutReleasingLock(testActions, testEnvironment, numberOfMessagesSend, ASYNCHRONOUS_PIPE_POOL_SIZE);
+            callCloseThenAwaitWithBlockedSubscriberWithoutReleasingLock(testActions, testEnvironment, numberOfMessagesSend,
+                    ASYNCHRONOUS_PIPE_POOL_SIZE);
             return null;
         });
     }

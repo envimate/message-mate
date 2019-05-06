@@ -150,7 +150,8 @@ public final class ChannelActionBuilder {
     public static ChannelActionBuilder sendMessagesBeforeTheShutdownIsAwaitedWithoutFinishingTasks(final int numberOfMessages) {
         return anAction((channel, testEnvironment) -> {
             final ChannelTestActions testActions = channelTestActions(channel);
-            callCloseThenAwaitWithBlockedSubscriberWithoutReleasingLock(testActions, testEnvironment, numberOfMessages, ASYNCHRONOUS_CHANNEL_CONFIG_POOL_SIZE);
+            callCloseThenAwaitWithBlockedSubscriberWithoutReleasingLock(testActions, testEnvironment, numberOfMessages,
+                    ASYNCHRONOUS_CHANNEL_CONFIG_POOL_SIZE);
             return null;
         });
     }

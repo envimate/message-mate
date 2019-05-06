@@ -115,6 +115,7 @@ public final class SharedTestValidations {
     public static void assertExceptionThrownOfTypeWithCause(final TestEnvironment testEnvironment,
                                                             final Class<?> expectedExceptionClass,
                                                             final Class<?> expectedCauseClass) {
+        pollUntil(() -> testEnvironment.has(EXCEPTION));
         final Exception exception = testEnvironment.getPropertyAsType(EXCEPTION, Exception.class);
         final Class<? extends Exception> exceptionClass = exception.getClass();
         assertThat(exceptionClass, equalTo(expectedExceptionClass));

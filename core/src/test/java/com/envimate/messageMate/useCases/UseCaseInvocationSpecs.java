@@ -28,8 +28,8 @@ import org.junit.jupiter.api.Test;
 
 import static com.envimate.messageMate.useCases.givenWhenThen.Given.given;
 import static com.envimate.messageMate.useCases.givenWhenThen.UseCaseInvocationActionBuilder.*;
-import static com.envimate.messageMate.useCases.givenWhenThen.UseCaseInvocationSetupBuilder.aUseCaseAdapter;
-import static com.envimate.messageMate.useCases.givenWhenThen.UseCaseInvocationSetupBuilder.aUseCaseBus;
+import static com.envimate.messageMate.useCases.givenWhenThen.UseCaseInvocationSetupBuilder.aUseCaseAdapterFor;
+import static com.envimate.messageMate.useCases.givenWhenThen.UseCaseInvocationSetupBuilder.aUseCaseBusFor;
 import static com.envimate.messageMate.useCases.givenWhenThen.UseCaseInvocationValidationBuilder.*;
 
 public interface UseCaseInvocationSpecs {
@@ -37,7 +37,7 @@ public interface UseCaseInvocationSpecs {
     //UseCaseAdapter
     @Test
     default void testUseCaseAdapter_canInvokeUseCaseUsingTheAutomaticMethod(final TestUseCase testUseCase) {
-        given(aUseCaseAdapter(testUseCase)
+        given(aUseCaseAdapterFor(testUseCase)
                 .invokingTheUseCaseUsingTheSingleUseCaseMethod())
                 .when(theAssociatedEventIsSend())
                 .then(expectTheUseCaseToBeInvokedOnce());
@@ -45,7 +45,7 @@ public interface UseCaseInvocationSpecs {
 
     @Test
     default void testUseCaseAdapter_explicitMappingCanBeDefined(final TestUseCase testUseCase) {
-        given(aUseCaseAdapter(testUseCase)
+        given(aUseCaseAdapterFor(testUseCase)
                 .invokingTheUseCaseUsingTheDefinedMapping())
                 .when(theAssociatedEventIsSend())
                 .then(expectTheUseCaseToBeInvokedOnce());
@@ -53,7 +53,7 @@ public interface UseCaseInvocationSpecs {
 
     @Test
     default void testUseCaseAdapter_canUseCustomInstantiation(final TestUseCase testUseCase) {
-        given(aUseCaseAdapter(testUseCase)
+        given(aUseCaseAdapterFor(testUseCase)
                 .invokingTheUseCaseUsingTheSingleUseCaseMethod()
                 .usingACustomInstantiationMechanism())
                 .when(theAssociatedEventIsSend())
@@ -63,7 +63,7 @@ public interface UseCaseInvocationSpecs {
     //errors
     @Test
     default void testUseCaseAdapter_failsForMissingDeserializationMapping(final TestUseCase testUseCase) {
-        given(aUseCaseAdapter(testUseCase)
+        given(aUseCaseAdapterFor(testUseCase)
                 .invokingTheUseCaseUsingAMissingDeserializationParameter())
                 .when(anEventWithMissingMappingIsSend())
                 .then(expectAExceptionOfType(MissingDeserializationException.class));
@@ -71,7 +71,7 @@ public interface UseCaseInvocationSpecs {
 
     @Test
     default void testUseCaseAdapter_failsForMissingSerializationMapping(final TestUseCase testUseCase) {
-        given(aUseCaseAdapter(testUseCase)
+        given(aUseCaseAdapterFor(testUseCase)
                 .invokingTheUseCaseUsingAMissingSerializationParameter())
                 .when(anEventWithMissingMappingIsSend())
                 .then(expectAExceptionOfType(MissingSerializationException.class));
@@ -80,7 +80,7 @@ public interface UseCaseInvocationSpecs {
     //UseCaseAdapter with MessageFunction
     @Test
     default void testUseCaseAdapter_canBeUsedInCombinationWithAMessageFunction(final TestUseCase testUseCase) {
-        given(aUseCaseAdapter(testUseCase)
+        given(aUseCaseAdapterFor(testUseCase)
                 .invokingTheUseCaseUsingTheSingleUseCaseMethod())
                 .when(theRequestIsExecutedUsingAMessageFunction())
                 .then(expectTheResponseToBeReceivedByTheMessageFunction());
@@ -88,7 +88,7 @@ public interface UseCaseInvocationSpecs {
 
     @Test
     default void testUseCaseAdapter_canAMessageFunctionAndACustomMapping(final TestUseCase testUseCase) {
-        given(aUseCaseAdapter(testUseCase)
+        given(aUseCaseAdapterFor(testUseCase)
                 .invokingTheUseCaseUsingTheDefinedMapping())
                 .when(theRequestIsExecutedUsingAMessageFunction())
                 .then(expectTheResponseToBeReceivedByTheMessageFunction());
@@ -97,7 +97,7 @@ public interface UseCaseInvocationSpecs {
     //UseCaseBus
     @Test
     default void testUseCaseBus_canInvokeAUseCase(final TestUseCase testUseCase) {
-        given(aUseCaseBus(testUseCase)
+        given(aUseCaseBusFor(testUseCase)
                 .invokingTheUseCaseUsingTheSingleUseCaseMethod())
                 .when(theRequestIsInvokedOnTheUseCaseBus())
                 .then(expectTheUseCaseToBeInvokedByTheUseCaseBus());
@@ -105,7 +105,7 @@ public interface UseCaseInvocationSpecs {
 
     @Test
     default void testUseCaseBus_canInvokeAUseCaseWithTimeout(final TestUseCase testUseCase) {
-        given(aUseCaseBus(testUseCase)
+        given(aUseCaseBusFor(testUseCase)
                 .invokingTheUseCaseUsingTheSingleUseCaseMethod())
                 .when(theRequestIsInvokedOnTheUseCaseBusWithTimeout())
                 .then(expectTheUseCaseToBeInvokedByTheUseCaseBus());
@@ -113,7 +113,7 @@ public interface UseCaseInvocationSpecs {
 
     @Test
     default void testUseCaseBus_canInvokeAUseCaseNotDeserialized(final TestUseCase testUseCase) {
-        given(aUseCaseBus(testUseCase)
+        given(aUseCaseBusFor(testUseCase)
                 .invokingTheUseCaseUsingTheSingleUseCaseMethod())
                 .when(theRequestIsInvokedOnTheUseCaseBusNotDeserialized())
                 .then(expectTheUseCaseToBeInvokedByTheUseCaseBus());
@@ -121,7 +121,7 @@ public interface UseCaseInvocationSpecs {
 
     @Test
     default void testUseCaseBus_canInvokeAUseCaseNotDeserializedWithTimeout(final TestUseCase testUseCase) {
-        given(aUseCaseBus(testUseCase)
+        given(aUseCaseBusFor(testUseCase)
                 .invokingTheUseCaseUsingTheSingleUseCaseMethod())
                 .when(theRequestIsInvokedOnTheUseCaseBusNotDeserializedWithTimeout())
                 .then(expectTheUseCaseToBeInvokedByTheUseCaseBus());

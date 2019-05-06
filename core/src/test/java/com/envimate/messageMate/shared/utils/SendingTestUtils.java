@@ -50,6 +50,7 @@ import static com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber.
 import static com.envimate.messageMate.shared.testMessages.TestMessageOfInterest.messageOfInterest;
 import static com.envimate.messageMate.shared.testMessages.TestMessageOfInterest.messageWithErrorContent;
 import static com.envimate.messageMate.shared.utils.TestMessageFactory.*;
+import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static lombok.AccessLevel.PRIVATE;
 
@@ -99,15 +100,6 @@ public final class SendingTestUtils {
         sendMessageWithCorrelationId(sendingActions, testEnvironment, correlationId);
     }
 
-    public static void sendMessageWithErrorPayloadIsSend(final ProcessingContextSendingActions sendingActions,
-                                                         final TestEnvironment testEnvironment) {
-        final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
-        final TestMessageOfInterest errorPayload = messageWithErrorContent();
-        testEnvironment.setProperty(SEND_ERROR_PAYLOAD, errorPayload);
-        final ProcessingContext<TestMessage> processingContext = processingContextForError(eventType, errorPayload);
-        sendProcessingContext(sendingActions, testEnvironment, processingContext);
-    }
-
     public static void sendMessageWithCorrelationId(final CorrelationIdSendingActions sendingActions,
                                                     final TestEnvironment testEnvironment,
                                                     final CorrelationId correlationId) {
@@ -118,6 +110,15 @@ public final class SendingTestUtils {
         final MessageId messageId = sendingActions.send(eventType, message, correlationId);
         testEnvironment.setProperty(SEND_MESSAGE_ID, messageId);
         testEnvironment.setProperty(NUMBER_OF_MESSAGES_SHOULD_BE_SEND, 1);
+    }
+
+    public static void sendMessageWithErrorPayloadIsSend(final ProcessingContextSendingActions sendingActions,
+                                                         final TestEnvironment testEnvironment) {
+        final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+        final TestMessageOfInterest errorPayload = messageWithErrorContent();
+        testEnvironment.setProperty(SEND_ERROR_PAYLOAD, errorPayload);
+        final ProcessingContext<TestMessage> processingContext = processingContextForError(eventType, errorPayload);
+        sendProcessingContext(sendingActions, testEnvironment, processingContext);
     }
 
     public static void sendMessageAsProcessingContext(final ProcessingContextSendingActions sendingActions,
@@ -151,7 +152,8 @@ public final class SendingTestUtils {
                                                           final boolean expectCleanShutdown) {
         final TestMessageFactory messageFactory = messageFactoryForValidMessages(numberOfMessagesPerSender);
         final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
-        sendXMessagesAsynchronously(numberOfSender, messageFactory, eventType, sendingActions, testEnvironment, expectCleanShutdown);
+        sendXMessagesAsynchronously(numberOfSender, messageFactory, eventType, sendingActions,
+                testEnvironment, expectCleanShutdown);
     }
 
     public static void sendInvalidMessagesAsynchronouslyNew(final SendingActions sendingActions,
@@ -170,9 +172,9 @@ public final class SendingTestUtils {
         final TestMessageFactory messageFactory = messageFactoryForRandomValidOrInvalidTestMessages(numberOfMessagesPerSender);
 
         final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
-        sendXMessagesAsynchronously(numberOfSender, messageFactory, eventType, sendingActions, testEnvironment, true);
+        final boolean cleanShutdown = true;
+        sendXMessagesAsynchronously(numberOfSender, messageFactory, eventType, sendingActions, testEnvironment, cleanShutdown);
     }
-
 
     private static void sendXMessagesAsynchronously(final int numberOfSender,
                                                     final MessageFactory messageFactory,
@@ -187,7 +189,7 @@ public final class SendingTestUtils {
         final int expectedNumberOfMessagesSend = numberOfSender * numberOfMessages;
         testEnvironment.setProperty(NUMBER_OF_MESSAGES_SHOULD_BE_SEND, expectedNumberOfMessagesSend);
         final CyclicBarrier sendingStartBarrier = new CyclicBarrier(numberOfSender);
-        final ExecutorService executorService = Executors.newFixedThreadPool(numberOfSender);
+        final ExecutorService executorService = newFixedThreadPool(numberOfSender);
         for (int i = 0; i < numberOfSender; i++) {
             executorService.execute(() -> {
                 final List<TestMessage> messagesToSend = new ArrayList<>();
@@ -198,7 +200,8 @@ public final class SendingTestUtils {
                     testEnvironment.addToListProperty(MESSAGES_SEND, message);
                 }
                 try {
-                    sendingStartBarrier.await(3, SECONDS);
+                    final int timeout = 3;
+                    sendingStartBarrier.await(timeout, SECONDS);
                 } catch (final InterruptedException | BrokenBarrierException | TimeoutException e) {
                     throw new RuntimeException(e);
                 }
@@ -210,7 +213,8 @@ public final class SendingTestUtils {
         executorService.shutdown();
         if (expectCleanShutdown) {
             try {
-                final boolean isTerminated = executorService.awaitTermination(3, SECONDS);
+                final int timeout = 3;
+                final boolean isTerminated = executorService.awaitTermination(timeout, SECONDS);
                 if (!isTerminated) {
                     throw new RuntimeException("ExecutorService did not shutdown within timeout.");
                 }
@@ -224,7 +228,7 @@ public final class SendingTestUtils {
                                                                final int numberOfMessages,
                                                                final TestEnvironment testEnvironment) {
         final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
-        final ExecutorService executorService = Executors.newFixedThreadPool(numberOfMessages);
+        final ExecutorService executorService = newFixedThreadPool(numberOfMessages);
         for (int i = 0; i < numberOfMessages; i++) {
             executorService.execute(() -> {
                 try {
@@ -241,13 +245,13 @@ public final class SendingTestUtils {
     public static void sendXMessagesInTheirOwnThreadThatWillBeBlocked(final SendingActions sendingActions,
                                                                       final int numberOfMessages,
                                                                       final TestEnvironment testEnvironment) {
-        final ExecutorService executorService = Executors.newFixedThreadPool(numberOfMessages);
+        final ExecutorService executorService = newFixedThreadPool(numberOfMessages);
         final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+        testEnvironment.setPropertyIfNotSet(NUMBER_OF_MESSAGES_SHOULD_BE_SEND, numberOfMessages);
         for (int i = 0; i < numberOfMessages; i++) {
             executorService.execute(() -> {
                 final TestMessageOfInterest message = messageOfInterest();
                 testEnvironment.addToListProperty(MESSAGES_SEND, message);
-                System.out.println("message send = ");
                 sendingActions.send(eventType, message);
             });
         }
@@ -270,7 +274,8 @@ public final class SendingTestUtils {
             final TestEnvironment testEnvironment) {
         final Semaphore semaphore = new Semaphore(0);
         final BlockingTestSubscriber<TestMessage> subscriber = blockingTestSubscriber(semaphore);
-        addABlockingSubscriberAndThenSendXMessagesInEachThread(sutActions, subscriber, numberOfMessages, 1, testEnvironment, expectedNumberOfBlockedThreads);
+        addABlockingSubscriberAndThenSendXMessagesInEachThread(sutActions, subscriber, numberOfMessages,
+                1, testEnvironment, expectedNumberOfBlockedThreads);
         return semaphore;
     }
 
@@ -279,7 +284,8 @@ public final class SendingTestUtils {
             final BlockingTestSubscriber<TestMessage> subscriber,
             final int numberOfMessages,
             final TestEnvironment testEnvironment) {
-        addABlockingSubscriberAndThenSendXMessagesInEachThread(sutActions, subscriber, numberOfMessages, 1, testEnvironment, numberOfMessages);
+        addABlockingSubscriberAndThenSendXMessagesInEachThread(sutActions, subscriber, numberOfMessages,
+                1, testEnvironment, numberOfMessages);
     }
 
     public static <T extends SendingActions & SubscribeActions> void addABlockingSubscriberAndThenSendXMessagesInEachThread(
@@ -295,10 +301,6 @@ public final class SendingTestUtils {
 
         final TestMessageFactory messageFactory = messageFactoryForValidMessages(numberOfMessagesPerSender);
         sendXMessagesAsynchronously(numberOfSenders, messageFactory, eventType, sutActions, testEnvironment, false);
-        pollUntilEquals(() -> {
-            final int blockedThreads = subscriber.getNumberOfBlockedThreads();
-            System.out.println("blockedThreads = " + blockedThreads + ", expected: " + numberOfSenders);
-            return blockedThreads;
-        }, expectedNumberOfBlockedThreads);
+        pollUntilEquals(subscriber::getNumberOfBlockedThreads, expectedNumberOfBlockedThreads);
     }
 }

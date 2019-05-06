@@ -98,6 +98,11 @@ public final class TestEnvironment {
     }
 
     @SuppressWarnings("unchecked")
+    public <T> T getPropertyAsType(final String property, final Class<T> tClass) {
+        return (T) getProperty(property);
+    }
+
+    @SuppressWarnings("unchecked")
     public <T> List<T> getPropertyAsListOfType(final String property, final Class<T> tClass) {
         return (List<T>) getProperty(property);
     }
@@ -105,11 +110,6 @@ public final class TestEnvironment {
     @SuppressWarnings("unchecked")
     public <T> List<T> getPropertyAsListOfType(final TestEnvironmentProperty property, final Class<T> tClass) {
         return (List<T>) getProperty(property);
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T> T getPropertyAsType(final String property, final Class<T> tClass) {
-        return (T) getProperty(property);
     }
 
     public Object getProperty(final TestEnvironmentProperty property) {

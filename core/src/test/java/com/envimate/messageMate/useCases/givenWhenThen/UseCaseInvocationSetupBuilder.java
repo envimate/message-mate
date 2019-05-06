@@ -62,7 +62,7 @@ public final class UseCaseInvocationSetupBuilder {
         this.instantiationFunction = InstantiationBuilder::obtainingUseCaseInstancesUsingTheZeroArgumentConstructor;
     }
 
-    public static UseCaseInvocationSetupBuilder aUseCaseAdapter(final TestUseCase testUseCase) {
+    public static UseCaseInvocationSetupBuilder aUseCaseAdapterFor(final TestUseCase testUseCase) {
         final BiFunction<BuilderStepBuilder, MessageBus, Object> sutBuildingFunction = (builder, messageBus) -> {
             final UseCaseAdapter useCaseAdapter = builder.buildAsStandaloneAdapter();
             useCaseAdapter.attachAndEnhance(messageBus);
@@ -71,7 +71,7 @@ public final class UseCaseInvocationSetupBuilder {
         return new UseCaseInvocationSetupBuilder(testUseCase, sutBuildingFunction);
     }
 
-    public static UseCaseInvocationSetupBuilder aUseCaseBus(final TestUseCase testUseCase) {
+    public static UseCaseInvocationSetupBuilder aUseCaseBusFor(final TestUseCase testUseCase) {
         final BiFunction<BuilderStepBuilder, MessageBus, Object> sutBuildingFunction = BuilderStepBuilder::build;
         return new UseCaseInvocationSetupBuilder(testUseCase, sutBuildingFunction);
     }

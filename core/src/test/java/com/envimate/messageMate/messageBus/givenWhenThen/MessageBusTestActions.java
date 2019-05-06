@@ -251,6 +251,11 @@ final class MessageBusTestActions implements SendingAndReceivingActions, RawSubs
         messageBus.add(degenerifiedFilter, position);
     }
 
+    @Override
+    public long numberOfQueuedMessages() {
+        return queryTheNumberOfQueuedMessages();
+    }
+
     long queryTheNumberOfAcceptedMessages() {
         return queryMessageStatistics(MessageBusStatistics::getAcceptedMessages);
     }

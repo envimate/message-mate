@@ -238,6 +238,11 @@ public final class ChannelTestActions implements SendingAndReceivingActions, Pro
         }
     }
 
+    @Override
+    public long numberOfQueuedMessages() {
+        return queryChannelStatistics(channel, ChannelStatistics::getQueuedMessages);
+    }
+
     private Subscription<TestMessage> getActionAsSubscription() {
         return (Subscription<TestMessage>) channel.getDefaultAction();
     }
