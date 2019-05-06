@@ -41,12 +41,10 @@ import java.util.List;
 import java.util.concurrent.*;
 
 import static com.envimate.messageMate.identification.CorrelationId.newUniqueCorrelationId;
-import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.EVENT_TYPE;
 import static com.envimate.messageMate.processingContext.ProcessingContext.processingContext;
 import static com.envimate.messageMate.processingContext.ProcessingContext.processingContextForError;
-import static com.envimate.messageMate.serializedMessageBus.givenWhenThen.SerializedMessageBusTestProperties.DEFAULT_EVENT_TYPE;
 import static com.envimate.messageMate.shared.eventType.TestEventType.testEventType;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
+import static com.envimate.messageMate.shared.properties.SharedTestProperties.*;
 import static com.envimate.messageMate.shared.polling.PollingUtils.pollUntilEquals;
 import static com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber.blockingTestSubscriber;
 import static com.envimate.messageMate.shared.testMessages.TestMessageOfInterest.messageOfInterest;
@@ -60,7 +58,7 @@ public final class SendingTestUtils {
 
     public static void sendSingleMessage(final SendingActions sendingActions,
                                          final TestEnvironment testEnvironment) {
-        final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
+        final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
         sendSingleMessage(sendingActions, testEnvironment, eventType);
     }
 

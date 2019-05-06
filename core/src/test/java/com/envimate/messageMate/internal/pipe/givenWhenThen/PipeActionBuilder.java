@@ -27,7 +27,6 @@ import com.envimate.messageMate.shared.givenWhenThen.TestAction;
 import com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.shared.utils.ShutdownTestUtils;
-import com.envimate.messageMate.shared.utils.SubscriptionUtils;
 import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.RequiredArgsConstructor;
 
@@ -39,13 +38,13 @@ import java.util.concurrent.Semaphore;
 import static com.envimate.messageMate.internal.pipe.config.PipeTestConfig.ASYNCHRONOUS_PIPE_POOL_SIZE;
 import static com.envimate.messageMate.internal.pipe.givenWhenThen.PipeTestActions.pipeTestActions;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.RESULT;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
+import static com.envimate.messageMate.shared.properties.SharedTestProperties.*;
 import static com.envimate.messageMate.shared.polling.PollingUtils.pollUntilEquals;
 import static com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber.blockingTestSubscriber;
 import static com.envimate.messageMate.shared.utils.SendingTestUtils.*;
 import static com.envimate.messageMate.shared.utils.ShutdownTestUtils.*;
-import static com.envimate.messageMate.shared.utils.SubscriptionUtils.addAnExceptionThrowingSubscriber;
-import static com.envimate.messageMate.shared.utils.SubscriptionUtils.unsubscribeASubscriberXTimes;
+import static com.envimate.messageMate.shared.utils.SubscriptionTestUtils.addAnExceptionThrowingSubscriber;
+import static com.envimate.messageMate.shared.utils.SubscriptionTestUtils.unsubscribeASubscriberXTimes;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)

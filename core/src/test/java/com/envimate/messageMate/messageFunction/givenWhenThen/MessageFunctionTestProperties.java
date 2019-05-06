@@ -26,10 +26,9 @@ import lombok.RequiredArgsConstructor;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
-public final class MessageFunctionTestProperties {
-    public static final String EVENT_TYPE = "EVENT_TYPE";
-    public static final String CANCEL_RESULTS = "CANCEL_RESULTS";
-    public static final String EXCEPTION_OCCURRED_DURING_SEND = "EXCEPTION_OCCURRED_DURING_SEND";
-    public static final String EXCEPTION_OCCURRED_DURING_FOLLOW_UP = "EXCEPTION_OCCURRED_DURING_FOLLOW_UP";
-    public static final String RESPONSE_PROCESSING_CONTEXT = "RESPONSE_PROCESSING_CONTEXT";
+final class MessageFunctionTestProperties {
+    static final String CANCEL_RESULTS = "CANCEL_RESULTS";
+    static final String EXCEPTION_OCCURRED_DURING_SEND = "EXCEPTION_OCCURRED_DURING_SEND";
+    static final String EXCEPTION_OCCURRED_DURING_FOLLOW_UP = "EXCEPTION_OCCURRED_DURING_FOLLOW_UP";
+    static final String RESPONSE_PROCESSING_CONTEXT = "RESPONSE_PROCESSING_CONTEXT";
 }

@@ -19,14 +19,14 @@
  * under the License.
  */
 
-package com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen;
+package com.envimate.messageMate.shared.properties;
 
 import lombok.RequiredArgsConstructor;
 
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
-public final class PipeChannelMessageBusSharedTestProperties {
+public final class SharedTestProperties {
     public static final String IS_ASYNCHRONOUS = "IS_ASYNCHRONOUS";
     public static final String SINGLE_SEND_MESSAGE = "SINGLE_SEND_MESSAGE";
     public static final String SEND_ERROR_PAYLOAD = "SEND_ERROR_PAYLOAD";
@@ -37,10 +37,12 @@ public final class PipeChannelMessageBusSharedTestProperties {
     public static final String SINGLE_RECEIVER = "SINGLE_RECEIVER";
     public static final String MESSAGES_SEND = "MESSAGES_SEND";
     public static final String NUMBER_OF_MESSAGES_SHOULD_BE_SEND = "NUMBER_OF_MESSAGES_SHOULD_BE_SEND";
+    public static final String EVENT_TYPE = "EVENT_TYPE";
     public static final String EXPECTED_CHANGED_CONTENT = "EXPECTED_CHANGED_CONTENT";
     public static final String EXECUTION_END_SEMAPHORE = "EXECUTION_END_SEMAPHORE";
     public static final String ERROR_SUBSCRIBER = "ERROR_SUBSCRIBER";
     public static final String EXPECTED_FILTER = "EXPECTED_FILTER";
+    public static final String FILTER_POSITION = "FILTER_POSITION";
     public static final String USED_SUBSCRIPTION_ID = "USED_SUBSCRIPTION_ID";
     public static final String SEND_MESSAGE_ID = "SEND_MESSAGE_ID";
     public static final String EXPECTED_CORRELATION_ID = "EXPECTED_CORRELATION_ID";

@@ -31,8 +31,8 @@ import lombok.RequiredArgsConstructor;
 
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXCEPTION;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.RESULT;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.EXCEPTION_OCCURRED_DURING_DELIVERY;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.EXCEPTION_OCCURRED_INSIDE_FILTER;
+import static com.envimate.messageMate.shared.properties.SharedTestProperties.EXCEPTION_OCCURRED_DURING_DELIVERY;
+import static com.envimate.messageMate.shared.properties.SharedTestProperties.EXCEPTION_OCCURRED_INSIDE_FILTER;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)

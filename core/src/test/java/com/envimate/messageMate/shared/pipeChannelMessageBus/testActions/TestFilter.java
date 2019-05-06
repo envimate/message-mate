@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen;
+package com.envimate.messageMate.shared.pipeChannelMessageBus.testActions;
 
 import com.envimate.messageMate.channel.ChannelProcessingFrame;
 import com.envimate.messageMate.filtering.Filter;
@@ -27,6 +27,7 @@ import com.envimate.messageMate.filtering.FilterActions;
 import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.processingContext.ProcessingContext;
+import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 
 import java.util.HashMap;
@@ -68,6 +69,11 @@ public final class TestFilter {
         return (message, filterActions) -> {
             throw exception;
         };
+    }
+
+    public static <T> Filter<T> anErrorThrowingFilter() {
+        final TestException exception = new TestException();
+        return anErrorThrowingFilter(exception);
     }
 
     public static Filter<ProcessingContext<Object>> aRawFilterThatChangesTheCompleteProcessingContext() {

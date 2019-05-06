@@ -32,7 +32,7 @@ import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.serializedMessageBus.SerializedMessageBus;
-import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.SetupAction;
+import com.envimate.messageMate.shared.givenWhenThen.SetupAction;
 import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
 import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.shared.testMessages.ErrorTestMessage;
@@ -52,7 +52,9 @@ import static com.envimate.messageMate.internal.collections.predicatemap.Predica
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXPECTED_RECEIVERS;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.*;
 import static com.envimate.messageMate.serializedMessageBus.givenWhenThen.SerializedMessageBusTestProperties.*;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
+import static com.envimate.messageMate.shared.eventType.TestEventType.testEventType;
+import static com.envimate.messageMate.shared.properties.SharedTestProperties.*;
+import static com.envimate.messageMate.shared.properties.SharedTestProperties.EVENT_TYPE;
 import static com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber.testSubscriber;
 import static com.envimate.messageMate.subscribing.ConsumerSubscriber.consumerSubscriber;
 import static lombok.AccessLevel.PRIVATE;
@@ -75,7 +77,7 @@ public final class SerializedMessageBusSetupBuilder {
     }
 
     private void addMapSubscriber(final SerializedMessageBus serializedMessageBus, final TestEnvironment testEnvironment) {
-        final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
+        final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
         final SimpleTestSubscriber<PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>>> subscriber =
                 testSubscriber();
         testEnvironment.addToListProperty(EXPECTED_RECEIVERS, subscriber);
@@ -100,7 +102,7 @@ public final class SerializedMessageBusSetupBuilder {
 
     public SerializedMessageBusSetupBuilder withADeserializedSubscriber() {
         setupActions.add((serializedMessageBus, testEnvironment) -> {
-            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             final SimpleTestSubscriber<PayloadAndErrorPayload<TestMessageOfInterest, ErrorTestMessage>> subscriber =
                     testSubscriber();
             testEnvironment.addToListProperty(EXPECTED_RECEIVERS, subscriber);
@@ -129,7 +131,7 @@ public final class SerializedMessageBusSetupBuilder {
 
     public SerializedMessageBusSetupBuilder withASubscriberSendingCorrelatedResponse() {
         setupActions.add((serializedMessageBus, testEnvironment) -> {
-            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             final SubscriptionId subscriptionId = serializedMessageBus.subscribeRaw(eventType,
                     consumerSubscriber(processingContext -> {
                         final CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();
@@ -143,7 +145,7 @@ public final class SerializedMessageBusSetupBuilder {
 
     public SerializedMessageBusSetupBuilder withASubscriberSendingDataBackAsErrorResponse() {
         setupActions.add((serializedMessageBus, testEnvironment) -> {
-            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             final SubscriptionId subscriptionId = serializedMessageBus.subscribeRaw(eventType,
                     consumerSubscriber(processingContext -> {
                         final CorrelationId correlationId = processingContext.generateCorrelationIdForAnswer();
@@ -157,7 +159,7 @@ public final class SerializedMessageBusSetupBuilder {
 
     public SerializedMessageBusSetupBuilder withASubscriberThrowingError() {
         setupActions.add((serializedMessageBus, testEnvironment) -> {
-            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             final SubscriptionId subscriptionId = serializedMessageBus.subscribe(eventType, consumerSubscriber(ignored -> {
                 throw new TestException();
             }));

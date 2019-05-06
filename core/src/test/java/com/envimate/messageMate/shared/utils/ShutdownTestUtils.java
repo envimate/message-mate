@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2019 envimate GmbH - https://envimate.com/.
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package com.envimate.messageMate.shared.utils;
 
 import com.envimate.messageMate.processingContext.EventType;
@@ -13,14 +34,12 @@ import java.util.concurrent.*;
 
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.*;
 import static com.envimate.messageMate.shared.eventType.TestEventType.testEventType;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.EXECUTION_END_SEMAPHORE;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.SINGLE_RECEIVER;
 import static com.envimate.messageMate.shared.polling.PollingUtils.pollUntilEquals;
 import static com.envimate.messageMate.shared.polling.PollingUtils.pollUntilListHasSize;
+import static com.envimate.messageMate.shared.properties.SharedTestProperties.*;
 import static com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber.blockingTestSubscriber;
 import static com.envimate.messageMate.shared.testMessages.TestMessageOfInterest.messageOfInterest;
 import static com.envimate.messageMate.shared.utils.SendingTestUtils.*;
-import static com.envimate.messageMate.useCases.givenWhenThen.UseCaseInvocationTestProperties.EVENT_TYPE;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static lombok.AccessLevel.PRIVATE;
@@ -56,7 +75,8 @@ public final class ShutdownTestUtils {
                                                                 final TestEnvironment testEnvironment,
                                                                 final int numberOfMessages,
                                                                 final boolean finishRemainingTasks) {
-        sendMessagesBeforeShutdownAsynchronously(sutActions, testEnvironment, numberOfMessages, finishRemainingTasks, numberOfMessages);
+        sendMessagesBeforeShutdownAsynchronously(sutActions, testEnvironment, numberOfMessages, finishRemainingTasks,
+                numberOfMessages);
     }
 
     public static void sendMessagesBeforeShutdownAsynchronously(final SendingAndReceivingActions sutActions,
@@ -66,7 +86,8 @@ public final class ShutdownTestUtils {
                                                                 final int expectedNumberOfBlockedThreads) {
         final Semaphore semaphore = new Semaphore(0);
         final BlockingTestSubscriber<TestMessage> subscriber = blockingTestSubscriber(semaphore);
-        addABlockingSubscriberAndThenSendXMessagesInEachThread(sutActions, subscriber, numberOfMessages, 1, testEnvironment, expectedNumberOfBlockedThreads);
+        addABlockingSubscriberAndThenSendXMessagesInEachThread(sutActions, subscriber, numberOfMessages,
+                1, testEnvironment, expectedNumberOfBlockedThreads);
         sutActions.close(finishRemainingTasks);
         semaphore.release(1337);
     }
@@ -156,18 +177,20 @@ public final class ShutdownTestUtils {
         }
     }
 
-    private static BlockingTestSubscriber<TestMessage> sendMessagesToBlockingSubscriber(final SendingAndReceivingActions sutActions,
-                                                                                        final int numberOfPendingMessages,
-                                                                                        final TestEnvironment testEnvironment,
-                                                                                        final Semaphore semaphore) {
+    private static BlockingTestSubscriber<TestMessage> sendMessagesToBlockingSubscriber(
+            final SendingAndReceivingActions sutActions,
+            final int numberOfPendingMessages,
+            final TestEnvironment testEnvironment,
+            final Semaphore semaphore) {
         return sendMessagesToBlockingSubscriber(sutActions, numberOfPendingMessages, numberOfPendingMessages, testEnvironment, semaphore);
     }
 
-    private static BlockingTestSubscriber<TestMessage> sendMessagesToBlockingSubscriber(final SendingAndReceivingActions sutActions,
-                                                                                        final int numberOfPendingMessages,
-                                                                                        final int expectedNumberOfBlockedThreads,
-                                                                                        final TestEnvironment testEnvironment,
-                                                                                        final Semaphore semaphore) {
+    private static BlockingTestSubscriber<TestMessage> sendMessagesToBlockingSubscriber(
+            final SendingAndReceivingActions sutActions,
+            final int numberOfPendingMessages,
+            final int expectedNumberOfBlockedThreads,
+            final TestEnvironment testEnvironment,
+            final Semaphore semaphore) {
         final BlockingTestSubscriber<TestMessage> subscriber = blockingTestSubscriber(semaphore);
         testEnvironment.setProperty(SINGLE_RECEIVER, subscriber);
         final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
@@ -184,7 +207,8 @@ public final class ShutdownTestUtils {
                                                                         final boolean finishRemainingTask) {
         final Semaphore semaphore = new Semaphore(0);
         final BlockingTestSubscriber<TestMessage> subscriber = blockingTestSubscriber(semaphore);
-        addABlockingSubscriberAndThenSendXMessagesInEachThread(sutActions, subscriber, numberOfMessagesBeforeShutdown, testEnvironment);
+        addABlockingSubscriberAndThenSendXMessagesInEachThread(sutActions, subscriber, numberOfMessagesBeforeShutdown,
+                testEnvironment);
         sutActions.close(finishRemainingTask);
         sendXMessagesAsynchronouslyThatWillFail(sutActions, numberOfMessagesAfterShutdown, testEnvironment);
         semaphore.release(1337);

@@ -19,12 +19,11 @@
  * under the License.
  */
 
-package com.envimate.messageMate.shared.pipeChannelMessageBus.testActions;
+package com.envimate.messageMate.shared.givenWhenThen;
 
-import com.envimate.messageMate.identification.MessageId;
-import com.envimate.messageMate.processingContext.EventType;
-import com.envimate.messageMate.shared.testMessages.TestMessage;
+import com.envimate.messageMate.shared.environment.TestEnvironment;
 
-public interface SendingActions {
-    MessageId send(EventType eventType, TestMessage message);
+public interface SetupAction<T> {
+
+    void execute(T t, TestEnvironment testEnvironment);
 }

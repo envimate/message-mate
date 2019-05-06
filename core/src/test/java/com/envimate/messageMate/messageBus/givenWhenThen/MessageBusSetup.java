@@ -23,7 +23,7 @@ package com.envimate.messageMate.messageBus.givenWhenThen;
 
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
-import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.SetupAction;
+import com.envimate.messageMate.shared.givenWhenThen.SetupAction;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

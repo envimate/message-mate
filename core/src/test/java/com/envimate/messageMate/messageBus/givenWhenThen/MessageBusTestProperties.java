@@ -26,8 +26,7 @@ import lombok.RequiredArgsConstructor;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
-public final class MessageBusTestProperties {
-    public static final String EVENT_TYPE = "EVENT_TYPE";
-    public static final String CORRELATION_SUBSCRIPTION_ID = "CORRELATION_SUBSCRIPTION_ID";
-    public static final String MESSAGE_RECEIVED_BY_ERROR_LISTENER = "MESSAGE_RECEIVED_BY_ERROR_LISTENER";
+final class MessageBusTestProperties {
+    static final String CORRELATION_SUBSCRIPTION_ID = "CORRELATION_SUBSCRIPTION_ID";
+    static final String MESSAGE_RECEIVED_BY_ERROR_LISTENER = "MESSAGE_RECEIVED_BY_ERROR_LISTENER";
 }

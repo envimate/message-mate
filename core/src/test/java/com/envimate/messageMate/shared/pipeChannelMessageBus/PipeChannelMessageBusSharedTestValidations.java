@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen;
+package com.envimate.messageMate.shared.pipeChannelMessageBus;
 
 import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.identification.MessageId;
@@ -41,11 +41,11 @@ import java.util.stream.Collectors;
 
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXPECTED_RECEIVERS;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.RESULT;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.TestFilter.ADDED_ERROR_CONTENT;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.TestFilter.CHANGED_CONTENT;
+import static com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.TestFilter.ADDED_ERROR_CONTENT;
+import static com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.TestFilter.CHANGED_CONTENT;
 import static com.envimate.messageMate.shared.polling.PollingUtils.pollUntil;
 import static com.envimate.messageMate.shared.polling.PollingUtils.pollUntilEquals;
+import static com.envimate.messageMate.shared.properties.SharedTestProperties.*;
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.assertEquals;
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.testEquals;
 import static lombok.AccessLevel.PRIVATE;
@@ -223,7 +223,6 @@ public final class PipeChannelMessageBusSharedTestValidations {
         final List<?> list = testEnvironment.getPropertyAsType(RESULT, List.class);
         assertThat(list, containsInAnyOrder(expectedFilter.toArray()));
     }
-
 
     public static void assertTheMessageToHaveTheSameMessageIdAndAMatchingGeneratedCorrelationId(
             final TestEnvironment testEnvironment,

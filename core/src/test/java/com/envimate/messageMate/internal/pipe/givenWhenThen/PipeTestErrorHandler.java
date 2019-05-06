@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.function.Consumer;
 
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.EXPECTED_AND_IGNORED_EXCEPTION;
+import static com.envimate.messageMate.shared.properties.SharedTestProperties.EXPECTED_AND_IGNORED_EXCEPTION;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)

@@ -28,7 +28,7 @@ import com.envimate.messageMate.internal.pipe.config.PipeTestConfig;
 import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration;
 import com.envimate.messageMate.internal.pipe.error.PipeErrorHandler;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
-import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.SetupAction;
+import com.envimate.messageMate.shared.givenWhenThen.SetupAction;
 import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 
@@ -39,8 +39,8 @@ import java.util.function.Consumer;
 import static com.envimate.messageMate.internal.pipe.givenWhenThen.PipeTestErrorHandler.pipeTestErrorHandler;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXCEPTION;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.RESULT;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.IS_ASYNCHRONOUS;
-import static com.envimate.messageMate.shared.utils.SubscriptionUtils.*;
+import static com.envimate.messageMate.shared.properties.SharedTestProperties.IS_ASYNCHRONOUS;
+import static com.envimate.messageMate.shared.utils.SubscriptionTestUtils.*;
 
 public class PipeSetupBuilder {
     private final TestEnvironment testEnvironment = TestEnvironment.emptyTestEnvironment();

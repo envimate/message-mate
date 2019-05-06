@@ -42,8 +42,8 @@ import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestValidati
 import static com.envimate.messageMate.channel.givenWhenThen.ProcessingFrameHistoryMatcher.aProcessingFrameHistory;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXPECTED_RECEIVERS;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.*;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestValidations.*;
+import static com.envimate.messageMate.shared.properties.SharedTestProperties.*;
+import static com.envimate.messageMate.shared.pipeChannelMessageBus.PipeChannelMessageBusSharedTestValidations.*;
 import static com.envimate.messageMate.shared.polling.PollingUtils.pollUntil;
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.*;
 import static lombok.AccessLevel.PRIVATE;
@@ -151,7 +151,7 @@ public final class ChannelValidationBuilder {
     public static ChannelValidationBuilder expectTheFilterInOrderAsAdded() {
         return aValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
-            assertResultAndExpectedResultAreEqual(testEnvironment);
+            assertResultEqualToExpectedFilter(testEnvironment);
         });
     }
 
@@ -159,7 +159,7 @@ public final class ChannelValidationBuilder {
         return aValidation(testEnvironment -> {
             assertNoExceptionThrown(testEnvironment);
             final List<Filter<ProcessingContext<TestMessage>>> expectedFilter = getTestPropertyAsListOfFilter(testEnvironment,
-                    EXPECTED_RESULT);
+                    EXPECTED_FILTER);
             assertFilterAsExpected(testEnvironment, expectedFilter);
         });
     }
@@ -287,7 +287,7 @@ public final class ChannelValidationBuilder {
         });
     }
 
-    private static ProcessingContext getResultProcessingContext(final TestEnvironment testEnvironment) {
+    private static ProcessingContext<?> getResultProcessingContext(final TestEnvironment testEnvironment) {
         PollingUtils.pollUntil(() -> testEnvironment.has(RESULT));
         return testEnvironment.getPropertyAsType(RESULT, ProcessingContext.class);
     }
@@ -315,10 +315,16 @@ public final class ChannelValidationBuilder {
         return (List<Channel<TestMessage>>) testEnvironment.getProperty(property);
     }
 
-    @SuppressWarnings("unchecked")
     private static List<Filter<ProcessingContext<TestMessage>>> getTestPropertyAsListOfFilter(
             final TestEnvironment testEnvironment,
             final TestEnvironmentProperty property) {
+        return getTestPropertyAsListOfFilter(testEnvironment, property.name());
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<Filter<ProcessingContext<TestMessage>>> getTestPropertyAsListOfFilter(
+            final TestEnvironment testEnvironment,
+            final String property) {
         return (List<Filter<ProcessingContext<TestMessage>>>) testEnvironment.getProperty(property);
     }
 

@@ -40,8 +40,8 @@ import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestAc
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestValidations.*;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.RESULT;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.SUT;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestValidations.*;
+import static com.envimate.messageMate.shared.properties.SharedTestProperties.*;
+import static com.envimate.messageMate.shared.pipeChannelMessageBus.PipeChannelMessageBusSharedTestValidations.*;
 import static com.envimate.messageMate.shared.polling.PollingUtils.pollUntilListHasSize;
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.*;
 import static lombok.AccessLevel.PRIVATE;

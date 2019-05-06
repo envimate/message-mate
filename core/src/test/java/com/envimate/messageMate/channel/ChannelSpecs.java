@@ -379,7 +379,7 @@ public interface ChannelSpecs {
     default void testChannel_canQueryAcceptedMessages(final ChannelTestConfig channelTestConfig) {
         final int numberOfSendMessages = 5;
         given(aConfiguredChannel(channelTestConfig)
-                .withDefaultActionConsume())
+                .withNoopConsumeAsDefaultAction())
                 .when(severalMessagesAreSendAsynchronously(numberOfSendMessages)
                         .andThen(theNumberOfAcceptedMessagesIsQueried()))
                 .then(expectTheResult(numberOfSendMessages));
@@ -451,7 +451,7 @@ public interface ChannelSpecs {
     default void testChannel_canQuerySuccessfulDeliveredMessages(final ChannelTestConfig channelTestConfig) {
         final int numberOfSendMessages = 5;
         given(aConfiguredChannel(channelTestConfig)
-                .withDefaultActionConsume())
+                .withNoopConsumeAsDefaultAction())
                 .when(severalMessagesAreSendAsynchronously(numberOfSendMessages)
                         .andThen(theNumberOfSuccessfulDeliveredMessagesIsQueried()))
                 .then(expectTheResult(numberOfSendMessages));

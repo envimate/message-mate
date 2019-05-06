@@ -19,11 +19,14 @@
  * under the License.
  */
 
-package com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen;
+package com.envimate.messageMate.shared.pipeChannelMessageBus.testActions;
 
-import com.envimate.messageMate.shared.environment.TestEnvironment;
+import com.envimate.messageMate.filtering.Filter;
+import com.envimate.messageMate.shared.testMessages.TestMessage;
 
-public interface SetupAction<T> {
+public interface SimplifiedFilterTestActions {
+    void addNotRawFilter(Filter<TestMessage> filter);
 
-    void execute(T t, TestEnvironment testEnvironment);
+    void addNotRawFilter(Filter<TestMessage> filter, int position);
+
 }

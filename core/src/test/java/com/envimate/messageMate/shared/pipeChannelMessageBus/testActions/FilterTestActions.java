@@ -21,10 +21,19 @@
 
 package com.envimate.messageMate.shared.pipeChannelMessageBus.testActions;
 
-import com.envimate.messageMate.identification.MessageId;
-import com.envimate.messageMate.processingContext.EventType;
+import com.envimate.messageMate.channel.givenWhenThen.FilterPosition;
+import com.envimate.messageMate.filtering.Filter;
+import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 
-public interface SendingActions {
-    MessageId send(EventType eventType, TestMessage message);
+import java.util.List;
+
+public interface FilterTestActions {
+    void addFilter(Filter<ProcessingContext<TestMessage>> filter, FilterPosition filterPosition);
+
+    void addFilter(Filter<ProcessingContext<TestMessage>> filter, FilterPosition filterPosition, int position);
+
+    List<?> getFilter(FilterPosition filterPosition);
+
+    void removeFilter(Filter<?> filter, FilterPosition filterPosition);
 }

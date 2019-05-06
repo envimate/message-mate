@@ -41,7 +41,7 @@ import java.util.concurrent.TimeoutException;
 
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.*;
 import static com.envimate.messageMate.shared.eventType.TestEventType.testEventType;
-import static com.envimate.messageMate.useCases.givenWhenThen.UseCaseInvocationTestProperties.EVENT_TYPE;
+import static com.envimate.messageMate.shared.properties.SharedTestProperties.EVENT_TYPE;
 import static com.envimate.messageMate.useCases.givenWhenThen.UseCaseInvocationTestProperties.MESSAGE_FUNCTION_USED;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static lombok.AccessLevel.PRIVATE;

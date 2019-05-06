@@ -21,13 +21,14 @@
 
 package com.envimate.messageMate.channel.givenWhenThen;
 
+import lombok.RequiredArgsConstructor;
+
+import static lombok.AccessLevel.PRIVATE;
+
+@RequiredArgsConstructor(access = PRIVATE)
 final class ChannelTestProperties {
     static final String ALL_CHANNELS = "ALL_CHANNELS";
     static final String CALL_TARGET_CHANNEL = "CALL_TARGET_CHANNEL";
     static final String RETURNING_CHANNEL = "RETURNING_CHANNEL";
-    static final String PIPE = "PIPE";
     static final String MODIFIED_META_DATUM = "MODIFIED_META_DATUM";
-    static final String EXPECTED_MESSAGES = "SEND_MESSAGES";
-    static final String SLEEP_BEFORE_CLOSE = "SLEEP_BEFORE_CLOSE";
-    static final String SEMAPHORE_TO_CLEAN_UP = "SEMAPHORE_TO_CLEAN_UP";
 }

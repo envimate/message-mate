@@ -33,9 +33,9 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.SUT;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.MESSAGES_SEND;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.POTENTIAL_RECEIVERS;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestValidations.*;
+import static com.envimate.messageMate.shared.properties.SharedTestProperties.MESSAGES_SEND;
+import static com.envimate.messageMate.shared.properties.SharedTestProperties.POTENTIAL_RECEIVERS;
+import static com.envimate.messageMate.shared.pipeChannelMessageBus.PipeChannelMessageBusSharedTestValidations.*;
 import static com.envimate.messageMate.shared.polling.PollingUtils.pollUntilEquals;
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.*;
 import static lombok.AccessLevel.PRIVATE;

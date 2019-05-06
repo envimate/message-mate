@@ -40,22 +40,10 @@
     <suppress checks="HideUtilityClassConstructor" files="UseCaseInvokingResponseEventType.java"/>
     <suppress checks="HideUtilityClassConstructor" files="DeserializationFilters.java"/>
     <suppress checks="HideUtilityClassConstructor" files="SerializationFilters.java"/>
-    <suppress checks="ParameterNumber" files="MessageStatistics.java"/>
-    <suppress checks="IllegalCatch" files="SynchronousDelivery.java"/>
-    <suppress checks="IllegalCatch" files="EventToUseCaseDispatcherBuilder.java"/>
-    <suppress checks="IllegalCatch" files="ChannelImpl.java"/>
-    <suppress checks="IllegalCatch" files="SerializedMessageBusImpl.java"/>
-    <suppress checks="IllegalCatch" files="UseCaseRequestExecutingSubscriber.java"/>
-    <suppress checks="IllegalCatch" files="ErrorListenerDelegatingMessageBusExceptionHandler.java"/>
-    <suppress checks="IllegalCatch" files="MessageFunctionImpl.java"/>
-    <suppress checks="VisibilityModifierCheck" files="AbstractSharedAnswerImpl.java"/>
-    <suppress checks="ParameterNumber" files="ChannelImpl.java"/>
-    <suppress checks="ParameterNumber" files="ProcessingContext.java"/>
-
-    <suppress checks="MethodName" files=".*.java"/>
-    <suppress checks="[MagicNumber|MethodCount|FileLength]" files=".*Specs.java"/>
-    <suppress checks="[ExecutableStatementCount|MethodLength]" files=".*ConfigurationResolver.java"/>
-    <suppress checks="HideUtilityClassConstructor" files="[Given|When|Then].java"/>
+    <suppress checks="HideUtilityClassConstructor" files="FilterTestUtils.java"/>
+    <suppress checks="HideUtilityClassConstructor" files="SendingTestUtils.java"/>
+    <suppress checks="HideUtilityClassConstructor" files="ShutdownTestUtils.java"/>
+    <suppress checks="HideUtilityClassConstructor" files="SubscriptionTestUtils.java"/>
     <suppress checks="HideUtilityClassConstructor" files=".*TestProperties.java"/>
     <suppress checks="HideUtilityClassConstructor" files="SharedTestValidations.java"/>
     <suppress checks="HideUtilityClassConstructor" files="PipeChannelMessageBusSharedTestValidations.java"/>
@@ -73,12 +61,35 @@
     <suppress checks="HideUtilityClassConstructor" files="TestFilter.java"/>
     <suppress checks="HideUtilityClassConstructor" files="PipeChannelMessageBusSharedTestProperties.java"/>
     <suppress checks="HideUtilityClassConstructor" files="ChannelTestValidations.java"/>
+
+    <suppress checks="ParameterNumber" files="MessageStatistics.java"/>
+
+    <suppress checks="IllegalCatch" files="SynchronousDelivery.java"/>
+    <suppress checks="IllegalCatch" files="EventToUseCaseDispatcherBuilder.java"/>
+    <suppress checks="IllegalCatch" files="ChannelImpl.java"/>
+    <suppress checks="IllegalCatch" files="SerializedMessageBusImpl.java"/>
+    <suppress checks="IllegalCatch" files="UseCaseRequestExecutingSubscriber.java"/>
+    <suppress checks="IllegalCatch" files="ErrorListenerDelegatingMessageBusExceptionHandler.java"/>
+    <suppress checks="IllegalCatch" files="MessageFunctionImpl.java"/>
+
+    <suppress checks="VisibilityModifierCheck" files="AbstractSharedAnswerImpl.java"/>
+
+    <suppress checks="ParameterNumber" files="ChannelImpl.java"/>
+    <suppress checks="ParameterNumber" files="ProcessingContext.java"/>
+
+    <suppress checks="MethodName" files=".*.java"/>
+
+    <suppress checks="[MagicNumber|MethodCount|FileLength]" files=".*Specs.java"/>
+    <suppress checks="[ExecutableStatementCount|MethodLength]" files=".*ConfigurationResolver.java"/>
+    <suppress checks="HideUtilityClassConstructor" files="[Given|When|Then].java"/>
+
     <suppress checks="ChannelTestValidations" files="ChannelTestActions.java"/>
     <suppress checks="[HideUtilityClassConstructor|AnonInnerLength]" files="MessageBusTestExceptionHandler.java"/>
     <suppress checks="[HideUtilityClassConstructor|AnonInnerLength]" files="TestChannelErrorHandler.java"/>
     <suppress checks="MagicNumber" files="AsynchronousSendingTestUtils.java"/>
     <suppress checks="MagicNumber" files="PipeMessageBusTestActions.java"/>
     <suppress checks="MagicNumber" files="SerializedMessageBusActionBuilder.java"/>
+    <suppress checks="MagicNumber" files="ShutdownTestUtils.java"/>
     <suppress checks="MethodCount" files="MessageBusActionBuilder.java"/>
     <suppress checks="MethodCount" files="MessageBusSetupBuilder.java"/>
     <suppress checks="MethodCount" files="MessageBusSetupBuilder.java"/>
@@ -86,8 +97,6 @@
     <suppress checks="MethodCount" files="ChannelValidationBuilder.java"/>
     <suppress checks="[FileLength|MethodCount|IllegalCatch]" files="ChannelSetupBuilder.java"/>
     <suppress checks="[MagicNumber|MethodCount]" files="ChannelActionBuilder.java"/>
-    <suppress checks="SerializedMessageBusActionBuilder" files="PipeMessageBusTestActions.java"/>
-    <suppress checks="SharedTestValidations" files=".*TestProperties.java"/>
     <suppress checks="[IllegalCatch|MagicNumber]" files="Then.java"/>
     <suppress checks="[IllegalCatch|MagicNumber]" files="TestMessageFunctionActionBuilder.java"/>
     <suppress checks="IllegalCatch" files="TestMessageFunctionValidationBuilder.java"/>

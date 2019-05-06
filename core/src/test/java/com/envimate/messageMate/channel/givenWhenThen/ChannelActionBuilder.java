@@ -31,7 +31,7 @@ import com.envimate.messageMate.shared.givenWhenThen.TestAction;
 import com.envimate.messageMate.shared.subscriber.TestSubscriber;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
-import com.envimate.messageMate.shared.utils.SubscriptionUtils;
+import com.envimate.messageMate.shared.utils.SubscriptionTestUtils;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -39,18 +39,18 @@ import java.util.List;
 import static com.envimate.messageMate.channel.config.ChannelTestConfig.ASYNCHRONOUS_CHANNEL_CONFIG_POOL_SIZE;
 import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestActions.*;
 import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestProperties.CALL_TARGET_CHANNEL;
-import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestProperties.PIPE;
 import static com.envimate.messageMate.channel.givenWhenThen.FilterPosition.*;
 import static com.envimate.messageMate.processingContext.ProcessingContext.processingContextForPayloadAndError;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.*;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.IS_ASYNCHRONOUS;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.NUMBER_OF_MESSAGES_SHOULD_BE_SEND;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXPECTED_RECEIVERS;
+import static com.envimate.messageMate.shared.properties.SharedTestProperties.*;
 import static com.envimate.messageMate.shared.polling.PollingUtils.pollUntilEquals;
 import static com.envimate.messageMate.shared.testMessages.TestMessageOfInterest.messageOfInterest;
+import static com.envimate.messageMate.shared.utils.FilterTestUtils.*;
 import static com.envimate.messageMate.shared.utils.SendingTestUtils.*;
 import static com.envimate.messageMate.shared.utils.ShutdownTestUtils.*;
-import static com.envimate.messageMate.shared.utils.SubscriptionUtils.addSeveralRawSubscriber;
-import static com.envimate.messageMate.shared.utils.SubscriptionUtils.addSeveralSubscriber;
+import static com.envimate.messageMate.shared.utils.SubscriptionTestUtils.addSeveralRawSubscriber;
+import static com.envimate.messageMate.shared.utils.SubscriptionTestUtils.addSeveralSubscriber;
 
 public final class ChannelActionBuilder {
     private final List<TestAction<Channel<TestMessage>>> testActions;
@@ -68,7 +68,7 @@ public final class ChannelActionBuilder {
         return anAction((channel, testEnvironment) -> {
             final TestMessageOfInterest message = DEFAULT_TEST_MESSAGE;
             final ProcessingContext<TestMessage> processingContext = sendMessage(channel, testEnvironment, message);
-            testEnvironment.setProperty(EXPECTED_RESULT, processingContext);
+            testEnvironment.setPropertyIfNotSet(EXPECTED_RESULT, processingContext);
             return null;
         });
     }
@@ -76,14 +76,14 @@ public final class ChannelActionBuilder {
     public static ChannelActionBuilder aMessageWithoutPayloadIsSend() {
         return anAction((channel, testEnvironment) -> {
             final ProcessingContext<TestMessage> processingContext = sendMessage(channel, testEnvironment, null);
-            testEnvironment.setProperty(EXPECTED_RESULT, processingContext);
+            testEnvironment.setPropertyIfNotSet(EXPECTED_RESULT, processingContext);
             return null;
         });
     }
 
     public static ChannelActionBuilder aMessageWithCorrelationIdIsSend() {
         return anAction((channel, testEnvironment) -> {
-            final ChannelTestActions testActions = ChannelTestActions.channelTestActions(channel);
+            final ChannelTestActions testActions = channelTestActions(channel);
             sendMessageWithCorrelationId(testActions, testEnvironment);
             return null;
         });
@@ -92,7 +92,7 @@ public final class ChannelActionBuilder {
     public static ChannelActionBuilder aProcessingContextObjectIsSend() {
         return anAction((channel, testEnvironment) -> {
             final ProcessingContext<TestMessage> processingContext = sendMessage(channel, testEnvironment, DEFAULT_TEST_MESSAGE);
-            testEnvironment.setProperty(EXPECTED_RESULT, processingContext);
+            testEnvironment.setPropertyIfNotSet(EXPECTED_RESULT, processingContext);
             return null;
         });
     }
@@ -102,8 +102,8 @@ public final class ChannelActionBuilder {
             final EventType eventType = DEFAULT_EVENT_TYPE;
             final ProcessingContext<TestMessage> processingContext = processingContextForPayloadAndError(
                     eventType, null, null);
-            testEnvironment.setProperty(EXPECTED_RESULT, processingContext);
-            final ChannelTestActions testActions = ChannelTestActions.channelTestActions(channel);
+            testEnvironment.setPropertyIfNotSet(EXPECTED_RESULT, processingContext);
+            final ChannelTestActions testActions = channelTestActions(channel);
             sendProcessingContext(testActions, testEnvironment, processingContext);
             return null;
         });
@@ -161,7 +161,7 @@ public final class ChannelActionBuilder {
             addFilterExecutingACall(channel, callTargetChannel);
 
             final ProcessingContext<TestMessage> sendProcessingFrame = sendMessage(channel, testEnvironment, DEFAULT_TEST_MESSAGE);
-            testEnvironment.setProperty(EXPECTED_RESULT, sendProcessingFrame);
+            testEnvironment.setPropertyIfNotSet(EXPECTED_RESULT, sendProcessingFrame);
             return null;
         });
     }
@@ -173,34 +173,35 @@ public final class ChannelActionBuilder {
 
     public static ChannelActionBuilder severalPreFilterOnDifferentPositionAreAdded() {
         final int[] positions = new int[]{0, 1, 0, 0, 3, 2};
-        return anAction(actionForAddingSeveralFilter(positions, PRE));
+        return addSeveralFilter(positions, PRE);
     }
 
     public static ChannelActionBuilder severalProcessFilterOnDifferentPositionAreAdded() {
         final int[] positions = new int[]{0, 0, 1, 0, 2, 4, 4};
-        return anAction(actionForAddingSeveralFilter(positions, PROCESS));
+        return addSeveralFilter(positions, PROCESS);
     }
 
     public static ChannelActionBuilder severalPostFilterOnDifferentPositionAreAdded() {
         final int[] positions = new int[]{0, 1, 2, 3, 4, 5, 6};
-        return anAction(actionForAddingSeveralFilter(positions, POST));
+        return addSeveralFilter(positions, POST);
     }
 
-    private static TestAction<Channel<TestMessage>> actionForAddingSeveralFilter(final int[] positions,
-                                                                                 final FilterPosition pipe) {
-        return (channel, testEnvironment) -> {
-            final List<Filter<ProcessingContext<TestMessage>>> expectedFilter = addSeveralNoopFilter(channel, positions, pipe);
-            testEnvironment.setProperty(EXPECTED_RESULT, expectedFilter);
-            testEnvironment.setProperty(PIPE, pipe);
+    private static ChannelActionBuilder addSeveralFilter(final int[] positions,
+                                                         final FilterPosition filterPosition) {
+        return anAction((channel, testEnvironment) -> {
+            final ChannelTestActions testActions1 = channelTestActions(channel);
+            final List<Filter<ProcessingContext<TestMessage>>> expectedFilter = addSeveralNoopFilter(testActions1, positions, filterPosition);
+            testEnvironment.setPropertyIfNotSet(EXPECTED_RESULT, expectedFilter);
+            testEnvironment.setPropertyIfNotSet(FILTER_POSITION, filterPosition);
             return null;
-        };
+        });
     }
 
     public static ChannelActionBuilder theFilterAreQueried() {
         return anAction((channel, testEnvironment) -> {
-            final FilterPosition pipe = testEnvironment.getPropertyAsType(PIPE, FilterPosition.class);
-            final List<Filter<ProcessingContext<TestMessage>>> filter = getFilterOf(channel, pipe);
-            testEnvironment.setProperty(RESULT, filter);
+            final ChannelTestActions testActions = channelTestActions(channel);
+            final List<?> filter = queryFilter(testActions, testEnvironment);
+            testEnvironment.setPropertyIfNotSet(RESULT, filter);
             return null;
         });
     }
@@ -208,11 +209,8 @@ public final class ChannelActionBuilder {
     @SuppressWarnings("unchecked")
     public static ChannelActionBuilder oneFilterIsRemoved() {
         return anAction((channel, testEnvironment) -> {
-            final FilterPosition pipe = testEnvironment.getPropertyAsType(PIPE, FilterPosition.class);
-            final List<Filter<ProcessingContext<TestMessage>>> allFilter =
-                    (List<Filter<ProcessingContext<TestMessage>>>) testEnvironment.getProperty(EXPECTED_RESULT);
-            final Filter<ProcessingContext<TestMessage>> filterToRemove = allFilter.remove(1);
-            removeFilter(channel, pipe, filterToRemove);
+            final ChannelTestActions testActions = channelTestActions(channel);
+            removeAFilter(testActions, testEnvironment);
             return null;
         });
     }
@@ -221,7 +219,7 @@ public final class ChannelActionBuilder {
         return anAction((channel, testEnvironment) -> {
             final String changedMetaDatum = "changed";
             addAFilterChangingMetaData(channel, changedMetaDatum);
-            testEnvironment.setProperty(EXPECTED_RESULT, changedMetaDatum);
+            testEnvironment.setPropertyIfNotSet(EXPECTED_RESULT, changedMetaDatum);
             sendMessage(channel, testEnvironment, messageOfInterest());
             return null;
         });
@@ -232,7 +230,7 @@ public final class ChannelActionBuilder {
             final Object expectedResult = testEnvironment.getProperty(NUMBER_OF_MESSAGES_SHOULD_BE_SEND);
             pollUntilEquals(() -> queryChannelStatistics(channel, ChannelStatistics::getAcceptedMessages), expectedResult);
             final long result = queryChannelStatistics(channel, ChannelStatistics::getAcceptedMessages);
-            testEnvironment.setProperty(RESULT, result);
+            testEnvironment.setPropertyIfNotSet(RESULT, result);
             return null;
         });
     }
@@ -243,7 +241,7 @@ public final class ChannelActionBuilder {
             final int expectedResult = determineNumberOfExpectedQueuedMessages(testEnvironment, messagesSend);
             pollUntilEquals(() -> queryChannelStatistics(channel, ChannelStatistics::getQueuedMessages), expectedResult);
             final long result = queryChannelStatistics(channel, ChannelStatistics::getQueuedMessages);
-            testEnvironment.setProperty(RESULT, result);
+            testEnvironment.setPropertyIfNotSet(RESULT, result);
             return null;
         });
     }
@@ -263,7 +261,7 @@ public final class ChannelActionBuilder {
             final Object expectedResult = testEnvironment.getProperty(NUMBER_OF_MESSAGES_SHOULD_BE_SEND);
             pollUntilEquals(() -> queryChannelStatistics(channel, ChannelStatistics::getBlockedMessages), expectedResult);
             final long result = queryChannelStatistics(channel, ChannelStatistics::getBlockedMessages);
-            testEnvironment.setProperty(RESULT, result);
+            testEnvironment.setPropertyIfNotSet(RESULT, result);
             return null;
         });
     }
@@ -273,7 +271,7 @@ public final class ChannelActionBuilder {
             final Object expectedResult = testEnvironment.getProperty(NUMBER_OF_MESSAGES_SHOULD_BE_SEND);
             pollUntilEquals(() -> queryChannelStatistics(channel, ChannelStatistics::getForgottenMessages), expectedResult);
             final long result = queryChannelStatistics(channel, ChannelStatistics::getForgottenMessages);
-            testEnvironment.setProperty(RESULT, result);
+            testEnvironment.setPropertyIfNotSet(RESULT, result);
             return null;
         });
     }
@@ -283,7 +281,7 @@ public final class ChannelActionBuilder {
             final Object expectedResult = testEnvironment.getProperty(NUMBER_OF_MESSAGES_SHOULD_BE_SEND);
             pollUntilEquals(() -> queryChannelStatistics(channel, ChannelStatistics::getSuccessfulMessages), expectedResult);
             final long result = queryChannelStatistics(channel, ChannelStatistics::getSuccessfulMessages);
-            testEnvironment.setProperty(RESULT, result);
+            testEnvironment.setPropertyIfNotSet(RESULT, result);
             return null;
         });
     }
@@ -294,7 +292,7 @@ public final class ChannelActionBuilder {
             final int expectedResult = determineExpectedNumberOfBlockedThreads(messagesSend, testEnvironment);
             pollUntilEquals(() -> queryChannelStatistics(channel, ChannelStatistics::getSuccessfulMessages), expectedResult);
             final long result = queryChannelStatistics(channel, ChannelStatistics::getSuccessfulMessages);
-            testEnvironment.setProperty(RESULT, result);
+            testEnvironment.setPropertyIfNotSet(RESULT, result);
             return null;
         });
     }
@@ -304,7 +302,7 @@ public final class ChannelActionBuilder {
             final Object expectedResult = testEnvironment.getProperty(NUMBER_OF_MESSAGES_SHOULD_BE_SEND);
             pollUntilEquals(() -> queryChannelStatistics(channel, ChannelStatistics::getFailedMessages), expectedResult);
             final long result = queryChannelStatistics(channel, ChannelStatistics::getFailedMessages);
-            testEnvironment.setProperty(RESULT, result);
+            testEnvironment.setPropertyIfNotSet(RESULT, result);
             return null;
         });
     }
@@ -331,8 +329,8 @@ public final class ChannelActionBuilder {
         return anAction((channel, testEnvironment) -> {
             final List<TestSubscriber<TestMessage>> currentReceiver = getExpectedReceivers(testEnvironment);
             final TestSubscriber<TestMessage> subscriberToRemove = currentReceiver.remove(0);
-            final ChannelTestActions testActions1 = ChannelTestActions.channelTestActions(channel);
-            SubscriptionUtils.unsubscribe(testActions1, subscriberToRemove);
+            final ChannelTestActions testActions1 = channelTestActions(channel);
+            SubscriptionTestUtils.unsubscribe(testActions1, subscriberToRemove);
             return null;
         });
     }

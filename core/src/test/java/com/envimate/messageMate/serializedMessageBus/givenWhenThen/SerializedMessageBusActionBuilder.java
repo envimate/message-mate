@@ -23,9 +23,9 @@ package com.envimate.messageMate.serializedMessageBus.givenWhenThen;
 
 import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.processingContext.EventType;
-import com.envimate.messageMate.shared.givenWhenThen.TestAction;
-import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.serializedMessageBus.SerializedMessageBus;
+import com.envimate.messageMate.shared.environment.TestEnvironment;
+import com.envimate.messageMate.shared.givenWhenThen.TestAction;
 import com.envimate.messageMate.shared.testMessages.ErrorTestMessage;
 import com.envimate.messageMate.shared.testMessages.InvalidTestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
@@ -40,11 +40,11 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import static com.envimate.messageMate.serializedMessageBus.givenWhenThen.SerializedMessageBusTestProperties.*;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXCEPTION;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.RESULT;
-import static com.envimate.messageMate.serializedMessageBus.givenWhenThen.SerializedMessageBusTestProperties.*;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.EXPECTED_CORRELATION_ID;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.USED_SUBSCRIPTION_ID;
+import static com.envimate.messageMate.shared.eventType.TestEventType.testEventType;
+import static com.envimate.messageMate.shared.properties.SharedTestProperties.*;
 import static com.envimate.messageMate.shared.testMessages.ErrorTestMessage.errorTestMessage;
 import static com.envimate.messageMate.shared.testMessages.TestMessageOfInterest.messageOfInterest;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -59,7 +59,7 @@ public final class SerializedMessageBusActionBuilder {
             final Map<String, Object> map = new HashMap<>();
             map.put("someValue", new Object());
             testEnvironment.setPropertyIfNotSet(SEND_DATA, map);
-            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             serializedMessageBus.send(eventType, map);
             return null;
         });
@@ -84,7 +84,7 @@ public final class SerializedMessageBusActionBuilder {
             final Map<String, Object> errorData = new HashMap<>();
             errorData.put("exception", new Object());
             testEnvironment.setPropertyIfNotSet(SEND_ERROR_DATA, errorData);
-            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             serializedMessageBus.send(eventType, data, errorData);
             return null;
         });
@@ -98,7 +98,7 @@ public final class SerializedMessageBusActionBuilder {
             final Map<String, Object> errorData = new HashMap<>();
             errorData.put("exception", new Object());
             testEnvironment.setPropertyIfNotSet(SEND_ERROR_DATA, errorData);
-            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             final CorrelationId correlationId = testEnvironment.getPropertyAsType(EXPECTED_CORRELATION_ID, CorrelationId.class);
             serializedMessageBus.send(eventType, data, errorData, correlationId);
             return null;
@@ -109,7 +109,7 @@ public final class SerializedMessageBusActionBuilder {
         return new SerializedMessageBusActionBuilder((serializedMessageBus, testEnvironment) -> {
             final TestMessageOfInterest message = messageOfInterest();
             testEnvironment.setPropertyIfNotSet(SEND_DATA, message);
-            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             serializedMessageBus.serializeAndSend(eventType, message);
             return null;
         });
@@ -119,7 +119,7 @@ public final class SerializedMessageBusActionBuilder {
         return new SerializedMessageBusActionBuilder((serializedMessageBus, testEnvironment) -> {
             final TestMessageOfInterest message = messageOfInterest();
             testEnvironment.setPropertyIfNotSet(SEND_DATA, message);
-            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             final CorrelationId correlationId = testEnvironment.getPropertyAsType(EXPECTED_CORRELATION_ID, CorrelationId.class);
             serializedMessageBus.serializeAndSend(eventType, message, correlationId);
             return null;
@@ -132,7 +132,7 @@ public final class SerializedMessageBusActionBuilder {
             testEnvironment.setPropertyIfNotSet(SEND_DATA, message);
             final ErrorTestMessage errorTestMessage = errorTestMessage();
             testEnvironment.setPropertyIfNotSet(SEND_ERROR_DATA, errorTestMessage);
-            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             serializedMessageBus.serializeAndSend(eventType, message, errorTestMessage);
             return null;
         });
@@ -144,7 +144,7 @@ public final class SerializedMessageBusActionBuilder {
             testEnvironment.setPropertyIfNotSet(SEND_DATA, message);
             final ErrorTestMessage errorTestMessage = errorTestMessage();
             testEnvironment.setPropertyIfNotSet(SEND_ERROR_DATA, errorTestMessage);
-            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             final CorrelationId correlationId = testEnvironment.getPropertyAsType(EXPECTED_CORRELATION_ID, CorrelationId.class);
             serializedMessageBus.serializeAndSend(eventType, message, errorTestMessage, correlationId);
             return null;
@@ -153,7 +153,7 @@ public final class SerializedMessageBusActionBuilder {
 
     public static SerializedMessageBusActionBuilder aMapIsSendAndTheResultIsWaited() {
         return new SerializedMessageBusActionBuilder((serializedMessageBus, testEnvironment) -> {
-            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             final Map<String, Object> data = new HashMap<>();
             data.put("someValue", new Object());
             testEnvironment.setPropertyIfNotSet(SEND_DATA, data);
@@ -170,7 +170,7 @@ public final class SerializedMessageBusActionBuilder {
 
     public static SerializedMessageBusActionBuilder aMapIsSendAndTheResultIsWaitedWithTimeout() {
         return new SerializedMessageBusActionBuilder((serializedMessageBus, testEnvironment) -> {
-            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             final Map<String, Object> data = new HashMap<>();
             data.put("someValue", new Object());
             testEnvironment.setPropertyIfNotSet(SEND_DATA, data);
@@ -187,7 +187,7 @@ public final class SerializedMessageBusActionBuilder {
 
     public static SerializedMessageBusActionBuilder anObjectIsSendAndTheResultIsWaited() {
         return new SerializedMessageBusActionBuilder((serializedMessageBus, testEnvironment) -> {
-            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             final TestMessageOfInterest message = TestMessageOfInterest.messageOfInterest();
             testEnvironment.setPropertyIfNotSet(SEND_DATA, message);
             try {
@@ -203,7 +203,7 @@ public final class SerializedMessageBusActionBuilder {
 
     public static SerializedMessageBusActionBuilder anObjectIsSendAndTheResultIsWaitedWithTimeout() {
         return new SerializedMessageBusActionBuilder((serializedMessageBus, testEnvironment) -> {
-            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             final TestMessageOfInterest message = TestMessageOfInterest.messageOfInterest();
             testEnvironment.setPropertyIfNotSet(SEND_DATA, message);
             try {
@@ -221,7 +221,7 @@ public final class SerializedMessageBusActionBuilder {
 
     public static SerializedMessageBusActionBuilder anObjectIsSendAndTheNotSerializedResultIsWaited() {
         return new SerializedMessageBusActionBuilder((serializedMessageBus, testEnvironment) -> {
-            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             final TestMessageOfInterest message = TestMessageOfInterest.messageOfInterest();
             testEnvironment.setPropertyIfNotSet(SEND_DATA, message);
             try {
@@ -237,7 +237,7 @@ public final class SerializedMessageBusActionBuilder {
 
     public static SerializedMessageBusActionBuilder anObjectIsSendAndTheNotSerializedResultIsWaitedWithTimeOut() {
         return new SerializedMessageBusActionBuilder((serializedMessageBus, testEnvironment) -> {
-            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             final TestMessageOfInterest message = TestMessageOfInterest.messageOfInterest();
             testEnvironment.setPropertyIfNotSet(SEND_DATA, message);
             try {
@@ -293,7 +293,7 @@ public final class SerializedMessageBusActionBuilder {
 
     private static SerializedMessageBusActionBuilder sendObjectWithoutKnownSerialization(final InvokeAndWaitCall<Object> call) {
         return new SerializedMessageBusActionBuilder((serializedMessageBus, testEnvironment) -> {
-            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             try {
                 final InvalidTestMessage testMessage = InvalidTestMessage.invalidTestMessage();
                 call.execute(eventType, serializedMessageBus, testMessage);
@@ -307,7 +307,7 @@ public final class SerializedMessageBusActionBuilder {
 
     private static SerializedMessageBusActionBuilder sendTestMessageResultingInSomeError(final InvokeAndWaitCall<Object> call) {
         return new SerializedMessageBusActionBuilder((serializedMessageBus, testEnvironment) -> {
-            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             try {
                 final TestMessageOfInterest testMessage = TestMessageOfInterest.messageOfInterest();
                 call.execute(eventType, serializedMessageBus, testMessage);

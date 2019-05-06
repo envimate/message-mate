@@ -25,7 +25,7 @@ import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.shared.givenWhenThen.TestAction;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.shared.givenWhenThen.TestValidation;
-import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.SetupAction;
+import com.envimate.messageMate.shared.givenWhenThen.SetupAction;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
@@ -34,8 +34,7 @@ import java.util.concurrent.Semaphore;
 
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXCEPTION;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.SUT;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static com.envimate.messageMate.shared.properties.SharedTestProperties.*;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)

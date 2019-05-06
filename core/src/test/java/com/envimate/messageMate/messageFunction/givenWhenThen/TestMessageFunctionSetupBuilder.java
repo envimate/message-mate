@@ -45,13 +45,13 @@ import java.util.function.Function;
 import static com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration.constantPoolSizeAsynchronousPipeConfiguration;
 import static com.envimate.messageMate.messageBus.MessageBusBuilder.aMessageBus;
 import static com.envimate.messageMate.messageBus.MessageBusType.ASYNCHRONOUS;
-import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.EVENT_TYPE;
 import static com.envimate.messageMate.messageFunction.givenWhenThen.MessageFunctionTestProperties.RESPONSE_PROCESSING_CONTEXT;
 import static com.envimate.messageMate.processingContext.ProcessingContext.processingContextForPayloadAndError;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXPECTED_RESULT;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.MOCK;
 import static com.envimate.messageMate.shared.eventType.TestEventType.differentTestEventType;
 import static com.envimate.messageMate.shared.eventType.TestEventType.testEventType;
+import static com.envimate.messageMate.shared.properties.SharedTestProperties.EVENT_TYPE;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)

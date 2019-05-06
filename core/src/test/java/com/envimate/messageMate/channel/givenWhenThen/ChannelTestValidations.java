@@ -27,7 +27,6 @@ import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.shared.environment.TestEnvironmentProperty;
-import com.envimate.messageMate.shared.polling.PollingUtils;
 import com.envimate.messageMate.shared.subscriber.TestSubscriber;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import lombok.RequiredArgsConstructor;
@@ -35,12 +34,12 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 import java.util.Map;
 
-import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestActions.getFilterOf;
+import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestActions.channelTestActions;
 import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestProperties.MODIFIED_META_DATUM;
-import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestProperties.PIPE;
 import static com.envimate.messageMate.channel.givenWhenThen.ProcessingFrameHistoryMatcher.aProcessingFrameHistory;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.*;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.ERROR_SUBSCRIBER;
+import static com.envimate.messageMate.shared.properties.SharedTestProperties.ERROR_SUBSCRIBER;
+import static com.envimate.messageMate.shared.properties.SharedTestProperties.FILTER_POSITION;
 import static com.envimate.messageMate.shared.polling.PollingUtils.pollUntil;
 import static com.envimate.messageMate.shared.polling.PollingUtils.pollUntilListHasSize;
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.assertListOfSize;
@@ -71,9 +70,10 @@ final class ChannelTestValidations {
 
     static void assertFilterAsExpected(final TestEnvironment testEnvironment,
                                        final List<Filter<ProcessingContext<TestMessage>>> expectedFilter) {
-        final FilterPosition filterPosition = testEnvironment.getPropertyAsType(PIPE, FilterPosition.class);
+        final FilterPosition filterPosition = testEnvironment.getPropertyAsType(FILTER_POSITION, FilterPosition.class);
         final Channel<TestMessage> channel = getTestPropertyAsChannel(testEnvironment, SUT);
-        final List<Filter<ProcessingContext<TestMessage>>> actualFilter = getFilterOf(channel, filterPosition);
+        final ChannelTestActions testActions = channelTestActions(channel);
+        final List<?> actualFilter = testActions.getFilter(filterPosition);
         assertThat(actualFilter, equalTo(expectedFilter));
     }
 

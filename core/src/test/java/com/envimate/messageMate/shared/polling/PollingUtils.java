@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import java.util.function.BooleanSupplier;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static lombok.AccessLevel.PRIVATE;
@@ -28,7 +27,8 @@ public final class PollingUtils {
             return SharedTestValidations.testEquals(actual, expected);
         }, exceptionMessage);
     }
-    public static void pollUntilListHasSize(final Supplier<List> listSupplier, final Object expected) {
+
+    public static void pollUntilListHasSize(final Supplier<List<?>> listSupplier, final Object expected) {
         System.out.println("Polling started");
         pollUntilEquals(() -> listSupplier.get().size(), expected);
     }

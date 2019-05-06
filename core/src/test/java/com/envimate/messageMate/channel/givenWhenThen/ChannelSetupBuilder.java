@@ -33,13 +33,12 @@ import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
-import com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber;
 import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
 import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
+import com.envimate.messageMate.shared.utils.FilterTestUtils;
 
 import java.util.List;
-import java.util.concurrent.Semaphore;
 
 import static com.envimate.messageMate.channel.ChannelBuilder.aChannel;
 import static com.envimate.messageMate.channel.ChannelBuilder.aChannelWithDefaultAction;
@@ -53,12 +52,11 @@ import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestProperti
 import static com.envimate.messageMate.channel.givenWhenThen.FilterPosition.*;
 import static com.envimate.messageMate.channel.givenWhenThen.TestChannelErrorHandler.*;
 import static com.envimate.messageMate.shared.environment.TestEnvironment.emptyTestEnvironment;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXPECTED_RECEIVERS;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.*;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.ERROR_SUBSCRIBER;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.IS_ASYNCHRONOUS;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.TestFilter.aMessageDroppingFilter;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.TestFilter.aMessageFilterThatDoesNotCallAnyMethod;
+import static com.envimate.messageMate.shared.properties.SharedTestProperties.*;
 import static com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber.deliveryPreemptingSubscriber;
+import static com.envimate.messageMate.shared.utils.FilterTestUtils.addSeveralNoopFilter;
 
 public final class ChannelSetupBuilder {
     private final TestEnvironment testEnvironment;
@@ -153,6 +151,13 @@ public final class ChannelSetupBuilder {
         return this;
     }
 
+    public ChannelSetupBuilder withNoopConsumeAsDefaultAction() {
+        channelBuilder.withDefaultAction(Consume.consumePayload(testMessage -> {
+            //doNothing
+        }));
+        return this;
+    }
+
     public ChannelSetupBuilder withDefaultActionJumpToDifferentChannel() {
         final Channel<TestMessage> secondChannel = aChannelWithDefaultAction(consumeAsFinalResult(testEnvironment));
         channelBuilder.withDefaultAction(jumpTo(secondChannel));
@@ -203,7 +208,7 @@ public final class ChannelSetupBuilder {
         final Action<TestMessage> unknownAction = UnknownAction.unknownAction();
         alreadyBuiltChannel = channelBuilder.withDefaultAction(unknownAction)
                 .build();
-        addChangingActionFilterToPipe(alreadyBuiltChannel, PRE, consumeAsFinalResult(testEnvironment));
+        addActionChangingFilterToPipe(alreadyBuiltChannel, PRE, consumeAsFinalResult(testEnvironment));
         return this;
     }
 
@@ -225,8 +230,8 @@ public final class ChannelSetupBuilder {
     private void addFilterThatBlocksMessages(final FilterPosition filterPosition) {
         alreadyBuiltChannel = channelBuilder.withDefaultAction(consumeAsFinalResult(testEnvironment))
                 .build();
-        final Filter<ProcessingContext<TestMessage>> filter = aMessageDroppingFilter();
-        addAFilterToPipe(alreadyBuiltChannel, filterPosition, filter);
+        final ChannelTestActions channelTestActions = channelTestActions(alreadyBuiltChannel);
+        FilterTestUtils.addFilterThatBlocksMessages(channelTestActions, filterPosition);
     }
 
     public ChannelSetupBuilder withAPreFilterThatForgetsMessages() {
@@ -247,33 +252,15 @@ public final class ChannelSetupBuilder {
     private void addFilterThatForgetsMessages(final FilterPosition filterPosition) {
         alreadyBuiltChannel = channelBuilder.withDefaultAction(consumeAsFinalResult(testEnvironment))
                 .build();
-        final Filter<ProcessingContext<TestMessage>> filter = aMessageFilterThatDoesNotCallAnyMethod();
-        addAFilterToPipe(alreadyBuiltChannel, filterPosition, filter);
-    }
-
-    private void addAFilterToPipe(final Channel<TestMessage> channel,
-                                  final FilterPosition filterPosition,
-                                  final Filter<ProcessingContext<TestMessage>> filter) {
-        switch (filterPosition) {
-            case PRE:
-                channel.addPreFilter(filter);
-                break;
-            case PROCESS:
-                channel.addProcessFilter(filter);
-                break;
-            case POST:
-                channel.addPostFilter(filter);
-                break;
-            default:
-                throw new IllegalArgumentException();
-        }
+        final ChannelTestActions testActions = channelTestActions(alreadyBuiltChannel);
+        FilterTestUtils.addFilterThatForgetsMessages(testActions, filterPosition);
     }
 
     public ChannelSetupBuilder withAProcessFilterThatChangesTheAction() {
         final Action<TestMessage> unknownAction = UnknownAction.unknownAction();
         alreadyBuiltChannel = channelBuilder.withDefaultAction(unknownAction)
                 .build();
-        addChangingActionFilterToPipe(alreadyBuiltChannel, PROCESS, consumeAsFinalResult(testEnvironment));
+        addActionChangingFilterToPipe(alreadyBuiltChannel, PROCESS, consumeAsFinalResult(testEnvironment));
         return this;
     }
 
@@ -281,7 +268,7 @@ public final class ChannelSetupBuilder {
         final Action<TestMessage> unknownAction = UnknownAction.unknownAction();
         alreadyBuiltChannel = channelBuilder.withDefaultAction(unknownAction)
                 .build();
-        addChangingActionFilterToPipe(alreadyBuiltChannel, POST, consumeAsFinalResult(testEnvironment));
+        addActionChangingFilterToPipe(alreadyBuiltChannel, POST, consumeAsFinalResult(testEnvironment));
         return this;
     }
 
@@ -322,7 +309,8 @@ public final class ChannelSetupBuilder {
         try {
             alreadyBuiltChannel = channelBuilder.withDefaultAction(consumeAsFinalResult(testEnvironment))
                     .build();
-            addANoopFilterAtPosition(alreadyBuiltChannel, filterPosition, position);
+            final ChannelTestActions testActions = channelTestActions(alreadyBuiltChannel);
+            FilterTestUtils.addANoopFilterAtPosition(testActions, filterPosition, position);
         } catch (final Exception e) {
             testEnvironment.setProperty(EXCEPTION, e);
         }
@@ -331,9 +319,8 @@ public final class ChannelSetupBuilder {
     public ChannelSetupBuilder withAnErrorThrowingFilter() {
         alreadyBuiltChannel = channelBuilder.withDefaultAction(consumeAsFinalResult(testEnvironment))
                 .build();
-        addAFilterToPipe(alreadyBuiltChannel, PROCESS, (message, filterActions) -> {
-            throw new TestException();
-        });
+        final ChannelTestActions testActions = channelTestActions(alreadyBuiltChannel);
+        FilterTestUtils.addFilterThatThrowsException(testActions, PROCESS);
         return this;
     }
 
@@ -341,10 +328,10 @@ public final class ChannelSetupBuilder {
         final Action<TestMessage> unknownAction = UnknownAction.unknownAction();
         alreadyBuiltChannel = channelBuilder.withDefaultAction(unknownAction)
                 .build();
-        final List<Filter<ProcessingContext<TestMessage>>> expectedFilter = addSeveralNoopFilter(alreadyBuiltChannel,
-                positions, pipe);
-        testEnvironment.setProperty(EXPECTED_RESULT, expectedFilter);
-        testEnvironment.setProperty(PIPE, pipe);
+        final ChannelTestActions testActions = channelTestActions(alreadyBuiltChannel);
+        final List<Filter<ProcessingContext<TestMessage>>> expectedFilter = addSeveralNoopFilter(testActions, positions, pipe);
+        testEnvironment.setProperty(EXPECTED_FILTER, expectedFilter);
+        testEnvironment.setProperty(FILTER_POSITION, pipe);
     }
 
     public ChannelSetupBuilder withAnExceptionHandlerIgnoringExceptions() {

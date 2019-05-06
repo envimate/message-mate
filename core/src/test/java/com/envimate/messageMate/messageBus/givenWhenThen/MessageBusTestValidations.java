@@ -15,7 +15,7 @@ import java.util.Map;
 
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.MESSAGE_RECEIVED_BY_ERROR_LISTENER;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.RESULT;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
+import static com.envimate.messageMate.shared.properties.SharedTestProperties.*;
 import static com.envimate.messageMate.shared.polling.PollingUtils.pollUntilListHasSize;
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.assertEquals;
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.assertResultOfClass;

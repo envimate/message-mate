@@ -22,19 +22,16 @@
 package com.envimate.messageMate.channel.givenWhenThen;
 
 import com.envimate.messageMate.channel.Channel;
-import com.envimate.messageMate.shared.givenWhenThen.TestAction;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
+import com.envimate.messageMate.shared.givenWhenThen.TestAction;
 import com.envimate.messageMate.shared.givenWhenThen.TestValidation;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
-import java.util.concurrent.Semaphore;
 
-import static com.envimate.messageMate.channel.givenWhenThen.ChannelTestProperties.*;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXCEPTION;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.SUT;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static lombok.AccessLevel.PACKAGE;
 
 @RequiredArgsConstructor(access = PACKAGE)
@@ -56,10 +53,6 @@ public class Then {
         }
         final TestValidation testValidation = channelValidationBuilder.build();
         testValidation.validate(testEnvironment);
-        if (testEnvironment.has(SEMAPHORE_TO_CLEAN_UP)) {
-            final Semaphore semaphore = testEnvironment.getPropertyAsType(SEMAPHORE_TO_CLEAN_UP, Semaphore.class);
-            semaphore.release(100);
-        }
         channel.close(false);
     }
 }

@@ -22,6 +22,7 @@
 package com.envimate.messageMate.messageBus.givenWhenThen;
 
 import com.envimate.messageMate.channel.Channel;
+import com.envimate.messageMate.channel.givenWhenThen.FilterPosition;
 import com.envimate.messageMate.filtering.Filter;
 import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.identification.MessageId;
@@ -32,14 +33,12 @@ import com.envimate.messageMate.messageBus.statistics.MessageBusStatistics;
 import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
-import com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.CorrelationIdSendingActions;
-import com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.ProcessingContextSendingActions;
-import com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.RawSubscribeActions;
-import com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.SendingAndReceivingActions;
+import com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.*;
 import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
 import com.envimate.messageMate.shared.subscriber.TestException;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
+import com.envimate.messageMate.shared.utils.FilterTestUtils;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.RequiredArgsConstructor;
@@ -53,18 +52,17 @@ import java.util.function.Function;
 import static com.envimate.messageMate.identification.CorrelationId.newUniqueCorrelationId;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.CORRELATION_SUBSCRIPTION_ID;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.MESSAGE_RECEIVED_BY_ERROR_LISTENER;
-import static com.envimate.messageMate.serializedMessageBus.givenWhenThen.SerializedMessageBusTestProperties.EVENT_TYPE;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXPECTED_RECEIVERS;
-import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.*;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.RESULT;
 import static com.envimate.messageMate.shared.eventType.TestEventType.testEventType;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.TestFilter.*;
+import static com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.TestFilter.*;
+import static com.envimate.messageMate.shared.properties.SharedTestProperties.*;
 import static com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber.testSubscriber;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
 final class MessageBusTestActions implements SendingAndReceivingActions, RawSubscribeActions, ProcessingContextSendingActions,
-        CorrelationIdSendingActions {
+        CorrelationIdSendingActions, FilterTestActions, SimplifiedFilterTestActions {
     private final MessageBus messageBus;
 
     static MessageBusTestActions messageBusTestActions(final MessageBus messageBus) {
@@ -113,54 +111,25 @@ final class MessageBusTestActions implements SendingAndReceivingActions, RawSubs
         messageBus.unregisterExceptionListener(subscriptionId);
     }
 
-    static void addAFilterThatChangesTheContentOfEveryMessage(final MessageBus messageBus,
-                                                              final TestEnvironment testEnvironment) {
-        testEnvironment.setProperty(EXPECTED_CHANGED_CONTENT, CHANGED_CONTENT);
-        final Filter<TestMessageOfInterest> filter = aContentChangingFilter();
-        addFilter(messageBus, filter);
-    }
-
-    static void addAFilterThatDropsMessages(final MessageBus messageBus) {
-        final Filter<Object> filter = aMessageDroppingFilter();
-        addFilter(messageBus, filter);
-    }
-
-    static void addAnInvalidFilterThatDoesNotUseAnyFilterMethods(final MessageBus messageBus) {
-        final Filter<Object> filter = aMessageFilterThatDoesNotCallAnyMethod();
-        addFilter(messageBus, filter);
-    }
-
     static void addTwoFilterOnSpecificPositions(final MessageBus messageBus,
                                                 final TestEnvironment testEnvironment) {
         final String firstAppend = "1nd";
         final String secondAppend = "2nd";
         testEnvironment.setProperty(EXPECTED_CHANGED_CONTENT, TestMessageOfInterest.CONTENT + firstAppend + secondAppend);
-        final Filter<Object> filter1 = aContentAppendingFilter(secondAppend);
-        addFilter(messageBus, filter1, 0);
+        final Filter<TestMessage> filter1 = aContentAppendingFilter(secondAppend);
+        final MessageBusTestActions testActions = MessageBusTestActions.messageBusTestActions(messageBus);
+        testActions.addNotRawFilter(filter1, 0);
         testEnvironment.addToListProperty(EXPECTED_FILTER, filter1);
-        final Filter<Object> filter2 = aContentAppendingFilter(firstAppend);
-        addFilter(messageBus, filter2, 0);
+        final Filter<TestMessage> filter2 = aContentAppendingFilter(firstAppend);
+        testActions.addNotRawFilter(filter2, 0);
         testEnvironment.addToListProperty(EXPECTED_FILTER, filter2);
-    }
-
-    static void addAFilterAtAnInvalidPosition(final MessageBus messageBus,
-                                              final int position) {
-        addFilter(messageBus, null, position);
-    }
-
-    static void addAFilterThatThrowsExceptions(final MessageBus messageBus,
-                                               final TestEnvironment testEnvironment) {
-        final TestException exception = new TestException();
-        final Filter<Object> filter = anErrorThrowingFilter(exception);
-        addFilter(messageBus, filter);
-        testEnvironment.setProperty(EXPECTED_RESULT, exception);
     }
 
     public static void addAnExceptionThrowingFilterInChannelOf(final MessageBus messageBus,
                                                                final TestEnvironment testEnvironment,
                                                                final EventType eventType) {
         final MessageBusStatusInformation statusInformation = messageBus.getStatusInformation();
-        testEnvironment.setPropertyIfNotSet(MessageBusTestProperties.EVENT_TYPE, eventType);
+        testEnvironment.setPropertyIfNotSet(EVENT_TYPE, eventType);
         final Channel<Object> channel = statusInformation.getChannelFor(eventType);
         final RuntimeException exception = new TestException();
         final Filter<ProcessingContext<Object>> filter = anErrorThrowingFilter(exception);
@@ -172,27 +141,9 @@ final class MessageBusTestActions implements SendingAndReceivingActions, RawSubs
         messageBus.addRaw(filter);
     }
 
-    @SuppressWarnings("unchecked")
-    private static void addFilter(final MessageBus messageBus, final Filter<?> filter) {
-        final Filter<Object> objectFilter = (Filter<Object>) filter;
-        messageBus.add(objectFilter);
-    }
-
-    private static void addFilter(final MessageBus messageBus, final Filter<Object> filter, final int position) {
-        messageBus.add(filter, position);
-    }
-
-    static List<Filter<Object>> queryAllFilter(final MessageBus messageBus) {
-        return messageBus.getFilter();
-    }
-
     static void removeAFilter(final MessageBus messageBus, final TestEnvironment testEnvironment) {
-        final List<Filter<Object>> filters = messageBus.getFilter();
-        final int indexToRemove = (int) (Math.random() * filters.size());
-        final Filter<Object> removedFilter = filters.get(indexToRemove);
-        messageBus.remove(removedFilter);
-        final List<?> expectedFilter = testEnvironment.getPropertyAsType(EXPECTED_FILTER, List.class);
-        expectedFilter.remove(removedFilter);
+        final MessageBusTestActions testActions = MessageBusTestActions.messageBusTestActions(messageBus);
+        FilterTestUtils.removeAFilter(testActions, testEnvironment);
     }
 
     public static Channel<Object> queryChannelForEventType(final MessageBus messageBus, final EventType eventType) {
@@ -234,7 +185,7 @@ final class MessageBusTestActions implements SendingAndReceivingActions, RawSubs
         return messageBus.send(eventType, testMessage, correlationId);
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public void subscribe(final EventType eventType, final Subscriber<TestMessage> subscriber) {
         final Subscriber degenerifiedSubscriber = subscriber;
@@ -251,11 +202,53 @@ final class MessageBusTestActions implements SendingAndReceivingActions, RawSubs
         return messageBus.getStatusInformation().getAllSubscribers();
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public SubscriptionId subscribeRaw(final EventType eventType, final Subscriber<ProcessingContext<TestMessage>> subscriber) {
         final Subscriber degenerifiedSubscriber = subscriber;
         return messageBus.subscribeRaw(eventType, degenerifiedSubscriber);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    @Override
+    public void addFilter(final Filter<ProcessingContext<TestMessage>> filter, final FilterPosition filterPosition) {
+        final Filter degenerifiedFilter = filter;
+        messageBus.add(degenerifiedFilter);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    @Override
+    public void addFilter(final Filter<ProcessingContext<TestMessage>> filter,
+                          final FilterPosition filterPosition,
+                          final int position) {
+        final Filter degenerifiedFilter = filter;
+        messageBus.add(degenerifiedFilter);
+    }
+
+    @Override
+    public List<?> getFilter(final FilterPosition filterPosition) {
+        return messageBus.getFilter();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public void removeFilter(final Filter<?> filter, final FilterPosition filterPosition) {
+        final Filter<Object> castedFilter = (Filter<Object>) filter;
+        messageBus.remove(castedFilter);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    @Override
+    public void addNotRawFilter(final Filter<TestMessage> filter) {
+        final Filter degenerifiedFilter = filter;
+        messageBus.add(degenerifiedFilter);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    @Override
+    public void addNotRawFilter(final Filter<TestMessage> filter, final int position) {
+        final Filter degenerifiedFilter = filter;
+        messageBus.add(degenerifiedFilter, position);
     }
 
     long queryTheNumberOfAcceptedMessages() {

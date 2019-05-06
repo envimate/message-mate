@@ -42,15 +42,15 @@ import java.util.concurrent.Semaphore;
 import static com.envimate.messageMate.messageBus.config.MessageBusTestConfig.ASYNCHRONOUS_DELIVERY_POOL_SIZE;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActions.*;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.CORRELATION_SUBSCRIPTION_ID;
-import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.EVENT_TYPE;
-import static com.envimate.messageMate.serializedMessageBus.givenWhenThen.SerializedMessageBusTestProperties.DEFAULT_EVENT_TYPE;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.RESULT;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
+import static com.envimate.messageMate.shared.eventType.TestEventType.testEventType;
+import static com.envimate.messageMate.shared.properties.SharedTestProperties.*;
 import static com.envimate.messageMate.shared.polling.PollingUtils.pollUntilEquals;
 import static com.envimate.messageMate.shared.subscriber.BlockingTestSubscriber.blockingTestSubscriber;
+import static com.envimate.messageMate.shared.utils.FilterTestUtils.queryFilter;
 import static com.envimate.messageMate.shared.utils.SendingTestUtils.*;
 import static com.envimate.messageMate.shared.utils.ShutdownTestUtils.*;
-import static com.envimate.messageMate.shared.utils.SubscriptionUtils.*;
+import static com.envimate.messageMate.shared.utils.SubscriptionTestUtils.*;
 
 public final class MessageBusActionBuilder {
     private List<TestAction<MessageBus>> actions = new ArrayList<>();
@@ -86,7 +86,7 @@ public final class MessageBusActionBuilder {
     public static MessageBusActionBuilder theMessageIsSend(final TestMessage message) {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
             final MessageBusTestActions testActions = messageBusTestActions(messageBus);
-            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
+            final EventType eventType = testEnvironment.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
             sendSingleMessage(testActions, testEnvironment, eventType, message);
             return null;
         });
@@ -350,7 +350,8 @@ public final class MessageBusActionBuilder {
 
     public static MessageBusActionBuilder theListOfFiltersIsQueried() {
         return new MessageBusActionBuilder((messageBus, testEnvironment) -> {
-            final List<?> filter = queryAllFilter(messageBus);
+            final MessageBusTestActions testActions = MessageBusTestActions.messageBusTestActions(messageBus);
+            final List<?> filter = queryFilter(testActions, testEnvironment);
             testEnvironment.setProperty(RESULT, filter);
             return null;
         });

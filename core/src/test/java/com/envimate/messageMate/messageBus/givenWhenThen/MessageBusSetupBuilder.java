@@ -31,7 +31,7 @@ import com.envimate.messageMate.messageBus.MessageBusType;
 import com.envimate.messageMate.messageBus.config.MessageBusTestConfig;
 import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
-import com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.SetupAction;
+import com.envimate.messageMate.shared.givenWhenThen.SetupAction;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.RequiredArgsConstructor;
 
@@ -40,16 +40,17 @@ import java.util.List;
 
 import static com.envimate.messageMate.channel.action.Subscription.subscription;
 import static com.envimate.messageMate.identification.CorrelationId.newUniqueCorrelationId;
-import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActions.*;
+import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActions.addARawFilterThatChangesTheContentOfEveryMessage;
+import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestActions.messageBusTestActions;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler.*;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestProperties.MESSAGE_RECEIVED_BY_ERROR_LISTENER;
-import static com.envimate.messageMate.serializedMessageBus.givenWhenThen.SerializedMessageBusTestProperties.DEFAULT_EVENT_TYPE;
-import static com.envimate.messageMate.serializedMessageBus.givenWhenThen.SerializedMessageBusTestProperties.EVENT_TYPE;
 import static com.envimate.messageMate.shared.environment.TestEnvironment.emptyTestEnvironment;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXPECTED_RESULT;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.RESULT;
-import static com.envimate.messageMate.shared.pipeMessageBus.givenWhenThen.PipeChannelMessageBusSharedTestProperties.*;
-import static com.envimate.messageMate.shared.utils.SubscriptionUtils.*;
+import static com.envimate.messageMate.shared.eventType.TestEventType.testEventType;
+import static com.envimate.messageMate.shared.properties.SharedTestProperties.*;
+import static com.envimate.messageMate.shared.utils.FilterTestUtils.*;
+import static com.envimate.messageMate.shared.utils.SubscriptionTestUtils.*;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
@@ -134,17 +135,26 @@ public final class MessageBusSetupBuilder {
     }
 
     public MessageBusSetupBuilder withAFilterThatChangesTheContentOfEveryMessage() {
-        setupActions.add(MessageBusTestActions::addAFilterThatChangesTheContentOfEveryMessage);
+        setupActions.add((messageBus, testEnvironment1) -> {
+            final MessageBusTestActions testActions = messageBusTestActions(messageBus);
+            addAFilterThatChangesTheContentOfEveryMessage(testActions, testEnvironment1);
+        });
         return this;
     }
 
     public MessageBusSetupBuilder withAFilterThatDropsMessages() {
-        setupActions.add((t, testEnvironment) -> addAFilterThatDropsMessages(t));
+        setupActions.add((t, testEnvironment) -> {
+            final MessageBusTestActions testActions = messageBusTestActions(t);
+            addFilterThatBlocksMessages(testActions, null);
+        });
         return this;
     }
 
     public MessageBusSetupBuilder withAnInvalidFilterThatDoesNotUseAnyFilterMethods() {
-        setupActions.add((t, testEnvironment) -> addAnInvalidFilterThatDoesNotUseAnyFilterMethods(t));
+        setupActions.add((t, testEnvironment) -> {
+            final MessageBusTestActions testActions = messageBusTestActions(t);
+            addFilterThatForgetsMessages(testActions, null);
+        });
         return this;
     }
 
@@ -154,12 +164,18 @@ public final class MessageBusSetupBuilder {
     }
 
     public MessageBusSetupBuilder withAFilterAtAnInvalidPosition(final int position) {
-        setupActions.add((t, testEnvironment) -> addAFilterAtAnInvalidPosition(t, position));
+        setupActions.add((t, testEnvironment) -> {
+            final MessageBusTestActions testActions = messageBusTestActions(t);
+            testActions.addNotRawFilter(null, position);
+        });
         return this;
     }
 
     public MessageBusSetupBuilder withAnExceptionThrowingFilter() {
-        setupActions.add(MessageBusTestActions::addAFilterThatThrowsExceptions);
+        setupActions.add((messageBus, testEnvironment) -> {
+            final MessageBusTestActions testActions = messageBusTestActions(messageBus);
+            addFilterThatThrowsException(testActions, null);
+        });
         return this;
     }
 
@@ -186,8 +202,8 @@ public final class MessageBusSetupBuilder {
 
     public MessageBusSetupBuilder withAnExceptionThrowingSubscriber() {
         setupActions.add((messageBus, testEnvironment1) -> {
-            final EventType eventType = testEnvironment1.getPropertyOrSetDefault(EVENT_TYPE, DEFAULT_EVENT_TYPE);
-            addAnExceptionThrowingSubscriber(MessageBusTestActions.messageBusTestActions(messageBus), testEnvironment1, eventType);
+            final EventType eventType = testEnvironment1.getPropertyOrSetDefault(EVENT_TYPE, testEventType());
+            addAnExceptionThrowingSubscriber(messageBusTestActions(messageBus), testEnvironment1, eventType);
         });
         return this;
     }
