@@ -241,6 +241,6 @@ public class TestUseCaseBuilder {
     }
 
     public interface CustomUseCaseCall {
-        void call(Object useCase, Map<String, Object> requestMap, Map<String, Object> responseMap);
+        void call(Object useCase, Map<String, Object> requestMap, Map<String, Object> responseMap) throws Exception;
     }
 }

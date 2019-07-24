@@ -258,7 +258,7 @@ final class ChannelImpl<T> implements Channel<T> {
         public void accept(final ProcessingContext<T> preFilterprocessingContext) {
             final FilterApplier<ProcessingContext<T>> filterApplier = new FilterApplierImpl<>();
             try {
-                filterApplier.applyAll(preFilterprocessingContext, filter, new PostFilterActions<ProcessingContext<T>>() {
+                filterApplier.applyAll(preFilterprocessingContext, filter, new PostFilterActions<>() {
                     @Override
                     public void onAllPassed(final ProcessingContext<T> processingContext) {
                         nextPipe.send(processingContext);

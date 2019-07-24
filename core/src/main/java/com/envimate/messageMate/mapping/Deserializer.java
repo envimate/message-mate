@@ -23,9 +23,7 @@ package com.envimate.messageMate.mapping;
 
 import com.envimate.messageMate.internal.collections.filtermap.FilterMap;
 import lombok.AccessLevel;
-import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 
 import java.util.Map;
 
@@ -37,8 +35,6 @@ import static com.envimate.messageMate.internal.enforcing.NotNullEnforcer.ensure
  *
  * @see <a href="https://github.com/envimate/message-mate#channel">Message Mate Documentation</a>
  */
-@ToString
-@EqualsAndHashCode
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Deserializer {
     private final FilterMap<Class<?>, Map<String, Object>, Demapifier<?>> demapifierMap;

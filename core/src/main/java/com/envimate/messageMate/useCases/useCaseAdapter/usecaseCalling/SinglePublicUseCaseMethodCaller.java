@@ -74,7 +74,7 @@ public final class SinglePublicUseCaseMethodCaller<U> implements Caller<U> {
     public Map<String, Object> call(final U useCase,
                                     final Object event,
                                     final Deserializer requestDeserializer,
-                                    final Serializer responseSerializer) {
+                                    final Serializer responseSerializer) throws Exception {
         final Map<String, Object> responseMap = methodInvoker.invoke(useCase, event, requestDeserializer, responseSerializer);
         return responseMap;
     }

@@ -19,17 +19,7 @@
  * under the License.
  */
 
-package com.envimate.messageMate.internal.reflections;
+package com.envimate.messageMate.useCases.checkedException;
 
-import lombok.RequiredArgsConstructor;
-
-import java.util.Collection;
-
-import static java.util.Set.of;
-import static lombok.AccessLevel.PRIVATE;
-
-@RequiredArgsConstructor(access = PRIVATE)
-public final class ForbiddenUseCaseMethods {
-    public static final Collection<String> NOT_ALLOWED_USECASE_PUBLIC_METHODS = of("equals", "hashCode", "toString", "clone",
-            "finalize", "wait", "getClass", "notify", "notifyAll");
+public class CheckedTestException extends Exception {
 }

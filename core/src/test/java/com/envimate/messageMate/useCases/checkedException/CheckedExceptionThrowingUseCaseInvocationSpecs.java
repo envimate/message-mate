@@ -19,15 +19,18 @@
  * under the License.
  */
 
-package com.envimate.messageMate.channel.internal.filtering;
+package com.envimate.messageMate.useCases.checkedException;
 
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
+import com.envimate.messageMate.useCases.UseCaseInvocationSpecs;
+import com.envimate.messageMate.useCases.exceptionThrowing.ExceptionThrowingConfigurationResolver;
+import com.envimate.messageMate.useCases.shared.TestUseCase;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public final class FilterApplierFactory {
+@ExtendWith(CheckedExceptionThrowingConfigurationResolver.class)
+public class CheckedExceptionThrowingUseCaseInvocationSpecs implements UseCaseInvocationSpecs {
 
-    public static <T> FilterApplier<T> filterApplier() {
-        return new FilterApplierImpl<>();
+    @Override
+    public void testUseCaseAdapter_failsForMissingSerializationMapping(final TestUseCase testUseCase) {
+        // serialization is not invoked since the exception is always thrown
     }
 }

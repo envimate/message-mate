@@ -44,6 +44,10 @@ public interface Caller<U> {
      * @param requestDeserializer the {@code Deserializer} to deserialize the parameters
      * @param responseSerializer  the {@code Serializer} to serialize the use case's return value
      * @return the serialized return value
+     * @throws Exception          all exceptions declared by the use case method are rethrown
      */
-    Map<String, Object> call(U useCase, Object event, Deserializer requestDeserializer, Serializer responseSerializer);
+    Map<String, Object> call(U useCase,
+                             Object event,
+                             Deserializer requestDeserializer,
+                             Serializer responseSerializer) throws Exception;
 }

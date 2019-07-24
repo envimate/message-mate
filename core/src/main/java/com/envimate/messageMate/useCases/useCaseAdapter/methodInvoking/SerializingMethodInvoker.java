@@ -27,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Map;
 
 import static com.envimate.messageMate.useCases.useCaseAdapter.methodInvoking.MethodInvocationException.methodInvocationException;
@@ -56,7 +57,7 @@ public final class SerializingMethodInvoker implements UseCaseMethodInvoker {
     public Map<String, Object> invoke(final Object useCase,
                                       final Object event,
                                       final Deserializer requestDeserializer,
-                                      final Serializer responseSerializer) {
+                                      final Serializer responseSerializer) throws Exception {
         try {
             final Class<?>[] parameterTypes = useCaseMethod.getParameterTypes();
 
@@ -71,13 +72,22 @@ public final class SerializingMethodInvoker implements UseCaseMethodInvoker {
             final Class<?> useCaseClass = useCase.getClass();
             throw methodInvocationException(useCaseClass, useCase, useCaseMethod, event, e);
         } catch (final InvocationTargetException e) {
-            if (e.getCause() instanceof RuntimeException) {
-                throw (RuntimeException) e.getCause();
+            final Throwable cause = e.getCause();
+            if (cause instanceof RuntimeException) {
+                throw (RuntimeException) cause;
+            } else if (isDeclaredByMethod(cause, useCaseMethod)) {
+                throw (Exception) cause;
             } else {
                 final Class<?> useCaseClass = useCase.getClass();
                 throw methodInvocationException(useCaseClass, useCase, useCaseMethod, event, e);
             }
         }
+    }
+
+    private boolean isDeclaredByMethod(final Throwable cause, final Method method) {
+        final Class<?>[] exceptionTypes = method.getExceptionTypes();
+        final Class<? extends Throwable> exceptionClass = cause.getClass();
+        return Arrays.asList(exceptionTypes).contains(exceptionClass);
     }
 
 }

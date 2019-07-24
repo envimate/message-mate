@@ -43,7 +43,11 @@ public interface UseCaseMethodInvoker {
      * @return the serialized return value as {@link Map}
      * @throws MethodInvocationException when the method cannot be invoked
      * @throws ClassCastException        when the event is not a valid {@link Map} of type {@code <String, Object>}
+     * @throws Exception                 all exceptions declared by the use case method are rethrown
      */
-    Map<String, Object> invoke(Object useCase, Object event, Deserializer requestDeserializer, Serializer responseSerializer);
+    Map<String, Object> invoke(Object useCase,
+                               Object event,
+                               Deserializer requestDeserializer,
+                               Serializer responseSerializer) throws Exception;
 
 }

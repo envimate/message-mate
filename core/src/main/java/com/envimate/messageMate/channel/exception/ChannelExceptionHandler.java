@@ -60,7 +60,7 @@ public interface ChannelExceptionHandler<T> {
      */
     void handleFilterException(ProcessingContext<T> message, Exception e);
 
-    default void handleBubbledUpException(BubbleUpWrappedException e) {
+    default void handleBubbledUpException(final BubbleUpWrappedException e) {
         throw (RuntimeException) e.getCause();
     }
 }
