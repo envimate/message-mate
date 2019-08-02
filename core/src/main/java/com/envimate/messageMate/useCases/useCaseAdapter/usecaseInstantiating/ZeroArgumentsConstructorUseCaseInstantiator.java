@@ -53,6 +53,13 @@ public final class ZeroArgumentsConstructorUseCaseInstantiator implements UseCas
             @SuppressWarnings("unchecked")
             final T newInstance = (T) constructor.newInstance();
             return newInstance;
+        } catch (final ExceptionInInitializerError e) {
+            final Throwable cause = e.getException();
+            if (cause instanceof RuntimeException) {
+                throw (RuntimeException) cause;
+            } else {
+                throw new RuntimeException(e);
+            }
         } catch (final NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
             throw zeroArgumentsConstructorUseCaseInstantiatorException(type, e);
         }
