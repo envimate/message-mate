@@ -27,13 +27,13 @@
     <parent>
         <groupId>com.envimate</groupId>
         <artifactId>envimate-opensource-parent</artifactId>
-        <version>1.0.21</version>
+        <version>1.0.22</version>
     </parent>
 
     <packaging>pom</packaging>
     <groupId>com.envimate.message-mate</groupId>
     <artifactId>message-mate-parent</artifactId>
-    <version>1.0.8</version>
+    <version>1.0.9</version>
     <modules>
         <module>core</module>
     </modules>
