@@ -30,7 +30,7 @@ import com.envimate.messageMate.channel.action.Jump;
 import com.envimate.messageMate.channel.action.Subscription;
 import com.envimate.messageMate.channel.config.ChannelTestConfig;
 import com.envimate.messageMate.filtering.Filter;
-import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration;
+import com.envimate.messageMate.configuration.AsynchronousConfiguration;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;

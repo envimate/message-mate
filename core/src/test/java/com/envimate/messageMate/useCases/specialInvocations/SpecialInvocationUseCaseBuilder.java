@@ -21,7 +21,7 @@
 
 package com.envimate.messageMate.useCases.specialInvocations;
 
-import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration;
+import com.envimate.messageMate.configuration.AsynchronousConfiguration;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler;
 import com.envimate.messageMate.processingContext.EventType;
@@ -34,7 +34,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.Collections;
 import java.util.Objects;
 
-import static com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration.constantPoolSizeAsynchronousPipeConfiguration;
+import static com.envimate.messageMate.configuration.AsynchronousConfiguration.constantPoolSizeAsynchronousConfiguration;
 import static com.envimate.messageMate.messageBus.MessageBusBuilder.aMessageBus;
 import static com.envimate.messageMate.messageBus.MessageBusType.ASYNCHRONOUS;
 import static com.envimate.messageMate.processingContext.EventType.eventTypeFromString;
@@ -93,7 +93,7 @@ public final class SpecialInvocationUseCaseBuilder {
 
     private MessageBus asynchronousMessageBus() {
         final int poolSize = 3;
-        final AsynchronousConfiguration asynchronousConfiguration = constantPoolSizeAsynchronousPipeConfiguration(poolSize);
+        final AsynchronousConfiguration asynchronousConfiguration = AsynchronousConfiguration.constantPoolSizeAsynchronousConfiguration(poolSize);
         return aMessageBus()
                 .forType(ASYNCHRONOUS)
                 .withAsynchronousConfiguration(asynchronousConfiguration)

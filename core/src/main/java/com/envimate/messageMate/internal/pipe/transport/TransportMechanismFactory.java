@@ -22,7 +22,7 @@
 package com.envimate.messageMate.internal.pipe.transport;
 
 import com.envimate.messageMate.internal.pipe.PipeType;
-import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration;
+import com.envimate.messageMate.configuration.AsynchronousConfiguration;
 import com.envimate.messageMate.internal.pipe.error.PipeErrorHandler;
 import com.envimate.messageMate.internal.pipe.events.PipeEventListener;
 import com.envimate.messageMate.subscribing.Subscriber;

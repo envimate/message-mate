@@ -21,7 +21,7 @@
 
 package com.envimate.messageMate.internal.pipe;
 
-import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration;
+import com.envimate.messageMate.configuration.AsynchronousConfiguration;
 import com.envimate.messageMate.internal.pipe.error.ErrorThrowingPipeErrorHandler;
 import com.envimate.messageMate.internal.pipe.error.PipeErrorHandler;
 import com.envimate.messageMate.internal.pipe.events.PipeEventListener;

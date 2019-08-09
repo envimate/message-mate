@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.envimate.messageMate.internal.pipe.configuration;
+package com.envimate.messageMate.configuration;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -70,13 +70,13 @@ public class AsynchronousConfiguration {
         this.threadPoolWorkingQueue = threadPoolWorkingQueue;
     }
 
-    public static AsynchronousConfiguration constantPoolSizeAsynchronousPipeConfiguration(final int poolSize) {
+    public static AsynchronousConfiguration constantPoolSizeAsynchronousConfiguration(final int poolSize) {
         final LinkedBlockingQueue<Runnable> threadPoolWorkingQueue = new LinkedBlockingQueue<>();
         return new AsynchronousConfiguration(poolSize, poolSize, MAX_VALUE, SECONDS, threadPoolWorkingQueue);
     }
 
-    public static AsynchronousConfiguration constantPoolSizeAsynchronousPipeConfiguration(final int poolSize,
-                                                                                          final int waitingQueueBound) {
+    public static AsynchronousConfiguration constantPoolSizeAsynchronousConfiguration(final int poolSize,
+                                                                                      final int waitingQueueBound) {
         final ArrayBlockingQueue<Runnable> threadPoolWorkingQueue = new ArrayBlockingQueue<>(waitingQueueBound);
         return new AsynchronousConfiguration(poolSize, poolSize, MAX_VALUE, SECONDS, threadPoolWorkingQueue);
     }

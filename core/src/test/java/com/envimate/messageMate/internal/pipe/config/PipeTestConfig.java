@@ -22,7 +22,7 @@
 package com.envimate.messageMate.internal.pipe.config;
 
 import com.envimate.messageMate.internal.pipe.PipeType;
-import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration;
+import com.envimate.messageMate.configuration.AsynchronousConfiguration;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -30,7 +30,7 @@ import lombok.RequiredArgsConstructor;
 
 import static com.envimate.messageMate.internal.pipe.PipeType.ASYNCHRONOUS;
 import static com.envimate.messageMate.internal.pipe.PipeType.SYNCHRONOUS;
-import static com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration.constantPoolSizeAsynchronousPipeConfiguration;
+import static com.envimate.messageMate.configuration.AsynchronousConfiguration.constantPoolSizeAsynchronousConfiguration;
 
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
@@ -47,13 +47,13 @@ public final class PipeTestConfig {
     }
 
     static PipeTestConfig anAsynchronousPipe() {
-        return new PipeTestConfig(ASYNCHRONOUS, constantPoolSizeAsynchronousPipeConfiguration(ASYNCHRONOUS_PIPE_POOL_SIZE));
+        return new PipeTestConfig(ASYNCHRONOUS, AsynchronousConfiguration.constantPoolSizeAsynchronousConfiguration(ASYNCHRONOUS_PIPE_POOL_SIZE));
     }
 
     public static PipeTestConfig anAsynchronousBoundedPipe() {
         final int poolSize = ASYNCHRONOUS_PIPE_POOL_SIZE;
         final int waitingQueueBound = ASYNCHRONOUS_QUEUED_BOUND;
-        final AsynchronousConfiguration config = constantPoolSizeAsynchronousPipeConfiguration(poolSize, waitingQueueBound);
+        final AsynchronousConfiguration config = constantPoolSizeAsynchronousConfiguration(poolSize, waitingQueueBound);
         return new PipeTestConfig(ASYNCHRONOUS, config);
     }
 

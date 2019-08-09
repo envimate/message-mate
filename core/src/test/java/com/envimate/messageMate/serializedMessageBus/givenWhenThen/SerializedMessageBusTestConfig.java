@@ -21,12 +21,12 @@
 
 package com.envimate.messageMate.serializedMessageBus.givenWhenThen;
 
-import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration;
+import com.envimate.messageMate.configuration.AsynchronousConfiguration;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler;
 import lombok.RequiredArgsConstructor;
 
-import static com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration.constantPoolSizeAsynchronousPipeConfiguration;
+import static com.envimate.messageMate.configuration.AsynchronousConfiguration.constantPoolSizeAsynchronousConfiguration;
 import static com.envimate.messageMate.messageBus.MessageBusBuilder.aMessageBus;
 import static com.envimate.messageMate.messageBus.MessageBusType.ASYNCHRONOUS;
 import static com.envimate.messageMate.messageBus.MessageBusType.SYNCHRONOUS;
@@ -44,7 +44,7 @@ public final class SerializedMessageBusTestConfig {
 
     public static SerializedMessageBusTestConfig asynchronousMessageBusTestConfig() {
         final int poolSize = 3;
-        final AsynchronousConfiguration asynchronousConfiguration = constantPoolSizeAsynchronousPipeConfiguration(poolSize);
+        final AsynchronousConfiguration asynchronousConfiguration = AsynchronousConfiguration.constantPoolSizeAsynchronousConfiguration(poolSize);
         final MessageBus messageBus = aMessageBus().forType(ASYNCHRONOUS)
                 .withAsynchronousConfiguration(asynchronousConfiguration)
                 .withExceptionHandler(MessageBusTestExceptionHandler.allExceptionIgnoringExceptionHandler())

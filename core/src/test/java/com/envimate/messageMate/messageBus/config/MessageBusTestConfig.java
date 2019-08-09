@@ -21,11 +21,11 @@
 
 package com.envimate.messageMate.messageBus.config;
 
-import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration;
+import com.envimate.messageMate.configuration.AsynchronousConfiguration;
 import com.envimate.messageMate.messageBus.MessageBusType;
 import lombok.*;
 
-import static com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration.constantPoolSizeAsynchronousPipeConfiguration;
+import static com.envimate.messageMate.configuration.AsynchronousConfiguration.constantPoolSizeAsynchronousConfiguration;
 import static com.envimate.messageMate.messageBus.MessageBusType.ASYNCHRONOUS;
 import static com.envimate.messageMate.messageBus.MessageBusType.SYNCHRONOUS;
 
@@ -45,7 +45,7 @@ public final class MessageBusTestConfig {
 
     static MessageBusTestConfig anAsynchronousMessageBus() {
         final int poolSize = ASYNCHRONOUS_DELIVERY_POOL_SIZE;
-        final AsynchronousConfiguration asynchronousConfiguration = constantPoolSizeAsynchronousPipeConfiguration(poolSize);
+        final AsynchronousConfiguration asynchronousConfiguration = AsynchronousConfiguration.constantPoolSizeAsynchronousConfiguration(poolSize);
         return new MessageBusTestConfig(ASYNCHRONOUS, asynchronousConfiguration);
     }
 

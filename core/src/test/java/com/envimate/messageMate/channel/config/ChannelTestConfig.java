@@ -22,13 +22,13 @@
 package com.envimate.messageMate.channel.config;
 
 import com.envimate.messageMate.channel.ChannelType;
-import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration;
+import com.envimate.messageMate.configuration.AsynchronousConfiguration;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import static com.envimate.messageMate.channel.ChannelType.ASYNCHRONOUS;
 import static com.envimate.messageMate.channel.ChannelType.SYNCHRONOUS;
-import static com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration.constantPoolSizeAsynchronousPipeConfiguration;
+import static com.envimate.messageMate.configuration.AsynchronousConfiguration.constantPoolSizeAsynchronousConfiguration;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
@@ -45,7 +45,7 @@ public final class ChannelTestConfig {
 
     public static ChannelTestConfig asynchronousChannelTestConfig() {
         final int poolSize = ASYNCHRONOUS_CHANNEL_CONFIG_POOL_SIZE;
-        final AsynchronousConfiguration asynchronousConfiguration = constantPoolSizeAsynchronousPipeConfiguration(poolSize);
+        final AsynchronousConfiguration asynchronousConfiguration = AsynchronousConfiguration.constantPoolSizeAsynchronousConfiguration(poolSize);
         return new ChannelTestConfig(ASYNCHRONOUS, asynchronousConfiguration);
     }
 

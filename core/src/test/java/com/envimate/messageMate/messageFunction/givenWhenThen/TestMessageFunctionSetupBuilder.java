@@ -21,6 +21,7 @@
 
 package com.envimate.messageMate.messageFunction.givenWhenThen;
 
+import com.envimate.messageMate.configuration.AsynchronousConfiguration;
 import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusBuilder;
@@ -41,7 +42,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration.constantPoolSizeAsynchronousPipeConfiguration;
+import static com.envimate.messageMate.configuration.AsynchronousConfiguration.constantPoolSizeAsynchronousConfiguration;
 import static com.envimate.messageMate.messageBus.MessageBusBuilder.aMessageBus;
 import static com.envimate.messageMate.messageBus.MessageBusType.ASYNCHRONOUS;
 import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler.allExceptionIgnoringExceptionHandler;
@@ -62,7 +63,7 @@ public final class TestMessageFunctionSetupBuilder {
     private final List<Consumer<MessageBus>> setupActions = new LinkedList<>();
     private MessageBusBuilder messageBusBuilder = aMessageBus()
             .forType(ASYNCHRONOUS)
-            .withAsynchronousConfiguration(constantPoolSizeAsynchronousPipeConfiguration(MB_TEST_POOL_SIZE));
+            .withAsynchronousConfiguration(AsynchronousConfiguration.constantPoolSizeAsynchronousConfiguration(MB_TEST_POOL_SIZE));
     private Function<MessageBusBuilder, MessageBus> messageBusCreation = MessageBusBuilder::build;
 
     public static TestMessageFunctionSetupBuilder aMessageFunction() {

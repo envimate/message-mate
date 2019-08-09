@@ -23,7 +23,7 @@ package com.envimate.messageMate.messageBus;
 
 import com.envimate.messageMate.channel.Channel;
 import com.envimate.messageMate.channel.ChannelType;
-import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration;
+import com.envimate.messageMate.configuration.AsynchronousConfiguration;
 import com.envimate.messageMate.messageBus.channelCreating.MessageBusChannelFactory;
 import com.envimate.messageMate.messageBus.exception.MessageBusExceptionHandler;
 import com.envimate.messageMate.messageBus.internal.brokering.MessageBusBrokerStrategy;

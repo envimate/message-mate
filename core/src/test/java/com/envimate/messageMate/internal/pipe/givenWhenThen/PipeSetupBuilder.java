@@ -25,7 +25,7 @@ import com.envimate.messageMate.internal.pipe.Pipe;
 import com.envimate.messageMate.internal.pipe.PipeBuilder;
 import com.envimate.messageMate.internal.pipe.PipeType;
 import com.envimate.messageMate.internal.pipe.config.PipeTestConfig;
-import com.envimate.messageMate.internal.pipe.configuration.AsynchronousConfiguration;
+import com.envimate.messageMate.configuration.AsynchronousConfiguration;
 import com.envimate.messageMate.internal.pipe.error.PipeErrorHandler;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.shared.givenWhenThen.SetupAction;
