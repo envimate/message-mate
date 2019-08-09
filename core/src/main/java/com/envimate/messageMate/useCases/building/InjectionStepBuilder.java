@@ -21,11 +21,27 @@
 
 package com.envimate.messageMate.useCases.building;
 
+import com.envimate.messageMate.useCases.useCaseAdapter.UseCaseInvocationBuilder;
 import com.envimate.messageMate.useCases.useCaseAdapter.parameterInjecting.ParameterInjectionInformation;
 
 import java.util.function.Function;
 
+/**
+ * The {@link UseCaseInvocationBuilder} step for configuring injected parameters.
+ */
 public interface InjectionStepBuilder extends BuilderStepBuilder {
 
+    /**
+     * Adds a new parameter injection.
+     *
+     * <p>
+     * Calling this method again for the same class overwrites previous calls.
+     * </p>
+     *
+     * @param parameterClass the class of the paramter to inject
+     * @param injector       a function to inject the value based on the {@link ParameterInjectionInformation}
+     * @param <T>            the type of the class
+     * @return               the next step in the fluent builder interface
+     */
     <T> FinalStepBuilder injectParameterForClass(Class<T> parameterClass, Function<ParameterInjectionInformation, T> injector);
 }

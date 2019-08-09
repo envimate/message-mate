@@ -28,6 +28,10 @@ import java.util.Map;
 
 import static lombok.AccessLevel.PRIVATE;
 
+/**
+ * When creating the actual value for an injected parameter, this class holds further information about the current use case
+ * class, the method and the current request map.
+ */
 @RequiredArgsConstructor(access = PRIVATE)
 public final class ParameterInjectionInformation {
     @Getter
@@ -37,6 +41,14 @@ public final class ParameterInjectionInformation {
     @Getter
     private final Map<String, Object> parameterMap;
 
+    /**
+     * Factory method to create a new {@link ParameterInjectionInformation}.
+     *
+     * @param useCaseClass the current use case class
+     * @param methodName   the name of the method
+     * @param parameterMap the current request map
+     * @return the newly created {@code ParameterInjectionInformation}
+     */
     public static ParameterInjectionInformation injectionInformation(final Class<?> useCaseClass,
                                                                      final String methodName,
                                                                      final Map<String, Object> parameterMap) {

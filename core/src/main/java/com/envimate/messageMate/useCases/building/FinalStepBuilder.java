@@ -21,5 +21,10 @@
 
 package com.envimate.messageMate.useCases.building;
 
+import com.envimate.messageMate.useCases.useCaseAdapter.UseCaseInvocationBuilder;
+
+/**
+ * The last step in configuring the The {@link UseCaseInvocationBuilder} step.
+ */
 public interface FinalStepBuilder extends InjectionStepBuilder, BuilderStepBuilder {
 }

@@ -41,6 +41,7 @@ public interface UseCaseMethodInvoker {
      * @param event               the request message
      * @param requestDeserializer the {@code Deserializer} for the parameters
      * @param responseSerializer  the {@code Serializer} for the return value
+     * @param parameterInjector   the configured {@code ParameterInjector} with all injections
      * @return the serialized return value as {@link Map}
      * @throws MethodInvocationException when the method cannot be invoked
      * @throws ClassCastException        when the event is not a valid {@link Map} of type {@code <String, Object>}

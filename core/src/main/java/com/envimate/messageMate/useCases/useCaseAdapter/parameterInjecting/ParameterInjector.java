@@ -21,9 +21,27 @@
 
 package com.envimate.messageMate.useCases.useCaseAdapter.parameterInjecting;
 
+/**
+ * The {@code ParameterInjector} allows for adding additional parameter to the use case methods.
+ */
 public interface ParameterInjector {
 
+    /**
+     * This method is called to check, if the current method parameter should be injected and not deserialized from the request
+     * map.
+     *
+     * @param parameterClass the {@link Class} of the current parameter
+     * @return {@code true} if the current parameter should be injected
+     */
     boolean hasValueFor(Class<?> parameterClass);
 
+    /**
+     * Method to retrieve the injected value for the parameter.
+     *
+     * @param parameterClass the {@link Class} of the current parameter
+     * @param injectionInformation the {@link ParameterInjectionInformation} holding the current use case class, method and more
+     * @param <T> the type of the parameter
+     * @return the actual value to inject
+     */
     <T> T getParameterFor(Class<T> parameterClass, ParameterInjectionInformation injectionInformation);
 }
