@@ -111,4 +111,6 @@
     <suppress checks="IllegalCatch" files="TestMessageFunctionValidationBuilder.java"/>
     <suppress checks="IllegalCatch" files="ShutdownTestUtils.java"/>
     <suppress checks="[IllegalCatch|FileLength]" files="ChannelSetupBuilde.java"/>
+
+    <suppress checks="ClassFanOutComplexity" files="UseCaseInvocationBuilder.java"/>
 </suppressions>

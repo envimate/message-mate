@@ -28,6 +28,9 @@ import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.serializedMessageBus.SerializedMessageBus;
 import com.envimate.messageMate.useCases.building.*;
+import com.envimate.messageMate.useCases.useCaseAdapter.parameterInjecting.ParameterInjectionInformation;
+import com.envimate.messageMate.useCases.useCaseAdapter.parameterInjecting.ParameterInjector;
+import com.envimate.messageMate.useCases.useCaseAdapter.parameterInjecting.ParameterInjectorBuilder;
 import com.envimate.messageMate.useCases.useCaseAdapter.usecaseCalling.Caller;
 import com.envimate.messageMate.useCases.useCaseAdapter.usecaseCalling.SinglePublicUseCaseMethodCaller;
 import com.envimate.messageMate.useCases.useCaseAdapter.usecaseInstantiating.UseCaseInstantiator;
@@ -38,26 +41,32 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiPredicate;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static com.envimate.messageMate.internal.collections.filtermap.FilterMapBuilder.filterMapBuilder;
 import static com.envimate.messageMate.internal.collections.predicatemap.PredicateMapBuilder.predicateMapBuilder;
 import static com.envimate.messageMate.mapping.Deserializer.requestDeserializer;
+import static com.envimate.messageMate.mapping.ExceptionSerializer.exceptionSerializer;
 import static com.envimate.messageMate.mapping.Serializer.responseSerializer;
 import static com.envimate.messageMate.useCases.useCaseAdapter.UseCaseAdapterImpl.useCaseAdapterImpl;
 import static com.envimate.messageMate.useCases.useCaseAdapter.UseCaseCallingInformation.useCaseInvocationInformation;
+import static com.envimate.messageMate.useCases.useCaseAdapter.parameterInjecting.ParameterInjectorBuilder.aParameterInjectorBuilder;
 import static com.envimate.messageMate.useCases.useCaseAdapter.usecaseCalling.SinglePublicUseCaseMethodCaller.singlePublicUseCaseMethodCaller;
 import static lombok.AccessLevel.PRIVATE;
 
 /**
  * Fluent interface builder to configure either a {@link UseCaseAdapter} or a {@link UseCaseBus}.
  */
-public class UseCaseInvocationBuilder implements Step1Builder, DeserializationStep1Builder,
-        ResponseSerializationStep1Builder, ExceptionSerializationStep1Builder, BuilderStepBuilder {
+@RequiredArgsConstructor(access = PRIVATE)
+public final class UseCaseInvocationBuilder implements Step1Builder, DeserializationStep1Builder,
+        ResponseSerializationStep1Builder, ExceptionSerializationStep1Builder, FinalStepBuilder {
     private final List<UseCaseCallingInformation<?>> useCaseCallingInformationList = new LinkedList<>();
     private final FilterMapBuilder<Class<?>, Map<String, Object>, Demapifier<?>> deserializers = filterMapBuilder();
     private final PredicateMapBuilder<Object, Mapifier<Object>> responseSerializers = predicateMapBuilder();
     private final PredicateMapBuilder<Exception, Mapifier<Exception>> exceptionSerializers = predicateMapBuilder();
+    private final ParameterInjectorBuilder parameterInjectorBuilder = aParameterInjectorBuilder();
+
     private UseCaseInstantiator useCaseInstantiator;
 
     /**
@@ -127,8 +136,15 @@ public class UseCaseInvocationBuilder implements Step1Builder, DeserializationSt
     }
 
     @Override
-    public BuilderStepBuilder serializingExceptionsByDefaultUsing(final Mapifier<Exception> mapper) {
+    public FinalStepBuilder serializingExceptionsByDefaultUsing(final Mapifier<Exception> mapper) {
         exceptionSerializers.setDefaultValue(mapper);
+        return this;
+    }
+
+    @Override
+    public <T> FinalStepBuilder injectParameterForClass(final Class<T> parameterClass,
+                                                        final Function<ParameterInjectionInformation, T> injectionFunction) {
+        parameterInjectorBuilder.withAnInjection(parameterClass, injectionFunction);
         return this;
     }
 
@@ -150,9 +166,10 @@ public class UseCaseInvocationBuilder implements Step1Builder, DeserializationSt
     public UseCaseAdapter buildAsStandaloneAdapter() {
         final Deserializer requestDeserializer = requestDeserializer(deserializers.build());
         final Serializer responseSerializer = responseSerializer(responseSerializers.build());
-        final ExceptionSerializer exceptionSerializer = ExceptionSerializer.exceptionSerializer(exceptionSerializers.build());
+        final ExceptionSerializer exceptionSerializer = exceptionSerializer(exceptionSerializers.build());
+        final ParameterInjector parameterInjector = parameterInjectorBuilder.build();
         return useCaseAdapterImpl(useCaseCallingInformationList, useCaseInstantiator, requestDeserializer, responseSerializer,
-                exceptionSerializer);
+                exceptionSerializer, parameterInjector);
     }
 
     @RequiredArgsConstructor(access = PRIVATE)
@@ -161,7 +178,7 @@ public class UseCaseInvocationBuilder implements Step1Builder, DeserializationSt
 
         @Override
         public Step3Builder<U> forType(final EventType eventType) {
-            return new Step3Builder<U>() {
+            return new Step3Builder<>() {
                 @Override
                 public Step1Builder callingTheSingleUseCaseMethod() {
                     final SinglePublicUseCaseMethodCaller<U> caller = singlePublicUseCaseMethodCaller(useCaseClass);

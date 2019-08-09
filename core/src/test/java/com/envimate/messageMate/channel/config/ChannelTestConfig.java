@@ -45,7 +45,7 @@ public final class ChannelTestConfig {
 
     public static ChannelTestConfig asynchronousChannelTestConfig() {
         final int poolSize = ASYNCHRONOUS_CHANNEL_CONFIG_POOL_SIZE;
-        final AsynchronousConfiguration asynchronousConfiguration = AsynchronousConfiguration.constantPoolSizeAsynchronousConfiguration(poolSize);
+        final AsynchronousConfiguration asynchronousConfiguration = constantPoolSizeAsynchronousConfiguration(poolSize);
         return new ChannelTestConfig(ASYNCHRONOUS, asynchronousConfiguration);
     }
 

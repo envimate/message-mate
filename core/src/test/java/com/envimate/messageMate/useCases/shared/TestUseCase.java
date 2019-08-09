@@ -26,6 +26,7 @@ import com.envimate.messageMate.messageBus.MessageBusBuilder;
 import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.useCases.building.DeserializationStep1Builder;
+import com.envimate.messageMate.useCases.building.InjectionStepBuilder;
 import com.envimate.messageMate.useCases.building.ResponseSerializationStep1Builder;
 import com.envimate.messageMate.useCases.building.Step3Builder;
 import lombok.Getter;
@@ -61,6 +62,8 @@ public final class TestUseCase {
     private final BiConsumer<MessageBusBuilder, TestEnvironment> messageBusEnhancer;
     @Getter
     private final UseCaseBusCall useCaseBusCall;
+    @Getter
+    private final Consumer<InjectionStepBuilder> injectionSetup;
 
     public void performNecessaryResultSubscriptionsOn(final MessageBus messageBus, final TestEnvironment testEnvironment) {
         messageBusSetup.accept(messageBus, testEnvironment);
@@ -84,6 +87,12 @@ public final class TestUseCase {
 
     public void defineSerialization(final ResponseSerializationStep1Builder serializationBuilder) {
         serializationEnhancer.accept(serializationBuilder);
+    }
+
+    public void applyOptionalParameterInjection(final InjectionStepBuilder injectionStepBuilder) {
+        if (this.injectionSetup != null) {
+            this.injectionSetup.accept(injectionStepBuilder);
+        }
     }
 
 }

@@ -21,7 +21,6 @@
 
 package com.envimate.messageMate.messageFunction.givenWhenThen;
 
-import com.envimate.messageMate.configuration.AsynchronousConfiguration;
 import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusBuilder;
@@ -63,7 +62,7 @@ public final class TestMessageFunctionSetupBuilder {
     private final List<Consumer<MessageBus>> setupActions = new LinkedList<>();
     private MessageBusBuilder messageBusBuilder = aMessageBus()
             .forType(ASYNCHRONOUS)
-            .withAsynchronousConfiguration(AsynchronousConfiguration.constantPoolSizeAsynchronousConfiguration(MB_TEST_POOL_SIZE));
+            .withAsynchronousConfiguration(constantPoolSizeAsynchronousConfiguration(MB_TEST_POOL_SIZE));
     private Function<MessageBusBuilder, MessageBus> messageBusCreation = MessageBusBuilder::build;
 
     public static TestMessageFunctionSetupBuilder aMessageFunction() {

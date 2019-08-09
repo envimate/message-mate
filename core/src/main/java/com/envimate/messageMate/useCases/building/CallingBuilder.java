@@ -48,7 +48,7 @@ public interface CallingBuilder<U> {
      * @return the next step in the fluent builder interface
      */
     default Step1Builder calling(final BiFunction<U, Object, Map<String, Object>> caller) {
-        return callingBy((useCase, event, requestDeserializer, responseSerializer) -> {
+        return callingBy((useCase, event, callingContext) -> {
             final Map<String, Object> responseMap = caller.apply(useCase, event);
             return responseMap;
         });
@@ -62,7 +62,7 @@ public interface CallingBuilder<U> {
      * @return the next step in the fluent builder interface
      */
     default Step1Builder callingVoid(final BiConsumer<U, Object> caller) {
-        return callingBy((usecase, event, requestDeserializer, responseSerializer) -> {
+        return callingBy((usecase, event, callingContext) -> {
             caller.accept(usecase, event);
             return emptyMap();
         });

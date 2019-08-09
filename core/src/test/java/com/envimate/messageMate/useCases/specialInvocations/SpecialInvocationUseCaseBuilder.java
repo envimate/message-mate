@@ -93,7 +93,7 @@ public final class SpecialInvocationUseCaseBuilder {
 
     private MessageBus asynchronousMessageBus() {
         final int poolSize = 3;
-        final AsynchronousConfiguration asynchronousConfiguration = AsynchronousConfiguration.constantPoolSizeAsynchronousConfiguration(poolSize);
+        final AsynchronousConfiguration asynchronousConfiguration = constantPoolSizeAsynchronousConfiguration(poolSize);
         return aMessageBus()
                 .forType(ASYNCHRONOUS)
                 .withAsynchronousConfiguration(asynchronousConfiguration)

@@ -44,7 +44,7 @@ public final class SerializedMessageBusTestConfig {
 
     public static SerializedMessageBusTestConfig asynchronousMessageBusTestConfig() {
         final int poolSize = 3;
-        final AsynchronousConfiguration asynchronousConfiguration = AsynchronousConfiguration.constantPoolSizeAsynchronousConfiguration(poolSize);
+        final AsynchronousConfiguration asynchronousConfiguration = constantPoolSizeAsynchronousConfiguration(poolSize);
         final MessageBus messageBus = aMessageBus().forType(ASYNCHRONOUS)
                 .withAsynchronousConfiguration(asynchronousConfiguration)
                 .withExceptionHandler(MessageBusTestExceptionHandler.allExceptionIgnoringExceptionHandler())

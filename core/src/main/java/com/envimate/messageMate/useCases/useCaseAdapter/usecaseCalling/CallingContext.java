@@ -23,29 +23,24 @@ package com.envimate.messageMate.useCases.useCaseAdapter.usecaseCalling;
 
 import com.envimate.messageMate.mapping.Deserializer;
 import com.envimate.messageMate.mapping.Serializer;
+import com.envimate.messageMate.useCases.useCaseAdapter.parameterInjecting.ParameterInjector;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-import java.util.Map;
+import static lombok.AccessLevel.PRIVATE;
 
-/**
- * A {@code Caller} is responsible to invoke the correct method on the use case instance. The {@link Deserializer} is used
- * to deserialize the event into the parameters of the method. The {@link Serializer} is used to serialized the use case's return
- * value back into a {@link Map}.
- *
- * @param <U> the type of the use case
- */
-@FunctionalInterface
-public interface Caller<U> {
+@RequiredArgsConstructor(access = PRIVATE)
+public final class CallingContext {
+    @Getter
+    private final Serializer serializer;
+    @Getter
+    private final Deserializer deserializer;
+    @Getter
+    private final ParameterInjector parameterInjector;
 
-    /**
-     * Invokes the use case with the data from the event.
-     *
-     * @param useCase             the use case instance
-     * @param event               the data for the use case
-     * @param callingContext      contains objects for serialization or parameter injection
-     * @return the serialized return value
-     * @throws Exception          all exceptions declared by the use case method are rethrown
-     */
-    Map<String, Object> call(U useCase,
-                             Object event,
-                             CallingContext callingContext) throws Exception;
+    public static CallingContext callingContext(final Serializer serializer,
+                                                final Deserializer deserializer,
+                                                final ParameterInjector parameterInjector) {
+        return new CallingContext(serializer, deserializer, parameterInjector);
+    }
 }

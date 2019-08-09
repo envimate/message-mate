@@ -51,7 +51,7 @@ public final class UseCaseInvocationSetupBuilder {
     private final MessageBusBuilder messageBusBuilder = aMessageBus();
     private final BiFunction<BuilderStepBuilder, MessageBus, Object> sutBuildingFunction;
     private Function<Step1Builder, DeserializationStep1Builder> instantiationFunction;
-    private BuilderStepBuilder builderStepBuilder;
+    private FinalStepBuilder finalStepBuilder;
 
     public UseCaseInvocationSetupBuilder(final TestUseCase testUseCase,
                                          final BiFunction<BuilderStepBuilder, MessageBus, Object> sutBuildingFunction) {
@@ -87,7 +87,7 @@ public final class UseCaseInvocationSetupBuilder {
         final ResponseSerializationStep1Builder serializationStep1Builder = deserializationBuilder
                 .throwAnExceptionByDefaultIfNoParameterMappingCanBeApplied();
         testUseCase.defineSerialization(serializationStep1Builder);
-        builderStepBuilder = serializationStep1Builder.throwingAnExceptionByDefaultIfNoResponseMappingCanBeApplied()
+        finalStepBuilder = serializationStep1Builder.throwingAnExceptionByDefaultIfNoResponseMappingCanBeApplied()
                 .puttingExceptionObjectNamedAsExceptionIntoResponseMapByDefault();
         return this;
     }
@@ -98,7 +98,7 @@ public final class UseCaseInvocationSetupBuilder {
         final Step3Builder<?> callingBuilder = useCaseAdapterBuilder.invokingUseCase(useCaseClass)
                 .forType(eventType);
         testUseCase.useCustomInvocationLogic(callingBuilder);
-        builderStepBuilder = useCaseAdapterBuilder.obtainingUseCaseInstancesUsingTheZeroArgumentConstructor()
+        finalStepBuilder = useCaseAdapterBuilder.obtainingUseCaseInstancesUsingTheZeroArgumentConstructor()
                 .throwAnExceptionByDefaultIfNoParameterMappingCanBeApplied()
                 .throwingAnExceptionByDefaultIfNoResponseMappingCanBeApplied()
                 .puttingExceptionObjectNamedAsExceptionIntoResponseMapByDefault();
@@ -114,7 +114,7 @@ public final class UseCaseInvocationSetupBuilder {
         final DeserializationStep1Builder deserializationBuilder = instantiationFunction.apply(useCaseInvokingBuilder);
         final ResponseSerializationStep1Builder serializationStep1Builder = deserializationBuilder
                 .throwAnExceptionByDefaultIfNoParameterMappingCanBeApplied();
-        builderStepBuilder = serializationStep1Builder.throwingAnExceptionByDefaultIfNoResponseMappingCanBeApplied()
+        finalStepBuilder = serializationStep1Builder.throwingAnExceptionByDefaultIfNoResponseMappingCanBeApplied()
                 .puttingExceptionObjectNamedAsExceptionIntoResponseMapByDefault();
         messageBusBuilder.withExceptionHandler(allExceptionHandlingTestExceptionHandler(testEnvironment, EXCEPTION));
         return this;
@@ -130,7 +130,7 @@ public final class UseCaseInvocationSetupBuilder {
         testUseCase.defineDeserialization(deserializationBuilder);
         final ResponseSerializationStep1Builder serializationStep1Builder = deserializationBuilder
                 .throwAnExceptionByDefaultIfNoParameterMappingCanBeApplied();
-        builderStepBuilder = serializationStep1Builder.throwingAnExceptionByDefaultIfNoResponseMappingCanBeApplied()
+        finalStepBuilder = serializationStep1Builder.throwingAnExceptionByDefaultIfNoResponseMappingCanBeApplied()
                 .puttingExceptionObjectNamedAsExceptionIntoResponseMapByDefault();
         messageBusBuilder.withExceptionHandler(allExceptionHandlingTestExceptionHandler(testEnvironment, EXCEPTION));
         return this;
@@ -150,14 +150,15 @@ public final class UseCaseInvocationSetupBuilder {
 
     public UseCaseInvocationSetup build() {
         final MessageBus messageBus = createMessageBus();
-        final Object sut = sutBuildingFunction.apply(builderStepBuilder, messageBus);
+        testUseCase.applyOptionalParameterInjection(finalStepBuilder);
+        final Object sut = sutBuildingFunction.apply(finalStepBuilder, messageBus);
         testEnvironment.setProperty(SUT, sut);
         testEnvironment.setProperty(MOCK, messageBus);
         return new UseCaseInvocationSetup(testEnvironment, testUseCase, messageBus);
     }
 
     private MessageBus createMessageBus() {
-        final AsynchronousConfiguration asynchronousConfiguration = AsynchronousConfiguration.constantPoolSizeAsynchronousConfiguration(3);
+        final AsynchronousConfiguration asynchronousConfiguration = constantPoolSizeAsynchronousConfiguration(3);
         messageBusBuilder.forType(ASYNCHRONOUS)
                 .withAsynchronousConfiguration(asynchronousConfiguration);
         final BiConsumer<MessageBusBuilder, TestEnvironment> messageBusEnhancer = testUseCase.getMessageBusEnhancer();

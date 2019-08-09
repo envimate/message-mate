@@ -26,6 +26,7 @@ import com.envimate.messageMate.mapping.ExceptionSerializer;
 import com.envimate.messageMate.mapping.Serializer;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.serializedMessageBus.SerializedMessageBus;
+import com.envimate.messageMate.useCases.useCaseAdapter.parameterInjecting.ParameterInjector;
 import com.envimate.messageMate.useCases.useCaseAdapter.usecaseInstantiating.UseCaseInstantiator;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
@@ -47,18 +48,20 @@ final class UseCaseAdapterImpl implements UseCaseAdapter {
     private final Deserializer requestDeserializer;
     private final Serializer responseSerializer;
     private final ExceptionSerializer exceptionSerializer;
+    private final ParameterInjector parameterInjector;
 
     static UseCaseAdapter useCaseAdapterImpl(final List<UseCaseCallingInformation<?>> useCaseCallingInformations,
                                              final UseCaseInstantiator useCaseInstantiator,
                                              final Deserializer requestDeserializer,
                                              final Serializer responseSerializer,
-                                             final ExceptionSerializer exceptionSerializer) {
+                                             final ExceptionSerializer exceptionSerializer,
+                                             final ParameterInjector parameterInjector) {
         ensureNotNull(useCaseCallingInformations, "useCaseCallingInformations");
         ensureNotNull(useCaseInstantiator, "useCaseInstantiator");
         ensureNotNull(requestDeserializer, "requestDeserializer");
         ensureNotNull(responseSerializer, "responseSerializer");
         return new UseCaseAdapterImpl(useCaseCallingInformations, useCaseInstantiator, requestDeserializer,
-                responseSerializer, exceptionSerializer);
+                responseSerializer, exceptionSerializer, parameterInjector);
     }
 
     @Override
@@ -73,7 +76,8 @@ final class UseCaseAdapterImpl implements UseCaseAdapter {
     public void attachTo(final SerializedMessageBus serializedMessageBus) {
         useCaseCallingInformations.forEach(callingInformation -> {
             final UseCaseRequestExecutingSubscriber useCaseRequestSubscriber = useCaseRequestExecutingSubscriber(
-                    callingInformation, useCaseInstantiator, requestDeserializer, responseSerializer, exceptionSerializer);
+                    callingInformation, useCaseInstantiator, requestDeserializer, responseSerializer, exceptionSerializer,
+                    parameterInjector);
             useCaseRequestSubscriber.attachTo(serializedMessageBus);
         });
     }

@@ -51,7 +51,7 @@ public interface ExceptionSerializationStep1Builder {
      * @param mapper a {@link Mapifier}
      * @return the next step in the fluent builder
      */
-    BuilderStepBuilder serializingExceptionsByDefaultUsing(Mapifier<Exception> mapper);
+    FinalStepBuilder serializingExceptionsByDefaultUsing(Mapifier<Exception> mapper);
 
     /**
      * Enters a fluent builder that configures a {@link Mapifier} that will be used to serialize an exception to a {@link Map}
@@ -75,7 +75,7 @@ public interface ExceptionSerializationStep1Builder {
      *
      * @return the next step in the fluent builder
      */
-    default BuilderStepBuilder throwingAnExceptionIfNoExceptionMappingCanBeFound() {
+    default FinalStepBuilder throwingAnExceptionIfNoExceptionMappingCanBeFound() {
         return serializingExceptionsByDefaultUsing(object -> {
             final Class<? extends Exception> objectClass = object.getClass();
             final String message = format("No response mapper found for exception of class %s.", objectClass);
@@ -90,7 +90,7 @@ public interface ExceptionSerializationStep1Builder {
      *
      * @return the next step in the fluent builder interface
      */
-    default BuilderStepBuilder puttingExceptionObjectNamedAsExceptionIntoResponseMapByDefault() {
+    default FinalStepBuilder puttingExceptionObjectNamedAsExceptionIntoResponseMapByDefault() {
         return serializingExceptionsByDefaultUsing(defaultExceptionMapifier());
     }
 }

@@ -26,6 +26,7 @@ import com.envimate.messageMate.messageBus.MessageBusBuilder;
 import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.useCases.building.DeserializationStep1Builder;
+import com.envimate.messageMate.useCases.building.InjectionStepBuilder;
 import com.envimate.messageMate.useCases.building.ResponseSerializationStep1Builder;
 import com.envimate.messageMate.useCases.building.Step3Builder;
 
@@ -49,6 +50,7 @@ public class TestUseCaseBuilder {
     private Consumer<Step3Builder<?>> useCaseCall;
     private BiConsumer<MessageBusBuilder, TestEnvironment> messageBusEnhancer;
     private UseCaseBusCall useCaseBusCall;
+    private Consumer<InjectionStepBuilder> injectionSetup;
 
     public static TestUseCaseBuilder aTestUseCase() {
         return new TestUseCaseBuilder();
@@ -190,7 +192,7 @@ public class TestUseCaseBuilder {
 
     public TestUseCaseBuilder callingUseCaseWith(final CustomUseCaseCall customUseCaseCall) {
         this.useCaseCall = step3Builder -> {
-            step3Builder.callingBy((useCase, event, requestDeserializer, responseSerializer) -> {
+            step3Builder.callingBy((useCase, event, callingContext) -> {
                 @SuppressWarnings("unchecked")
                 final Map<String, Object> requestMap = (Map<String, Object>) event;
                 final Map<String, Object> responseMap = new HashMap<>();
@@ -203,6 +205,11 @@ public class TestUseCaseBuilder {
 
     public TestUseCaseBuilder withSetup(final BiConsumer<MessageBus, TestEnvironment> setup) {
         this.setup = setup;
+        return this;
+    }
+
+    public TestUseCaseBuilder injectingParameter(final Consumer<InjectionStepBuilder> injectionSetup) {
+        this.injectionSetup = injectionSetup;
         return this;
     }
 
@@ -237,7 +244,7 @@ public class TestUseCaseBuilder {
         }
         return new TestUseCase(useCaseClass, eventType, setup, useCaseInstanceSupplier, deserializationEnhancer,
                 serializationEnhancer, useCaseCall, requestObjectSupplier, expectedResultSupplier,
-                messageBusEnhancer, useCaseBusCall);
+                messageBusEnhancer, useCaseBusCall, injectionSetup);
     }
 
     public interface CustomUseCaseCall {

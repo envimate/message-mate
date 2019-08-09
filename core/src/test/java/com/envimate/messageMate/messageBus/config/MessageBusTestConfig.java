@@ -45,7 +45,7 @@ public final class MessageBusTestConfig {
 
     static MessageBusTestConfig anAsynchronousMessageBus() {
         final int poolSize = ASYNCHRONOUS_DELIVERY_POOL_SIZE;
-        final AsynchronousConfiguration asynchronousConfiguration = AsynchronousConfiguration.constantPoolSizeAsynchronousConfiguration(poolSize);
+        final AsynchronousConfiguration asynchronousConfiguration = constantPoolSizeAsynchronousConfiguration(poolSize);
         return new MessageBusTestConfig(ASYNCHRONOUS, asynchronousConfiguration);
     }
 

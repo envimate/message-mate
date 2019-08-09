@@ -24,6 +24,7 @@ package com.envimate.messageMate.useCases.useCaseAdapter.usecaseCalling;
 import com.envimate.messageMate.mapping.Deserializer;
 import com.envimate.messageMate.mapping.Serializer;
 import com.envimate.messageMate.useCases.useCaseAdapter.methodInvoking.UseCaseMethodInvoker;
+import com.envimate.messageMate.useCases.useCaseAdapter.parameterInjecting.ParameterInjector;
 import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.Method;
@@ -71,11 +72,11 @@ public final class SinglePublicUseCaseMethodCaller<U> implements Caller<U> {
     }
 
     @Override
-    public Map<String, Object> call(final U useCase,
-                                    final Object event,
-                                    final Deserializer requestDeserializer,
-                                    final Serializer responseSerializer) throws Exception {
-        final Map<String, Object> responseMap = methodInvoker.invoke(useCase, event, requestDeserializer, responseSerializer);
+    public Map<String, Object> call(final U useCase, final Object event, final CallingContext callingContext) throws Exception {
+        final Deserializer deserializer = callingContext.getDeserializer();
+        final Serializer serializer = callingContext.getSerializer();
+        final ParameterInjector injector = callingContext.getParameterInjector();
+        final Map<String, Object> responseMap = methodInvoker.invoke(useCase, event, deserializer, serializer, injector);
         return responseMap;
     }
 }

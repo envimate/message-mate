@@ -23,6 +23,7 @@ package com.envimate.messageMate.useCases.useCaseAdapter.methodInvoking;
 
 import com.envimate.messageMate.mapping.Deserializer;
 import com.envimate.messageMate.mapping.Serializer;
+import com.envimate.messageMate.useCases.useCaseAdapter.parameterInjecting.ParameterInjector;
 
 import java.util.Map;
 
@@ -48,6 +49,7 @@ public interface UseCaseMethodInvoker {
     Map<String, Object> invoke(Object useCase,
                                Object event,
                                Deserializer requestDeserializer,
-                               Serializer responseSerializer) throws Exception;
+                               Serializer responseSerializer,
+                               ParameterInjector parameterInjector) throws Exception;
 
 }

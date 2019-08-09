@@ -30,7 +30,7 @@
         <version>1.0.9</version>
     </parent>
     <artifactId>core</artifactId>
-    <version>1.0.9</version>
+    <version>1.0.10</version>
     <name>MessageMate - Core Library</name>
 
     <packaging>jar</packaging>

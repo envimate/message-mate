@@ -31,7 +31,9 @@ import com.envimate.messageMate.serializedMessageBus.SerializedMessageBus;
 import com.envimate.messageMate.subscribing.AcceptingBehavior;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
+import com.envimate.messageMate.useCases.useCaseAdapter.parameterInjecting.ParameterInjector;
 import com.envimate.messageMate.useCases.useCaseAdapter.usecaseCalling.Caller;
+import com.envimate.messageMate.useCases.useCaseAdapter.usecaseCalling.CallingContext;
 import com.envimate.messageMate.useCases.useCaseAdapter.usecaseInstantiating.UseCaseInstantiator;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +45,7 @@ import static com.envimate.messageMate.internal.enforcing.NotNullEnforcer.ensure
 import static com.envimate.messageMate.subscribing.AcceptingBehavior.MESSAGE_ACCEPTED;
 import static com.envimate.messageMate.subscribing.SubscriptionId.newUniqueId;
 import static com.envimate.messageMate.useCases.useCaseAdapter.UseCaseInvokingResponseEventType.USE_CASE_RESPONSE_EVENT_TYPE;
+import static com.envimate.messageMate.useCases.useCaseAdapter.usecaseCalling.CallingContext.callingContext;
 import static lombok.AccessLevel.PRIVATE;
 
 @ToString
@@ -51,8 +54,7 @@ import static lombok.AccessLevel.PRIVATE;
 final class UseCaseRequestExecutingSubscriber implements Subscriber<ProcessingContext<Map<String, Object>>> {
     private final UseCaseCallingInformation<?> useCaseCallingInformation;
     private final UseCaseInstantiator useCaseInstantiator;
-    private final Deserializer requestDeserializer;
-    private final Serializer responseSerializer;
+    private final CallingContext callingContext;
     private final ExceptionSerializer exceptionSerializer;
     private final SubscriptionId subscriptionId = newUniqueId();
     private SerializedMessageBus serializedMessageBus;
@@ -62,14 +64,17 @@ final class UseCaseRequestExecutingSubscriber implements Subscriber<ProcessingCo
             final UseCaseInstantiator useCaseInstantiator,
             final Deserializer requestDeserializer,
             final Serializer responseSerializer,
-            final ExceptionSerializer exceptionSerializer) {
+            final ExceptionSerializer exceptionSerializer,
+            final ParameterInjector parameterInjector) {
         ensureNotNull(useCaseCallingInformation, "useCaseCallingInformation");
         ensureNotNull(useCaseInstantiator, "useCaseInstantiator");
         ensureNotNull(requestDeserializer, "requestDeserializer");
         ensureNotNull(responseSerializer, "responseSerializer");
         ensureNotNull(exceptionSerializer, "exceptionSerializer");
+        ensureNotNull(parameterInjector, "parameterInjector");
+        final CallingContext callingContext = callingContext(responseSerializer, requestDeserializer, parameterInjector);
         return new UseCaseRequestExecutingSubscriber(useCaseCallingInformation, useCaseInstantiator,
-                requestDeserializer, responseSerializer, exceptionSerializer);
+                callingContext, exceptionSerializer);
     }
 
     @Override
@@ -82,7 +87,7 @@ final class UseCaseRequestExecutingSubscriber implements Subscriber<ProcessingCo
         Map<String, Object> serializedReturnValue = null;
         Map<String, Object> serializedException = null;
         try {
-            serializedReturnValue = caller.call(useCase, payload, requestDeserializer, responseSerializer);
+            serializedReturnValue = caller.call(useCase, payload, callingContext);
         } catch (final Exception e) {
             serializedException = exceptionSerializer.serializeException(e);
         }
