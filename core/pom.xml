@@ -91,4 +91,7 @@
         </dependencies>
     </dependencyManagement>
 
+    <build>
+        <finalName>messagemate-core-${project.version}</finalName>
+    </build>
 </project>
