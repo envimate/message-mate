@@ -34,7 +34,7 @@ import java.util.Map;
 public interface ResponseSerializationStep2Builder<T> {
 
     /**
-     * Uses the given {@code Mapifier}, when the previous condition triggers.
+     * Uses the given {@link Mapifier}, when the previous condition triggers.
      *
      * @param mapifier the {@code Mapifier} to use
      * @return the next step in the fluent builder interface

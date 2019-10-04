@@ -21,7 +21,7 @@
 
 package com.envimate.messageMate.useCases;
 
-import com.envimate.messageMate.shared.subscriber.TestException;
+import com.envimate.messageMate.shared.exceptions.TestException;
 import org.junit.jupiter.api.Test;
 
 import static com.envimate.messageMate.useCases.specialInvocations.Given.given;

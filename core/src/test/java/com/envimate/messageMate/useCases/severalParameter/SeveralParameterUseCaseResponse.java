@@ -25,11 +25,11 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import static lombok.AccessLevel.PACKAGE;
+import static lombok.AccessLevel.PRIVATE;
 
 @EqualsAndHashCode
-@RequiredArgsConstructor(access = PACKAGE)
-public class SeveralParameterUseCaseResponse {
+@RequiredArgsConstructor(access = PRIVATE)
+public final class SeveralParameterUseCaseResponse {
     @Getter
     private final int intParameter;
     @Getter
@@ -38,4 +38,11 @@ public class SeveralParameterUseCaseResponse {
     private final Object objectParameter;
     @Getter
     private final String stringParameter;
+
+    public static SeveralParameterUseCaseResponse severalParameterUseCaseResponse(final int intParameter,
+                                                                                  final boolean booleanParameter,
+                                                                                  final Object objectParameter,
+                                                                                  final String stringParameter) {
+        return new SeveralParameterUseCaseResponse(intParameter, booleanParameter, objectParameter, stringParameter);
+    }
 }

@@ -35,7 +35,7 @@ import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.shared.pipeChannelMessageBus.testActions.*;
 import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
-import com.envimate.messageMate.shared.subscriber.TestException;
+import com.envimate.messageMate.shared.exceptions.TestException;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 import com.envimate.messageMate.shared.utils.FilterTestUtils;

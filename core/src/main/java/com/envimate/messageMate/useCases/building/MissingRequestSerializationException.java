@@ -19,26 +19,26 @@
  * under the License.
  */
 
-package com.envimate.messageMate.mapping;
+package com.envimate.messageMate.useCases.building;
 
 /**
- * This {@link Exception} is thrown if no deserialization for an object could be applied.
+ * An {@link Exception} indicating, that no serialization rule could be applied.
  *
  * @see <a href="https://github.com/envimate/message-mate#channel">Message Mate Documentation</a>
  */
-public final class MissingDeserializationException extends RuntimeException {
+public final class MissingRequestSerializationException extends RuntimeException {
 
-    private MissingDeserializationException(final String message) {
+    private MissingRequestSerializationException(final String message) {
         super(message);
     }
 
     /**
-     * Creates a new {@code MissingDeserializationException} exception.
-     *
-     * @param message the {@code Exception's message}
-     * @return the new {@code MissingDeserializationException}
+     * Creates a new {@link MissingRequestSerializationException} for the given message.
+
+     * @param message the exceptions message
+     * @return the newly created {@link MissingRequestSerializationException}
      */
-    public static MissingDeserializationException missingDeserializationException(final String message) {
-        return new MissingDeserializationException(message);
+    public static MissingRequestSerializationException missingRequestSerializationException(final String message) {
+        return new MissingRequestSerializationException(message);
     }
 }

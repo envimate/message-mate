@@ -43,7 +43,13 @@ public final class SerializationFilters {
      * @return a {@code Predicate} checking for the given type
      */
     public static <T> Predicate<T> areOfType(final Class<?> type) {
-        return type::isInstance;
+        return obj -> {
+            if (obj == null || obj.equals(Void.class)) {
+                return type == null || type.equals(Void.class);
+            } else {
+                return type.isInstance(obj);
+            }
+        };
     }
 
 }

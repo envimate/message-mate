@@ -44,7 +44,13 @@ public final class DeserializationFilters {
      * @return a filter checking if the object of deserialize is of the given type
      */
     public static <T extends Class<?>> BiPredicate<T, Map<String, Object>> areOfType(final T type) {
-        return (requestedType, map) -> type.isAssignableFrom(requestedType);
+        return (requestedType, map) -> {
+            if (requestedType == null || requestedType.equals(Void.class)) {
+                return type == null || type.equals(Void.class);
+            } else {
+                return type.isAssignableFrom(requestedType);
+            }
+        };
     }
 
 }

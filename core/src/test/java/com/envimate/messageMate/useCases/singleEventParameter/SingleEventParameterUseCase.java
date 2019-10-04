@@ -21,9 +21,13 @@
 
 package com.envimate.messageMate.useCases.singleEventParameter;
 
+import static com.envimate.messageMate.useCases.singleEventParameter.SingleParameterResponse.singleParameterResponse;
+
 public class SingleEventParameterUseCase {
 
-    public String useCaseMethod(final SingleParameterEvent request) {
-        return request.getMessage();
+    public SingleParameterResponse useCaseMethod(final SingleParameterEvent request) {
+        final String message = request.getMessage();
+        final SingleParameterResponse singleParameterResponse = singleParameterResponse(message);
+        return singleParameterResponse;
     }
 }

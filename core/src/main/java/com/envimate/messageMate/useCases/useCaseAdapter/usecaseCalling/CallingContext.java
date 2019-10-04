@@ -32,15 +32,15 @@ import static lombok.AccessLevel.PRIVATE;
 @RequiredArgsConstructor(access = PRIVATE)
 public final class CallingContext {
     @Getter
-    private final Serializer serializer;
-    @Getter
     private final Deserializer deserializer;
+    @Getter
+    private final Serializer serializer;
     @Getter
     private final ParameterInjector parameterInjector;
 
-    public static CallingContext callingContext(final Serializer serializer,
-                                                final Deserializer deserializer,
+    public static CallingContext callingContext(final Deserializer deserializer,
+                                                final Serializer serializer,
                                                 final ParameterInjector parameterInjector) {
-        return new CallingContext(serializer, deserializer, parameterInjector);
+        return new CallingContext(deserializer, serializer, parameterInjector);
     }
 }

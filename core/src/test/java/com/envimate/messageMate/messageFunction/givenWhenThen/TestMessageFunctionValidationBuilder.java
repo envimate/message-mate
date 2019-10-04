@@ -31,7 +31,7 @@ import com.envimate.messageMate.messageFunction.testResponses.TestResponse;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.shared.givenWhenThen.TestValidation;
-import com.envimate.messageMate.shared.subscriber.TestException;
+import com.envimate.messageMate.shared.exceptions.TestException;
 import com.envimate.messageMate.subscribing.Subscriber;
 import lombok.RequiredArgsConstructor;
 

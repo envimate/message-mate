@@ -63,8 +63,10 @@
     <suppress checks="HideUtilityClassConstructor" files="ChannelTestValidations.java"/>
     <suppress checks="HideUtilityClassConstructor" files="PollingUtils.java"/>
     <suppress checks="HideUtilityClassConstructor" files="MessageBusTestValidations.java"/>
+    <suppress checks="HideUtilityClassConstructor" files="VoidReturnRequest.java"/>
 
     <suppress checks="ParameterNumber" files="MessageStatistics.java"/>
+    <suppress checks="ParameterNumber" files="UseCaseAdapterImpl.java"/>
 
     <suppress checks="IllegalCatch" files="SynchronousDelivery.java"/>
     <suppress checks="IllegalCatch" files="EventToUseCaseDispatcherBuilder.java"/>

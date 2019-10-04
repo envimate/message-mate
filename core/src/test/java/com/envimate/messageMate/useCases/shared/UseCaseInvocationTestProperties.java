@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.envimate.messageMate.useCases.givenWhenThen;
+package com.envimate.messageMate.useCases.shared;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,6 +27,15 @@ import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
 public final class UseCaseInvocationTestProperties {
+    public static final String USE_CASE_BUS = "USE_CASE_BUS";
     public static final String MESSAGE_FUNCTION_USED = "MESSAGE_FUNCTION_USED";
-    public static final String RETRIEVE_ERROR_FROM_FUTURE = "RETRIEVE_ERROR_FROM_FUTURE";
+
+    public static final String SIMULATE_MISSING_REQUEST_SERIALIZATION_PARAMETER = "SIMULATE_MISSING_REQUEST_SERIALIZATION_PARAM";
+    public static final String SIMULATE_MISSING_REQUEST_DESERIALIZATION_PARAMETER = "SIMULATE_MISSING_REQUEST_DESERIALIZATION_P";
+    public static final String SIMULATE_MISSING_RESPONSE_SERIALIZATION_PARAMETER = "SIM_MISSING_RESPONSE_SERIALIZATION_P";
+    public static final String SIMULATE_MISSING_RESPONSE_EXCEPTION_SERIALIZATION_PARAM = "SIM_MISSING_RESP_EXC_SER_PARAM";
+    public static final String SIMULATE_MISSING_RESPONSE_DESERIALIZATION_PARAMETER = "SIM_MISSING_RESPONSE_DESERIALIZATION_P";
+
+    public static final String REQUEST_EXPECTED_RESULT_TUPLE = "REQUEST_EXPECTED_RESULT_TUPLE";
+    public static final String EXPECTED_ERROR_PAYLOAD_CLASS = "EXPECTED_ERROR_PAYLOAD_CLASS";
 }

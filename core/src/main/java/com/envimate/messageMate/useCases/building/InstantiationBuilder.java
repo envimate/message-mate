@@ -38,7 +38,7 @@ public interface InstantiationBuilder {
      *
      * @return the next step in the fluent builder interface
      */
-    default DeserializationStep1Builder obtainingUseCaseInstancesUsingTheZeroArgumentConstructor() {
+    default RequestSerializationStep1Builder obtainingUseCaseInstancesUsingTheZeroArgumentConstructor() {
         return obtainingUseCaseInstancesUsing(zeroArgumentsConstructorUseCaseInstantiator());
     }
 
@@ -48,6 +48,6 @@ public interface InstantiationBuilder {
      * @param useCaseInstantiator the {@code UseCaseInstantiator} to invoke
      * @return the next step in the fluent builder interface
      */
-    DeserializationStep1Builder obtainingUseCaseInstancesUsing(UseCaseInstantiator useCaseInstantiator);
+    RequestSerializationStep1Builder obtainingUseCaseInstancesUsing(UseCaseInstantiator useCaseInstantiator);
 
 }

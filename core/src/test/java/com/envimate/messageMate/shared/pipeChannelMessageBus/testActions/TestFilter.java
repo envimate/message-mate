@@ -27,7 +27,7 @@ import com.envimate.messageMate.filtering.FilterActions;
 import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.processingContext.ProcessingContext;
-import com.envimate.messageMate.shared.subscriber.TestException;
+import com.envimate.messageMate.shared.exceptions.TestException;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 
 import java.util.HashMap;

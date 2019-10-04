@@ -21,5 +21,16 @@
 
 package com.envimate.messageMate.useCases.checkedException;
 
-public class CheckedTestException extends Exception {
+import lombok.EqualsAndHashCode;
+
+@EqualsAndHashCode(callSuper = false)
+public final class CheckedTestException extends Exception {
+
+    private CheckedTestException(final String message) {
+        super(message);
+    }
+
+    public static CheckedTestException checkedTestException(final String message) {
+        return new CheckedTestException(message);
+    }
 }

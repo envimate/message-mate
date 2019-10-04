@@ -24,10 +24,14 @@ package com.envimate.messageMate.useCases.primitiveReturnType;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import static lombok.AccessLevel.PACKAGE;
+import static lombok.AccessLevel.PRIVATE;
 
-@RequiredArgsConstructor(access = PACKAGE)
+@RequiredArgsConstructor(access = PRIVATE)
 public final class PrimitiveReturnTypeRequest {
     @Getter
     private final int value;
+
+    public static PrimitiveReturnTypeRequest primitiveReturnTypeRequest(final int value) {
+        return new PrimitiveReturnTypeRequest(value);
+    }
 }

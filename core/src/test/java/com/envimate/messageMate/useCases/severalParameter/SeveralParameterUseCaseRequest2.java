@@ -24,13 +24,18 @@ package com.envimate.messageMate.useCases.severalParameter;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import static lombok.AccessLevel.PACKAGE;
+import static lombok.AccessLevel.PRIVATE;
 
-@RequiredArgsConstructor(access = PACKAGE)
-public class SeveralParameterUseCaseRequest2 {
+@RequiredArgsConstructor(access = PRIVATE)
+public final class SeveralParameterUseCaseRequest2 {
     @Getter
     private final String stringParameter;
     @Getter
     private final Object objectParameter;
+
+    public static SeveralParameterUseCaseRequest2 severalParameterUseCaseRequest2(final String stringParameter,
+                                                                                  final Object objectParameter) {
+        return new SeveralParameterUseCaseRequest2(stringParameter, objectParameter);
+    }
 
 }

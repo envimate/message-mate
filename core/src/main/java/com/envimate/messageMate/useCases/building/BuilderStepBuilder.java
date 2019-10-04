@@ -22,7 +22,6 @@
 package com.envimate.messageMate.useCases.building;
 
 import com.envimate.messageMate.messageBus.MessageBus;
-import com.envimate.messageMate.serializedMessageBus.SerializedMessageBus;
 import com.envimate.messageMate.useCases.useCaseAdapter.UseCaseAdapter;
 import com.envimate.messageMate.useCases.useCaseAdapter.UseCaseInvocationBuilder;
 import com.envimate.messageMate.useCases.useCaseBus.UseCaseBus;
@@ -31,14 +30,6 @@ import com.envimate.messageMate.useCases.useCaseBus.UseCaseBus;
  * The {@link UseCaseInvocationBuilder} step, that builds the final {@link UseCaseBus} or {@link UseCaseAdapter}.
  */
 public interface BuilderStepBuilder {
-
-    /**
-     * Completes the configuration and creates a {@code UseCaseBus} based on the given {@code SerializedMessageBus}.
-     *
-     * @param serializedMessageBus the {@code SerializedMessageBus} to use
-     * @return the newly created {@code UseCaseBus}
-     */
-    UseCaseBus build(SerializedMessageBus serializedMessageBus);
 
     /**
      * Completes the configuration and creates a {@code UseCaseBus} based on the given {@code SerializedMessageBus}.

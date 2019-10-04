@@ -21,6 +21,7 @@
 
 package com.envimate.messageMate.shared.subscriber;
 
+import com.envimate.messageMate.shared.exceptions.TestException;
 import com.envimate.messageMate.subscribing.AcceptingBehavior;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.AccessLevel;

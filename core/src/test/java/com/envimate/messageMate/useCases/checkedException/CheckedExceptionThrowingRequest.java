@@ -24,10 +24,14 @@ package com.envimate.messageMate.useCases.checkedException;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import static lombok.AccessLevel.PACKAGE;
+import static lombok.AccessLevel.PRIVATE;
 
-@RequiredArgsConstructor(access = PACKAGE)
-public class CheckedExceptionThrowingRequest {
+@RequiredArgsConstructor(access = PRIVATE)
+public final class CheckedExceptionThrowingRequest {
     @Getter
     private final CheckedTestException exceptionToThrow;
+
+    public static CheckedExceptionThrowingRequest checkedExceptionThrowingRequest(final CheckedTestException e) {
+        return new CheckedExceptionThrowingRequest(e);
+    }
 }

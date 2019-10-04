@@ -19,29 +19,17 @@
  * under the License.
  */
 
-package com.envimate.messageMate.useCases.shared;
+package com.envimate.messageMate.serializedMessageBus;
 
-import com.envimate.messageMate.processingContext.EventType;
-import com.envimate.messageMate.useCases.payloadAndErrorPayload.PayloadAndErrorPayload;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+public final class MissingErrorPayloadClassForDeserialization extends RuntimeException {
 
-import java.util.Map;
+    private MissingErrorPayloadClassForDeserialization(final String message) {
+        super(message);
+    }
 
-import static lombok.AccessLevel.PACKAGE;
+    public static MissingErrorPayloadClassForDeserialization missingErrorPayloadClassForDeserialization() {
+        final String message = "Received message with error payload, but no class for error response was given.";
+        return new MissingErrorPayloadClassForDeserialization(message);
+    }
 
-@RequiredArgsConstructor(access = PACKAGE)
-public final class UseCaseBusCall {
-    @Getter
-    private final EventType eventType;
-    @Getter
-    private final Object data;
-    @Getter
-    private final Class<?> payloadClass;
-    @Getter
-    private final Class<?> errorPayloadClass;
-    @Getter
-    private final PayloadAndErrorPayload<?, ?> expectedResult;
-    @Getter
-    private final PayloadAndErrorPayload<Map<String, Object>, Map<String, Object>> notDeserializedExpectedResult;
 }

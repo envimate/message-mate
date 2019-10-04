@@ -23,15 +23,18 @@ package com.envimate.messageMate.useCases.givenWhenThen;
 
 import com.envimate.messageMate.messageFunction.ResponseFuture;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
-import com.envimate.messageMate.useCases.shared.TestUseCase;
+import com.envimate.messageMate.useCases.payloadAndErrorPayload.PayloadAndErrorPayload;
+import com.envimate.messageMate.useCases.shared.RequestExpectedResultTuple;
+import com.envimate.messageMate.useCases.shared.UseCaseInvocationConfiguration;
 import lombok.RequiredArgsConstructor;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXCEPTION;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.RESULT;
 import static com.envimate.messageMate.shared.validations.SharedTestValidations.*;
-import static com.envimate.messageMate.useCases.givenWhenThen.UseCaseInvocationTestProperties.RETRIEVE_ERROR_FROM_FUTURE;
+import static com.envimate.messageMate.useCases.shared.UseCaseInvocationTestProperties.REQUEST_EXPECTED_RESULT_TUPLE;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static lombok.AccessLevel.PRIVATE;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -45,22 +48,60 @@ public final class UseCaseInvocationValidationBuilder {
     }
 
     public static UseCaseInvocationValidationBuilder expectTheUseCaseToBeInvokedOnce() {
-        return asValidation((testUseCase, testEnvironment) -> {
+        return asValidation((invocationConfiguration, testEnvironment) -> {
             assertNoExceptionThrown(testEnvironment);
-            final Object expectedResult = testUseCase.getExpectedResult(testEnvironment);
-            assertResultEqualsExpected(testEnvironment, expectedResult);
+            assertPayloadAsExpected(testEnvironment);
         });
     }
 
-    public static UseCaseInvocationValidationBuilder expectTheResponseToBeReceivedByTheMessageFunction() {
+    public static UseCaseInvocationValidationBuilder expectAnErrorPayloadOfType(final Class<?> expectedClass) {
         return asValidation((testUseCase, testEnvironment) -> {
             assertNoExceptionThrown(testEnvironment);
-            final Object expectedResult = testUseCase.getExpectedResult(testEnvironment);
+            assertErrorPayloadOfClass(testEnvironment, expectedClass);
+        });
+    }
+
+    public static UseCaseInvocationValidationBuilder expectAnExecutionExceptionCauseByExceptionOfType(
+            final Class<?> expectedExceptionClass) {
+        return asValidation((testUseCase, testEnvironment) -> {
+            assertExceptionThrownOfType(testEnvironment, ExecutionException.class);
+            final ExecutionException executionException = testEnvironment.getPropertyAsType(EXCEPTION, ExecutionException.class);
+            final Exception cause = (Exception) executionException.getCause();
+            assertEquals(cause.getClass(), expectedExceptionClass);
+        });
+    }
+
+    private static void assertPayloadAsExpected(final TestEnvironment testEnvironment) {
+        final RequestExpectedResultTuple requestExpectedResultTuple =
+                testEnvironment.getPropertyAsType(REQUEST_EXPECTED_RESULT_TUPLE, RequestExpectedResultTuple.class);
+        final PayloadAndErrorPayload<?, ?> result = testEnvironment.getPropertyAsType(RESULT, PayloadAndErrorPayload.class);
+        final Object payload;
+        if (requestExpectedResultTuple.isResultInErrorPayload()) {
+            payload = result.getErrorPayload();
+        } else {
+            payload = result.getPayload();
+        }
+        final Object expectedResult = requestExpectedResultTuple.getExpectedResult();
+        assertEquals(payload, expectedResult);
+    }
+
+    private static void assertErrorPayloadOfClass(final TestEnvironment testEnvironment, final Class<?> expectedClass) {
+        final PayloadAndErrorPayload<?, ?> result = testEnvironment.getPropertyAsType(RESULT, PayloadAndErrorPayload.class);
+        final Object errorPayload = result.getErrorPayload();
+        assertEquals(errorPayload.getClass(), expectedClass);
+    }
+
+    public static UseCaseInvocationValidationBuilder expectTheResponseToBeReceivedByTheMessageFunction() {
+        return asValidation((invocationConfiguration, testEnvironment) -> {
+            assertNoExceptionThrown(testEnvironment);
             final ResponseFuture responseFuture = testEnvironment.getPropertyAsType(RESULT, ResponseFuture.class);
+            final RequestExpectedResultTuple requestExpectedResultTuple =
+                    testEnvironment.getPropertyAsType(REQUEST_EXPECTED_RESULT_TUPLE, RequestExpectedResultTuple.class);
+            final Object expectedResult = requestExpectedResultTuple.getExpectedResult();
             try {
                 final Object result;
-                final int timeout = 10;
-                if (testEnvironment.has(RETRIEVE_ERROR_FROM_FUTURE)) {
+                final int timeout = 50;
+                if (requestExpectedResultTuple.isResultInErrorPayload()) {
                     result = responseFuture.getErrorResponse(timeout, MILLISECONDS);
                 } else {
                     result = responseFuture.get(timeout, MILLISECONDS);
@@ -75,24 +116,11 @@ public final class UseCaseInvocationValidationBuilder {
         });
     }
 
-    public static UseCaseInvocationValidationBuilder expectAExceptionOfType(final Class<?> expectedExceptionClass) {
-        return asValidation((testUseCase, testEnvironment) -> {
-            assertExceptionThrownOfType(testEnvironment, expectedExceptionClass);
-        });
-    }
-
-    public static UseCaseInvocationValidationBuilder expectTheUseCaseToBeInvokedByTheUseCaseBus() {
-        return asValidation((testUseCase, testEnvironment) -> {
-            assertNoExceptionThrown(testEnvironment);
-            assertResultAndExpectedResultAreEqual(testEnvironment);
-        });
-    }
-
     public UseCaseAdapterTestValidation build() {
         return testValidation;
     }
 
     interface UseCaseAdapterTestValidation {
-        void validate(TestUseCase testUseCase, TestEnvironment testEnvironment);
+        void validate(UseCaseInvocationConfiguration testUseCase, TestEnvironment testEnvironment);
     }
 }

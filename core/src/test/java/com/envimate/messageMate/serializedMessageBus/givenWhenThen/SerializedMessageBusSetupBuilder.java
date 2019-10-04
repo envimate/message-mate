@@ -30,11 +30,11 @@ import com.envimate.messageMate.mapping.Mapifier;
 import com.envimate.messageMate.mapping.Serializer;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.processingContext.EventType;
-import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.serializedMessageBus.SerializedMessageBus;
+import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.shared.givenWhenThen.SetupAction;
 import com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber;
-import com.envimate.messageMate.shared.subscriber.TestException;
+import com.envimate.messageMate.shared.exceptions.TestException;
 import com.envimate.messageMate.shared.testMessages.ErrorTestMessage;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 import com.envimate.messageMate.subscribing.SubscriptionId;
@@ -49,12 +49,11 @@ import java.util.Map;
 
 import static com.envimate.messageMate.internal.collections.filtermap.FilterMapBuilder.filterMapBuilder;
 import static com.envimate.messageMate.internal.collections.predicatemap.PredicateMapBuilder.predicateMapBuilder;
+import static com.envimate.messageMate.serializedMessageBus.givenWhenThen.SerializedMessageBusTestProperties.EVENT_TYPE_WITH_NO_SUBSCRIBERS;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXPECTED_RECEIVERS;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.*;
-import static com.envimate.messageMate.serializedMessageBus.givenWhenThen.SerializedMessageBusTestProperties.*;
 import static com.envimate.messageMate.shared.eventType.TestEventType.testEventType;
 import static com.envimate.messageMate.shared.properties.SharedTestProperties.*;
-import static com.envimate.messageMate.shared.properties.SharedTestProperties.EVENT_TYPE;
 import static com.envimate.messageMate.shared.subscriber.SimpleTestSubscriber.testSubscriber;
 import static com.envimate.messageMate.subscribing.ConsumerSubscriber.consumerSubscriber;
 import static lombok.AccessLevel.PRIVATE;
@@ -173,7 +172,7 @@ public final class SerializedMessageBusSetupBuilder {
         final Deserializer deserializer = getDeserializer();
         final Serializer serializer = getSerializer();
         final SerializedMessageBus serializedMessageBus = SerializedMessageBus
-                .aSerializedMessageBus(messageBus, deserializer, serializer);
+                .aSerializedMessageBus(messageBus, serializer, deserializer);
         setupActions.forEach(a -> a.execute(serializedMessageBus, testEnvironment));
         testEnvironment.setPropertyIfNotSet(SUT, serializedMessageBus);
         testEnvironment.setPropertyIfNotSet(MOCK, messageBus);
@@ -200,7 +199,7 @@ public final class SerializedMessageBusSetupBuilder {
                     throw new TestMissingDeserializationException("No deserialization known for " + targetType);
                 });
 
-        return Deserializer.requestDeserializer(deserializingFilterMapBuilder.build());
+        return Deserializer.deserializer(deserializingFilterMapBuilder.build());
     }
 
     private Serializer getSerializer() {
@@ -221,7 +220,7 @@ public final class SerializedMessageBusSetupBuilder {
                 .setDefaultValue(o -> {
                     throw new TestMissingSerializationException("No serialization known for " + o.getClass());
                 });
-        return Serializer.responseSerializer(serializingMapBuilder.build());
+        return Serializer.serializer(serializingMapBuilder.build());
     }
 
     @RequiredArgsConstructor(access = PRIVATE)

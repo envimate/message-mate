@@ -21,15 +21,15 @@
 
 package com.envimate.messageMate.useCases.noParameter;
 
-import com.envimate.messageMate.useCases.shared.TestUseCase;
 import com.envimate.messageMate.useCases.UseCaseInvocationSpecs;
+import com.envimate.messageMate.useCases.shared.UseCaseInvocationConfiguration;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(NoParameterConfigurationResolver.class)
 public class NoParameterUseCaseInvocationSpecs implements UseCaseInvocationSpecs {
 
     @Override
-    public void testUseCaseAdapter_failsForMissingDeserializationMapping(final TestUseCase testUseCase) {
+    public void testUseCaseAdapter_failsForMissingRequestDeserializationMapping(final UseCaseInvocationConfiguration configuration) {
         // cannot be tested, when there are no parameter
     }
 }

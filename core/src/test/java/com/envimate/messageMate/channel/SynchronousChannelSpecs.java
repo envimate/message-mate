@@ -23,7 +23,7 @@ package com.envimate.messageMate.channel;
 
 import com.envimate.messageMate.channel.config.ChannelTestConfig;
 import com.envimate.messageMate.channel.config.SynchronousChannelConfigResolver;
-import com.envimate.messageMate.shared.subscriber.TestException;
+import com.envimate.messageMate.shared.exceptions.TestException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 

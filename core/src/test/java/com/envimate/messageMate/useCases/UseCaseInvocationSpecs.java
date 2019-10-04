@@ -21,110 +21,100 @@
 
 package com.envimate.messageMate.useCases;
 
-import com.envimate.messageMate.mapping.MissingDeserializationException;
-import com.envimate.messageMate.mapping.MissingSerializationException;
-import com.envimate.messageMate.useCases.shared.TestUseCase;
+import com.envimate.messageMate.useCases.building.*;
+import com.envimate.messageMate.useCases.shared.UseCaseInvocationConfiguration;
 import org.junit.jupiter.api.Test;
 
 import static com.envimate.messageMate.useCases.givenWhenThen.Given.given;
 import static com.envimate.messageMate.useCases.givenWhenThen.UseCaseInvocationActionBuilder.*;
 import static com.envimate.messageMate.useCases.givenWhenThen.UseCaseInvocationSetupBuilder.aUseCaseAdapterFor;
-import static com.envimate.messageMate.useCases.givenWhenThen.UseCaseInvocationSetupBuilder.aUseCaseBusFor;
 import static com.envimate.messageMate.useCases.givenWhenThen.UseCaseInvocationValidationBuilder.*;
+
 
 public interface UseCaseInvocationSpecs {
 
-    //UseCaseAdapter
+    //UseCaseAdapter + UseCaseBus
     @Test
-    default void testUseCaseAdapter_canInvokeUseCaseUsingTheAutomaticMethod(final TestUseCase testUseCase) {
-        given(aUseCaseAdapterFor(testUseCase)
-                .invokingTheUseCaseUsingTheSingleUseCaseMethod())
+    default void testUseCaseAdapter_canInvokeUseCaseUsingTheAutomaticMethod(final UseCaseInvocationConfiguration configuration) {
+        given(aUseCaseAdapterFor(configuration)
+                .invokedUsingTheSingleUseCaseMethod())
                 .when(theAssociatedEventIsSend())
                 .then(expectTheUseCaseToBeInvokedOnce());
     }
 
     @Test
-    default void testUseCaseAdapter_explicitMappingCanBeDefined(final TestUseCase testUseCase) {
-        given(aUseCaseAdapterFor(testUseCase)
+    default void testUseCaseAdapter_explicitMappingCanBeDefined(final UseCaseInvocationConfiguration configuration) {
+        given(aUseCaseAdapterFor(configuration)
                 .invokingTheUseCaseUsingTheDefinedMapping())
                 .when(theAssociatedEventIsSend())
                 .then(expectTheUseCaseToBeInvokedOnce());
     }
 
     @Test
-    default void testUseCaseAdapter_canUseCustomInstantiation(final TestUseCase testUseCase) {
-        given(aUseCaseAdapterFor(testUseCase)
-                .invokingTheUseCaseUsingTheSingleUseCaseMethod()
-                .usingACustomInstantiationMechanism())
+    default void testUseCaseAdapter_canUseCustomInstantiation(final UseCaseInvocationConfiguration configuration) {
+        given(aUseCaseAdapterFor(configuration)
+                .invokedUsingTheSingleUseCaseMethodButACustomInstantiationMechanism())
                 .when(theAssociatedEventIsSend())
                 .then(expectTheUseCaseToBeInvokedOnce());
     }
 
     //errors
     @Test
-    default void testUseCaseAdapter_failsForMissingDeserializationMapping(final TestUseCase testUseCase) {
-        given(aUseCaseAdapterFor(testUseCase)
-                .invokingTheUseCaseUsingAMissingDeserializationParameter())
+    default void testUseCaseAdapter_failsForMissingRequestSerializationMapping(final UseCaseInvocationConfiguration configuration) {
+        given(aUseCaseAdapterFor(configuration)
+                .invokingTheUseCaseUsingAMissingRequestSerializationDefinition())
                 .when(anEventWithMissingMappingIsSend())
-                .then(expectAExceptionOfType(MissingDeserializationException.class));
+                .then(expectAnExecutionExceptionCauseByExceptionOfType(MissingRequestSerializationException.class));
     }
 
     @Test
-    default void testUseCaseAdapter_failsForMissingSerializationMapping(final TestUseCase testUseCase) {
-        given(aUseCaseAdapterFor(testUseCase)
-                .invokingTheUseCaseUsingAMissingSerializationParameter())
+    default void testUseCaseAdapter_failsForMissingRequestDeserializationMapping(final UseCaseInvocationConfiguration configuration) {
+        given(aUseCaseAdapterFor(configuration)
+                .invokingTheUseCaseUsingAMissingParameterDeserializationDefinition())
                 .when(anEventWithMissingMappingIsSend())
-                .then(expectAExceptionOfType(MissingSerializationException.class));
+                .then(expectAnErrorPayloadOfType(MissingRequestDeserializationException.class));
     }
 
-    //UseCaseAdapter with MessageFunction
     @Test
-    default void testUseCaseAdapter_canBeUsedInCombinationWithAMessageFunction(final TestUseCase testUseCase) {
-        given(aUseCaseAdapterFor(testUseCase)
-                .invokingTheUseCaseUsingTheSingleUseCaseMethod())
+    default void testUseCaseAdapter_failsForMissingResponseSerializationMapping(final UseCaseInvocationConfiguration configuration) {
+        given(aUseCaseAdapterFor(configuration)
+                .invokingTheUseCaseUsingAMissingResponseSerializationDefinition())
+                .when(anEventWithMissingMappingIsSend())
+                .then(expectAnErrorPayloadOfType(MissingResponseSerializationException.class));
+    }
+
+    @Test
+    default void testUseCaseAdapter_failsForMissingExceptionSerializationMapping(final UseCaseInvocationConfiguration configuration) {
+        given(aUseCaseAdapterFor(configuration)
+                .throwingAnExceptionWithoutMappingWhenInvokingTheUseCase())
+                .when(anEventWithMissingMappingIsSend())
+                .then(expectAnErrorPayloadOfType(MissingExceptionSerializationException.class));
+    }
+
+    @Test
+    default void testUseCaseAdapter_failsForMissingResponseDeserializationMapping(final UseCaseInvocationConfiguration configuration) {
+        given(aUseCaseAdapterFor(configuration)
+                .invokingTheUseCaseUsingAMissingResponseDeserializationDefinition())
+                .when(anEventWithMissingMappingIsSend())
+                .then(expectAnExecutionExceptionCauseByExceptionOfType(MissingResponseDeserializationException.class));
+    }
+
+    //MessageFunction + directly using MessageBus
+    @Test
+    default void testUseCaseAdapter_canBeUsedInCombinationWithAMessageFunction(final UseCaseInvocationConfiguration configuration) {
+        given(aUseCaseAdapterFor(configuration)
+                .invokedUsingTheSingleUseCaseMethod())
                 .when(theRequestIsExecutedUsingAMessageFunction())
                 .then(expectTheResponseToBeReceivedByTheMessageFunction());
     }
 
     @Test
-    default void testUseCaseAdapter_canAMessageFunctionAndACustomMapping(final TestUseCase testUseCase) {
-        given(aUseCaseAdapterFor(testUseCase)
+    default void testUseCaseAdapter_canAMessageFunctionAndACustomMapping(final UseCaseInvocationConfiguration configuration) {
+        given(aUseCaseAdapterFor(configuration)
                 .invokingTheUseCaseUsingTheDefinedMapping())
                 .when(theRequestIsExecutedUsingAMessageFunction())
                 .then(expectTheResponseToBeReceivedByTheMessageFunction());
     }
 
-    //UseCaseBus
-    @Test
-    default void testUseCaseBus_canInvokeAUseCase(final TestUseCase testUseCase) {
-        given(aUseCaseBusFor(testUseCase)
-                .invokingTheUseCaseUsingTheSingleUseCaseMethod())
-                .when(theRequestIsInvokedOnTheUseCaseBus())
-                .then(expectTheUseCaseToBeInvokedByTheUseCaseBus());
-    }
-
-    @Test
-    default void testUseCaseBus_canInvokeAUseCaseWithTimeout(final TestUseCase testUseCase) {
-        given(aUseCaseBusFor(testUseCase)
-                .invokingTheUseCaseUsingTheSingleUseCaseMethod())
-                .when(theRequestIsInvokedOnTheUseCaseBusWithTimeout())
-                .then(expectTheUseCaseToBeInvokedByTheUseCaseBus());
-    }
-
-    @Test
-    default void testUseCaseBus_canInvokeAUseCaseNotDeserialized(final TestUseCase testUseCase) {
-        given(aUseCaseBusFor(testUseCase)
-                .invokingTheUseCaseUsingTheSingleUseCaseMethod())
-                .when(theRequestIsInvokedOnTheUseCaseBusNotDeserialized())
-                .then(expectTheUseCaseToBeInvokedByTheUseCaseBus());
-    }
-
-    @Test
-    default void testUseCaseBus_canInvokeAUseCaseNotDeserializedWithTimeout(final TestUseCase testUseCase) {
-        given(aUseCaseBusFor(testUseCase)
-                .invokingTheUseCaseUsingTheSingleUseCaseMethod())
-                .when(theRequestIsInvokedOnTheUseCaseBusNotDeserializedWithTimeout())
-                .then(expectTheUseCaseToBeInvokedByTheUseCaseBus());
-    }
 
 }

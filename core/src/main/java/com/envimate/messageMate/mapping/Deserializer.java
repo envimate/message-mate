@@ -45,7 +45,7 @@ public final class Deserializer {
      * @param requestMappers the {@code FilterMap} to be used as deserializers
      * @return a new {@code Deserializer}
      */
-    public static Deserializer requestDeserializer(
+    public static Deserializer deserializer(
             final FilterMap<Class<?>, Map<String, Object>, Demapifier<?>> requestMappers) {
         ensureNotNull(requestMappers, "demapifierMap");
         return new Deserializer(requestMappers);

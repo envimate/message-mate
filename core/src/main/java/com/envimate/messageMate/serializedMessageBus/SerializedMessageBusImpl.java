@@ -25,16 +25,16 @@ import com.envimate.messageMate.identification.CorrelationId;
 import com.envimate.messageMate.identification.MessageId;
 import com.envimate.messageMate.mapping.Deserializer;
 import com.envimate.messageMate.mapping.Serializer;
-import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.messageBus.MessageBus;
-import com.envimate.messageMate.useCases.payloadAndErrorPayload.PayloadAndErrorPayload;
 import com.envimate.messageMate.messageFunction.MessageFunction;
 import com.envimate.messageMate.messageFunction.MessageFunctionBuilder;
 import com.envimate.messageMate.messageFunction.ResponseFuture;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.subscribing.AcceptingBehavior;
 import com.envimate.messageMate.subscribing.Subscriber;
 import com.envimate.messageMate.subscribing.SubscriptionId;
+import com.envimate.messageMate.useCases.payloadAndErrorPayload.PayloadAndErrorPayload;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Map;
@@ -42,20 +42,23 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static com.envimate.messageMate.useCases.payloadAndErrorPayload.PayloadAndErrorPayload.payloadAndErrorPayload;
 import static com.envimate.messageMate.processingContext.ProcessingContext.processingContextForPayloadAndError;
+import static com.envimate.messageMate.serializedMessageBus.MissingErrorPayloadClassForDeserialization.missingErrorPayloadClassForDeserialization;
+import static com.envimate.messageMate.useCases.payloadAndErrorPayload.PayloadAndErrorPayload.payloadAndErrorPayload;
 import static lombok.AccessLevel.PRIVATE;
 
 public class SerializedMessageBusImpl implements SerializedMessageBus {
     private final MessageBus messageBus;
-    private final Deserializer deserializer;
-    private final Serializer serializer;
+    private final Serializer requestSerializer;
+    private final Deserializer responseDeserializer;
     private final MessageFunction messageFunction;
 
-    SerializedMessageBusImpl(final MessageBus messageBus, final Deserializer deserializer, final Serializer serializer) {
+    SerializedMessageBusImpl(final MessageBus messageBus,
+                             final Serializer requestSerializer,
+                             final Deserializer responseDeserializer) {
         this.messageBus = messageBus;
-        this.deserializer = deserializer;
-        this.serializer = serializer;
+        this.responseDeserializer = responseDeserializer;
+        this.requestSerializer = requestSerializer;
         this.messageFunction = MessageFunctionBuilder.aMessageFunction(messageBus);
     }
 
@@ -86,20 +89,20 @@ public class SerializedMessageBusImpl implements SerializedMessageBus {
 
     @Override
     public MessageId serializeAndSend(final EventType eventType, final Object data) {
-        final Map<String, Object> map = serializer.serialize(data);
+        final Map<String, Object> map = requestSerializer.serialize(data);
         return send(eventType, map);
     }
 
     @Override
     public MessageId serializeAndSend(final EventType eventType, final Object data, final CorrelationId correlationId) {
-        final Map<String, Object> map = serializer.serialize(data);
+        final Map<String, Object> map = requestSerializer.serialize(data);
         return send(eventType, map, correlationId);
     }
 
     @Override
     public MessageId serializeAndSend(final EventType eventType, final Object data, final Object errorData) {
-        final Map<String, Object> map = serializer.serialize(data);
-        return send(eventType, map, serializer.serialize(errorData));
+        final Map<String, Object> map = requestSerializer.serialize(data);
+        return send(eventType, map, requestSerializer.serialize(errorData));
     }
 
     @Override
@@ -107,8 +110,8 @@ public class SerializedMessageBusImpl implements SerializedMessageBus {
                                       final Object data,
                                       final Object errorData,
                                       final CorrelationId correlationId) {
-        final Map<String, Object> payloadMap = serializer.serialize(data);
-        final Map<String, Object> errorPayloadMap = serializer.serialize(errorData);
+        final Map<String, Object> payloadMap = requestSerializer.serialize(data);
+        final Map<String, Object> errorPayloadMap = requestSerializer.serialize(errorData);
         return send(eventType, payloadMap, errorPayloadMap, correlationId);
     }
 
@@ -194,7 +197,7 @@ public class SerializedMessageBusImpl implements SerializedMessageBus {
 
     private Map<String, Object> serializeWithExecutionExceptionWrapper(final Object data) throws ExecutionException {
         try {
-            return serializer.serialize(data);
+            return requestSerializer.serialize(data);
         } catch (final Exception e) {
             throw new ExecutionException(e);
         }
@@ -271,13 +274,17 @@ public class SerializedMessageBusImpl implements SerializedMessageBus {
                                                             final Class<E> errorPayloadClass) {
         final P payload;
         if (payloadMap != null) {
-            payload = deserializer.deserialize(responseClass, payloadMap);
+            payload = responseDeserializer.deserialize(responseClass, payloadMap);
         } else {
             payload = null;
         }
         final E errorPayload;
         if (errorPayloadMap != null) {
-            errorPayload = deserializer.deserialize(errorPayloadClass, errorPayloadMap);
+            if (errorPayloadClass != null) {
+                errorPayload = responseDeserializer.deserialize(errorPayloadClass, errorPayloadMap);
+            } else {
+                throw missingErrorPayloadClassForDeserialization();
+            }
         } else {
             errorPayload = null;
         }

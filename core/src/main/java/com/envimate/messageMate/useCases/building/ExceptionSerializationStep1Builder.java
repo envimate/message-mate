@@ -27,9 +27,8 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 import static com.envimate.messageMate.mapping.ExceptionMapifier.defaultExceptionMapifier;
-import static com.envimate.messageMate.mapping.MissingSerializationException.missingSerializationException;
+import static com.envimate.messageMate.mapping.MissingExceptionMappingExceptionMapifier.missingExceptionSerializationWrappingExceptionMapifier;
 import static com.envimate.messageMate.mapping.SerializationFilters.areOfType;
-import static java.lang.String.format;
 
 public interface ExceptionSerializationStep1Builder {
 
@@ -44,21 +43,11 @@ public interface ExceptionSerializationStep1Builder {
     ExceptionSerializationStep2Builder<Exception> serializingExceptionsThat(Predicate<Exception> filter);
 
     /**
-     * Configures the default {@link Mapifier} that will be used to serialize an exception to a {@link Map} if no
-     * {@link Mapifier} configured under {@link ExceptionSerializationStep1Builder#serializingExceptionsThat(Predicate)},
-     * {@link ExceptionSerializationStep1Builder#serializingExceptionsOfType(Class)}, etc. matches the exception.
-     *
-     * @param mapper a {@link Mapifier}
-     * @return the next step in the fluent builder
-     */
-    FinalStepBuilder serializingExceptionsByDefaultUsing(Mapifier<Exception> mapper);
-
-    /**
      * Enters a fluent builder that configures a {@link Mapifier} that will be used to serialize an exception to a {@link Map}
      * if the exception is of the specified type.
      *
      * @param type the class of exception that will be serialized by the {@link Mapifier}
-     * @param <T> the type of exception
+     * @param <T>  the type of exception
      * @return the next step in the fluent builder
      */
     @SuppressWarnings("unchecked")
@@ -75,12 +64,8 @@ public interface ExceptionSerializationStep1Builder {
      *
      * @return the next step in the fluent builder
      */
-    default FinalStepBuilder throwingAnExceptionIfNoExceptionMappingCanBeFound() {
-        return serializingExceptionsByDefaultUsing(object -> {
-            final Class<? extends Exception> objectClass = object.getClass();
-            final String message = format("No response mapper found for exception of class %s.", objectClass);
-            throw missingSerializationException(message);
-        });
+    default ResponseDeserializationStep1Builder respondingWithAWrappingMissingExceptionSerializationExceptionByDefault() {
+        return serializingExceptionsByDefaultUsing(missingExceptionSerializationWrappingExceptionMapifier());
     }
 
     /**
@@ -90,7 +75,17 @@ public interface ExceptionSerializationStep1Builder {
      *
      * @return the next step in the fluent builder interface
      */
-    default FinalStepBuilder puttingExceptionObjectNamedAsExceptionIntoResponseMapByDefault() {
+    default ResponseDeserializationStep1Builder puttingExceptionObjectNamedAsExceptionIntoResponseMapByDefault() {
         return serializingExceptionsByDefaultUsing(defaultExceptionMapifier());
     }
+
+    /**
+     * Configures the default {@link Mapifier} that will be used to serialize an exception to a {@link Map} if no
+     * {@link Mapifier} configured under {@link ExceptionSerializationStep1Builder#serializingExceptionsThat(Predicate)},
+     * {@link ExceptionSerializationStep1Builder#serializingExceptionsOfType(Class)}, etc. matches the exception.
+     *
+     * @param mapper a {@link Mapifier}
+     * @return the next step in the fluent builder
+     */
+    ResponseDeserializationStep1Builder serializingExceptionsByDefaultUsing(Mapifier<Exception> mapper);
 }

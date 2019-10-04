@@ -45,29 +45,33 @@ import static lombok.AccessLevel.PRIVATE;
 final class UseCaseAdapterImpl implements UseCaseAdapter {
     private final List<UseCaseCallingInformation<?>> useCaseCallingInformations;
     private final UseCaseInstantiator useCaseInstantiator;
+    private final Serializer requestSerializer;
     private final Deserializer requestDeserializer;
     private final Serializer responseSerializer;
     private final ExceptionSerializer exceptionSerializer;
+    private final Deserializer responseDeserializer;
     private final ParameterInjector parameterInjector;
 
     static UseCaseAdapter useCaseAdapterImpl(final List<UseCaseCallingInformation<?>> useCaseCallingInformations,
                                              final UseCaseInstantiator useCaseInstantiator,
+                                             final Serializer requestSerializer,
                                              final Deserializer requestDeserializer,
                                              final Serializer responseSerializer,
                                              final ExceptionSerializer exceptionSerializer,
+                                             final Deserializer responseDeserializer,
                                              final ParameterInjector parameterInjector) {
         ensureNotNull(useCaseCallingInformations, "useCaseCallingInformations");
         ensureNotNull(useCaseInstantiator, "useCaseInstantiator");
-        ensureNotNull(requestDeserializer, "requestDeserializer");
-        ensureNotNull(responseSerializer, "responseSerializer");
-        return new UseCaseAdapterImpl(useCaseCallingInformations, useCaseInstantiator, requestDeserializer,
-                responseSerializer, exceptionSerializer, parameterInjector);
+        ensureNotNull(requestSerializer, "requestSerializer");
+        ensureNotNull(responseDeserializer, "responseDeserializer");
+        return new UseCaseAdapterImpl(useCaseCallingInformations, useCaseInstantiator, requestSerializer,
+                requestDeserializer, responseSerializer, exceptionSerializer, responseDeserializer, parameterInjector);
     }
 
     @Override
     public SerializedMessageBus attachAndEnhance(final MessageBus messageBus) {
-        final SerializedMessageBus serializedMessageBus = aSerializedMessageBus(messageBus, requestDeserializer,
-                responseSerializer);
+        final SerializedMessageBus serializedMessageBus = aSerializedMessageBus(messageBus, requestSerializer,
+                responseDeserializer);
         attachTo(serializedMessageBus);
         return serializedMessageBus;
     }

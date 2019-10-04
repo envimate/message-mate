@@ -41,13 +41,13 @@ import static java.util.Collections.emptyMap;
 public interface CallingBuilder<U> {
 
     /**
-     * The given {@code BiFunction} gets access to the current use case instance and the event. It should invoke the use case
+     * The given {@link BiFunction} gets access to the current use case instance and the event. It should invoke the use case
      * and return the serialized return value.
      *
-     * @param caller the {@code BiFunction} invoking the use case
+     * @param caller the {@link BiFunction} invoking the use case
      * @return the next step in the fluent builder interface
      */
-    default Step1Builder calling(final BiFunction<U, Object, Map<String, Object>> caller) {
+    default InstantiationBuilder calling(final BiFunction<U, Object, Map<String, Object>> caller) {
         return callingBy((useCase, event, callingContext) -> {
             final Map<String, Object> responseMap = caller.apply(useCase, event);
             return responseMap;
@@ -61,7 +61,7 @@ public interface CallingBuilder<U> {
      * @param caller the {@code BiConsumer} invoking the use case
      * @return the next step in the fluent builder interface
      */
-    default Step1Builder callingVoid(final BiConsumer<U, Object> caller) {
+    default InstantiationBuilder callingVoid(final BiConsumer<U, Object> caller) {
         return callingBy((usecase, event, callingContext) -> {
             caller.accept(usecase, event);
             return emptyMap();
@@ -71,17 +71,17 @@ public interface CallingBuilder<U> {
     /**
      * This method invokes the only public method on the current use case instance. All parameters of the method are deserialized
      * as defined by the {@link UseCaseInvocationBuilder} and the optional return value is serialized using the serializing
-     * definitions of the {@code UseCaseInvocationBuilder}.
+     * definitions of the {@link UseCaseInvocationBuilder}.
      *
      * @return the next step in the fluent builder interface
      */
-    Step1Builder callingTheSingleUseCaseMethod();
+    InstantiationBuilder callingTheSingleUseCaseMethod();
 
     /**
-     * With this method the use case is invoked as defined in the given {@code Caller}.
+     * With this method the use case is invoked as defined in the given {@link Caller}.
      *
      * @param caller the caller to use
      * @return the next step in the fluent builder interface
      */
-    Step1Builder callingBy(Caller<U> caller);
+    InstantiationBuilder callingBy(Caller<U> caller);
 }

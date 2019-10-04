@@ -26,6 +26,5 @@ package com.envimate.messageMate.useCases.building;
  * do not add further definitions and continue with the methods of
  * {@link InstantiationBuilder}.
  */
-public interface Step1Builder extends InvokingUseCaseStepBuilder,
-        InstantiationBuilder {
+public interface Step1Builder extends InvokingUseCaseStepBuilder {
 }

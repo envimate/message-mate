@@ -21,7 +21,7 @@
 
 package com.envimate.messageMate.useCases.specialInvocations;
 
-import com.envimate.messageMate.shared.subscriber.TestException;
+import com.envimate.messageMate.shared.exceptions.TestException;
 
 public class ExceptionInStaticInitializerUseCase {
 

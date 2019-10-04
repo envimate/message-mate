@@ -22,148 +22,147 @@
 package com.envimate.messageMate.useCases.givenWhenThen;
 
 import com.envimate.messageMate.configuration.AsynchronousConfiguration;
+import com.envimate.messageMate.mapping.MissingExceptionMappingExceptionMapifier;
 import com.envimate.messageMate.messageBus.MessageBus;
 import com.envimate.messageMate.messageBus.MessageBusBuilder;
-import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
+import com.envimate.messageMate.shared.exceptions.TestException;
 import com.envimate.messageMate.useCases.building.*;
-import com.envimate.messageMate.useCases.shared.TestUseCase;
-import com.envimate.messageMate.useCases.useCaseAdapter.UseCaseAdapter;
-import com.envimate.messageMate.useCases.useCaseAdapter.UseCaseInvocationBuilder;
-import com.envimate.messageMate.useCases.useCaseAdapter.usecaseInstantiating.UseCaseInstantiator;
+import com.envimate.messageMate.useCases.shared.UseCaseInvocationConfiguration;
 
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.Map;
 
 import static com.envimate.messageMate.configuration.AsynchronousConfiguration.constantPoolSizeAsynchronousConfiguration;
-import static com.envimate.messageMate.messageBus.MessageBusBuilder.aMessageBus;
 import static com.envimate.messageMate.messageBus.MessageBusType.ASYNCHRONOUS;
-import static com.envimate.messageMate.messageBus.givenWhenThen.MessageBusTestExceptionHandler.allExceptionHandlingTestExceptionHandler;
 import static com.envimate.messageMate.shared.environment.TestEnvironment.emptyTestEnvironment;
-import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.*;
+import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.MOCK;
+import static com.envimate.messageMate.useCases.building.MissingExceptionSerializationException.missingExceptionSerializationException;
+import static com.envimate.messageMate.useCases.building.MissingRequestDeserializationException.missingDeserializationException;
+import static com.envimate.messageMate.useCases.building.MissingResponseSerializationException.missingResponseSerializationException;
+import static com.envimate.messageMate.useCases.givenWhenThen.ExtraInvocationConfiguration.extraInvocationConfiguration;
+import static com.envimate.messageMate.useCases.shared.UseCaseInvocationTestProperties.*;
 
 public final class UseCaseInvocationSetupBuilder {
-    private final TestUseCase testUseCase;
     private final TestEnvironment testEnvironment;
-    private final Step1Builder useCaseAdapterBuilder;
-    private final MessageBusBuilder messageBusBuilder = aMessageBus();
-    private final BiFunction<BuilderStepBuilder, MessageBus, Object> sutBuildingFunction;
-    private Function<Step1Builder, DeserializationStep1Builder> instantiationFunction;
-    private FinalStepBuilder finalStepBuilder;
+    private final UseCaseInvocationConfiguration invocationConfiguration;
+    private final ExtraInvocationConfiguration extraInvocationConfiguration;
+    private UseCaseConfigurationStep<Step3Builder<?>, RequestSerializationStep1Builder> useCaseMethodCallingFunction;
+    private MessageBusBuilder messageBusBuilder;
 
-    public UseCaseInvocationSetupBuilder(final TestUseCase testUseCase,
-                                         final BiFunction<BuilderStepBuilder, MessageBus, Object> sutBuildingFunction) {
-        this.testUseCase = testUseCase;
-        this.sutBuildingFunction = sutBuildingFunction;
+    private UseCaseInvocationSetupBuilder(final UseCaseInvocationConfiguration invocationConfiguration) {
         this.testEnvironment = emptyTestEnvironment();
-        this.useCaseAdapterBuilder = UseCaseInvocationBuilder.anUseCaseAdapter();
-        this.instantiationFunction = InstantiationBuilder::obtainingUseCaseInstancesUsingTheZeroArgumentConstructor;
+        this.invocationConfiguration = invocationConfiguration;
+        this.extraInvocationConfiguration = extraInvocationConfiguration();
+        this.messageBusBuilder = MessageBusBuilder.aMessageBus();
     }
 
-    public static UseCaseInvocationSetupBuilder aUseCaseAdapterFor(final TestUseCase testUseCase) {
-        final BiFunction<BuilderStepBuilder, MessageBus, Object> sutBuildingFunction = (builder, messageBus) -> {
-            final UseCaseAdapter useCaseAdapter = builder.buildAsStandaloneAdapter();
-            useCaseAdapter.attachAndEnhance(messageBus);
-            return useCaseAdapter;
-        };
-        return new UseCaseInvocationSetupBuilder(testUseCase, sutBuildingFunction);
+    public static UseCaseInvocationSetupBuilder aUseCaseAdapterFor(final UseCaseInvocationConfiguration invocationConfiguration) {
+
+        return new UseCaseInvocationSetupBuilder(invocationConfiguration);
     }
 
-    public static UseCaseInvocationSetupBuilder aUseCaseBusFor(final TestUseCase testUseCase) {
-        final BiFunction<BuilderStepBuilder, MessageBus, Object> sutBuildingFunction = BuilderStepBuilder::build;
-        return new UseCaseInvocationSetupBuilder(testUseCase, sutBuildingFunction);
-    }
-
-    public UseCaseInvocationSetupBuilder invokingTheUseCaseUsingTheSingleUseCaseMethod() {
-        final Class<?> useCaseClass = testUseCase.getUseCaseClass();
-        final EventType eventType = testUseCase.getEventType();
-        final Step1Builder useCaseInvokingBuilder = useCaseAdapterBuilder.invokingUseCase(useCaseClass)
-                .forType(eventType)
-                .callingTheSingleUseCaseMethod();
-        final DeserializationStep1Builder deserializationBuilder = instantiationFunction.apply(useCaseInvokingBuilder);
-        testUseCase.defineDeserialization(deserializationBuilder);
-        final ResponseSerializationStep1Builder serializationStep1Builder = deserializationBuilder
-                .throwAnExceptionByDefaultIfNoParameterMappingCanBeApplied();
-        testUseCase.defineSerialization(serializationStep1Builder);
-        finalStepBuilder = serializationStep1Builder.throwingAnExceptionByDefaultIfNoResponseMappingCanBeApplied()
-                .puttingExceptionObjectNamedAsExceptionIntoResponseMapByDefault();
+    public UseCaseInvocationSetupBuilder invokedUsingTheSingleUseCaseMethod() {
+        useCaseMethodCallingFunction = (configuration, step3Builder) -> step3Builder.callingTheSingleUseCaseMethod()
+                .obtainingUseCaseInstancesUsingTheZeroArgumentConstructor();
         return this;
     }
 
     public UseCaseInvocationSetupBuilder invokingTheUseCaseUsingTheDefinedMapping() {
-        final Class<?> useCaseClass = testUseCase.getUseCaseClass();
-        final EventType eventType = testUseCase.getEventType();
-        final Step3Builder<?> callingBuilder = useCaseAdapterBuilder.invokingUseCase(useCaseClass)
-                .forType(eventType);
-        testUseCase.useCustomInvocationLogic(callingBuilder);
-        finalStepBuilder = useCaseAdapterBuilder.obtainingUseCaseInstancesUsingTheZeroArgumentConstructor()
-                .throwAnExceptionByDefaultIfNoParameterMappingCanBeApplied()
-                .throwingAnExceptionByDefaultIfNoResponseMappingCanBeApplied()
-                .puttingExceptionObjectNamedAsExceptionIntoResponseMapByDefault();
+        useCaseMethodCallingFunction = (configuration, step3Builder) -> configuration
+                .applyCustomUseCaseMethodCallingConfiguration(step3Builder)
+                .obtainingUseCaseInstancesUsingTheZeroArgumentConstructor();
         return this;
     }
 
-    public UseCaseInvocationSetupBuilder invokingTheUseCaseUsingAMissingDeserializationParameter() {
-        final Class<?> useCaseClass = testUseCase.getUseCaseClass();
-        final EventType eventType = testUseCase.getEventType();
-        final Step1Builder useCaseInvokingBuilder = useCaseAdapterBuilder.invokingUseCase(useCaseClass)
-                .forType(eventType)
-                .callingTheSingleUseCaseMethod();
-        final DeserializationStep1Builder deserializationBuilder = instantiationFunction.apply(useCaseInvokingBuilder);
-        final ResponseSerializationStep1Builder serializationStep1Builder = deserializationBuilder
-                .throwAnExceptionByDefaultIfNoParameterMappingCanBeApplied();
-        finalStepBuilder = serializationStep1Builder.throwingAnExceptionByDefaultIfNoResponseMappingCanBeApplied()
-                .puttingExceptionObjectNamedAsExceptionIntoResponseMapByDefault();
-        messageBusBuilder.withExceptionHandler(allExceptionHandlingTestExceptionHandler(testEnvironment, EXCEPTION));
+    public UseCaseInvocationSetupBuilder invokedUsingTheSingleUseCaseMethodButACustomInstantiationMechanism() {
+        useCaseMethodCallingFunction = (configuration, step3Builder) -> {
+            final InstantiationBuilder instantiationBuilder = step3Builder.callingTheSingleUseCaseMethod();
+            return configuration.applyCustomUseCaseInstantiationConfiguration(instantiationBuilder);
+        };
         return this;
     }
 
-    public UseCaseInvocationSetupBuilder invokingTheUseCaseUsingAMissingSerializationParameter() {
-        final Class<?> useCaseClass = testUseCase.getUseCaseClass();
-        final EventType eventType = testUseCase.getEventType();
-        final Step1Builder useCaseInvokingBuilder = useCaseAdapterBuilder.invokingUseCase(useCaseClass)
-                .forType(eventType)
-                .callingTheSingleUseCaseMethod();
-        final DeserializationStep1Builder deserializationBuilder = instantiationFunction.apply(useCaseInvokingBuilder);
-        testUseCase.defineDeserialization(deserializationBuilder);
-        final ResponseSerializationStep1Builder serializationStep1Builder = deserializationBuilder
-                .throwAnExceptionByDefaultIfNoParameterMappingCanBeApplied();
-        finalStepBuilder = serializationStep1Builder.throwingAnExceptionByDefaultIfNoResponseMappingCanBeApplied()
-                .puttingExceptionObjectNamedAsExceptionIntoResponseMapByDefault();
-        messageBusBuilder.withExceptionHandler(allExceptionHandlingTestExceptionHandler(testEnvironment, EXCEPTION));
+    public UseCaseInvocationSetupBuilder invokingTheUseCaseUsingAMissingRequestSerializationDefinition() {
+        useCaseMethodCallingFunction = (configuration, step3Builder) -> step3Builder.callingTheSingleUseCaseMethod()
+                .obtainingUseCaseInstancesUsingTheZeroArgumentConstructor();
+        testEnvironment.setPropertyIfNotSet(SIMULATE_MISSING_REQUEST_SERIALIZATION_PARAMETER, true);
         return this;
     }
 
-    public UseCaseInvocationSetupBuilder usingACustomInstantiationMechanism() {
-        final Supplier<Object> useCaseInstantiationFunction = testUseCase.getInstantiationFunction();
-        instantiationFunction = b -> b.obtainingUseCaseInstancesUsing(new UseCaseInstantiator() {
-            @SuppressWarnings("unchecked")
-            @Override
-            public <T> T instantiate(final Class<T> type) {
-                return (T) useCaseInstantiationFunction.get();
-            }
+    public UseCaseInvocationSetupBuilder invokingTheUseCaseUsingAMissingParameterDeserializationDefinition() {
+        useCaseMethodCallingFunction = (configuration, step3Builder) -> step3Builder.callingTheSingleUseCaseMethod()
+                .obtainingUseCaseInstancesUsingTheZeroArgumentConstructor();
+
+        testEnvironment.setPropertyIfNotSet(SIMULATE_MISSING_REQUEST_DESERIALIZATION_PARAMETER, true);
+
+        testEnvironment.setPropertyIfNotSet(EXPECTED_ERROR_PAYLOAD_CLASS, MissingRequestDeserializationException.class);
+        final String exceptionMapKey = "EXCEPTION";
+        extraInvocationConfiguration.addExceptionsSerializationDefinitions(exceptionSerializationStep1Builder -> {
+            exceptionSerializationStep1Builder.serializingExceptionsOfType(MissingRequestDeserializationException.class)
+                    .using(e -> Map.of(exceptionMapKey, e.getMessage()));
         });
+        extraInvocationConfiguration.addResponseDeserializationDefinitions(responseDeserializationStep1Builder -> {
+            responseDeserializationStep1Builder.deserializingUseCaseResponsesOfType(MissingRequestDeserializationException.class)
+                    .using((targetType, map) -> missingDeserializationException((String) map.get(exceptionMapKey)));
+        });
+        return this;
+    }
+
+    public UseCaseInvocationSetupBuilder invokingTheUseCaseUsingAMissingResponseSerializationDefinition() {
+        useCaseMethodCallingFunction = (configuration, step3Builder) -> step3Builder.callingTheSingleUseCaseMethod()
+                .obtainingUseCaseInstancesUsingTheZeroArgumentConstructor();
+        testEnvironment.setPropertyIfNotSet(SIMULATE_MISSING_RESPONSE_SERIALIZATION_PARAMETER, true);
+
+        testEnvironment.setPropertyIfNotSet(EXPECTED_ERROR_PAYLOAD_CLASS, MissingResponseSerializationException.class);
+        final String exceptionMapKey = "EXCEPTION";
+        extraInvocationConfiguration.addExceptionsSerializationDefinitions(exceptionSerializationStep1Builder -> {
+            exceptionSerializationStep1Builder.serializingExceptionsOfType(MissingResponseSerializationException.class)
+                    .using(e -> Map.of(exceptionMapKey, e.getMessage()));
+        });
+        extraInvocationConfiguration.addResponseDeserializationDefinitions(responseDeserializationStep1Builder -> {
+            responseDeserializationStep1Builder.deserializingUseCaseResponsesOfType(MissingResponseSerializationException.class)
+                    .using((targetType, map) -> missingResponseSerializationException((String) map.get(exceptionMapKey)));
+        });
+        return this;
+    }
+
+    public UseCaseInvocationSetupBuilder throwingAnExceptionWithoutMappingWhenInvokingTheUseCase() {
+        useCaseMethodCallingFunction = (configuration, step3Builder) -> step3Builder
+                .callingBy((useCase, event, callingContext) -> {
+                    throw new TestException();
+                }).obtainingUseCaseInstancesUsingTheZeroArgumentConstructor();
+
+        testEnvironment.setPropertyIfNotSet(EXPECTED_ERROR_PAYLOAD_CLASS, MissingExceptionSerializationException.class);
+        extraInvocationConfiguration.addResponseDeserializationDefinitions(responseDeserializationStep1Builder -> {
+            responseDeserializationStep1Builder.deserializingUseCaseResponsesOfType(MissingExceptionSerializationException.class)
+                    .using((targetType, map) -> {
+                        final String message =
+                                (String) map.get(MissingExceptionMappingExceptionMapifier.DEFAULT_EXCEPTION_MAPIFIER_KEY);
+                        return missingExceptionSerializationException(message);
+                    });
+        });
+        return this;
+    }
+
+    public UseCaseInvocationSetupBuilder invokingTheUseCaseUsingAMissingResponseDeserializationDefinition() {
+        useCaseMethodCallingFunction = (configuration, step3Builder) -> step3Builder.callingTheSingleUseCaseMethod()
+                .obtainingUseCaseInstancesUsingTheZeroArgumentConstructor();
+        testEnvironment.setPropertyIfNotSet(SIMULATE_MISSING_RESPONSE_DESERIALIZATION_PARAMETER, true);
         return this;
     }
 
     public UseCaseInvocationSetup build() {
         final MessageBus messageBus = createMessageBus();
-        testUseCase.applyOptionalParameterInjection(finalStepBuilder);
-        final Object sut = sutBuildingFunction.apply(finalStepBuilder, messageBus);
-        testEnvironment.setProperty(SUT, sut);
         testEnvironment.setProperty(MOCK, messageBus);
-        return new UseCaseInvocationSetup(testEnvironment, testUseCase, messageBus);
+        return new UseCaseInvocationSetup(testEnvironment, messageBus, invocationConfiguration, extraInvocationConfiguration,
+                useCaseMethodCallingFunction);
     }
 
     private MessageBus createMessageBus() {
         final AsynchronousConfiguration asynchronousConfiguration = constantPoolSizeAsynchronousConfiguration(3);
-        messageBusBuilder.forType(ASYNCHRONOUS)
-                .withAsynchronousConfiguration(asynchronousConfiguration);
-        final BiConsumer<MessageBusBuilder, TestEnvironment> messageBusEnhancer = testUseCase.getMessageBusEnhancer();
-        messageBusEnhancer.accept(messageBusBuilder, testEnvironment);
-        return messageBusBuilder
+        this.messageBusBuilder = MessageBusBuilder.aMessageBus();
+        return messageBusBuilder.forType(ASYNCHRONOUS)
+                .withAsynchronousConfiguration(asynchronousConfiguration)
                 .build();
     }
 

@@ -22,14 +22,15 @@
 package com.envimate.messageMate.useCases.givenWhenThen;
 
 import com.envimate.messageMate.processingContext.EventType;
-import com.envimate.messageMate.shared.givenWhenThen.TestAction;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
-import com.envimate.messageMate.useCases.shared.TestUseCase;
+import com.envimate.messageMate.shared.givenWhenThen.TestAction;
+import com.envimate.messageMate.useCases.shared.UseCaseInvocationConfiguration;
+import com.envimate.messageMate.useCases.useCaseBus.UseCaseBus;
 import lombok.RequiredArgsConstructor;
 
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.EXCEPTION;
 import static com.envimate.messageMate.shared.properties.SharedTestProperties.EVENT_TYPE;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static com.envimate.messageMate.useCases.shared.UseCaseInvocationTestProperties.USE_CASE_BUS;
 import static lombok.AccessLevel.PACKAGE;
 
 @RequiredArgsConstructor(access = PACKAGE)
@@ -40,16 +41,19 @@ public class Then {
     public void then(final UseCaseInvocationValidationBuilder validationBuilder) {
         final UseCaseInvocationSetup setup = setupBuilder.build();
         final TestEnvironment testEnvironment = setup.getTestEnvironment();
-        final TestAction<TestUseCase> testAction = actionBuilder.build();
-        final TestUseCase testUseCase = setup.getTestUseCase();
-        final EventType eventType = testUseCase.getEventType();
+        final UseCaseBus useCaseBus = setup.createUseCaseInvoker();
+        testEnvironment.setPropertyIfNotSet(USE_CASE_BUS, useCaseBus);
+
+        final TestAction<UseCaseInvocationConfiguration> testAction = actionBuilder.build();
+        final UseCaseInvocationConfiguration invocationConfiguration = setup.getInvocationConfiguration();
+        final EventType eventType = invocationConfiguration.getEventTypeUseCaseIsRegisteredFor();
         testEnvironment.setPropertyIfNotSet(EVENT_TYPE, eventType);
         try {
-            testAction.execute(testUseCase, testEnvironment);
+            testAction.execute(invocationConfiguration, testEnvironment);
         } catch (final Exception e) {
             testEnvironment.setProperty(EXCEPTION, e);
         }
         final UseCaseInvocationValidationBuilder.UseCaseAdapterTestValidation validation = validationBuilder.build();
-        validation.validate(testUseCase, testEnvironment);
+        validation.validate(invocationConfiguration, testEnvironment);
     }
 }

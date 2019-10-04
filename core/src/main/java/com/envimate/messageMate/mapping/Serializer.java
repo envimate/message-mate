@@ -34,7 +34,7 @@ public final class Serializer {
 
     private final PredicateMap<Object, Mapifier<Object>> mapifiers;
 
-    public static Serializer responseSerializer(final PredicateMap<Object, Mapifier<Object>> mapifierPredicateMap) {
+    public static Serializer serializer(final PredicateMap<Object, Mapifier<Object>> mapifierPredicateMap) {
         ensureNotNull(mapifierPredicateMap, "mapifiers");
         return new Serializer(mapifierPredicateMap);
     }

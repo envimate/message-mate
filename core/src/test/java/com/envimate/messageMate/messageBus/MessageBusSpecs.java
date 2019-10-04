@@ -25,7 +25,7 @@ import com.envimate.messageMate.exceptions.AlreadyClosedException;
 import com.envimate.messageMate.internal.enforcing.MustNotBeNullException;
 import com.envimate.messageMate.messageBus.config.MessageBusTestConfig;
 import com.envimate.messageMate.processingContext.EventType;
-import com.envimate.messageMate.shared.subscriber.TestException;
+import com.envimate.messageMate.shared.exceptions.TestException;
 import com.envimate.messageMate.shared.testMessages.TestMessageOfInterest;
 import org.junit.jupiter.api.Test;
 

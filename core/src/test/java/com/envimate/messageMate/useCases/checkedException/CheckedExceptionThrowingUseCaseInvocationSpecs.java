@@ -22,15 +22,15 @@
 package com.envimate.messageMate.useCases.checkedException;
 
 import com.envimate.messageMate.useCases.UseCaseInvocationSpecs;
-import com.envimate.messageMate.useCases.exceptionThrowing.ExceptionThrowingConfigurationResolver;
-import com.envimate.messageMate.useCases.shared.TestUseCase;
+import com.envimate.messageMate.useCases.shared.UseCaseInvocationConfiguration;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(CheckedExceptionThrowingConfigurationResolver.class)
 public class CheckedExceptionThrowingUseCaseInvocationSpecs implements UseCaseInvocationSpecs {
 
     @Override
-    public void testUseCaseAdapter_failsForMissingSerializationMapping(final TestUseCase testUseCase) {
+    public void testUseCaseAdapter_failsForMissingResponseSerializationMapping(
+            final UseCaseInvocationConfiguration configuration) {
         // serialization is not invoked since the exception is always thrown
     }
 }

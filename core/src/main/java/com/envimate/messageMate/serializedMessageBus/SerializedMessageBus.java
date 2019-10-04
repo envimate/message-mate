@@ -51,15 +51,15 @@ public interface SerializedMessageBus {
      * Factory method to create a new {@code SerializedMessageBus} from the normal {@code MessageBus}, a {@code Deserializer}
      * and a {@code Serializer}.
      *
-     * @param messageBus   the {@code MessageBus} to wrap
-     * @param deserializer the {@code Deserializer} to deserialize {@link Map} data back to objects
-     * @param serializer   the {@code Serializer} to serialize objects into a {@link Map}
+     * @param messageBus           the {@code MessageBus} to wrap
+     * @param requestSerializer    the {@code Serializer} to serialize objects being sent on the bus
+     * @param responseDeserializer the {@code Deserializer} to deserialize received messages into the required types
      * @return the newly created {@code SerializedMessageBus}
      */
     static SerializedMessageBus aSerializedMessageBus(final MessageBus messageBus,
-                                                      final Deserializer deserializer,
-                                                      final Serializer serializer) {
-        return new SerializedMessageBusImpl(messageBus, deserializer, serializer);
+                                                      final Serializer requestSerializer,
+                                                      final Deserializer responseDeserializer) {
+        return new SerializedMessageBusImpl(messageBus, requestSerializer, responseDeserializer);
     }
 
     /**

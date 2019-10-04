@@ -19,7 +19,17 @@
  * under the License.
  */
 
-package com.envimate.messageMate.shared.subscriber;
+package com.envimate.messageMate.useCases.voidReturn;
 
-public class TestException extends RuntimeException {
+import lombok.RequiredArgsConstructor;
+
+import static lombok.AccessLevel.PRIVATE;
+
+@RequiredArgsConstructor(access = PRIVATE)
+public final class VoidReturnRequest {
+
+    public static VoidReturnRequest voidReturnRequest() {
+        return new VoidReturnRequest();
+    }
+
 }

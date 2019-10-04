@@ -24,7 +24,7 @@ package com.envimate.messageMate.qcec.eventing.givenWhenThen;
 import com.envimate.messageMate.shared.givenWhenThen.TestAction;
 import com.envimate.messageMate.qcec.shared.TestReceiver;
 import com.envimate.messageMate.qcec.shared.testEvents.TestEvent;
-import com.envimate.messageMate.shared.subscriber.TestException;
+import com.envimate.messageMate.shared.exceptions.TestException;
 import com.envimate.messageMate.subscribing.SubscriptionId;
 import lombok.RequiredArgsConstructor;
 

@@ -24,10 +24,14 @@ package com.envimate.messageMate.useCases.exceptionThrowing;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import static lombok.AccessLevel.PACKAGE;
+import static lombok.AccessLevel.PRIVATE;
 
-@RequiredArgsConstructor(access = PACKAGE)
-public class ExceptionThrowingRequest {
+@RequiredArgsConstructor(access = PRIVATE)
+public final class ExceptionThrowingRequest {
     @Getter
     private final RuntimeException exceptionToThrow;
+
+    public static ExceptionThrowingRequest exceptionThrowingRequest(final RuntimeException exceptionToThrow) {
+        return new ExceptionThrowingRequest(exceptionToThrow);
+    }
 }

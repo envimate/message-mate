@@ -31,14 +31,12 @@ import com.envimate.messageMate.useCases.useCaseAdapter.usecaseInstantiating.Use
 import com.envimate.messageMate.useCases.useCaseBus.UseCaseBus;
 import lombok.RequiredArgsConstructor;
 
-import java.util.Collections;
-import java.util.Objects;
-
 import static com.envimate.messageMate.configuration.AsynchronousConfiguration.constantPoolSizeAsynchronousConfiguration;
 import static com.envimate.messageMate.messageBus.MessageBusBuilder.aMessageBus;
 import static com.envimate.messageMate.messageBus.MessageBusType.ASYNCHRONOUS;
 import static com.envimate.messageMate.processingContext.EventType.eventTypeFromString;
 import static com.envimate.messageMate.shared.environment.TestEnvironmentProperty.*;
+import static java.util.Collections.emptyMap;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
@@ -63,10 +61,13 @@ public final class SpecialInvocationUseCaseBuilder {
                         return (T) ExceptionDuringInitializationUseCase.init(exceptionToThrow);
                     }
                 })
-                .throwAnExceptionByDefaultIfNoParameterMappingCanBeApplied()
-                .serializingResponseObjectsThat(Objects::isNull).using(object -> Collections.emptyMap())
-                .throwingAnExceptionByDefaultIfNoResponseMappingCanBeApplied()
-                .throwingAnExceptionIfNoExceptionMappingCanBeFound()
+                .serializingUseCaseRequestOntoTheBusOfTypeVoid().using(object -> emptyMap())
+                .throwingAnExceptionByDefaultIfNoRequestSerializationCanBeApplied()
+                .throwAnExceptionByDefaultIfNoUseCaseRequestDeserializationCanBeApplied()
+                .serializingResponseObjectsOfTypeVoid().using(object -> emptyMap())
+                .throwingAnExceptionByDefaultIfNoResponseSerializationCanBeApplied()
+                .respondingWithAWrappingMissingExceptionSerializationExceptionByDefault()
+                .throwAnExceptionByDefaultIfNoResponseDeserializationCanBeApplied()
                 .build(messageBus);
         testEnvironment.setPropertyIfNotSet(MOCK, messageBus);
         testEnvironment.setPropertyIfNotSet(SUT, useCaseBus);
@@ -80,10 +81,13 @@ public final class SpecialInvocationUseCaseBuilder {
         final UseCaseBus useCaseBus = UseCaseInvocationBuilder.anUseCaseAdapter()
                 .invokingUseCase(ExceptionInStaticInitializerUseCase.class).forType(type).callingTheSingleUseCaseMethod()
                 .obtainingUseCaseInstancesUsingTheZeroArgumentConstructor()
-                .throwAnExceptionByDefaultIfNoParameterMappingCanBeApplied()
-                .serializingResponseObjectsThat(Objects::isNull).using(object -> Collections.emptyMap())
-                .throwingAnExceptionByDefaultIfNoResponseMappingCanBeApplied()
-                .throwingAnExceptionIfNoExceptionMappingCanBeFound()
+                .serializingUseCaseRequestOntoTheBusOfTypeVoid().using(object -> emptyMap())
+                .throwingAnExceptionByDefaultIfNoRequestSerializationCanBeApplied()
+                .throwAnExceptionByDefaultIfNoUseCaseRequestDeserializationCanBeApplied()
+                .serializingResponseObjectsOfTypeVoid().using(object -> emptyMap())
+                .throwingAnExceptionByDefaultIfNoResponseSerializationCanBeApplied()
+                .respondingWithAWrappingMissingExceptionSerializationExceptionByDefault()
+                .throwAnExceptionByDefaultIfNoResponseDeserializationCanBeApplied()
                 .build(messageBus);
         testEnvironment.setPropertyIfNotSet(MOCK, messageBus);
         testEnvironment.setPropertyIfNotSet(SUT, useCaseBus);

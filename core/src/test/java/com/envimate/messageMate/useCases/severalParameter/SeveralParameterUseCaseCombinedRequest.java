@@ -25,18 +25,25 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import static lombok.AccessLevel.PACKAGE;
+import static lombok.AccessLevel.PRIVATE;
 
 @EqualsAndHashCode
-@RequiredArgsConstructor(access = PACKAGE)
-public class SeveralParameterUseCaseCombinedRequest {
+@RequiredArgsConstructor(access = PRIVATE)
+public final class SeveralParameterUseCaseCombinedRequest {
     @Getter
     private final int intParameter;
     @Getter
     private final Boolean booleanParameter;
     @Getter
-    private final String stringParameter;
-    @Getter
     private final Object objectParameter;
+    @Getter
+    private final String stringParameter;
+
+    public static SeveralParameterUseCaseCombinedRequest severalParameterUseCaseCombinedRequest(final int intParameter,
+                                                                                                final boolean booleanParameter,
+                                                                                                final Object objectParameter,
+                                                                                                final String stringParameter) {
+        return new SeveralParameterUseCaseCombinedRequest(intParameter, booleanParameter, objectParameter, stringParameter);
+    }
 
 }

@@ -25,7 +25,7 @@ import com.envimate.messageMate.channel.exception.ChannelExceptionHandler;
 import com.envimate.messageMate.processingContext.ProcessingContext;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.shared.environment.TestEnvironmentProperty;
-import com.envimate.messageMate.shared.subscriber.TestException;
+import com.envimate.messageMate.shared.exceptions.TestException;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import lombok.RequiredArgsConstructor;
 

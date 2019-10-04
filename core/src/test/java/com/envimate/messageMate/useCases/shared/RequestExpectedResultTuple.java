@@ -19,25 +19,29 @@
  * under the License.
  */
 
-package com.envimate.messageMate.useCases.voidReturn;
+package com.envimate.messageMate.useCases.shared;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
-import java.util.function.Consumer;
 
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
-public final class CallbackTestRequest {
-    private final Consumer<Object> callback;
+public final class RequestExpectedResultTuple {
+    @Getter
+    private final Object requestObject;
+    @Getter
+    private final Object expectedResult;
+    @Getter
+    private final boolean resultInErrorPayload;
 
-    public static CallbackTestRequest callbackTestRequest(final Consumer<Object> callback) {
-        return new CallbackTestRequest(callback);
+    public static RequestExpectedResultTuple requestExpectedResultTuple(final Object requestObject,
+                                                                        final Object expectedResult) {
+        return new RequestExpectedResultTuple(requestObject, expectedResult, false);
     }
 
-    public void invokeCallback() {
-        if (callback != null) {
-            callback.accept(this);
-        }
+    public static RequestExpectedResultTuple requestExpectedErrorResultTuple(final Object requestObject,
+                                                                             final Object expectedResult) {
+        return new RequestExpectedResultTuple(requestObject, expectedResult, true);
     }
 }

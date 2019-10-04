@@ -22,11 +22,18 @@
 package com.envimate.messageMate.useCases.givenWhenThen;
 
 import com.envimate.messageMate.messageBus.MessageBus;
+import com.envimate.messageMate.processingContext.EventType;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
-import com.envimate.messageMate.useCases.shared.TestUseCase;
+import com.envimate.messageMate.useCases.building.*;
+import com.envimate.messageMate.useCases.shared.UseCaseInvocationConfiguration;
+import com.envimate.messageMate.useCases.useCaseBus.UseCaseBus;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
+
+import static com.envimate.messageMate.useCases.shared.UseCaseInvocationTestProperties.*;
+import static com.envimate.messageMate.useCases.useCaseAdapter.UseCaseInvocationBuilder.anUseCaseAdapter;
 import static lombok.AccessLevel.PACKAGE;
 
 @RequiredArgsConstructor(access = PACKAGE)
@@ -34,7 +41,123 @@ final class UseCaseInvocationSetup {
     @Getter
     private final TestEnvironment testEnvironment;
     @Getter
-    private final TestUseCase testUseCase;
-    @Getter
     private final MessageBus messageBus;
+    @Getter
+    private final UseCaseInvocationConfiguration invocationConfiguration;
+
+    private final ExtraInvocationConfiguration extraInvocationConfiguration;
+
+    private final UseCaseConfigurationStep<Step3Builder<?>, RequestSerializationStep1Builder> useCaseMethodCallingFunction;
+
+    public UseCaseBus createUseCaseInvoker() {
+        final Class<?> useCaseClass = invocationConfiguration.getUseCaseClass();
+        final EventType eventType = invocationConfiguration.getEventTypeUseCaseIsRegisteredFor();
+        final Step3Builder<?> step3Builder = anUseCaseAdapter().invokingUseCase(useCaseClass)
+                .forType(eventType);
+        final RequestSerializationStep1Builder requestSerializationB =
+                useCaseMethodCallingFunction.apply(invocationConfiguration, step3Builder);
+
+        final RequestDeserializationStep1Builder requestDeserializationB = defineRequestSerialization(requestSerializationB);
+        final ResponseSerializationStep1Builder responseSerializationB = defineRequestDeserialization(requestDeserializationB);
+        final ExceptionSerializationStep1Builder exSerializationB = defineResponseSerialization(responseSerializationB);
+        final ResponseDeserializationStep1Builder responseDeserializationB = defineExceptionSerialization(exSerializationB);
+        final FinalStepBuilder finalStepBuilder = defineResponseDeserialization(responseDeserializationB);
+
+        invocationConfiguration.applyParameterInjection(finalStepBuilder);
+
+        final UseCaseBus useCaseBus = finalStepBuilder.build(messageBus);
+        return useCaseBus;
+    }
+
+    private RequestDeserializationStep1Builder defineRequestSerialization(
+            final RequestSerializationStep1Builder requestSerializationB) {
+
+        final boolean applySerializationMappings = !testEnvironment.has(SIMULATE_MISSING_REQUEST_SERIALIZATION_PARAMETER);
+        if (applySerializationMappings) {
+            final DeAndSerializationDefinition<RequestSerializationStep1Builder> requestSerializationDefinitions =
+                    invocationConfiguration.getRequestSerializationDefinitions();
+            requestSerializationDefinitions.accept(requestSerializationB);
+        }
+
+        final List<DeAndSerializationDefinition<RequestSerializationStep1Builder>> extraDefinitions =
+                extraInvocationConfiguration.getRequestSerializationDefinitions();
+        applyExtraDefinitions(extraDefinitions, requestSerializationB);
+
+        return requestSerializationB.throwingAnExceptionByDefaultIfNoRequestSerializationCanBeApplied();
+    }
+
+    private ResponseSerializationStep1Builder defineRequestDeserialization(
+            final RequestDeserializationStep1Builder requestDeserializationB) {
+
+        final boolean applyDeserializationMappings = !testEnvironment.has(SIMULATE_MISSING_REQUEST_DESERIALIZATION_PARAMETER);
+        if (applyDeserializationMappings) {
+            final DeAndSerializationDefinition<RequestDeserializationStep1Builder> requestDeserializationDefinitions =
+                    invocationConfiguration.getRequestDeserializationDefinitions();
+            requestDeserializationDefinitions.accept(requestDeserializationB);
+        }
+
+        final List<DeAndSerializationDefinition<RequestDeserializationStep1Builder>> extraDefinitions =
+                extraInvocationConfiguration.getRequestDeserializationDefinitions();
+        applyExtraDefinitions(extraDefinitions, requestDeserializationB);
+
+        return requestDeserializationB.throwAnExceptionByDefaultIfNoUseCaseRequestDeserializationCanBeApplied();
+    }
+
+    private ExceptionSerializationStep1Builder defineResponseSerialization(
+            final ResponseSerializationStep1Builder responseSerializationBuilder) {
+
+        final boolean applySerializationMappings = !testEnvironment.has(SIMULATE_MISSING_RESPONSE_SERIALIZATION_PARAMETER);
+        if (applySerializationMappings) {
+            final DeAndSerializationDefinition<ResponseSerializationStep1Builder> responseSerializationDefinitions =
+                    invocationConfiguration.getResponseSerializationDefinitions();
+            responseSerializationDefinitions.accept(responseSerializationBuilder);
+        }
+
+        final List<DeAndSerializationDefinition<ResponseSerializationStep1Builder>> extraDefinitions =
+                extraInvocationConfiguration.getResponseSerializationDefinitions();
+        applyExtraDefinitions(extraDefinitions, responseSerializationBuilder);
+
+        return responseSerializationBuilder.throwingAnExceptionByDefaultIfNoResponseSerializationCanBeApplied();
+    }
+
+    private ResponseDeserializationStep1Builder defineExceptionSerialization(
+            final ExceptionSerializationStep1Builder exceptionSerializationBuilder) {
+
+        final boolean applySerializationMappings = !testEnvironment.has(SIMULATE_MISSING_RESPONSE_EXCEPTION_SERIALIZATION_PARAM);
+        if (applySerializationMappings) {
+            final DeAndSerializationDefinition<ExceptionSerializationStep1Builder> exceptionsSerializationDefinitions =
+                    invocationConfiguration.getExceptionsSerializationDefinitions();
+            exceptionsSerializationDefinitions.accept(exceptionSerializationBuilder);
+        }
+
+        final List<DeAndSerializationDefinition<ExceptionSerializationStep1Builder>> extraDefinitions =
+                extraInvocationConfiguration.getExceptionsSerializationDefinitions();
+        applyExtraDefinitions(extraDefinitions, exceptionSerializationBuilder);
+
+        return exceptionSerializationBuilder.respondingWithAWrappingMissingExceptionSerializationExceptionByDefault();
+    }
+
+    private FinalStepBuilder defineResponseDeserialization(
+            final ResponseDeserializationStep1Builder responseDeserializationBuilder) {
+
+        final boolean applySerializationMappings = !testEnvironment.has(SIMULATE_MISSING_RESPONSE_DESERIALIZATION_PARAMETER);
+        if (applySerializationMappings) {
+            final DeAndSerializationDefinition<ResponseDeserializationStep1Builder> responseDeserializationDefinitions =
+                    invocationConfiguration.getResponseDeserializationDefinitions();
+            responseDeserializationDefinitions.accept(responseDeserializationBuilder);
+        }
+
+        final List<DeAndSerializationDefinition<ResponseDeserializationStep1Builder>> extraDefinitions =
+                extraInvocationConfiguration.getResponseDeserializationDefinitions();
+        applyExtraDefinitions(extraDefinitions, responseDeserializationBuilder);
+
+        return responseDeserializationBuilder.throwAnExceptionByDefaultIfNoResponseDeserializationCanBeApplied();
+    }
+
+    private <T> void applyExtraDefinitions(final List<DeAndSerializationDefinition<T>> extraDefinitions, final T builder) {
+        if (extraDefinitions != null) {
+            extraDefinitions.forEach(def -> def.accept(builder));
+        }
+    }
+
 }

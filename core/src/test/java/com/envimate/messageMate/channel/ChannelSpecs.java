@@ -25,7 +25,7 @@ import com.envimate.messageMate.channel.action.CallNotAllowedAsFinalChannelActio
 import com.envimate.messageMate.channel.action.NoHandlerForUnknownActionException;
 import com.envimate.messageMate.channel.action.ReturnWithoutCallException;
 import com.envimate.messageMate.channel.config.ChannelTestConfig;
-import com.envimate.messageMate.shared.subscriber.TestException;
+import com.envimate.messageMate.shared.exceptions.TestException;
 import org.junit.jupiter.api.Test;
 
 import static com.envimate.messageMate.channel.givenWhenThen.ChannelActionBuilder.*;
@@ -243,7 +243,7 @@ public interface ChannelSpecs {
         given(aConfiguredChannel(channelTestConfig)
                 .withAProcessFilterThatForgetsMessages())
                 .when(aMessageIsSend())
-                .then(expectNoMessageToBeDelivered()); //TODO: maybe check for FILTER_APPLIED = true --> 3x
+                .then(expectNoMessageToBeDelivered());
     }
 
     @Test

@@ -21,6 +21,8 @@
 
 package com.envimate.messageMate.useCases.severalParameter;
 
+import static com.envimate.messageMate.useCases.severalParameter.SeveralParameterUseCaseResponse.severalParameterUseCaseResponse;
+
 public class SeveralParameterUseCase {
 
     public SeveralParameterUseCaseResponse useCaseMethod(final SeveralParameterUseCaseRequest1 request1,
@@ -29,6 +31,6 @@ public class SeveralParameterUseCase {
         final Boolean booleanParameter = request1.getBooleanParameter();
         final Object objectParameter = request2.getObjectParameter();
         final String stringParameter = request2.getStringParameter();
-        return new SeveralParameterUseCaseResponse(intParameter, booleanParameter, objectParameter, stringParameter);
+        return severalParameterUseCaseResponse(intParameter, booleanParameter, objectParameter, stringParameter);
     }
 }

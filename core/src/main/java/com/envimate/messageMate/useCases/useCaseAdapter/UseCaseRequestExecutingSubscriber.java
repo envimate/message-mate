@@ -72,7 +72,7 @@ final class UseCaseRequestExecutingSubscriber implements Subscriber<ProcessingCo
         ensureNotNull(responseSerializer, "responseSerializer");
         ensureNotNull(exceptionSerializer, "exceptionSerializer");
         ensureNotNull(parameterInjector, "parameterInjector");
-        final CallingContext callingContext = callingContext(responseSerializer, requestDeserializer, parameterInjector);
+        final CallingContext callingContext = callingContext(requestDeserializer, responseSerializer, parameterInjector);
         return new UseCaseRequestExecutingSubscriber(useCaseCallingInformation, useCaseInstantiator,
                 callingContext, exceptionSerializer);
     }

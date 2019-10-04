@@ -21,23 +21,24 @@
 
 package com.envimate.messageMate.useCases.building;
 
-import com.envimate.messageMate.mapping.Demapifier;
-
-import java.util.Map;
-
 /**
- * Based on the conditions defined in the previous {@link DeserializationStep1Builder}, this step defines how to
- * map the matching object from a {@link Map} to the type
+ * An {@link Exception} indicating, that no serialization rule for an exception thrown by a use case could be applied.
  *
- * @param <T> the type to deserialize the {@code Map} into
+ * @see <a href="https://github.com/envimate/message-mate#channel">Message Mate Documentation</a>
  */
-public interface DeserializationStep2Builder<T> {
+public final class MissingExceptionSerializationException extends RuntimeException {
+
+    private MissingExceptionSerializationException(final String message) {
+        super(message);
+    }
 
     /**
-     * Uses the given {@code Demapifier}, when the previous condition triggers.
+     * Creates a new {@link MissingExceptionSerializationException} for the given message.
      *
-     * @param deMapifier the {@code Demapifier} to use
-     * @return the next step in the fluent builder interface
+     * @param message the exceptions message
+     * @return the newly created {@link MissingExceptionSerializationException}
      */
-    DeserializationStep1Builder using(Demapifier<T> deMapifier);
+    public static MissingExceptionSerializationException missingExceptionSerializationException(final String message) {
+        return new MissingExceptionSerializationException(message);
+    }
 }

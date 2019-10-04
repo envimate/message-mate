@@ -24,7 +24,7 @@ package com.envimate.messageMate.internal.pipe.givenWhenThen;
 import com.envimate.messageMate.internal.pipe.Pipe;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.shared.givenWhenThen.TestValidation;
-import com.envimate.messageMate.shared.subscriber.TestException;
+import com.envimate.messageMate.shared.exceptions.TestException;
 import com.envimate.messageMate.shared.subscriber.TestSubscriber;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 import com.envimate.messageMate.shared.validations.SharedTestValidations;

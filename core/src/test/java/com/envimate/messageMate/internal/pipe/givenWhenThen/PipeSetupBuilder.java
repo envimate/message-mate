@@ -29,7 +29,7 @@ import com.envimate.messageMate.configuration.AsynchronousConfiguration;
 import com.envimate.messageMate.internal.pipe.error.PipeErrorHandler;
 import com.envimate.messageMate.shared.environment.TestEnvironment;
 import com.envimate.messageMate.shared.givenWhenThen.SetupAction;
-import com.envimate.messageMate.shared.subscriber.TestException;
+import com.envimate.messageMate.shared.exceptions.TestException;
 import com.envimate.messageMate.shared.testMessages.TestMessage;
 
 import java.util.LinkedList;

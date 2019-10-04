@@ -46,9 +46,9 @@ import java.util.function.Predicate;
 
 import static com.envimate.messageMate.internal.collections.filtermap.FilterMapBuilder.filterMapBuilder;
 import static com.envimate.messageMate.internal.collections.predicatemap.PredicateMapBuilder.predicateMapBuilder;
-import static com.envimate.messageMate.mapping.Deserializer.requestDeserializer;
+import static com.envimate.messageMate.mapping.Deserializer.deserializer;
 import static com.envimate.messageMate.mapping.ExceptionSerializer.exceptionSerializer;
-import static com.envimate.messageMate.mapping.Serializer.responseSerializer;
+import static com.envimate.messageMate.mapping.Serializer.serializer;
 import static com.envimate.messageMate.useCases.useCaseAdapter.UseCaseAdapterImpl.useCaseAdapterImpl;
 import static com.envimate.messageMate.useCases.useCaseAdapter.UseCaseCallingInformation.useCaseInvocationInformation;
 import static com.envimate.messageMate.useCases.useCaseAdapter.parameterInjecting.ParameterInjectorBuilder.aParameterInjectorBuilder;
@@ -59,10 +59,14 @@ import static lombok.AccessLevel.PRIVATE;
  * Fluent interface builder to configure either a {@link UseCaseAdapter} or a {@link UseCaseBus}.
  */
 @RequiredArgsConstructor(access = PRIVATE)
-public final class UseCaseInvocationBuilder implements Step1Builder, DeserializationStep1Builder,
-        ResponseSerializationStep1Builder, ExceptionSerializationStep1Builder, FinalStepBuilder {
+public final class UseCaseInvocationBuilder implements Step1Builder, InstantiationBuilder,
+        RequestDeserializationStep1Builder, RequestSerializationStep1Builder,
+        ResponseSerializationStep1Builder, ExceptionSerializationStep1Builder, ResponseDeserializationStep1Builder,
+        FinalStepBuilder {
     private final List<UseCaseCallingInformation<?>> useCaseCallingInformationList = new LinkedList<>();
-    private final FilterMapBuilder<Class<?>, Map<String, Object>, Demapifier<?>> deserializers = filterMapBuilder();
+    private final PredicateMapBuilder<Object, Mapifier<Object>> requestSerializers = predicateMapBuilder();
+    private final FilterMapBuilder<Class<?>, Map<String, Object>, Demapifier<?>> requestDeserializers = filterMapBuilder();
+    private final FilterMapBuilder<Class<?>, Map<String, Object>, Demapifier<?>> responseDeserializers = filterMapBuilder();
     private final PredicateMapBuilder<Object, Mapifier<Object>> responseSerializers = predicateMapBuilder();
     private final PredicateMapBuilder<Exception, Mapifier<Exception>> exceptionSerializers = predicateMapBuilder();
     private final ParameterInjectorBuilder parameterInjectorBuilder = aParameterInjectorBuilder();
@@ -88,33 +92,48 @@ public final class UseCaseInvocationBuilder implements Step1Builder, Deserializa
     }
 
     @Override
-    public <U> Step2Builder<U> invokingUseCase(final Class<U> useCaseClass) {
-        return new UseCaseCallingBuilder<>(useCaseClass);
-    }
-
-    @Override
-    public DeserializationStep1Builder obtainingUseCaseInstancesUsing(final UseCaseInstantiator useCaseInstantiator) {
+    public RequestSerializationStep1Builder obtainingUseCaseInstancesUsing(final UseCaseInstantiator useCaseInstantiator) {
         this.useCaseInstantiator = useCaseInstantiator;
         return this;
     }
 
     @Override
-    public <T> DeserializationStep2Builder<T> mappingRequestsToUseCaseParametersThat(final BiPredicate<Class<?>,
-            Map<String, Object>> filter) {
-        return requestMapper -> {
-            deserializers.put(filter, requestMapper);
+    public RequestSerializationStep2Builder<Object> serializingUseCaseRequestOntoTheBusMatching(final Predicate<Object> filter) {
+        return mapper -> {
+            requestSerializers.put(filter, mapper);
             return this;
         };
     }
 
     @Override
-    public ResponseSerializationStep1Builder deserializeObjectsPerDefault(final Demapifier<Object> mapper) {
-        deserializers.setDefaultValue(mapper);
+    public RequestDeserializationStep1Builder serializingUseCaseRequestsByDefaultUsing(final Mapifier<Object> mapper) {
+        requestSerializers.setDefaultValue(mapper);
         return this;
     }
 
     @Override
-    public ResponseSerializationStep2Builder<Object> serializingResponseObjectsThat(final Predicate<Object> filter) {
+    public <T> RequestDeserializationStep2Builder<T> deserializeRequestsToUseCaseParametersThat(
+            final BiPredicate<Class<?>, Map<String, Object>> filter) {
+        return requestMapper -> {
+            requestDeserializers.put(filter, requestMapper);
+            return this;
+        };
+    }
+
+    @Override
+    public ResponseSerializationStep1Builder deserializeRequestsToUseCaseParametersPerDefault(final Demapifier<Object> mapper) {
+        requestDeserializers.setDefaultValue(mapper);
+        return this;
+    }
+
+    @Override
+    public <U> Step2Builder<U> invokingUseCase(final Class<U> useCaseClass) {
+        return new UseCaseCallingBuilder<>(useCaseClass);
+    }
+
+    @Override
+    public ResponseSerializationStep2Builder<Object> serializingUseCaseResponseBackOntoTheBusThat(
+            final Predicate<Object> filter) {
         return mapper -> {
             responseSerializers.put(filter, mapper);
             return this;
@@ -122,7 +141,8 @@ public final class UseCaseInvocationBuilder implements Step1Builder, Deserializa
     }
 
     @Override
-    public ExceptionSerializationStep1Builder serializingObjectsByDefaultUsing(final Mapifier<Object> mapper) {
+    public ExceptionSerializationStep1Builder serializingUseCaseResponseBackOntoTheBusByDefaultUsing(
+            final Mapifier<Object> mapper) {
         responseSerializers.setDefaultValue(mapper);
         return this;
     }
@@ -136,8 +156,23 @@ public final class UseCaseInvocationBuilder implements Step1Builder, Deserializa
     }
 
     @Override
-    public FinalStepBuilder serializingExceptionsByDefaultUsing(final Mapifier<Exception> mapper) {
+    public ResponseDeserializationStep1Builder serializingExceptionsByDefaultUsing(final Mapifier<Exception> mapper) {
         exceptionSerializers.setDefaultValue(mapper);
+        return this;
+    }
+
+    @Override
+    public <T> ResponseDeserializationStep2Builder<T> deserializingUseCaseResponsesOfThat(
+            final BiPredicate<Class<?>, Map<String, Object>> filter) {
+        return mapper -> {
+            responseDeserializers.put(filter, mapper);
+            return this;
+        };
+    }
+
+    @Override
+    public FinalStepBuilder deserializeUseCaseResponsesPerDefault(final Demapifier<Object> mapper) {
+        responseDeserializers.setDefaultValue(mapper);
         return this;
     }
 
@@ -149,13 +184,6 @@ public final class UseCaseInvocationBuilder implements Step1Builder, Deserializa
     }
 
     @Override
-    public UseCaseBus build(final SerializedMessageBus serializedMessageBus) {
-        final UseCaseAdapter useCaseAdapter = buildAsStandaloneAdapter();
-        useCaseAdapter.attachTo(serializedMessageBus);
-        return UseCaseBus.useCaseBus(serializedMessageBus);
-    }
-
-    @Override
     public UseCaseBus build(final MessageBus messageBus) {
         final UseCaseAdapter useCaseAdapter = buildAsStandaloneAdapter();
         final SerializedMessageBus serializedMessageBus = useCaseAdapter.attachAndEnhance(messageBus);
@@ -164,12 +192,15 @@ public final class UseCaseInvocationBuilder implements Step1Builder, Deserializa
 
     @Override
     public UseCaseAdapter buildAsStandaloneAdapter() {
-        final Deserializer requestDeserializer = requestDeserializer(deserializers.build());
-        final Serializer responseSerializer = responseSerializer(responseSerializers.build());
+        final Serializer requestSerializer = serializer(requestSerializers.build());
+        final Deserializer requestDeserializer = deserializer(requestDeserializers.build());
+        final Serializer responseSerializer = serializer(responseSerializers.build());
         final ExceptionSerializer exceptionSerializer = exceptionSerializer(exceptionSerializers.build());
+        final Deserializer responseDeserializer = deserializer(responseDeserializers.build());
         final ParameterInjector parameterInjector = parameterInjectorBuilder.build();
-        return useCaseAdapterImpl(useCaseCallingInformationList, useCaseInstantiator, requestDeserializer, responseSerializer,
-                exceptionSerializer, parameterInjector);
+        return useCaseAdapterImpl(useCaseCallingInformationList, useCaseInstantiator,
+                requestSerializer, requestDeserializer, responseSerializer, exceptionSerializer, responseDeserializer,
+                parameterInjector);
     }
 
     @RequiredArgsConstructor(access = PRIVATE)
@@ -180,13 +211,13 @@ public final class UseCaseInvocationBuilder implements Step1Builder, Deserializa
         public Step3Builder<U> forType(final EventType eventType) {
             return new Step3Builder<>() {
                 @Override
-                public Step1Builder callingTheSingleUseCaseMethod() {
+                public InstantiationBuilder callingTheSingleUseCaseMethod() {
                     final SinglePublicUseCaseMethodCaller<U> caller = singlePublicUseCaseMethodCaller(useCaseClass);
                     return callingBy(caller);
                 }
 
                 @Override
-                public Step1Builder callingBy(final Caller<U> caller) {
+                public InstantiationBuilder callingBy(final Caller<U> caller) {
                     final UseCaseCallingInformation<U> invocationInformation = useCaseInvocationInformation(useCaseClass,
                             eventType, caller);
                     useCaseCallingInformationList.add(invocationInformation);
