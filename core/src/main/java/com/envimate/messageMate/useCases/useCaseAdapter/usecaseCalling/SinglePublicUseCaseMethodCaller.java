@@ -30,10 +30,12 @@ import lombok.RequiredArgsConstructor;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.envimate.messageMate.internal.reflections.ForbiddenUseCaseMethods.NOT_ALLOWED_USECASE_PUBLIC_METHODS;
 import static com.envimate.messageMate.internal.reflections.ReflectionUtils.getAllPublicMethods;
 import static com.envimate.messageMate.useCases.useCaseAdapter.methodInvoking.SerializingMethodInvoker.serializingMethodInvoker;
+import static java.util.function.Predicate.not;
 import static lombok.AccessLevel.PRIVATE;
 
 /**
@@ -59,8 +61,11 @@ public final class SinglePublicUseCaseMethodCaller<U> implements Caller<U> {
         return new SinglePublicUseCaseMethodCaller<>(methodInvoker);
     }
 
-    private static Method locateUseCaseMethod(final Class<?> useCaseClass) {
-        final List<Method> useCaseMethods = getAllPublicMethods(useCaseClass, NOT_ALLOWED_USECASE_PUBLIC_METHODS);
+    static Method locateUseCaseMethod(final Class<?> useCaseClass) {
+        final List<Method> useCaseMethods =
+                getAllPublicMethods(useCaseClass, NOT_ALLOWED_USECASE_PUBLIC_METHODS).stream()
+                .filter(not(Method::isBridge))
+                .collect(Collectors.toList());
         if (useCaseMethods.size() == 1) {
             return useCaseMethods.get(0);
         } else {
